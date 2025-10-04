@@ -1,0 +1,6 @@
+/* Aplica a todos los inputs con autofill */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px red inset; /* reemplaza 'white' por el color de fondo de tu input */
+  -webkit-text-fill-color: black; /* color del texto */
+  transition: background-color 5000s ease-in-out; /* evita el parpadeo */
+}

@@ -1,0 +1,45 @@
+.loginPageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;    
+  background-color: aqua;  
+}
+
+.loginBoxContainer {
+  position: absolute;
+  min-width: 300px;
+  width: 30vw;
+  height: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.textFields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.headerBoxContainer{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+} 
+
+
+.fixedTopRightButtons {
+    position: fixed;
+    top: 16px;       
+    right: 24px;     
+    display: flex;
+    gap: 8px;        
+    z-index: 10;  
+}
