@@ -4,14 +4,20 @@ import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import GroupIcon from "@mui/icons-material/Group";
 import LinkIcon from "@mui/icons-material/Link";
 
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const ProjectItem = ({ project, onClick }) => {
 
-  return (
+  const imageSrc = project.image_url
+  ? `${API_UPLOADS}${project.image_url}`
+  : undefined;
+
+ 
+  return ( 
     <Item
       leftComponents={[
         <Avatar
-          src={project.image_url ?? undefined}
+          src={imageSrc ?? undefined}
           sx={{
             width: 56,
             height: 56,

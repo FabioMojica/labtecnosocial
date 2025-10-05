@@ -9,12 +9,15 @@ export const createOperationalProjectApi = async (projectData) => {
     const response = await axiosInstance.post(
       Routes.CREATE_PROJECT,
       projectData,
-      { signal: controller.signal }
+      {
+        signal: controller.signal,
+      }
     );
 
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
+    console.log(error);
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al crear el proyecto");
     throw new Error("Error al intentar crear el proyecto");

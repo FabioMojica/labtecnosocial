@@ -10,6 +10,7 @@ import { useNotification } from "../../contexts";
 
 // 3. Utilidades / helpers
 import { isProjectEqual } from "./utils/isProjectEqual";
+import { createProjectFormData } from "./utils/createProjectFormData";
 
 // 4. Componentes
 import {
@@ -54,29 +55,36 @@ export const CreateProjectPage = () => {
     const { loading, callEndpoint } = useFetchAndLoad();
     const navigate = useNavigate();
 
-
     const handleCreateProject = async () => {
         if (!project) {
             notify("Completa los datos del proyecto antes de guardar", "info");
             return;
         }
-
         try {
+            
             const projectToSend = {
                 name: project.name,
                 description: project.description,
-                image_url: project.image_url ?? null,
                 image_file: project.image_file ?? null,
-                newResponsibles: project.newResponsibles ?? [],
+                responsibles: project.newResponsibles ?? [],
                 integrations: project.integrations ?? [],
             };
-            await callEndpoint(createOperationalProjectApi(projectToSend));
+
+            console.log("{{{{{{{{{{{{{{{{{{{{{{{{", projectToSend)
+
+            const formData = createProjectFormData(projectToSend);
+
+            console.log("PPPP>", formData);
+
+            await callEndpoint(createOperationalProjectApi(formData));
+
             notify("Proyecto creado correctamente", "success");
             navigate("/proyectos");
         } catch (error) {
-            notify(error?.message, "error");
+            notify(error?.message || "Error al crear el proyecto", "error");
         }
     };
+
 
     const handleProjectChange = (changes) => {
         setProject(prev => {
@@ -122,14 +130,11 @@ export const CreateProjectPage = () => {
                         handleProjectChange({ newResponsibles: selectedIds });
                     }}
                 />
-                
+
                 <IntegrationsWithAPIsPanel
                     panelHeight={tabsHeight}
-                    selectedUsers={selectedResponsibles}
-                    onChange={(selectedIds) => {
-                        setSelectedResponsibles(new Set(selectedIds));
-                        handleProjectChange({ newResponsibles: selectedIds });
-                    }}
+                    selectedIntegrations={project.integrations}
+                    onChange={(integrations) => handleProjectChange({ integrations })}
                 />
             </TabButtons>
 
@@ -163,4 +168,4 @@ export const CreateProjectPage = () => {
             />
         </>
     );
-}
+}; 

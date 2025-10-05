@@ -13,8 +13,6 @@ export const AssignResponsibleCheckBoxItem = ({
   onChange,
 }) => {
   const navigate = useNavigate();
-  const { settings } = useSound();
-  const { playAssign, playUnassign } = useAssignSounds(settings.volume);
 
   const roleData = roleConfig[responsible.role] ?? {
     icon: QuestionMarkRoundedIcon,
@@ -29,10 +27,6 @@ export const AssignResponsibleCheckBoxItem = ({
 
   const handleToggle = () => {
     const newChecked = !checked;
-
-    if (settings.enabled) {
-      newChecked ? playAssign() : playUnassign();
-    }
 
     onChange?.(newChecked);
   };

@@ -14,10 +14,12 @@ import {
     Tooltip,
     Avatar,
 } from "@mui/material";
+import { IconButton } from "@mui/material";
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useEffect, useState } from "react";
 import { useFetchAndLoad } from "../../../hooks";
 import { integrationsConfig } from "../../../utils";
-import { 
+import {
     ErrorScreen,
     NoResultsScreen,
     SearchBar,
@@ -27,19 +29,19 @@ import {
 import { useHeaderHeight } from "../../../contexts";
 import { getGitHubRepositoriesApi } from "../../../api";
 
-export const GithubApi = ({ panelHeight }) => {
+export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
     const { icon: GitHubIcon, label, color } = integrationsConfig.github;
     const theme = useTheme();
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [error, setError] = useState(false);
-
+    const selectedRepos = selected;
 
     const [repos, setRepos] = useState([]);
     const [filteredRepos, setFilteredRepos] = useState([]);
-    const [selectedRepos, setSelectedRepos] = useState([]);
-    const [tooltipOpenId, setTooltipOpenId] = useState(null);
 
+    const [tooltipContent, setTooltipContent] = useState(null);
+    const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
 
     const getGitHubRepositories = async () => {
         try {
@@ -53,19 +55,36 @@ export const GithubApi = ({ panelHeight }) => {
     };
 
     useEffect(() => {
-    }, [filteredRepos]);
-
-    useEffect(() => {
         getGitHubRepositories();
     }, []);
 
     const handleToggleRepo = (repo) => {
         const alreadySelected = selectedRepos.some((r) => r.id === repo.id);
+
+        let newSelected;
         if (alreadySelected) {
-            setSelectedRepos((prev) => prev.filter((r) => r.id !== repo.id));
+            newSelected = selectedRepos.filter(r => r.id !== repo.id);
         } else {
-            setSelectedRepos((prev) => [...prev, repo]);
+            newSelected = [...selectedRepos, repo];
         }
+
+        onChange?.(newSelected);
+    };
+
+    const handleContextMenu = (e, repo) => {
+        e.preventDefault();
+        setTooltipContent(
+            <Box>
+                <Typography variant="body2" fontWeight={500}>{repo.name}</Typography>
+                <Typography variant="caption" display="block" color="text.secondary">{repo.url}</Typography>
+                <Typography variant="caption" display="block" color="primary.main">Haz click en el icono para abrir</Typography>
+            </Box>
+        );
+        setTooltipPosition({ top: e.clientY, left: e.clientX });
+
+        setTimeout(() => {
+            setTooltipContent(null);
+        }, 3000);
     };
 
     return (
@@ -109,7 +128,7 @@ export const GithubApi = ({ panelHeight }) => {
                                 gap={1}
                                 flexDirection={'row'}
                                 alignContent={'center'}
-                                justifyContent={'center'}
+                                justifyContent="flex-start"
                                 alignItems={'center'}
                                 sx={{
                                     maxHeight: '100%',
@@ -155,7 +174,6 @@ export const GithubApi = ({ panelHeight }) => {
                             placeholder="Buscar repositorio..."
                             onResults={(results) => setFilteredRepos(results)}
                         />
-
                         {
                             filteredRepos.length === 0 ? (
                                 <NoResultsScreen message="Búsqueda de repositorios sin resultados" sx={{ minHeight: '100%' }} />
@@ -182,93 +200,93 @@ export const GithubApi = ({ panelHeight }) => {
                                         pb: 6
                                     }}>
                                     {filteredRepos.map((repo) => {
-                                        const checked = selectedRepos.some((r) => r.id === repo.id);
+                                        const checked = selectedRepos.some(r => r.id === repo.id);
 
-                                        let timer;
-
-                                        const handlePressStart = () => {
-                                            timer = window.setTimeout(() => {
-                                                window.open(repo.url, "_blank");
-                                            }, 2000);
+                                        const handleOpenRepo = (e) => {
+                                            e.stopPropagation();
+                                            window.open(repo.url, "_blank");
                                         };
 
-                                        const handlePressEnd = () => {
-                                            clearTimeout(timer);
-                                        };
-                                        
                                         return (
-                                            <Tooltip
-                                                placement="top"
-                                                open={tooltipOpenId === repo.id}
-                                                title={
-                                                    <Box>
-                                                        <Typography variant="body2" fontWeight={500}>
-                                                            {repo.name}
-                                                        </Typography>
-                                                        <Typography variant="caption" display="block" color="text.secondary">
-                                                            {repo.url}
-                                                        </Typography>
-                                                        <Typography variant="caption" display="block" color="primary.main">
-                                                            Presiona 2 segundos para abrir
-                                                        </Typography>
-                                                    </Box>
-                                                }
+                                            <ListItemButton
+                                                key={repo.id}
+                                                onContextMenu={(e) => handleContextMenu(e, repo)}
+                                                onClick={() => handleToggleRepo(repo)}
+                                                sx={{
+                                                    "&:hover": { backgroundColor: "action.hover" },
+                                                    display: 'flex',
+                                                    flexDirection: 'row',
+                                                    justifyContent: 'space-between',
+                                                    pr: 0,
+                                                    position: 'relative'
+                                                }}
                                             >
-                                                <ListItemButton
-                                                    key={repo.id}
-                                                    onContextMenu={(e) => {
-                                                        e.preventDefault();
-                                                        setTooltipOpenId(repo.id);
-                                                        setTimeout(() => setTooltipOpenId(null), 3000); 
-                                                    }}
-                                                    onMouseDown={handlePressStart}
-                                                    onMouseUp={handlePressEnd}
-                                                    onMouseLeave={handlePressEnd}
-                                                    onTouchStart={handlePressStart}  
-                                                    onTouchEnd={handlePressEnd}      
-                                                    onTouchCancel={handlePressEnd}
-                                                    onClick={() => handleToggleRepo(repo)}
-                                                    sx={{ "&:hover": { backgroundColor: "action.hover" }, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', pr: 0 }}
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={handleOpenRepo}
+                                                    sx={{ position: 'absolute', top: -3, left: -3 }}
                                                 >
-                                                    <ListItemIcon>
-                                                        <Avatar src={repo.image_url} alt={repo.name}>
-                                                            {repo.name?.[0] || "?"}
-                                                        </Avatar>
-                                                    </ListItemIcon>
-                                                    <ListItemText
-                                                        primary={repo.name}
-                                                        secondary={repo.url}
-                                                        primaryTypographyProps={{
-                                                            fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
-                                                            fontWeight: 500,
-                                                            noWrap: true,
-                                                            sx: {
-                                                                textOverflow: 'ellipsis',
-                                                                overflow: 'hidden',
-                                                            }
-                                                        }}
-                                                        secondaryTypographyProps={{
-                                                            fontSize: "0.8rem",
-                                                            color: "text.secondary",
-                                                            noWrap: true,
-                                                            sx: {
-                                                                textOverflow: 'ellipsis',
-                                                                overflow: 'hidden',
-                                                            }
-                                                        }}
+                                                    <OpenInNewIcon sx={{ fontSize: '1rem' }} />
+                                                </IconButton>
+
+                                                <ListItemIcon>
+                                                    <Avatar src={repo.image_url} alt={repo.name}>
+                                                        {repo.name?.[0] || "?"}
+                                                    </Avatar>
+                                                </ListItemIcon>
+
+                                                <ListItemText
+                                                    primary={repo.name}
+                                                    secondary={repo.url}
+                                                    primaryTypographyProps={{
+                                                        fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
+                                                        fontWeight: 500,
+                                                        noWrap: true,
+                                                        sx: { textOverflow: 'ellipsis', overflow: 'hidden' }
+                                                    }}
+                                                    secondaryTypographyProps={{
+                                                        fontSize: "0.8rem",
+                                                        color: "text.secondary",
+                                                        noWrap: true,
+                                                        sx: { textOverflow: 'ellipsis', overflow: 'hidden' }
+                                                    }}
+                                                />
+
+                                                <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
+                                                    <Checkbox
+                                                        edge="end"
+                                                        checked={checked}
+                                                        tabIndex={-1}
+                                                        disableRipple
                                                     />
-                                                    <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
-                                                        <Checkbox
-                                                            edge="end"
-                                                            checked={checked}
-                                                            tabIndex={-1}
-                                                            disableRipple
-                                                        />
-                                                    </ListItemIcon>
-                                                </ListItemButton>
-                                            </Tooltip>
+                                                </ListItemIcon>
+                                            </ListItemButton>
                                         );
                                     })}
+
+                                    {/* Tooltip global */}
+                                    {tooltipContent && (
+                                        <Tooltip
+                                            open
+                                            title={tooltipContent}
+                                            PopperProps={{
+                                                anchorEl: {
+                                                    getBoundingClientRect: () => ({
+                                                        top: tooltipPosition.top,
+                                                        left: tooltipPosition.left,
+                                                        right: tooltipPosition.left,
+                                                        bottom: tooltipPosition.top,
+                                                        width: 0,
+                                                        height: 0,
+                                                    }),
+                                                },
+                                                
+                                            }}
+                                            placement="top-start"
+                                        >
+                                            <span />
+                                        </Tooltip>
+                                    )}
                                 </List>
                             )
                         }

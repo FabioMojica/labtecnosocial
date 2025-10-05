@@ -1,3 +1,172 @@
+// import {
+//     Box,
+//     Card,
+//     List,
+//     ListItemIcon,
+//     ListItemText,
+//     Paper,
+//     Stack,
+//     Typography,
+//     useTheme,
+//     Checkbox,
+//     Chip,
+//     ListItemButton,
+//     Tooltip,
+//     Avatar,
+//     IconButton,
+// } from "@mui/material";
+// import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+// import { integrationsConfig } from "../../../utils";
+// import {
+//     ErrorScreen,
+//     NoResultsScreen,
+//     SearchBar,
+//     SpinnerLoading,
+// } from "../../../generalComponents";
+// import { useEffect, useState } from "react";
+// import { useFetchAndLoad } from "../../../hooks";
+// import { useHeaderHeight } from "../../../contexts";
+// import { getXAccountsApi } from "../../../api";
+
+// export const XApi = ({ panelHeight, selected = [], onChange }) => {
+//     const { icon: XIcon, label, color } = integrationsConfig.X;
+//     const theme = useTheme();
+//     const { headerHeight } = useHeaderHeight();
+//     const { loading, callEndpoint } = useFetchAndLoad();
+//     const [error, setError] = useState(false);
+
+//     const [accounts, setAccounts] = useState([]);
+//     const [filteredAccounts, setFilteredAccounts] = useState([]);
+//     const [tooltipOpenId, setTooltipOpenId] = useState(null);
+//     const selectedAccounts = selected;
+
+//     const getXAccounts = async () => {
+//         try {
+//             const accounts = await callEndpoint(getXAccountsApi());
+//             setAccounts(accounts);
+//             setFilteredAccounts(accounts);
+//             setError(false);
+//         } catch (error) {
+//             setError(true);
+//         }
+//     };
+
+//     useEffect(() => { getXAccounts(); }, []);
+
+//     const handleToggleAccount = (account) => {
+//         const alreadySelected = selectedAccounts.some(r => r.id === account.id);
+//         const newSelected = alreadySelected
+//             ? selectedAccounts.filter(r => r.id !== account.id)
+//             : [...selectedAccounts, account];
+
+//         onChange?.(newSelected);
+//     };
+
+
+//     useEffect(() => {
+//         onChange?.(
+//             selectedAccounts.map(account => ({ id: account.id, name: account.name, url: account.url }))
+//         );
+//     }, [selectedAccounts, onChange]);
+
+//     return (
+//         <Paper elevation={3} sx={{ height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 16px)`, display: 'flex', flexDirection: 'column', p: 0.5 }}>
+//             <Box sx={{ display: "flex", gap: 2, alignItems: "center", justifyContent: "flex-start", height: '10%' }}>
+//                 <XIcon sx={{ fontSize: 40, color }} />
+//                 <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
+//             </Box>
+
+//             {loading ? (
+//                 <SpinnerLoading text="Obteniendo las cuentas de X..." size={30} sx={{ height: "90%" }} />
+//             ) : error ? (
+//                 <ErrorScreen sx={{ height: "90%" }} message="Ocurrió un error al obtener las cuentas de X" buttonText="Reintentar" onButtonClick={() => getXAccounts()} />
+//             ) : !accounts || accounts.length === 0 ? (
+//                 <NoResultsScreen message="No tienes cuentas de X asociadas" />
+//             ) : (
+//                 <Box sx={{ minHeight: "90%", display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'space-between' }}>
+//                     {/* Selected accounts */}
+//                     <Box sx={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
+//                         {selectedAccounts.length > 0 ? (
+//                             <Stack direction="row" gap={1} alignItems="center" sx={{ maxHeight: '100%', overflowX: 'auto', "&::-webkit-scrollbar": { height: "2px" }, "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" }, "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" }, "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark }, pb: 1 }}>
+//                                 {selectedAccounts.map((account) => (
+//                                     <Chip key={account.id} label={account.name} onDelete={() => handleToggleAccount(account)} color="primary" variant="outlined" />
+//                                 ))}
+//                             </Stack>
+//                         ) : (
+//                             <Typography align="center" variant="body1">Sin cuentas seleccionadas</Typography>
+//                         )}
+//                     </Box>
+
+//                     {/* List */}
+//                     <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+//                         <SearchBar data={accounts} fields={["name", "url"]} placeholder="Buscar cuentas..." onResults={(results) => setFilteredAccounts(results)} />
+
+//                         {filteredAccounts.length === 0 ? (
+//                             <NoResultsScreen message="Búsqueda de cuentas sin resultados" sx={{ minHeight: '100%' }} />
+//                         ) : (
+//                             <List sx={{ overflowY: "auto", minHeight: '100%', width: '100%', pb: 6, "&::-webkit-scrollbar": { width: "2px" }, "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "8px" }, "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "8px" }, "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark } }}>
+//                                 {filteredAccounts.map((account) => {
+//                                     const checked = selectedAccounts.some((r) => r.id === account.id);
+
+//                                     const handleOpenAccount = (e) => {
+//                                         e.stopPropagation();
+//                                         window.open(account.url, "_blank");
+//                                     };
+
+//                                     return (
+//                                         <Tooltip
+//                                             key={account.id}
+//                                             placement="top"
+//                                             open={tooltipOpenId === account.id}
+//                                             title={
+//                                                 <Box>
+//                                                     <Typography variant="body2" fontWeight={500}>{account.name}</Typography>
+//                                                     <Typography variant="caption" display="block" color="text.secondary">{account.url}</Typography>
+//                                                     <Typography variant="caption" display="block" color="primary.main">Haz click en el icono para abrir</Typography>
+//                                                 </Box>
+//                                             }
+//                                         >
+//                                             <ListItemButton
+//                                                 onContextMenu={(e) => {
+//                                                     e.preventDefault();
+//                                                     setTooltipOpenId(account.id);
+//                                                     setTimeout(() => setTooltipOpenId(null), 3000);
+//                                                 }}
+//                                                 onClick={() => handleToggleAccount(account)}
+//                                                 sx={{ "&:hover": { backgroundColor: "action.hover" }, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', pr: 0, position: 'relative' }}
+//                                             >
+//                                                 {/* Icono en esquina superior izquierda */}
+//                                                 <IconButton size="small" onClick={handleOpenAccount} sx={{ position: 'absolute', top: 4, left: 4 }}>
+//                                                     <OpenInNewIcon fontSize="small" />
+//                                                 </IconButton>
+
+//                                                 <ListItemIcon>
+//                                                     <Avatar src={account.image_url} alt={account.name}>{account.name?.[0] || "?"}</Avatar>
+//                                                 </ListItemIcon>
+
+//                                                 <ListItemText
+//                                                     primary={account.name}
+//                                                     secondary={account.url}
+//                                                     primaryTypographyProps={{ fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" }, fontWeight: 500, noWrap: true, sx: { textOverflow: 'ellipsis', overflow: 'hidden' } }}
+//                                                     secondaryTypographyProps={{ fontSize: "0.8rem", color: "text.secondary", noWrap: true, sx: { textOverflow: 'ellipsis', overflow: 'hidden' } }}
+//                                                 />
+
+//                                                 <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
+//                                                     <Checkbox edge="end" checked={checked} tabIndex={-1} disableRipple />
+//                                                 </ListItemIcon>
+//                                             </ListItemButton>
+//                                         </Tooltip>
+//                                     );
+//                                 })}
+//                             </List>
+//                         )}
+//                     </Card>
+//                 </Box>
+//             )}
+//         </Paper>
+//     );
+// };
+
 import {
     Box,
     Card,
@@ -14,41 +183,39 @@ import {
     Tooltip,
     Avatar,
 } from "@mui/material";
-
+import { IconButton } from "@mui/material";
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { useEffect, useState } from "react";
+import { useFetchAndLoad } from "../../../hooks";
 import { integrationsConfig } from "../../../utils";
-import { 
+import {
     ErrorScreen,
     NoResultsScreen,
     SearchBar,
     SpinnerLoading,
 } from "../../../generalComponents";
 
-
-import { useEffect, useState } from "react";
-
-import { useFetchAndLoad } from "../../../hooks";
-
-
 import { useHeaderHeight } from "../../../contexts";
-import { getXAccountsApi } from "../../../api";
 
-export const XApi = ({ panelHeight }) => {
+export const XApi = ({ panelHeight, selected = [], onChange }) => {
     const { icon: XIcon, label, color } = integrationsConfig.X;
     const theme = useTheme();
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [error, setError] = useState(false);
+    const selectedAccounts = selected;
 
     const [accounts, setAccounts] = useState([]);
-    const [filteredPages, setFilteredPages] = useState([]);
-    const [selectedPages, setSelectedPages] = useState([]);
-    const [tooltipOpenId, setTooltipOpenId] = useState(null);
+    const [filteredAccounts, setFilteredAccounts] = useState([]);
+
+    const [tooltipContent, setTooltipContent] = useState(null);
+    const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
 
     const getXAccounts = async () => {
         try {
             const accounts = await callEndpoint(getXAccountsApi());
             setAccounts(accounts);
-            setFilteredPages(accounts);
+            setFilteredAccounts(accounts);
             setError(false);
         } catch (error) {
             setError(true);
@@ -56,20 +223,36 @@ export const XApi = ({ panelHeight }) => {
     };
 
     useEffect(() => {
-
-    }, [filteredPages]);
-
-    useEffect(() => {
         getXAccounts();
     }, []);
 
-    const handleTogglePage = (page) => {
-        const alreadySelected = selectedPages.some((r) => r.id === page.id);
+    const handleToggleAccounts = (accounts) => {
+        const alreadySelected = selectedAccounts.some((r) => r.id === accounts.id);
+
+        let newSelected;
         if (alreadySelected) {
-            setSelectedPages((prev) => prev.filter((r) => r.id !== page.id));
+            newSelected = selectedAccounts.filter(r => r.id !== accounts.id);
         } else {
-            setSelectedPages((prev) => [...prev, page]);
+            newSelected = [...selectedAccounts, accounts];
         }
+
+        onChange?.(newSelected);
+    };
+
+    const handleContextMenu = (e, accounts) => {
+        e.preventDefault();
+        setTooltipContent(
+            <Box>
+                <Typography variant="body2" fontWeight={500}>{accounts.name}</Typography>
+                <Typography variant="caption" display="block" color="text.secondary">{accounts.url}</Typography>
+                <Typography variant="caption" display="block" color="primary.main">Haz click en el icono para abrir</Typography>
+            </Box>
+        );
+        setTooltipPosition({ top: e.clientY, left: e.clientX });
+
+        setTimeout(() => {
+            setTooltipContent(null);
+        }, 3000);
     };
 
     return (
@@ -91,29 +274,29 @@ export const XApi = ({ panelHeight }) => {
 
             {loading ? (
                 <SpinnerLoading
-                    text="Obteniendo las cuentas usuario de X..."
+                    text="Obteniendo las cuentas de X..."
                     size={30}
                     sx={{ height: "90%" }}
                 />
             ) : error ? (
                 <ErrorScreen
                     sx={{ height: "90%" }}
-                    message="Ocurrió un error al obtener las cuentas de usuario X"
+                    message="Ocurrió un error al obtener las cuentas de X"
                     buttonText="Reintentar"
                     onButtonClick={() => getXAccounts()}
                 />
             ) : !accounts || accounts.length === 0 ? (
-                <NoResultsScreen message="No tienes cuentas de X asociadas" />
+                <NoResultsScreen message="No tienes cuentas en X" />
             ) : (
                 <Box sx={{ minHeight: "90%", display: "flex", flexDirection: 'column', gap: 1, justifyContent: 'space-between' }}>
                     <Box sx={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
-                        {selectedPages.length > 0 ? (
+                        {selectedAccounts.length > 0 ? (
                             <Stack
                                 direction="column"
                                 gap={1}
                                 flexDirection={'row'}
                                 alignContent={'center'}
-                                justifyContent={'center'}
+                                justifyContent="flex-start"
                                 alignItems={'center'}
                                 sx={{
                                     maxHeight: '100%',
@@ -135,18 +318,18 @@ export const XApi = ({ panelHeight }) => {
                                     pb: 1
                                 }}
                             >
-                                {selectedPages.map((page) => (
+                                {selectedAccounts.map((accounts) => (
                                     <Chip
-                                        key={page.id}
-                                        label={page.name}
-                                        onDelete={() => handleTogglePage(page)}
+                                        key={accounts.id}
+                                        label={accounts.name}
+                                        onDelete={() => handleToggleAccounts(accounts)}
                                         color="primary"
                                         variant="outlined"
                                     />
                                 ))}
                             </Stack>
                         ) : (
-                            <Typography align="center" variant="body1">Sin páginas seleccionadas</Typography>
+                            <Typography align="center" variant="body1">Sin cuentas de X seleccionadas</Typography>
                         )}
                     </Box>
 
@@ -156,13 +339,12 @@ export const XApi = ({ panelHeight }) => {
                         <SearchBar
                             data={accounts}
                             fields={["name", "url"]}
-                            placeholder="Buscar páginas..."
-                            onResults={(results) => setFilteredPages(results)}
+                            placeholder="Buscar cuenta..."
+                            onResults={(results) => setFilteredAccounts(results)}
                         />
-
                         {
-                            filteredPages.length === 0 ? (
-                                <NoResultsScreen message="Búsqueda de páginas sin resultados" sx={{ minHeight: '100%' }} />
+                            filteredAccounts.length === 0 ? (
+                                <NoResultsScreen message="Búsqueda de cuentas sin resultados" sx={{ minHeight: '100%' }} />
                             ) : (
                                 <List
                                     sx={{
@@ -185,94 +367,94 @@ export const XApi = ({ panelHeight }) => {
                                         width: '100%',
                                         pb: 6
                                     }}>
-                                    {filteredPages.map((page) => {
-                                        const checked = selectedPages.some((r) => r.id === page.id);
+                                    {filteredAccounts.map((account) => {
+                                        const checked = selectedAccounts.some(r => r.id === account.id);
 
-                                        let timer;
-
-                                        const handlePressStart = () => {
-                                            timer = window.setTimeout(() => {
-                                                window.open(page.url, "_blank");
-                                            }, 2000);
+                                        const handleOpenAccounts = (e) => {
+                                            e.stopPropagation();
+                                            window.open(accounts.url, "_blank");
                                         };
 
-                                        const handlePressEnd = () => {
-                                            clearTimeout(timer);
-                                        };
                                         return (
-                                            <Tooltip
-                                                placement="top"
-                                                open={tooltipOpenId === page.id}
-                                                title={
-                                                    <Box>
-                                                        <Typography variant="body2" fontWeight={500}>
-                                                            {page.name}
-                                                        </Typography>
-                                                        <Typography variant="caption" display="block" color="text.secondary">
-                                                            {page.url}
-                                                        </Typography>
-                                                        <Typography variant="caption" display="block" color="primary.main">
-                                                            Presiona 2 segundos para abrir
-                                                        </Typography>
-                                                    </Box>
-                                                }
+                                            <ListItemButton
+                                                key={account.id}
+                                                onContextMenu={(e) => handleContextMenu(e, account)}
+                                                onClick={() => handleToggleAccounts(account)}
+                                                sx={{
+                                                    "&:hover": { backgroundColor: "action.hover" },
+                                                    display: 'flex',
+                                                    flexDirection: 'row',
+                                                    justifyContent: 'space-between',
+                                                    pr: 0,
+                                                    position: 'relative'
+                                                }}
                                             >
-                                                <ListItemButton
-                                                    key={page.id}
-                                                    onContextMenu={(e) => {
-                                                        e.preventDefault();
-                                                        setTooltipOpenId(page.id);
-                                                        setTimeout(() => setTooltipOpenId(null), 3000);
-                                                    }}
-                                                    onMouseDown={handlePressStart}
-                                                    onMouseUp={handlePressEnd}
-                                                    onMouseLeave={handlePressEnd}
-                                                    onTouchStart={handlePressStart}  
-                                                    onTouchEnd={handlePressEnd}      
-                                                    onTouchCancel={handlePressEnd}
-                                                    onClick={() => handleTogglePage(page)}
-                                                    sx={{ "&:hover": { backgroundColor: "action.hover" }, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', pr: 0 }}
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={handleOpenAccounts}
+                                                    sx={{ position: 'absolute', top: -3, left: -3 }}
                                                 >
-                                                    <ListItemIcon>
-                                                        <Avatar src={page.image_url} alt={page.name}>
-                                                            {page.name?.[0] || "?"}
-                                                        </Avatar>
-                                                    </ListItemIcon>
+                                                    <OpenInNewIcon sx={{ fontSize: '1rem' }} />
+                                                </IconButton>
 
-                                                    <ListItemText
-                                                        primary={page.name}
-                                                        secondary={page.url}
-                                                        primaryTypographyProps={{
-                                                            fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
-                                                            fontWeight: 500,
-                                                            noWrap: true, // equivalente a white-space: nowrap
-                                                            sx: {
-                                                                textOverflow: 'ellipsis',
-                                                                overflow: 'hidden',
-                                                            }
-                                                        }}
-                                                        secondaryTypographyProps={{
-                                                            fontSize: "0.8rem",
-                                                            color: "text.secondary",
-                                                            noWrap: true, // equivalente a white-space: nowrap
-                                                            sx: {
-                                                                textOverflow: 'ellipsis',
-                                                                overflow: 'hidden',
-                                                            }
-                                                        }}
+                                                <ListItemIcon>
+                                                    <Avatar src={account.image_url} alt={account.name}>
+                                                        {account.name?.[0] || "?"}
+                                                    </Avatar>
+                                                </ListItemIcon>
+
+                                                <ListItemText
+                                                    primary={account.name}
+                                                    secondary={account.url}
+                                                    primaryTypographyProps={{
+                                                        fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
+                                                        fontWeight: 500,
+                                                        noWrap: true,
+                                                        sx: { textOverflow: 'ellipsis', overflow: 'hidden' }
+                                                    }}
+                                                    secondaryTypographyProps={{
+                                                        fontSize: "0.8rem",
+                                                        color: "text.secondary",
+                                                        noWrap: true,
+                                                        sx: { textOverflow: 'ellipsis', overflow: 'hidden' }
+                                                    }}
+                                                />
+
+                                                <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
+                                                    <Checkbox
+                                                        edge="end"
+                                                        checked={checked}
+                                                        tabIndex={-1}
+                                                        disableRipple
                                                     />
-                                                    <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
-                                                        <Checkbox
-                                                            edge="end"
-                                                            checked={checked}
-                                                            tabIndex={-1}
-                                                            disableRipple
-                                                        />
-                                                    </ListItemIcon>
-                                                </ListItemButton>
-                                            </Tooltip>
+                                                </ListItemIcon>
+                                            </ListItemButton>
                                         );
                                     })}
+
+                                    {/* Tooltip global */}
+                                    {tooltipContent && (
+                                        <Tooltip
+                                            open
+                                            title={tooltipContent}
+                                            PopperProps={{
+                                                anchorEl: {
+                                                    getBoundingClientRect: () => ({
+                                                        top: tooltipPosition.top,
+                                                        left: tooltipPosition.left,
+                                                        right: tooltipPosition.left,
+                                                        bottom: tooltipPosition.top,
+                                                        width: 0,
+                                                        height: 0,
+                                                    }),
+                                                },
+                                                
+                                            }}
+                                            placement="top-start"
+                                        >
+                                            <span />
+                                        </Tooltip>
+                                    )}
                                 </List>
                             )
                         }

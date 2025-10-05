@@ -39,7 +39,7 @@ export const useResponsiblesPanel = (
 //     };
 
    const removeResponsible = (user) => {
-    console.log("hola")
+
         const updatedProjectResponsibles = projectResponsibles.filter(r => r.id !== user.id);
         const updatedPreEliminados = [...preEliminados, user];
         setProjectResponsibles(updatedProjectResponsibles);
@@ -58,7 +58,6 @@ export const useResponsiblesPanel = (
 //   };
 
  const restoreResponsible = (user) => {
-    console.log("xs")
         const updatedPreEliminados = preEliminados.filter(r => r.id !== user.id);
         const updatedProjectResponsibles = [...projectResponsibles, user];
 

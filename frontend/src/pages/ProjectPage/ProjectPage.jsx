@@ -38,7 +38,7 @@ export const ProjectPage = () => {
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
     const { id } = useParams();
-    console.log(id)
+
     const navigate = useNavigate();
     if (!id) return <ErrorScreen message="Proyecto no encontrado" buttonText="Volver a proyectos" onButtonClick={() => navigate('/proyectos')} />;
     const projectId = id;

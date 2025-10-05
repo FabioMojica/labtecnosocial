@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { roleConfig, stateConfig } from "../../../utils";
 import { NoResultsScreen, ProjectImageDates } from "../../../generalComponents";
 
-export const ViewProjectDrawer= ({ project }) => {
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
+
+export const ViewProjectDrawer = ({ project }) => {
     if (!project) return null;
-    console.log("---->drawe", project);
     const navigate = useNavigate();
 
     return (
@@ -45,8 +46,7 @@ export const ViewProjectDrawer= ({ project }) => {
                             },
                         }}
                     >
-                        <ProjectImageDates overlay={true} overlayText="Ir al proyecto" project={project}
-                        />
+                        <ProjectImageDates overlay={true} overlayText="Ir al proyecto" project={project} />
                     </Box>
 
                 </Box>
@@ -92,7 +92,11 @@ export const ViewProjectDrawer= ({ project }) => {
                                             onClick={() => navigate(`/proyecto/${project.id}`)}
                                         >
                                             <Avatar
-                                                src={responsible.image_url ?? undefined}
+                                                src={
+                                                    responsible.image_url
+                                                        ? `${API_UPLOADS}${responsible.image_url}`
+                                                        : undefined
+                                                }
                                                 alt={`${responsible.firstName} ${responsible.lastName}`}
                                                 sx={{
                                                     width: "100%",

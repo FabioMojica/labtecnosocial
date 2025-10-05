@@ -2,7 +2,7 @@ import { Box, Divider, Paper, Typography } from "@mui/material";
 import { ProjectProfileImage } from "./ProjectProfileImage";
 import { useHeaderHeight } from "../contexts";
 
-
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const ProjectImageDates = ({
     project,
@@ -16,6 +16,12 @@ export const ProjectImageDates = ({
 }) => {
     if (!project) return;
     const { headerHeight } = useHeaderHeight();
+
+     const imageSrc = project.image_url
+  ? `${API_UPLOADS}${project.image_url}`
+  : undefined;
+  
+
 
     return (
         <Box
@@ -52,7 +58,7 @@ export const ProjectImageDates = ({
 
                 <ProjectProfileImage
                     project={project}
-                    src={(previewImage || project?.image_url) ?? undefined}
+                    src={(previewImage || imageSrc) ?? undefined}
                     sx={{
                         width: '100%',
                         objectFit: 'cover',
