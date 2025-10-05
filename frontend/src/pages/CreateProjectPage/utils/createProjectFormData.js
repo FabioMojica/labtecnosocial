@@ -1,6 +1,8 @@
 export function createProjectFormData(projectData) {
   const formData = new FormData();
 
+  console.log("prokect dataaaaaaaaa", projectData);
+
   if (projectData.name) formData.append("name", projectData.name);
   if (projectData.description) formData.append("description", projectData.description);
 
@@ -15,6 +17,9 @@ export function createProjectFormData(projectData) {
   if (Array.isArray(projectData.integrations) && projectData.integrations.length > 0) {
     formData.append("integrations", JSON.stringify(projectData.integrations));
   }
+
+  console.log(Array.from(formData.entries()));
+
 
   return formData; 
 }
