@@ -38,7 +38,7 @@ export const UserItem = ({ user, onClick }) => {
                     </Box>
             ]}
             rightComponents={[
-                <Box sx={{ display: 'flex', height: '100%', width: 290, alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', mt: {xs: 2}, height: '100%', width: 290, alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                         <Typography>{user.projectCount}</Typography>
                         <Typography variant="caption">Proyectos</Typography>

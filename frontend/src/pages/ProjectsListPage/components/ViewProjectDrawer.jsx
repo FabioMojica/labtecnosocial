@@ -1,6 +1,6 @@
-import { Box, Paper, Toolbar, Typography, Grid, Avatar, Tooltip } from "@mui/material";
+import { Box, Paper, Toolbar, Typography, Grid, Avatar, Tooltip, IconButton } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { roleConfig, stateConfig } from "../../../utils";
+import { integrationsConfig, roleConfig, stateConfig } from "../../../utils";
 import { NoResultsScreen, ProjectImageDates } from "../../../generalComponents";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
@@ -26,7 +26,7 @@ export const ViewProjectDrawer = ({ project }) => {
                 <Box
                     sx={{
                         width: "100%",
-                        minHeight: "45%",
+                        minHeight: "40%",
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -37,7 +37,7 @@ export const ViewProjectDrawer = ({ project }) => {
                     <Box
                         sx={{
                             position: "relative",
-                            width: "80%",
+                            width: "75%",
                             height: "100%",
                             overflow: "hidden",
                             cursor: "pointer",
@@ -51,23 +51,67 @@ export const ViewProjectDrawer = ({ project }) => {
 
                 </Box>
 
-                <Box sx={{ width: "100%", textAlign: "center", mt: 1, mb: 1, px: 2 }}>
+                <Box sx={{ width: "100%", textAlign: "center", mt: 1, mb: 0.5, px: 2 }}>
                     <Typography
-                        variant="h6"
+                        variant="h7"
                         fontWeight="bold"
                         noWrap
                         sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                     >
                         {project.name}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">{project.description}</Typography>
+                    <Typography sx={{fontSize: '0.7rem'}} color="text.secondary">{project.description}</Typography>
                 </Box>
+
+                <Box sx={{ width: "100%", mb: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                        Integraciones del proyecto
+                    </Typography>
+
+                    {(!project.integrations || project.integrations.length === 0) ? (
+                        <Typography sx={{fontSize: '0.7rem'}} color="error" align="center">
+                            No integrado a ninguna plataforma
+                        </Typography>
+                    ) : (
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                gap: 2,
+                                flexWrap: "wrap",
+                            }}
+                        >
+                            {project.integrations.map((integration) => {
+                                const config = integrationsConfig[integration.platform?.toLowerCase()];
+                                if (!config) return null;
+                                const Icon = config.icon;
+                                return (
+                                    <Tooltip key={integration.id} title={`${config.label}: ${integration.name}`}>
+                                        <IconButton
+                                            onClick={() => window.open(integration.url, "_blank")}
+                                            sx={{
+                                                color: config.color,
+                                                transition: "transform 0.2s ease",
+                                                "&:hover": { transform: "scale(1.2)" },
+                                            }}
+                                        >
+                                            <Icon fontSize="medium" />
+                                        </IconButton>
+                                    </Tooltip>
+                                );
+                            })}
+                        </Box>
+                    )}
+                </Box>
+
                 <Paper sx={{ width: '100%', height: '100%', p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', overflowY: 'auto', overflowX: 'hidden' }}>
                     {project.projectResponsibles?.length === 0 ? (
-                        <NoResultsScreen message="Sin responsables asignados" iconSX={{ fontSize: 50, }} />
+                        <NoResultsScreen message="Sin responsables asignados" iconSX={{ fontSize: 50 }} />
                     ) : (
                         <>
-                            <Typography variant="h6" fontWeight="bold">Responsables del proyecto</Typography>
+                            <Typography variant="h7" fontWeight="bold">Responsables del proyecto</Typography>
                             <Grid container spacing={2} columns={4} sx={{ mt: 1 }}>
                                 {project.projectResponsibles?.map((responsible) => (
                                     <Grid size={1}>
@@ -89,7 +133,7 @@ export const ViewProjectDrawer = ({ project }) => {
                                                     boxShadow: 6,
                                                 },
                                             }}
-                                            onClick={() => navigate(`/proyecto/${project.id}`)}
+                                            onClick={() => navigate(`/usuario/${encodeURIComponent(responsible.email)}`)}
                                         >
                                             <Avatar
                                                 src={

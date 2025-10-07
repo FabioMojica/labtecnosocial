@@ -124,6 +124,7 @@ export const Header = () => {
 
                                 <Menu
                                     id="menu-appbar"
+                                    disableScrollLock
                                     anchorEl={anchorEl}
                                     anchorOrigin={{
                                         vertical: 'bottom',

@@ -76,7 +76,7 @@ export function ProjectsListPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [error, setError] = useState(false);
-    const { handleLogout } = useAuthEffects();
+    const { handleLogout } = useAuthEffects(); 
 
     const handleProjectClick = (project) => {
         setSelectedProject(project);
