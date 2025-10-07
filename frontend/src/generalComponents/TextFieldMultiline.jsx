@@ -15,11 +15,11 @@ export const TextFieldMultiline = ({
 }) => {
     const defaultSx = {
         '& .MuiInputLabel-root': {
-            fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+            fontSize: { xs: '0.9rem', sm: '0.9rem', md: '1rem' },
             ...(labelFontSize ? { fontSize: labelFontSize } : {}),
         },
         '& .MuiInputBase-input': {
-            fontSize: { xs: '0.9rem', sm: '2rem', md: '2rem' },
+            fontSize: { xs: '0.9rem', sm: '2rem', md: '1.5rem' },
         },
     };
 

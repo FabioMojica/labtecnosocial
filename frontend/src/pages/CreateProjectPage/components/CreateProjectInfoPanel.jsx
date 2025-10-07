@@ -137,6 +137,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                 <Grid size={12}>
                     <TextField
                         label="Ingrese un nombre para el proyecto (máx. 100 car.)*"
+                        variant="filled"
                         value={project?.name}
                         onChange={(e) => onChange?.({ name: e.target.value })}
                         onBlur={(e) => {
@@ -161,6 +162,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                 <Grid size={12}>
                     <TextFieldMultiline
                         rows={8}
+                        variant="filled"
                         label="Ingrese una descripción para el proyecto (máx. 300 car.)*"
                         value={project?.description}
                         onChange={(e) => onChange?.({ description: e.target.value })}

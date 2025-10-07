@@ -5,6 +5,7 @@ import { TextField as MUITextField } from "@mui/material";
 
 export const TextField = ({
   labelFontSize,
+  variant= "standard",
   valueFontSize,
   sx,
   maxLength = 1,
@@ -14,19 +15,19 @@ export const TextField = ({
 }) => {
   const defaultSx = {
     '& .MuiInputLabel-root': {
-      fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.2rem' },
+      fontSize: { xs: '0.9rem', sm: '0.9rem', md: '1rem' },
       ...(labelFontSize ? { fontSize: labelFontSize } : {}),
     },
     '& .MuiInputBase-input': {
-      fontSize: { xs: '0.9rem', sm: '2rem', md: '3rem' },
+      fontSize: { xs: '0.9rem', sm: '2rem', md: '2.5rem' },
       ...(valueFontSize ? { fontSize: valueFontSize } : {}),
     },
   };
  
   return (
-    <MUITextField
+    <MUITextField 
       fullWidth
-      variant="standard"
+      variant={variant}
       inputProps={{
                 ...props.inputProps,
                 autoComplete: "off",
