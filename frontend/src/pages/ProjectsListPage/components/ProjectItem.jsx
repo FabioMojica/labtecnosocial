@@ -14,9 +14,10 @@ export const ProjectItem = ({ project, onClick }) => {
 
 
   return (
-    <Item
+    <Item 
       leftComponents={[
-        <Avatar
+        <Box sx={{display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <Avatar
           src={imageSrc ?? undefined}
           sx={{
             width: 56,
@@ -27,23 +28,63 @@ export const ProjectItem = ({ project, onClick }) => {
           }}
         >
           {project.name[0]}
-        </Avatar>,
+        </Avatar>
 
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <Typography fontWeight="bold">{project.name}</Typography>
-          <Typography variant="caption" color="text.secondary" noWrap>
+          {/* Nombre del proyecto: máximo 1 línea con ... si excede */}
+          <Typography
+            fontWeight="bold"
+            sx={{
+              display: "-webkit-box",
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              wordBreak: "break-word",        // ← rompe palabras largas
+              overflowWrap: "break-word",     // ← soporte adicional
+            }}
+          >
+            {project.name}
+          </Typography>
+
+          {/* Descripción: máximo 2 líneas con ... si excede */}
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              wordBreak: "break-word",
+              overflowWrap: "break-word",
+            }}
+          >
             {project.description}
           </Typography>
+
           {project.program && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               {project.program.description} / {project.program.objective?.title ?? ""}
             </Typography>
           )}
-        </Box>,
+        </Box>
+        </Box>
       ]}
 
-      rightComponents={[ 
-        <Box sx={{ display: 'flex', mt: {xs: 2}, height: '100%', width: 200, alignItems: 'center', justifyContent: { xs: 'center', sm:'flex-end'}, gap: 3 }}>
+      rightComponents={[
+        <Box sx={{ display: 'flex', mt: { xs: 2 }, height: '100%', width: 200, alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-end' }, gap: 3 }}>
           <Tooltip title="Responsables" arrow>
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <GroupIcon fontSize="small" />

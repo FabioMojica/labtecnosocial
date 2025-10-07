@@ -38,10 +38,7 @@ export const Item = ({
             sx={{
               display: "flex",
               alignItems: "center",
-              justifyContent: {
-                md: "flex-start",
-                xs: "center"
-              },
+              justifyContent: 'flex-start',
               gap: 1,
               flexWrap: "wrap",
               width: {

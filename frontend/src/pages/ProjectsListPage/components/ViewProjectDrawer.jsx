@@ -52,7 +52,7 @@ export const ViewProjectDrawer = ({ project }) => {
                 </Box>
 
                 <Box sx={{ width: "100%", textAlign: "center", mt: 1, mb: 0.5, px: 2 }}>
-                    <Typography
+                    {/* <Typography
                         variant="h7"
                         fontWeight="bold"
                         noWrap
@@ -60,7 +60,35 @@ export const ViewProjectDrawer = ({ project }) => {
                     >
                         {project.name}
                     </Typography>
-                    <Typography sx={{fontSize: '0.7rem'}} color="text.secondary">{project.description}</Typography>
+                    <Typography sx={{fontSize: '0.7rem'}} color="text.secondary">{project.description}</Typography> */}
+                    <Typography
+                        variant="h7"
+                        fontWeight="bold"
+                        sx={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                        }}
+                    >
+                        {project.name}
+                    </Typography>
+
+                    {/* --- DESCRIPCIÓN (máximo 2 líneas) --- */}
+                    <Typography
+                        sx={{
+                            fontSize: "0.7rem",
+                            color: "text.secondary",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                        }}
+                    >
+                        {project.description}
+                    </Typography>
                 </Box>
 
                 <Box sx={{ width: "100%", mb: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -69,7 +97,7 @@ export const ViewProjectDrawer = ({ project }) => {
                     </Typography>
 
                     {(!project.integrations || project.integrations.length === 0) ? (
-                        <Typography sx={{fontSize: '0.7rem'}} color="error" align="center">
+                        <Typography sx={{ fontSize: '0.7rem' }} color="error" align="center">
                             No integrado a ninguna plataforma
                         </Typography>
                     ) : (
