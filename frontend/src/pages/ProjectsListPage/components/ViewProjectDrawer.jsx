@@ -113,18 +113,17 @@ export const ViewProjectDrawer = ({ project }) => {
                                         key={integration.id}
                                         title={`${config.label}: ${integration.name}`}
                                         PopperProps={{
-                                            disablePortal: true, // se renderiza dentro del Drawer
+                                            disablePortal: true, 
                                             modifiers: [
                                                 {
                                                     name: 'preventOverflow',
                                                     options: {
-                                                        boundary: 'clippingParents', // respeta el contenedor con scroll
+                                                        boundary: 'clippingParents', 
                                                     },
                                                 },
                                             ],
                                         }}
                                     >
-
                                         <IconButton
                                             onClick={() => window.open(integration.url, "_blank")}
                                             sx={{

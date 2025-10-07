@@ -1,13 +1,10 @@
 import { Avatar, Box } from "@mui/material";
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 
-/**
- * Muestra la imagen del proyecto si existe, sino la primera letra del nombre.
- * Se adapta al tamaño del contenedor y permite sobreescribir estilos con sx.
- */
 export const ProjectProfileImage = ({ project, sx, src }) => {
   if (!project) return null;
 
+  const fallbackLetter = project.name?.trim().charAt(0)?.toUpperCase() || null;
 
   return (
     <Box
@@ -33,7 +30,7 @@ export const ProjectProfileImage = ({ project, sx, src }) => {
           fontWeight: 'bold',
         }}
       >
-        {project.name ? project.name[0] : <FolderRoundedIcon fontSize="large" />}
+        {fallbackLetter ? fallbackLetter : <FolderRoundedIcon fontSize="large" />}
       </Avatar>
     </Box>
   );
