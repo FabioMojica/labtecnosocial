@@ -70,11 +70,7 @@ export const CreateProjectPage = () => {
                 integrations: project.integrations ?? [],
             };
 
-            console.log("{{{{{{{{{{{{{{{{{{{{{{{{", projectToSend)
-
             const formData = createProjectFormData(projectToSend);
-
-            console.log("PPPP>", formData);
 
             await callEndpoint(createOperationalProjectApi(formData));
 

@@ -3,17 +3,18 @@ export const createProjectIntegrations = async (
   savedProject,
   integrationRepository
 ) => {
-  if (!integrations || typeof integrations !== "object") return [];
+  if (!integrations || !Array.isArray(integrations)) return [];
 
   const integrationsToCreate = [];
 
-  Object.entries(integrations).forEach(([platform, data]) => {
+  integrations.forEach((item) => {
+    const { type: platform, data } = item;
     if (data?.id) {
       integrationsToCreate.push(
         integrationRepository.create({
           platform,
-          integration_id: data.id,  
-          url: data.url || "",      
+          integration_id: data.id,
+          url: data.url || "",
           name: data.name || "",
           project: savedProject,
         })

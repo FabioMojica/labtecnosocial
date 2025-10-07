@@ -14,50 +14,55 @@ import path from 'path';
 // export const createOperationalProject = async (req, res) => {
 //   const queryRunner = AppDataSource.createQueryRunner();
 
-//   try {
-//     const { name, description, program_id, responsibles, integrations } = req.body;
+//   console.log(req.file);
 
-//     console.log("ap", responsibles)
+//   try {
+//     const {
+//       name,
+//       description,
+//       responsibles: responsiblesRaw,
+//       integrations: integrationsRaw,
+//     } = req.body;
+
+//     console.log("--->", integrations)
+
+//     const responsibles = typeof responsiblesRaw === "string"
+//       ? JSON.parse(responsiblesRaw)
+//       : responsiblesRaw || [];
+
+//     const integrations = typeof integrationsRaw === "string"
+//       ? JSON.parse(integrationsRaw)
+//       : integrationsRaw || [];
+
+//     console.log("Responsables recibidos:", responsibles);
 
 //     if (!name || !description) {
 //       return res.status(400).json({ message: "Faltan datos requeridos: nombre y descripción son obligatorios" });
-//     }
+//     } 
 
 //     await queryRunner.connect();
 //     await queryRunner.startTransaction();
 
 //     const projectRepository = queryRunner.manager.getRepository(OperationalProject);
-//     const programRepository = queryRunner.manager.getRepository(Program);
 //     const userRepository = queryRunner.manager.getRepository(User);
 //     const responsibleRepository = queryRunner.manager.getRepository(ProjectResponsible);
 //     const integrationRepository = queryRunner.manager.getRepository(ProjectIntegration);
 
 
-//     let program = null;
-//     if (program_id) {
-//       program = await programRepository.findOneBy({ id: parseInt(program_id) });
-//       if (!program) {
-//         await queryRunner.rollbackTransaction();
-//         return res.status(404).json({ message: "Programa no encontrado" });
-//       }
-//     }
-
 //     let imageUrl = null;
 //     if (req.file) {
-//       console.log("reaaaaa", req.file)
 //       imageUrl = `/uploads/${req.file.filename}`;
 //     }
 
 //     const newProject = projectRepository.create({
 //       name,
 //       description,
-//       program,
 //       image_url: imageUrl,
 //     });
 
 //     const savedProject = await projectRepository.save(newProject);
 
-//     if (responsibles?.length) {
+//     if (responsibles.length) {
 //       try {
 //         await assignResponsibles(responsibles, savedProject.id, userRepository, responsibleRepository);
 //       } catch (error) {
@@ -72,7 +77,7 @@ import path from 'path';
 
 //     const projectWithIntegrations = await projectRepository.findOne({
 //       where: { id: savedProject.id },
-//       relations: ["integrations", "program", "projectResponsibles"],
+//       relations: ["integrations", "projectResponsibles"],
 //     });
 
 //     return res.status(201).json(projectWithIntegrations);
@@ -90,88 +95,69 @@ export const createOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
 
   try {
-    const {
-      name,
-      description,
-      program_id,
-      responsibles: responsiblesRaw,
-      integrations: integrationsRaw,
-    } = req.body;
-
-    const responsibles = typeof responsiblesRaw === "string"
-      ? JSON.parse(responsiblesRaw)
-      : responsiblesRaw || [];
-
-    const integrations = typeof integrationsRaw === "string"
-      ? JSON.parse(integrationsRaw)
-      : integrationsRaw || [];
-
-    console.log("Responsables recibidos:", responsibles);
+    // Extraer datos del body
+    const { name, description, responsibles: responsiblesRaw, integrations: integrationsRaw } = req.body;
 
     if (!name || !description) {
       return res.status(400).json({ message: "Faltan datos requeridos: nombre y descripción son obligatorios" });
     }
 
+    
+    
+    // Parsear arrays que vienen en string
+    const responsibles = typeof responsiblesRaw === "string" ? JSON.parse(responsiblesRaw) : responsiblesRaw || [];
+    const integrations = typeof integrationsRaw === "string" ? JSON.parse(integrationsRaw) : integrationsRaw || [];
+    
+    console.log("->", integrations);
+    // Conectar y empezar transacción
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     const projectRepository = queryRunner.manager.getRepository(OperationalProject);
-    const programRepository = queryRunner.manager.getRepository(Program);
     const userRepository = queryRunner.manager.getRepository(User);
     const responsibleRepository = queryRunner.manager.getRepository(ProjectResponsible);
     const integrationRepository = queryRunner.manager.getRepository(ProjectIntegration);
 
-    let program = null;
-    if (program_id) {
-      program = await programRepository.findOneBy({ id: parseInt(program_id) });
-      if (!program) {
-        await queryRunner.rollbackTransaction();
-        return res.status(404).json({ message: "Programa no encontrado" });
-      }
-    }
+    // Manejo de imagen
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    let imageUrl = null;
-    if (req.file) {
-      imageUrl = `/uploads/${req.file.filename}`;
-    }
-
-    const newProject = projectRepository.create({
-      name,
-      description,
-      program,
-      image_url: imageUrl,
-    });
-
+    // Crear proyecto
+    const newProject = projectRepository.create({ name, description, image_url: imageUrl });
     const savedProject = await projectRepository.save(newProject);
 
-    if (responsibles.length) {
-      try {
-        await assignResponsibles(responsibles, savedProject.id, userRepository, responsibleRepository);
-      } catch (error) {
-        await queryRunner.rollbackTransaction();
-        return res.status(404).json({ message: error.message });
-      }
+    // Asignar responsables si existen
+    if (responsibles.length > 0) {
+      await assignResponsibles(responsibles, savedProject.id, userRepository, responsibleRepository);
     }
 
-    await createProjectIntegrations(integrations, savedProject, integrationRepository);
+    // Crear integraciones
+    if (integrations.length > 0) {
+      await createProjectIntegrations(integrations, savedProject, integrationRepository);
+    }
 
+    // Commit de transacción
     await queryRunner.commitTransaction();
 
-    const projectWithIntegrations = await projectRepository.findOne({
+    // Traer proyecto con relaciones para respuesta
+    const projectWithRelations = await projectRepository.findOne({
       where: { id: savedProject.id },
-      relations: ["integrations", "program", "projectResponsibles"],
+      relations: ["integrations", "projectResponsibles"],
     });
 
-    return res.status(201).json(projectWithIntegrations);
+    return res.status(201).json(projectWithRelations);
 
   } catch (error) {
-    await queryRunner.rollbackTransaction();
+    // Rollback solo si la transacción se inició
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction();
+    }
     console.error("Error al crear proyecto operativo:", error);
-    return res.status(500).json({ message: "Error interno del servidor" });
+    return res.status(500).json({ message: error.message || "Error interno del servidor" });
   } finally {
     await queryRunner.release();
   }
 };
+
 
 export const getAllOperationalProjects = async (req, res) => {
   try {
@@ -380,6 +366,9 @@ export const getProjectById = async (req, res) => {
 
 export const deleteProjectById = async (req, res) => {
   const { id } = req.params;
+
+  console.log(typeof id)
+
 
   try {
     const projectRepo = AppDataSource.getRepository(OperationalProject);

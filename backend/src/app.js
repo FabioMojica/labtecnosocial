@@ -47,7 +47,7 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use('/api/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);

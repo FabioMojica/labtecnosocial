@@ -11,6 +11,7 @@ operationalProjectRoutes.use(verifyJwt);
 operationalProjectRoutes.get('/getAll', authorizeRole(["admin"]),getAllOperationalProjects);
 
 operationalProjectRoutes.post('/create', upload.single('file'), createOperationalProject);
+
 operationalProjectRoutes.post('/assign-responsible/:projectId', assignProjectResponsibles);
 operationalProjectRoutes.delete('/delete-responsible/:projectId/responsibles/:responsibleId', removeProjectResponsible);
 operationalProjectRoutes.patch('/:id', upload.single('file'), updateOperationalProject);
