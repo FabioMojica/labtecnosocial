@@ -109,7 +109,22 @@ export const ViewProjectDrawer = ({ project }) => {
                                 if (!config) return null;
                                 const Icon = config.icon;
                                 return (
-                                    <Tooltip key={integration.id} title={`${config.label}: ${integration.name}`}>
+                                    <Tooltip
+                                        key={integration.id}
+                                        title={`${config.label}: ${integration.name}`}
+                                        PopperProps={{
+                                            disablePortal: true, // se renderiza dentro del Drawer
+                                            modifiers: [
+                                                {
+                                                    name: 'preventOverflow',
+                                                    options: {
+                                                        boundary: 'clippingParents', // respeta el contenedor con scroll
+                                                    },
+                                                },
+                                            ],
+                                        }}
+                                    >
+
                                         <IconButton
                                             onClick={() => window.open(integration.url, "_blank")}
                                             sx={{
@@ -117,6 +132,8 @@ export const ViewProjectDrawer = ({ project }) => {
                                                 transition: "transform 0.2s ease",
                                                 "&:hover": { transform: "scale(1.2)" },
                                             }}
+                                            size="small"
+
                                         >
                                             <Icon fontSize="medium" />
                                         </IconButton>
@@ -140,7 +157,7 @@ export const ViewProjectDrawer = ({ project }) => {
                                     overflowY: 'auto',
                                     display: 'flex',
                                     flexWrap: 'wrap',
-                                    justifyContent: 'space-between',
+                                    justifyContent: 'flex-start',
                                     gap: 2,
                                     p: 2,
                                     "&::-webkit-scrollbar": { width: "4px" },
@@ -161,7 +178,7 @@ export const ViewProjectDrawer = ({ project }) => {
                                             transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                                             '&:hover': {
                                                 transform: 'scale(1.1)',
-                                                
+
                                             },
                                         }}
                                         onClick={() => navigate(`/usuario/${encodeURIComponent(responsible.email)}`)}
@@ -170,7 +187,7 @@ export const ViewProjectDrawer = ({ project }) => {
                                             sx={{
                                                 width: '100%',
                                                 aspectRatio: '1 / 1',
-                                                borderRadius: 2, 
+                                                borderRadius: 2,
                                                 overflow: 'hidden',
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -186,7 +203,7 @@ export const ViewProjectDrawer = ({ project }) => {
                                                     width: '100%',
                                                     height: '100%',
                                                     objectFit: 'cover',
-                                                    borderRadius: 0, 
+                                                    borderRadius: 0,
                                                     fontWeight: 'bold',
                                                 }}
                                             >
@@ -218,24 +235,23 @@ export const ViewProjectDrawer = ({ project }) => {
                                             </Box>
                                         </Box>
 
-                                        {/* Nombre debajo del avatar */}
-                                        <Tooltip title={`${responsible.firstName} ${responsible.lastName}`}>
-                                            <Typography
-                                                variant="body2"
-                                                align="center"
-                                                sx={{
-                                                    mt: 0.5,
-                                                    fontSize: '0.7rem',
-                                                    color: 'text.secondary',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap',
-                                                    width: '100%',
-                                                }}
-                                            >
-                                                {`${responsible.firstName} ${responsible.lastName}`}
-                                            </Typography>
-                                        </Tooltip>
+
+                                        <Typography
+                                            variant="body2"
+                                            align="center"
+                                            sx={{
+                                                mt: 0.5,
+                                                fontSize: '0.7rem',
+                                                color: 'text.secondary',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                                width: '100%',
+                                            }}
+                                        >
+                                            {`${responsible.firstName} ${responsible.lastName}`}
+                                        </Typography>
+
                                     </Box>
                                 ))}
 
