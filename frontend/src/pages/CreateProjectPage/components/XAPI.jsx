@@ -30,7 +30,7 @@ import { useHeaderHeight } from "../../../contexts";
 import { getXAccountsApi } from "../../../api";
 
 export const XApi = ({ panelHeight, selected = [], onChange }) => {
-    const { icon: XIcon, label, color } = integrationsConfig.X;
+    const { icon: XIcon, label, color } = integrationsConfig.x;
     const theme = useTheme();
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();

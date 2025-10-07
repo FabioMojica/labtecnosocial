@@ -14,7 +14,7 @@ export const integrationsConfig = {
     label: "Github",
     color: "#181717", 
   },
-  X: {
+  x: {
     icon: XIcon,
     label: "X",
     color: "#1DA1F2", 
