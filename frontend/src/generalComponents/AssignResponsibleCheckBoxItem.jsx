@@ -7,9 +7,11 @@ import { useAssignSounds } from "../hooks";
 import { useNavigate } from "react-router-dom";
 import { roleConfig, stateConfig } from "../utils";
 
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
+
 export const AssignResponsibleCheckBoxItem = ({
   responsible,
-  checked = false,
+  checked = false,  
   onChange,
 }) => {
   const navigate = useNavigate();
@@ -29,7 +31,7 @@ export const AssignResponsibleCheckBoxItem = ({
     const newChecked = !checked;
 
     onChange?.(newChecked);
-  };
+  }; 
 
   return (
     <Item
@@ -40,7 +42,7 @@ export const AssignResponsibleCheckBoxItem = ({
             onClick={() => navigate(`/usuario/${responsible.email}`)}
           >
             <Avatar
-              src={responsible.image_url ?? undefined}
+              src={responsible.image_url ? `${API_UPLOADS}${responsible.image_url}` : undefined}
               sx={{
                 width: 56,
                 height: 56,

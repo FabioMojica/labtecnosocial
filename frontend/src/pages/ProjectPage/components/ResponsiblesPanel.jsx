@@ -7,7 +7,7 @@ import { useHeaderHeight, useNotification } from "../../../contexts";
 import { useFetchAndLoad } from "../../../hooks";
 import { useResponsiblesPanel } from "../hooks/useResponsiblesPanel";
 
-import { getFilteredResponsibles }  from '../utils/responsible.utility';
+import { getFilteredResponsibles } from '../utils/responsible.utility';
 import { renderResponsiblesList } from '../utils/responsibleReder.utility';
 import { getAllUsersApi } from "../../../api";
 
@@ -20,7 +20,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
     const [searchResults, setSearchResults] = useState([]) || null;
     const [selectedView, setSelectedView] = useState("project");
     const hasFetchedAllUsers = useRef(false);
-    const initialResponsibles= responsibles.map(r => ({
+    const initialResponsibles = responsibles.map(r => ({
         id: Number(r.id),
         firstName: r.firstName,
         lastName: r.lastName,
@@ -43,6 +43,8 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
         reset
     } = useResponsiblesPanel(initialResponsibles, allUsers, onChange);
 
+    const noInitialResponsibles = initialResponsibles.length === 0;
+
     useEffect(() => {
         reset();
     }, [resetTrigger]);
@@ -58,6 +60,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
     const fetchAllUsers = async () => {
         try {
             const response = await callEndpoint(getAllUsersApi());
+            console.log("--- - - - - - - -  ->", response);
             setAllUsers(response);
             setUsers(response);
 
@@ -79,7 +82,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
     if (loading) return <FullScreenProgress text="Obteniendo usuarios" />;
 
     return (
-         <Box
+        <Box
             sx={{
                 width: "100%",
                 minHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
@@ -103,7 +106,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                 }}>
 
                     <SearchBar
-                        data={dataToSearch} 
+                        data={dataToSearch}
                         fields={["firstName", "lastName"]}
                         placeholder="Buscar..."
                         onResults={(results) => setSearchResults(results)}
@@ -128,11 +131,19 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                             }
                         }}
                         height={40}
+                        optionFontSize={{sm: '0.9rem'}}
                     />
                 </Box>
 
-                {!hasResults ? (
-                    <NoResultsScreen message="No se encontraron responsables" sx={{height: '50vh'}} />
+                {noInitialResponsibles && selectedView === "project" ? (
+                    <NoResultsScreen
+                        message="Este proyecto no tiene responsables asignados"
+                        buttonText="Asignar responsables"
+                        onButtonClick={() => setSelectedView("assign")}
+                        sx={{height: '50vh'}}
+                    />
+                ) : !hasResults ? (
+                    <NoResultsScreen message="No se encontraron responsables" sx={{ height: '50vh' }} />
                 ) : (
                     <Stack spacing={1}>
                         {renderResponsiblesList({
@@ -144,8 +155,8 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                             restoreResponsible
                         })}
                     </Stack>
-
                 )}
+
             </Box>
         </Box>
     );

@@ -9,6 +9,7 @@ export const SelectComponent = ({
   sx = {},
   fullWidth = true,
   height = "74%",
+  optionFontSize = "1rem", 
 }) => {
   const [internalValue, setInternalValue] = useState(value ?? "");
 
@@ -26,15 +27,27 @@ export const SelectComponent = ({
       <Select
         value={String(value ?? internalValue)}
         onChange={handleChange}
-        sx={{ width: "100%", height: "100%" }}
+        sx={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center", 
+          "& .MuiSelect-select": {
+            display: "flex",
+            alignItems: "center", 
+          },
+        }}
       >
         {options.map((option) => {
           const Icon = option.icon;
           return (
-            <MenuItem key={option.value} value={String(option.value)}>
+            <MenuItem 
+              key={option.value} 
+              value={String(option.value)}
+            >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 {Icon && <Icon sx={{ color: option.color ?? "inherit" }} />}
-                <Typography>{option.label}</Typography>
+                <Typography sx={{ fontSize: optionFontSize }}>{option.label}</Typography>
               </Box>
             </MenuItem>
           );

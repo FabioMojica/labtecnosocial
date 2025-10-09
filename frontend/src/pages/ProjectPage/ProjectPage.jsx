@@ -2,6 +2,7 @@ import { Box, Button } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNotification } from "../../contexts";
+import { ActionBarButtons } from "../../generalComponents";
 
 import { useFetchAndLoad } from "../../hooks";
 import {
@@ -53,14 +54,13 @@ export const ProjectPage = () => {
     const fetchProjectById = async () => {
         try {
             const resp = await callEndpoint(getProjectByIdApi(projectId));
-            console.log("ññññññ", resp);
             setProject(resp);
             originalProjectRef.current = structuredClone({
                 ...resp,
                 preEliminados: [],
                 preAnadidos: []
             });
-            projectUpdatedRef.current = resp;
+            projectUpdatedRef.current = resp; 
             setError(false);
         } catch (err) {
             notify(err?.message, "error");
@@ -72,18 +72,9 @@ export const ProjectPage = () => {
         fetchProjectById();
     }, []);
 
-    // useEffect(() => {
-    //     const urlTab = new URLSearchParams(window.location.search).get("tab");
-    //     if (!urlTab) {
-    //         const firstTab = encodeURIComponent("Información del proyecto");
-    //         navigate(`/proyecto/${id}?tab=${firstTab}`, { replace: true });
-    //     }
-    // }, [id, navigate]);
-
     useEffect(() => {
         const urlTab = new URLSearchParams(window.location.search).get("tab");
         if (!urlTab) {
-            // ❌ No codificar, React Router lo hace automáticamente
             navigate(`/proyecto/${id}?tab=Información del proyecto`, { replace: true });
         }
     }, [id, navigate]);
@@ -136,6 +127,9 @@ export const ProjectPage = () => {
         }
     };
 
+
+    const handleCancelChanges = () => setQuestionModalOpen(true);
+
     const handleConfirmCancelModal = () => {
         if (originalProjectRef.current) {
             setProject(structuredClone(originalProjectRef.current));
@@ -145,6 +139,7 @@ export const ProjectPage = () => {
         setQuestionModalOpen(false);
         notify("Cambios descartados correctamente", "success");
     };
+
 
     if (loading) return <FullScreenProgress text="Obteniendo el proyecto" />;
     if (error) return <ErrorScreen message="Ocurrió un error inesperado al obtener el proyecto" buttonText="Intentar de nuevo" onButtonClick={() => fetchProjectById()} />
@@ -185,34 +180,29 @@ export const ProjectPage = () => {
                 onConfirm={handleConfirmCancelModal}
             />
 
-            {isDirty && (
-                <Box
-                    sx={{
-                        position: "fixed",
-                        bottom: 20,
-                        right: 20,
-                        display: "flex",
-                        gap: 2,
-                    }}
-                >
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<LibraryAddCheckRoundedIcon />}
-                        onClick={handleSave}
-                    >
-                        Guardar
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        startIcon={<ModeStandbyRoundedIcon />}
-                        onClick={() => handleCancelChanges()}
-                    >
-                        Cancelar
-                    </Button>
-                </Box>
-            )}
+
+            <ActionBarButtons
+                visible={isDirty}
+                buttons={[
+                    {
+                        label: "Cancelar",
+                        variant: "outlined",
+                        color: "secondary",
+                        icon: <ModeStandbyRoundedIcon />,
+                        onClick: handleCancelChanges,
+                    },
+                    {
+                        label: "Guardar",
+                        variant: "contained",
+                        color: "primary",
+                        icon: <LibraryAddCheckRoundedIcon />,
+                        onClick: handleSave,
+                        triggerOnEnter: true,
+                        disabled: !project?.name || !project?.description,
+                    },
+                ]}
+            />
+
         </>
     );
 }

@@ -1,115 +1,139 @@
-import { Box, Grid } from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import {
     ProjectImageDates,
-    TextFieldViewOrEdit,
-    TextFieldMultilineViewOrEdit
+    TextField,
+    TextFieldMultiline,
 } from "../../../generalComponents";
+import { cleanExtraSpaces, validateRequiredText, validateTextLength } from "../../../utils/textUtils";
 
-import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
-import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRounded';
-import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
     const fileInputRef = useRef(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [overlayText, setOverlayText] = useState("Subir una imagen");
+    const [errors, setErrors] = useState({ name: "", description: "" });
+
+    console.log("------------------->", project)
+
     const { notify } = useNotification();
+    const { headerHeight } = useHeaderHeight();
 
     useEffect(() => {
-        console.log("hay previw image", project?.image_url);
-        setPreviewImage(project?.image_url ?? null);
+        if (!project) {
+            setPreviewImage(null);
+            return;
+        }
+
+        // Si ya tenemos un cambio local en image_file, usarlo
+        if (project.image_file instanceof File) {
+            setPreviewImage(URL.createObjectURL(project.image_file));
+        }
+        // Si no hay cambio local, usar la URL del backend
+        else if (project.image_url) {
+            setPreviewImage(`${API_UPLOADS}${encodeURI(project.image_url)}`);
+        } else {
+            setPreviewImage(null);
+        }
     }, [project]);
+
+
 
     useEffect(() => {
         if (previewImage) {
             const hasHover = window.matchMedia("(hover: hover)").matches;
-            if (hasHover) {
-                setOverlayText("Cambiar imagen (click), borrar imagen (click derecho)");
-            } else {
-                setOverlayText("Cambiar imagen (click), borrar imagen (mantener presionado)");
-            }
+            setOverlayText(
+                hasHover
+                    ? "Cambiar imagen (click izquierdo), borrar imagen (click derecho)"
+                    : "Toca para cambiar la imagen, borrar imagen (mantener presionado)"
+            );
         } else {
             setOverlayText("Subir una imagen");
         }
     }, [previewImage]);
 
-    const handleOverlayClick = () => {
-        fileInputRef.current?.click();
-    };
+    const handleOverlayClick = () => fileInputRef.current?.click();
 
     const handleFileChange = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-
         if (!file.type.startsWith("image/")) {
-            notify("Solo se permiten archivos de imagen (jpg, png)", "info");
+            notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
             return;
         }
-
         const previewUrl = URL.createObjectURL(file);
         setPreviewImage(previewUrl);
-
-        onChange?.({
-            image_file: file,        
-            image_url: previewUrl,   
-        });
+        onChange?.({ image_file: file, image_url: previewUrl });
+        event.target.value = "";
     };
 
+    const handleRemoveImage = () => {
+        setPreviewImage(null);
+        onChange?.({ image_file: null, image_url: null });
+    };
 
     const handleContextMenu = (e) => {
         e.preventDefault();
         handleRemoveImage();
     };
 
-    const handleRemoveImage = () => {
-        setPreviewImage(null);
-        onChange?.({
-            image_url: null,
-            image_file: null,
-        });
-        notify("Imagen eliminada", "info");
-    };
-
     let longPressTimer;
-
     const handleTouchStart = () => {
-        longPressTimer = setTimeout(() => {
-            handleRemoveImage();
-        }, 1000);
+        longPressTimer = setTimeout(() => handleRemoveImage(), 1000);
     };
-    const handleTouchEnd = () => {
-        clearTimeout(longPressTimer);
+    const handleTouchEnd = () => clearTimeout(longPressTimer);
+
+    // --- Validación de texto ---
+    const handleNameChange = (e) => {
+        const value = e.target.value; // <-- no limpiar aquí
+        const error =
+            validateRequiredText(value, "Nombre del proyecto") ||
+            validateTextLength(value, 3, 100, "Nombre del proyecto");
+        setErrors((prev) => ({ ...prev, name: error || "" }));
+        onChange?.({ name: value });
     };
 
+    const handleNameBlur = (e) => {
+        const cleaned = cleanExtraSpaces(e.target.value); // <-- limpiar al salir
+        onChange?.({ name: cleaned });
+    };
 
-    const { headerHeight } = useHeaderHeight();
+    const handleDescriptionChange = (e) => {
+        const value = e.target.value;
+        const error =
+            validateRequiredText(value, "Descripción") ||
+            validateTextLength(value, 5, 300, "Descripción");
+        setErrors((prev) => ({ ...prev, description: error || "" }));
+        onChange?.({ description: value });
+    };
+
+    const handleDescriptionBlur = (e) => {
+        const cleaned = cleanExtraSpaces(e.target.value);
+        onChange?.({ description: cleaned });
+    };
+
 
     return (
         <Grid
             container
             spacing={2}
             sx={{
-                width: '100%',
+                width: "100%",
                 minHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
                 height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
                 maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-                p: 1
+                p: 1,
             }}
         >
-            <Grid size={{ xs: 12, md: 5 }} sx={{
-                height: {
-                    xs: "50%",
-                    sm: "100%",
-                },
-            }}>
+            <Grid size={{ xs: 12, md: 5 }} sx={{ height: { xs: "50%", sm: "100%" } }}>
                 <ProjectImageDates
                     overlay
                     overlayText={overlayText}
                     project={project}
-                    sx={{ width: '100%', height: '100%' }}
-                    changeImage={true}
+                    sx={{ width: "100%", height: "100%" }}
+                    changeImage
                     onChangeImage={handleOverlayClick}
                     previewImage={previewImage ?? undefined}
                     onContextMenu={handleContextMenu}
@@ -117,160 +141,50 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                     onTouchEnd={handleTouchEnd}
                 />
             </Grid>
-            
-            <Grid container spacing={2} size={{ xs: 12, md: 7 }} sx={{ height: 'auto', display: 'flex', alignItems: 'center' }}>
+
+            <Grid
+                container
+                spacing={2}
+                size={{ xs: 12, md: 7 }}
+                sx={{ height: "auto", display: "flex", flexDirection: "column", pb: { xs: 20, sm: 0 } }}
+            >
                 <Grid size={12}>
-                    <TextFieldViewOrEdit
-                        label="Nombre del proyecto"
+                    <TextField
+                        label="Nombre del proyecto*"
+                        variant="filled"
                         value={project?.name ?? ""}
-                        onChange={(e) => onChange?.({ name: e.target.value })}
+                        onChange={handleNameChange}
+                        onBlur={handleNameBlur}                        
+                        maxLength={100}
+                        error={!!errors.name}
                     />
+                    {errors.name && <Typography color="error" variant="caption">{errors.name}</Typography>}
                 </Grid>
+
                 <Grid size={12}>
-                    <TextFieldMultilineViewOrEdit
-                        label="Descripción del proyecto"
+                    <TextFieldMultiline
+                        rows={6}
+                        variant="filled"
+                        label="Descripción del proyecto*"
                         value={project?.description ?? ""}
-                        onChange={(e) => onChange?.({ description: e.target.value })}
+                        onChange={handleDescriptionChange}
+                        onBlur={handleDescriptionBlur}
+                        maxLength={300}
+                        error={!!errors.description}
                     />
+                    {errors.description && (
+                        <Typography color="error" variant="caption">{errors.description}</Typography>
+                    )}
                 </Grid>
-                <Grid
-                    container
-                    spacing={2}
-                    size={{ xs: 12, md: 12 }}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        gap: { xs: 2, md: 5 },
-                        py: 2,
-                    }}
-                >
-
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            cursor: "pointer",
-                            transition: "transform 0.3s ease",
-                            "&:hover": {
-                                transform: "scale(1.1)",
-                            },
-                        }}
-                    >
-                        <ModeStandbyRoundedIcon
-                            sx={{
-                                fontSize: { xs: 30, sm: 40, md: 50, lg: 60 },
-                                color: "white",
-                                transition: "color 0.3s ease",
-                                "&:hover": {
-                                    color: "yellow",
-                                },
-                            }}
-                        />
-                        <Box
-                            sx={{
-                                fontSize: { xs: 10, md: 12, lg: 14 },
-                                mt: 1,
-                                color: "white",
-                                transition: "color 0.3s ease",
-                                "&:hover": {
-                                    color: "yellow",
-                                },
-                            }}
-                        >
-                            Misión: {project?.description ?? "Texto de la misión"}
-                        </Box>
-                    </Box>
-
-
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            cursor: "pointer",
-                            transition: "transform 0.3s ease",
-                            "&:hover": {
-                                transform: "scale(1.1)",
-                            },
-                        }}
-                    >
-                        <LibraryAddCheckRoundedIcon
-                            sx={{
-                                fontSize: { xs: 30, sm: 40, md: 50, lg: 60 },
-                                color: "white",
-                                transition: "color 0.3s ease",
-                                "&:hover": {
-                                    color: "yellow",
-                                },
-                            }}
-                        />
-                        <Box
-                            sx={{
-                                fontSize: { xs: 10, md: 12, lg: 14 },
-                                mt: 1,
-                                color: "white",
-                                transition: "color 0.3s ease",
-                                "&:hover": {
-                                    color: "yellow",
-                                },
-                            }}
-                        >
-                            Objetivo: {project?.program?.description ?? "Texto del objetivo"}
-                        </Box>
-                    </Box>
-
-
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            cursor: "pointer",
-                            transition: "transform 0.3s ease",
-                            "&:hover": {
-                                transform: "scale(1.1)",
-                            },
-                        }}
-                    >
-                        <BookmarkRoundedIcon
-                            sx={{
-                                fontSize: { xs: 30, sm: 40, md: 50, lg: 60 },
-                                color: "white",
-                                transition: "color 0.3s ease",
-                                "&:hover": {
-                                    color: "yellow",
-                                },
-                            }}
-                        />
-                        <Box
-                            sx={{
-                                fontSize: { xs: 10, md: 12, lg: 14 },
-                                mt: 1,
-                                color: "white",
-                                transition: "color 0.3s ease",
-                                "&:hover": {
-                                    color: "yellow",
-                                },
-                            }}
-                        >
-                            Programa: {project?.program?.description ?? "Texto del programa"}
-                        </Box>
-                    </Box>
-                </Grid>
-
-
             </Grid>
 
             <input
                 type="file"
                 accept="image/*"
                 ref={fileInputRef}
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
                 onChange={handleFileChange}
             />
-        </Grid >
+        </Grid>
     );
-}
+};
