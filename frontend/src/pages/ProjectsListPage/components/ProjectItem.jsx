@@ -40,8 +40,8 @@ export const ProjectItem = ({ project, onClick }) => {
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              wordBreak: "break-word",        // ← rompe palabras largas
-              overflowWrap: "break-word",     // ← soporte adicional
+              wordBreak: "break-word",       
+              overflowWrap: "break-word",    
             }}
           >
             {project.name}

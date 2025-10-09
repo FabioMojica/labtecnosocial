@@ -61,7 +61,6 @@ export const CreateProjectPage = () => {
             return;
         }
         try {
-            
             const projectToSend = {
                 name: project.name,
                 description: project.description,
@@ -69,11 +68,8 @@ export const CreateProjectPage = () => {
                 responsibles: project.newResponsibles ?? [],
                 integrations: project.integrations ?? [],
             };
-
             const formData = createProjectFormData(projectToSend);
-
             await callEndpoint(createOperationalProjectApi(formData));
-
             notify("Proyecto creado correctamente", "success");
             navigate("/proyectos");
         } catch (error) {

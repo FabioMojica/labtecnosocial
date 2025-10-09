@@ -45,7 +45,7 @@ export function UsersListPage() {
     const fetchAllUsers = async () => {
         try {
             const response = await callEndpoint(getAllUsersApi());
-            console.log("->", response);
+            
             setUsers(response);
             setFilteredUsers(response);
             setError(false);

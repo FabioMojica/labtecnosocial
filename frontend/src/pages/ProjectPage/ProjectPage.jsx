@@ -4,13 +4,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useNotification } from "../../contexts";
 
 import { useFetchAndLoad } from "../../hooks";
-import { 
-    ErrorScreen, 
-    FullScreenProgress, 
-    QuestionModal, 
-    TabButtons 
+import {
+    ErrorScreen,
+    FullScreenProgress,
+    QuestionModal,
+    TabButtons
 } from "../../generalComponents";
-
 
 import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
 import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRounded';
@@ -18,6 +17,7 @@ import { MorePanel } from "./components/MorePanel";
 import { ResponsiblesPanel } from "./components/ResponsiblesPanel";
 import { ProjectInfoPanel } from "./components/ProjectInfoPanel";
 import { getProjectByIdApi, updateProjectApi } from "../../api";
+import { updateProjectFormData } from "./utils/updateProjectFormData";
 
 const areResponsiblesEqual = (
     a,
@@ -53,6 +53,7 @@ export const ProjectPage = () => {
     const fetchProjectById = async () => {
         try {
             const resp = await callEndpoint(getProjectByIdApi(projectId));
+            console.log("ññññññ", resp);
             setProject(resp);
             originalProjectRef.current = structuredClone({
                 ...resp,
@@ -69,11 +70,27 @@ export const ProjectPage = () => {
 
     useEffect(() => {
         fetchProjectById();
-    }, []); 
+    }, []);
+
+    // useEffect(() => {
+    //     const urlTab = new URLSearchParams(window.location.search).get("tab");
+    //     if (!urlTab) {
+    //         const firstTab = encodeURIComponent("Información del proyecto");
+    //         navigate(`/proyecto/${id}?tab=${firstTab}`, { replace: true });
+    //     }
+    // }, [id, navigate]);
+
+    useEffect(() => {
+        const urlTab = new URLSearchParams(window.location.search).get("tab");
+        if (!urlTab) {
+            // ❌ No codificar, React Router lo hace automáticamente
+            navigate(`/proyecto/${id}?tab=Información del proyecto`, { replace: true });
+        }
+    }, [id, navigate]);
+
+
 
     const handleProjectChange = (changes) => {
-
-
         if (!project) return;
 
         const updatedProject = { ...project, ...changes };
@@ -86,7 +103,8 @@ export const ProjectPage = () => {
             (
                 updatedProject.name !== original.name ||
                 updatedProject.description !== original.description ||
-
+                updatedProject.image_url !== original.image_url ||
+                updatedProject.image_file !== original.image_file ||
                 !areResponsiblesEqual(updatedProject.projectResponsibles, original.projectResponsibles) ||
                 (updatedProject.preEliminados?.length ?? 0) > 0 ||
                 (updatedProject.preAnadidos?.length ?? 0) > 0
@@ -95,29 +113,28 @@ export const ProjectPage = () => {
         setIsDirty(Boolean(dirty));
     };
 
-
     const handleSave = async () => {
         if (!project) return;
 
         try {
-            const resp = await callEndpoint(updateProjectApi(project));
+            const formData = updateProjectFormData(project);
+
+            const resp = await callEndpoint(updateProjectApi(project.id, formData));
+
             setProject(resp);
             originalProjectRef.current = structuredClone({
                 ...resp,
                 preEliminados: [],
-                preAnadidos: []
+                preAnadidos: [],
             });
+
             projectUpdatedRef.current = resp;
             setIsDirty(false);
-            notify("Proyecto actualizado", "success");
+            notify("Proyecto actualizado exitosamente", "success");
         } catch (err) {
             notify(err?.message, "error");
         }
-    }
-
-    const handleCancelChanges = () => {
-        setQuestionModalOpen(true);
-    }
+    };
 
     const handleConfirmCancelModal = () => {
         if (originalProjectRef.current) {
@@ -153,11 +170,11 @@ export const ProjectPage = () => {
                             preAnadidos: updatedData.preAnadidos
                         })
                     }
-                /> 
+                />
 
                 <Box>Apis</Box>
                 <Box>Apis</Box>
-                
+
                 <MorePanel project={project} panelHeight={tabsHeight}></MorePanel>
             </TabButtons>
 

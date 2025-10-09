@@ -1,8 +1,10 @@
-import React from "react";
+import React, { use } from "react";
 import { Avatar, Box, Typography } from "@mui/material";
 import { Item } from "../../../generalComponents"; 
 import { roleConfig, stateConfig } from "../../../utils";
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
+
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const UserItem = ({ user, onClick }) => {
     const roleData = roleConfig[user.role] ?? {
@@ -16,11 +18,15 @@ export const UserItem = ({ user, onClick }) => {
         color: "error.main",
     };
 
+      const imageSrc = user.image_url
+    ? `${API_UPLOADS}${user.image_url}`
+    : undefined;
+
     return (
         <Item
             leftComponents={[
                     <Avatar
-                        src={user.image_url ?? undefined}
+                        src={imageSrc ?? undefined}
                         sx={{
                             width: 56,
                             height: 56,

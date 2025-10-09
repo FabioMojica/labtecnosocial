@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { Box, Tab, Tabs, useMediaQuery, useTheme } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 
-
 const TabPanel = ({ children, value, index }) => (
   <div
     role="tabpanel"
@@ -21,15 +20,28 @@ const TabPanel = ({ children, value, index }) => (
 
 export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange }) => {
   const theme = useTheme();
-  const isLaptop = useMediaQuery(theme.breakpoints.up("md")); // >= md -> laptop
+  const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
   const [searchParams, setSearchParams] = useSearchParams();
+
   const paramValue = searchParams.get("tab") ?? paramsLabels[0];
   const initialValue = paramsLabels.indexOf(paramValue);
   const [value, setValue] = useState(initialValue >= 0 ? initialValue : 0);
 
   const tabsRef = useRef(null);
-
   const variant = isLaptop ? "fullWidth" : "scrollable";
+
+  useEffect(() => {
+    const paramValue = searchParams.get("tab");
+    if (paramValue) {
+      const decodedParam = decodeURIComponent(paramValue);
+      const newValue = paramsLabels.indexOf(decodedParam);
+      if (newValue >= 0 && newValue !== value) {
+        setValue(newValue);
+      }
+    }
+  }, [searchParams, paramsLabels, value]);
+
+
 
   useEffect(() => {
     if (tabsRef.current) {
@@ -38,10 +50,12 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange 
     }
   }, [labels, onTabsHeightChange]);
 
+
   const handleChange = (_event, newValue) => {
     setValue(newValue);
     setSearchParams({ tab: paramsLabels[newValue] });
   };
+
 
   return (
     <Box>

@@ -35,7 +35,7 @@ export const ViewProjectDrawer = ({ project }) => {
                         justifyContent: 'center',
                     }}
                     onClick={() => navigate(`/proyecto/${project.id}`)}
-                >
+                > 
                     <Box
                         sx={{
                             position: "relative",

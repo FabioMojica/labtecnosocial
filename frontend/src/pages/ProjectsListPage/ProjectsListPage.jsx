@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuthEffects, useFetchAndLoad } from '../../hooks';
 import { useAuth, useNotification } from '../../contexts';
 
-import { 
+import {
     ButtonWithLoader,
     SearchBar,
     ErrorScreen,
@@ -76,18 +76,19 @@ export function ProjectsListPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [error, setError] = useState(false);
-    const { handleLogout } = useAuthEffects(); 
+    const { handleLogout } = useAuthEffects();
 
     const handleProjectClick = (project) => {
         setSelectedProject(project);
+
         if (isLaptop) {
             handleDrawerOpen();
         } else {
-            navigate(`/proyecto/${project.id}`);
+            navigate(`/proyecto/${project.id}?tab=Información del proyecto`);
         }
     };
 
-    const fetchAllProjects = async () => { 
+    const fetchAllProjects = async () => {
         try {
             const response = await callEndpoint(getAllOperationalProjectsApi());
             console.log(response);
@@ -112,13 +113,13 @@ export function ProjectsListPage() {
         setOpen(false);
     };
 
-    const handleCreateProject = () => { 
-        navigate('/proyectos/crear'); 
+    const handleCreateProject = () => {
+        navigate('/proyectos/crear');
     }
 
     if (!loading && projects.length === 0) {
         switch (user?.role) {
-            case "admin": 
+            case "admin":
                 return <NoResultsScreen
                     message='Aún no tienes proyectos registrados'
                     buttonText="Crear uno"
@@ -131,10 +132,10 @@ export function ProjectsListPage() {
                     buttonText="Ir al inicio"
                     onButtonClick={() => navigate("/inicio")}
                 />;
-            default: 
-            notify("Rol no encontrado, se cerrará la sesión", "error");
-            handleLogout();
-        } 
+            default:
+                notify("Rol no encontrado, se cerrará la sesión", "error");
+                handleLogout();
+        }
     }
 
     if (loading) return <FullScreenProgress text="Obteniendo los proyectos" />
@@ -191,7 +192,7 @@ export function ProjectsListPage() {
                             <NoResultsScreen message="Búsqueda de proyectos sin resultados" />
                         </Box>
                     )}
-                </Stack> 
+                </Stack>
             </Box>
 
             <Drawer variant="permanent" open={open} anchor='right'>

@@ -158,7 +158,6 @@ export const createOperationalProject = async (req, res) => {
   }
 };
 
-
 export const getAllOperationalProjects = async (req, res) => {
   try {
     const { role, id: userId } = req.user;
@@ -388,97 +387,6 @@ export const deleteProjectById = async (req, res) => {
   }
 };
 
-// export const updateOperationalProject = async (req, res) => {
-//   const queryRunner = AppDataSource.createQueryRunner();
-
-//   try {
-//     const { id } = req.params;
-//     const { name, description, program_id, responsibles } = req.body;
-
-//     console.log("req update op project", req.body);
-
-//     await queryRunner.connect();
-//     await queryRunner.startTransaction();
-
-//     const projectRepository = queryRunner.manager.getRepository(OperationalProject);
-//     const programRepository = queryRunner.manager.getRepository(Program);
-//     const userRepository = queryRunner.manager.getRepository(User);
-//     const responsibleRepository = queryRunner.manager.getRepository(ProjectResponsible);
-
-//     const project = await projectRepository.findOne({
-//       where: { id: parseInt(id) },
-//       relations: ['projectResponsibles'],
-//     });
-
-//     if (!project) {
-//       await queryRunner.rollbackTransaction();
-//       return res.status(404).json({ message: 'Proyecto no encontrado' });
-//     }
-
-//     let program = null;
-
-//     if (program_id) {
-//       program = await programRepository.findOneBy({ id: parseInt(program_id) });
-
-//       if (!program) {
-//         await queryRunner.rollbackTransaction();
-//         return res.status(404).json({ message: 'Programa no encontrado' });
-//       }
-//     }
-
-//     if (req.file) {
-//       if (project.image_url) {
-//         const oldImage = project.image_url.startsWith('/uploads/')
-//           ? project.image_url.slice(9)
-//           : project.image_url;
-//         const oldPath = path.join('uploads', oldImage);
-//         fs.unlink(oldPath, (err) => {
-//           if (err) console.error('No se pudo eliminar imagen antigua:', err.message, oldPath);
-//         });
-//       }
-//       project.image_url = `/uploads/${req.file.filename}`;
-//     } else if (req.body.image_url === '' || req.body.image_url === null) {
-//       if (project.image_url) {
-//         const oldImage = project.image_url.startsWith('/uploads/')
-//           ? project.image_url.slice(9)
-//           : project.image_url;
-//         const oldPath = path.join('uploads', oldImage);
-//         fs.unlink(oldPath, (err) => {
-//           if (err) console.error('No se pudo eliminar imagen antigua:', err.message, oldPath);
-//         });
-//       }
-//       project.image_url = null;
-//     }
-
-
-//     project.name = name || project.name;
-//     project.description = description || project.description;
-//     project.program = program || project.program;
-
-//     const updatedProject = await projectRepository.save(project);
-
-//     if (Array.isArray(responsibles)) {
-//       await responsibleRepository.delete({ operationalProject: { id: project.id } });
-
-//       try {
-//         await assignResponsibles(responsibles, project.id, userRepository, responsibleRepository);
-//       } catch (error) {
-//         await queryRunner.rollbackTransaction();
-//         return res.status(404).json({ message: error.message });
-//       }
-//     }
-
-//     await queryRunner.commitTransaction();
-//     return res.status(200).json(updatedProject);
-//   } catch (error) {
-//     await queryRunner.rollbackTransaction();
-//     console.error('Error al actualizar el proyecto:', error);
-//     return res.status(500).json({ message: 'Error interno del servidor' });
-//   } finally {
-//     await queryRunner.release();
-//   }
-// };
-
 export const updateOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
 
@@ -514,6 +422,8 @@ export const updateOperationalProject = async (req, res) => {
         return res.status(404).json({ message: 'Programa no encontrado' });
       }
     }
+
+    console.log("fileeeees,", req.file);
 
     if (req.file) {
       if (project.image_url) {
@@ -567,7 +477,8 @@ export const updateOperationalProject = async (req, res) => {
     // ----------------------------------------------
 
     await queryRunner.commitTransaction();
-    return res.status(200).json(updatedProject);
+
+    return getProjectById(req, res);
   } catch (error) {
     await queryRunner.rollbackTransaction();
     console.error('Error al actualizar el proyecto:', error);

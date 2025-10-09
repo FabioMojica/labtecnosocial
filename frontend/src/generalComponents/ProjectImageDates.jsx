@@ -17,11 +17,11 @@ export const ProjectImageDates = ({
     if (!project) return;
     const { headerHeight } = useHeaderHeight();
 
-     const imageSrc = project.image_url
-  ? `${API_UPLOADS}${project.image_url}`
-  : undefined;
-  
+    const imageSrc = project.image_url
+        ? `${API_UPLOADS}${encodeURI(project.image_url)}`
+        : undefined;
 
+        console.log("preview llegando aqui", previewImage)
 
     return (
         <Box
@@ -54,19 +54,18 @@ export const ProjectImageDates = ({
                     cursor: overlay ? 'pointer' : 'default',
                     ...sx
                 }}
-            > 
+            >
 
                 <ProjectProfileImage
                     project={project}
-                    src={(previewImage || imageSrc) ?? undefined}
+                    src={( previewImage || imageSrc ) ?? undefined}
                     sx={{
                         width: '100%',
                         objectFit: 'cover',
-                        maxHeight: '100%' 
+                        maxHeight: '100%'
                     }}
                 />
 
-                {/* Overlay solo sobre la imagen */}
                 {overlay && (
                     <Box
                         sx={{

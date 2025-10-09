@@ -24,8 +24,8 @@ export const MorePanel = ({ project, panelHeight }) => {
 
     const handleDelete = async () => {
         try {
-            await callEndpoint(deleteProjectByIdApi({ id: project.id }));
-            navigate('/proyectos');
+            await callEndpoint(deleteProjectByIdApi(project.id));
+            navigate('/proyectos'); 
             notify("Proyecto eliminado correctamente", "success");
         } catch (err) {
             notify(err.message, "error");
@@ -59,7 +59,7 @@ export const MorePanel = ({ project, panelHeight }) => {
                         <Box
                             component="span"
                         >
-                            {project?.name}
+                            "{project?.name}"
                         </Box>{' '}
                         de forma <strong>IRREVERSIBLE</strong>.
                     </Typography>

@@ -6,6 +6,8 @@ export const ProjectProfileImage = ({ project, sx, src }) => {
 
   const fallbackLetter = project.name?.trim().charAt(0)?.toUpperCase() || null;
 
+  console.log("src por aqu", src)
+
   return (
     <Box
       sx={{

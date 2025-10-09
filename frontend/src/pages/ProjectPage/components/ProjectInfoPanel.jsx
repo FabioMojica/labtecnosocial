@@ -1,10 +1,10 @@
 import { Box, Grid } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
-import { 
-    ProjectImageDates, 
-    TextFieldViewOrEdit, 
-    TextFieldMultilineViewOrEdit 
+import {
+    ProjectImageDates,
+    TextFieldViewOrEdit,
+    TextFieldMultilineViewOrEdit
 } from "../../../generalComponents";
 
 import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
@@ -18,6 +18,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
     const { notify } = useNotification();
 
     useEffect(() => {
+        console.log("hay previw image", project?.image_url);
         setPreviewImage(project?.image_url ?? null);
     }, [project]);
 
@@ -38,7 +39,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = async (event) => {
+    const handleFileChange = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -50,19 +51,10 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
         const previewUrl = URL.createObjectURL(file);
         setPreviewImage(previewUrl);
 
-        const formData = new FormData();
-        formData.append("image", file);
-
         onChange?.({
-            image_url: previewUrl,
-            image_file: file, 
+            image_file: file,        
+            image_url: previewUrl,   
         });
-
-        try {
-            
-        } catch (err) {
-            notify("No se pudo actualizar la imagen", "error");
-        }
     };
 
 
@@ -85,7 +77,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
     const handleTouchStart = () => {
         longPressTimer = setTimeout(() => {
             handleRemoveImage();
-        }, 1000); 
+        }, 1000);
     };
     const handleTouchEnd = () => {
         clearTimeout(longPressTimer);
@@ -125,6 +117,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                     onTouchEnd={handleTouchEnd}
                 />
             </Grid>
+            
             <Grid container spacing={2} size={{ xs: 12, md: 7 }} sx={{ height: 'auto', display: 'flex', alignItems: 'center' }}>
                 <Grid size={12}>
                     <TextFieldViewOrEdit

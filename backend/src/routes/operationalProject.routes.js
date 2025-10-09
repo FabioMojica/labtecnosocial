@@ -13,8 +13,11 @@ operationalProjectRoutes.get('/getAll', authorizeRole(["admin"]),getAllOperation
 operationalProjectRoutes.post('/create', upload.single('file'), createOperationalProject);
 
 operationalProjectRoutes.post('/assign-responsible/:projectId', assignProjectResponsibles);
+
 operationalProjectRoutes.delete('/delete-responsible/:projectId/responsibles/:responsibleId', removeProjectResponsible);
+
 operationalProjectRoutes.patch('/:id', upload.single('file'), updateOperationalProject);
+
 operationalProjectRoutes.get('/getProjectById/:id', getProjectById);
 operationalProjectRoutes.delete('/:id', deleteProjectById);
 operationalProjectRoutes.get('/complete-project/:id', getOperationalProjectRows);

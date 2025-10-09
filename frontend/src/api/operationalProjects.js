@@ -57,6 +57,7 @@ export const deleteProjectByIdApi = async (id) => {
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
+    console.log(error);
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al eliminar el proyecto");
     throw new Error("Error al intentar eliminar el proyecto");
@@ -93,27 +94,29 @@ export const deleteOperationalPlanningApi = async (projectId) => {
   }
 };
 
-export const updateProjectApi = async (id, updatedData, file = null) => {
+export const updateProjectApi = async (id, formData) => {
   const controller = loadAbort();
   try {
-    const formData = new FormData();
-    formData.append("name", updatedData.name);
-    formData.append("description", updatedData.description);
-    formData.append("image_url", updatedData.image_url || "");
+    const response = await axiosInstance.patch(
+      `${Routes.UPDATE_PROJECT}/${id}`,
+      formData,
+      {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'multipart/form-data', // <-- obligatorio
+        },
+      },
+    );
 
-    if (file) formData.append("file", file);
-    else if (updatedData.image_url === "") formData.append("remove_image", "true");
-
-    const response = await axiosInstance.patch(`${Routes.UPDATE_PROJECT}/${id}`, formData, { signal: controller.signal });
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
+    console.log(error);
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al actualizar proyecto");
-    throw new Error("Error al intentar actualizar proyecto");
+    throw new Error("Ocurrió un error al actualizar el proyecto. Inténtalo de nuevo más tarde.");
   }
 };
-
 
 export const removeResponsibleApi = async (projectId, responsibleId) => {
   const controller = loadAbort();
