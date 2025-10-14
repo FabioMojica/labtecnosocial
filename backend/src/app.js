@@ -51,7 +51,7 @@ app.use('/api/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/projects', operationalProjectRoutes);
+app.use('/api/projects', operationalProjectRoutes); 
 app.use('/api/strategic-plans', strategicPlanRoutes);
 app.use('/api/apis/github', githubRouter);
 app.use('/api/apis/facebook', facebookRouter);

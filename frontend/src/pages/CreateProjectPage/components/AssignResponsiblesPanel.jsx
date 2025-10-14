@@ -15,8 +15,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { getAllUsersApi } from "../../../api";
 
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
-
 export const AssignResponsiblesPanel = ({ panelHeight, onChange, selectedUsers }) => {
     const { headerHeight } = useHeaderHeight();
     const [filteredResponsibles, setFilteredResponsibles] = useState([]);
@@ -32,9 +30,10 @@ export const AssignResponsiblesPanel = ({ panelHeight, onChange, selectedUsers }
     const fetchAllUsers = async () => {
         try {
             const response = await callEndpoint(getAllUsersApi());
+            console.log("-xxxxxxxxxxxxxxxxxxxxx-->", response);
             setUsers(response);
             setFilteredResponsibles(response);
-            setError(false);
+            setError(false); 
         } catch (err) {
             notify(err?.message, "error");
             setError(true);
@@ -156,14 +155,9 @@ export const AssignResponsiblesPanel = ({ panelHeight, onChange, selectedUsers }
             <Stack spacing={1} sx={{ width: "100%", height: "75%", pb: { sm: 90, xs: 150 } }}>
                 {filteredResponsibles.length > 0 ? (
                     filteredResponsibles.map((user) => (
-                        <AssignResponsibleCheckBoxItem
+                        <AssignResponsibleCheckBoxItem 
                             key={Number(user.id)}
-                            responsible={{
-                                ...user,
-                                image_url: user.image_url
-                                    ? `${API_UPLOADS}${user.image_url}`
-                                    : null,
-                            }}
+                            responsible={user}
                             checked={selectedUsers.has(user.id)}
                             onChange={(checked) => toggleUser(user.id, checked)}
                         />

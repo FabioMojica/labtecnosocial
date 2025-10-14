@@ -145,7 +145,7 @@ export const CreateProjectPage = () => {
                         variant: "outlined",
                         color: "secondary",
                         icon: <ModeStandbyRoundedIcon />,
-                        onClick: handleCancelChanges,
+                        onClick: handleCancelChanges, 
                     },
                     {
                         label: "Crear proyecto",

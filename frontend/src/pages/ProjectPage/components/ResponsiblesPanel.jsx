@@ -77,10 +77,20 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
         }
     }, [selectedView]);
 
-    const listToRender = searchResults.length > 0 ? searchResults : dataToSearch;
+    const [hasSearched, setHasSearched] = useState(false);
+
+    const handleSearchResults = (results) => {
+        setSearchResults(results);
+        setHasSearched(true);
+    };
+
+    const listToRender = hasSearched ? searchResults : dataToSearch;
     const hasResults = listToRender.length > 0;
 
+
     if (loading) return <FullScreenProgress text="Obteniendo usuarios" />;
+
+
 
     return (
         <Box
@@ -92,7 +102,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                 p: 1,
                 display: "flex",
                 flexDirection: "column",
-                gap: 1, 
+                gap: 1,
             }}
         >
             <CssBaseline />
@@ -105,12 +115,12 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                         sm: "row",
                     },
                 }}>
-
+ 
                     <SearchBar
                         data={dataToSearch}
                         fields={["firstName", "lastName"]}
                         placeholder="Buscar..."
-                        onResults={(results) => setSearchResults(results)}
+                        onResults={handleSearchResults}
                     />
 
                     <SelectComponent
@@ -121,9 +131,11 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                             { value: "preAnadidos", label: "Pre añadidos" },
                         ]}
                         value={selectedView}
+
                         onChange={(val) => {
                             setSelectedView(String(val));
                             setSearchResults([]);
+                            setHasSearched(false);
                         }}
                         sx={{
                             maxWidth: {
@@ -142,11 +154,11 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                         buttonText="Asignar responsables"
                         onButtonClick={() => setSelectedView("assign")}
                         sx={{ height: '50vh' }}
-                    />
+                    /> 
                 ) : !hasResults ? (
                     <NoResultsScreen message="No se encontraron responsables" sx={{ height: '50vh' }} />
                 ) : (
-                    <Stack spacing={1}>
+                    <Stack spacing={1} sx={{ width: "100%", pb: { sm: 15, xs: 150 } }}>
                         {renderResponsiblesList({
                             list: listToRender,
                             selectedView,
@@ -162,3 +174,4 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
         </Box>
     );
 };
+ 
