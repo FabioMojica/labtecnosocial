@@ -81,7 +81,7 @@ export const getAllUsers = async (req, res) => {
       .addGroupBy('user.lastName')
       .addGroupBy('user.email')
       .addGroupBy('user.role')
-      .addGroupBy('user.state')
+      .addGroupBy('user.state') 
       .addGroupBy('user.image_url')
       .addGroupBy('user.created_at')
       .addGroupBy('user.updated_at')

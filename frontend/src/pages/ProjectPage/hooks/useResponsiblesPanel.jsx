@@ -11,100 +11,62 @@ export const useResponsiblesPanel = (
   const initialRef = useRef(initialResponsibles);
 
 
- const notifyParent = (updatedProjectResponsibles, updatedPreEliminados, updatedPreAnadidos) => {
-        if (onChange) {
-            onChange({
-                projectResponsibles: updatedProjectResponsibles,
-                preEliminados: updatedPreEliminados,
-                preAnadidos: updatedPreAnadidos
-            });
-        }
-    };
+  const notifyParent = (updatedProjectResponsibles, updatedPreEliminados, updatedPreAnadidos) => {
+    if (onChange) {
+      onChange({
+        projectResponsibles: updatedProjectResponsibles,
+        preEliminados: updatedPreEliminados,
+        preAnadidos: updatedPreAnadidos
+      });
+    }
+  };
 
-//   const removeResponsible = (user: UserWithProjectCount) => {
-//     const updatedProjectResponsibles = projectResponsibles.filter(r => r.id !== user.id);
-//     const updatedPreEliminados = [...preEliminados, user];
-//     setProjectResponsibles(updatedProjectResponsibles);
-//     setPreEliminados(updatedPreEliminados);
-//     notifyParent(updatedProjectResponsibles, updatedPreEliminados, preAnadidos);
-//   };
+  const removeResponsible = (user) => {
 
-//  const removeResponsible = (user: UserWithProjectCount) => {
-//         const updatedProjectResponsibles = projectResponsibles.filter(r => r.id !== user.id);
-//         const updatedPreEliminados = [...preEliminados, user];
-//         setProjectResponsibles(updatedProjectResponsibles);
-//         setPreEliminados(updatedPreEliminados);
-//         notifyParent(updatedProjectResponsibles, updatedPreEliminados, preAnadidos);
-//         // notify(`${user.firstName} ${user.lastName} se movió a pre eliminados`, "info");
-//     };
+    const updatedProjectResponsibles = projectResponsibles.filter(r => r.id !== user.id);
+    const updatedPreEliminados = [...preEliminados, user];
+    setProjectResponsibles(updatedProjectResponsibles);
+    setPreEliminados(updatedPreEliminados);
+    notifyParent(updatedProjectResponsibles, updatedPreEliminados, preAnadidos);
+    // notify(`${user.firstName} ${user.lastName} se movió a pre eliminados`, "info");
+  };
 
-   const removeResponsible = (user) => {
+  const restoreResponsible = (user) => {
+    const updatedPreEliminados = preEliminados.filter(r => r.id !== user.id);
+    const updatedProjectResponsibles = [...projectResponsibles, user];
 
-        const updatedProjectResponsibles = projectResponsibles.filter(r => r.id !== user.id);
-        const updatedPreEliminados = [...preEliminados, user];
-        setProjectResponsibles(updatedProjectResponsibles);
-        setPreEliminados(updatedPreEliminados);
-        notifyParent(updatedProjectResponsibles, updatedPreEliminados, preAnadidos);
-        // notify(`${user.firstName} ${user.lastName} se movió a pre eliminados`, "info");
-    };
+    setPreEliminados(updatedPreEliminados);
+    setProjectResponsibles(updatedProjectResponsibles);
 
+    notifyParent(updatedProjectResponsibles, updatedPreEliminados, preAnadidos);
 
-//   const restoreResponsible = (user: UserWithProjectCount) => {
-//     const updatedPreEliminados = preEliminados.filter(r => r.id !== user.id);
-//     const updatedProjectResponsibles = [...projectResponsibles, user];
-//     setProjectResponsibles(updatedProjectResponsibles);
-//     setPreEliminados(updatedPreEliminados);
-//     notifyParent(updatedProjectResponsibles, updatedPreEliminados, preAnadidos);
-//   };
+    //notify(`${user.firstName} ${user.lastName} se movió a responsables del proyecto`, "success");
+  };
 
- const restoreResponsible = (user) => {
-        const updatedPreEliminados = preEliminados.filter(r => r.id !== user.id);
-        const updatedProjectResponsibles = [...projectResponsibles, user];
+  const removePreResponsible = (user) => {
+    setPreAnadidos(prev => {
+      const updatedPreAnadidos = prev.filter(r => r.id !== user.id);
 
-        setPreEliminados(updatedPreEliminados);
-        setProjectResponsibles(updatedProjectResponsibles);
+      notifyParent(projectResponsibles, preEliminados, updatedPreAnadidos);
 
-        notifyParent(updatedProjectResponsibles, updatedPreEliminados, preAnadidos);
+      return updatedPreAnadidos;
+    });
 
-        //notify(`${user.firstName} ${user.lastName} se movió a responsables del proyecto`, "success");
-    };
-
-//   const addPreResponsible = (user: UserWithProjectCount) => {
-//     const updatedPreAnadidos = [...preAnadidos, user];
-//     setPreAnadidos(updatedPreAnadidos);
-//     notifyParent(projectResponsibles, preEliminados, updatedPreAnadidos);
-//   };
+    //notify(`${user.firstName} ${user.lastName} se removió de pre añadidos`, "info");
+  };
 
 
-//   const removePreResponsible = (user: UserWithProjectCount) => {
-//     const updatedPreAnadidos = preAnadidos.filter(r => r.id !== user.id);
-//     setPreAnadidos(updatedPreAnadidos);
-//     notifyParent(projectResponsibles, preEliminados, updatedPreAnadidos);
-//   };
-const removePreResponsible = (user) => {
-        setPreAnadidos(prev => {
-            const updatedPreAnadidos = prev.filter(r => r.id !== user.id);
+  const addPreResponsible = (user) => {
+    setPreAnadidos(prev => {
+      const alreadyExists = prev.some(r => r.id === user.id);
+      if (alreadyExists) return prev;
 
-            notifyParent(projectResponsibles, preEliminados, updatedPreAnadidos);
+      const updatedPreAnadidos = [...prev, user];
+      notifyParent(projectResponsibles, preEliminados, updatedPreAnadidos);
+      return updatedPreAnadidos;
+    });
+  };
 
-            return updatedPreAnadidos;
-        });
-
-        //notify(`${user.firstName} ${user.lastName} se removió de pre añadidos`, "info");
-    };
-
-    
-    const addPreResponsible = (user) => {
-        setPreAnadidos(prev => {
-            const updatedPreAnadidos = [...prev, user];
-
-            notifyParent(projectResponsibles, preEliminados, updatedPreAnadidos);
-
-            return updatedPreAnadidos;
-        });
-
-        //notify(`${user.firstName} ${user.lastName} se añadió a pre añadidos`, "success");
-    };
 
   const reset = () => {
     setProjectResponsibles(structuredClone(initialRef.current));

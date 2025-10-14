@@ -295,6 +295,9 @@ export const getProjectById = async (req, res) => {
     const { id } = req.params;
 
     const projectRepository = AppDataSource.getRepository(OperationalProject);
+    const userRepository = AppDataSource.getRepository(User);
+
+    // 🔍 1️⃣ Obtener proyecto base con relaciones
     const project = await projectRepository.findOne({
       where: { id: parseInt(id) },
       relations: {
@@ -306,12 +309,50 @@ export const getProjectById = async (req, res) => {
         projectResponsibles: {
           user: true,
         },
-        integrations: true
+        integrations: true,
       },
     });
 
     if (!project) {
-      return res.status(404).json({ message: 'Proyecto no encontrado' });
+      return res.status(404).json({ message: "Proyecto no encontrado" });
+    }
+
+    // 🧩 2️⃣ Para cada responsable, obtener sus proyectos asignados
+    const responsiblesWithCount = [];
+    for (const r of project.projectResponsibles) {
+      const user = await userRepository
+        .createQueryBuilder("user")
+        .leftJoin("user.projectResponsibles", "pr")
+        .leftJoin("pr.operationalProject", "op")
+        .select([
+          "user.id",
+          "user.firstName",
+          "user.lastName", 
+          "user.email",
+          "user.image_url",
+          "user.state",
+          "user.role",
+        ])
+        .addSelect("COUNT(pr.id)", "project_count")
+        .addSelect(
+          "COALESCE(JSON_AGG(DISTINCT JSONB_BUILD_OBJECT('id', op.id, 'name', op.name, 'description', op.description, 'image_url', op.image_url)) FILTER (WHERE op.id IS NOT NULL), '[]')",
+          "projects"
+        )
+        .where("user.id = :userId", { userId: r.user.id })
+        .groupBy("user.id")
+        .getRawOne();
+
+      responsiblesWithCount.push({
+        id: user.user_id,
+        firstName: user.user_firstName,
+        lastName: user.user_lastName,
+        email: user.user_email,
+        role: user.user_role,
+        image_url: user.user_image_url,
+        state: user.user_state,
+        projectCount: parseInt(user.project_count, 10) || 0,
+        projects: user.projects,
+      });
     }
 
     const formattedProject = {
@@ -321,32 +362,26 @@ export const getProjectById = async (req, res) => {
       created_at: project.created_at,
       updated_at: project.updated_at,
       image_url: project.image_url,
-      projectResponsibles: project.projectResponsibles.map((r) => ({
-        id: r.user.id,
-        firstName: r.user.firstName,
-        lastName: r.user.lastName,
-        email: r.user.email,
-        image_url: r.user.image_url,
-        state: r.user.state,
-      })),
+      projectResponsibles: responsiblesWithCount,
       program: project.program
         ? {
-          id: project.program.id,
-          description: project.program.description,
-          objective: project.program.objective
-            ? {
-              id: project.program.objective.id,
-              title: project.program.objective.title,
-              strategicPlan: project.program.objective.strategicPlan
-                ? {
-                  id: project.program.objective.strategicPlan.id,
-                  year: project.program.objective.strategicPlan.year,
-                  mission: project.program.objective.strategicPlan.mission,
+            id: project.program.id,
+            description: project.program.description,
+            objective: project.program.objective
+              ? {
+                  id: project.program.objective.id,
+                  title: project.program.objective.title,
+                  strategicPlan: project.program.objective.strategicPlan
+                    ? {
+                        id: project.program.objective.strategicPlan.id,
+                        year: project.program.objective.strategicPlan.year,
+                        mission:
+                          project.program.objective.strategicPlan.mission,
+                      }
+                    : null,
                 }
-                : null,
-            }
-            : null,
-        }
+              : null,
+          }
         : null,
       integrations: project.integrations.map((i) => ({
         id: i.id,
@@ -358,10 +393,84 @@ export const getProjectById = async (req, res) => {
 
     return res.status(200).json(formattedProject);
   } catch (error) {
-    console.error('Error al obtener proyecto por ID:', error.message);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    console.error("Error al obtener proyecto por ID:", error.message);
+    return res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
+
+// export const getProjectById = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     const projectRepository = AppDataSource.getRepository(OperationalProject);
+//     const project = await projectRepository.findOne({
+//       where: { id: parseInt(id) },
+//       relations: {
+//         program: {
+//           objective: {
+//             strategicPlan: true,
+//           },
+//         },
+//         projectResponsibles: {
+//           user: true,
+//         },
+//         integrations: true
+//       },
+//     });
+
+//     if (!project) {
+//       return res.status(404).json({ message: 'Proyecto no encontrado' });
+//     }
+
+//     const formattedProject = {
+//       id: project.id,
+//       name: project.name,
+//       description: project.description,
+//       created_at: project.created_at,
+//       updated_at: project.updated_at,
+//       image_url: project.image_url,
+//       projectResponsibles: project.projectResponsibles.map((r) => ({
+//         id: r.user.id,
+//         firstName: r.user.firstName,
+//         lastName: r.user.lastName,
+//         email: r.user.email,
+//         image_url: r.user.image_url,
+//         state: r.user.state,
+//       })),
+//       program: project.program
+//         ? {
+//           id: project.program.id,
+//           description: project.program.description,
+//           objective: project.program.objective
+//             ? {
+//               id: project.program.objective.id,
+//               title: project.program.objective.title,
+//               strategicPlan: project.program.objective.strategicPlan
+//                 ? {
+//                   id: project.program.objective.strategicPlan.id,
+//                   year: project.program.objective.strategicPlan.year,
+//                   mission: project.program.objective.strategicPlan.mission,
+//                 }
+//                 : null,
+//             }
+//             : null,
+//         }
+//         : null,
+//       integrations: project.integrations.map((i) => ({
+//         id: i.id,
+//         name: i.name,
+//         platform: i.platform,
+//         url: i.url,
+//       })),
+//     };
+
+//     return res.status(200).json(formattedProject);
+//   } catch (error) {
+//     console.error('Error al obtener proyecto por ID:', error.message);
+//     return res.status(500).json({ message: 'Error interno del servidor' });
+//   }
+// };
 
 export const deleteProjectById = async (req, res) => {
   const { id } = req.params;
@@ -387,6 +496,107 @@ export const deleteProjectById = async (req, res) => {
   }
 };
 
+// export const updateOperationalProject = async (req, res) => {
+//   const queryRunner = AppDataSource.createQueryRunner();
+
+//   try { 
+//     const { id } = req.params;
+//     const { name, description, program_id, preEliminados, preAnadidos } = req.body;
+
+//     console.log("req update op project", req.body);
+
+//     await queryRunner.connect();
+//     await queryRunner.startTransaction();
+
+//     const projectRepository = queryRunner.manager.getRepository(OperationalProject);
+//     const programRepository = queryRunner.manager.getRepository(Program);
+//     const userRepository = queryRunner.manager.getRepository(User);
+//     const responsibleRepository = queryRunner.manager.getRepository(ProjectResponsible);
+
+//     const project = await projectRepository.findOne({
+//       where: { id: parseInt(id) },
+//       relations: ['projectResponsibles'],
+//     });
+
+//     if (!project) {
+//       await queryRunner.rollbackTransaction();
+//       return res.status(404).json({ message: 'Proyecto no encontrado' });
+//     }
+
+//     let program = null;
+//     if (program_id) {
+//       program = await programRepository.findOneBy({ id: parseInt(program_id) });
+//       if (!program) {
+//         await queryRunner.rollbackTransaction();
+//         return res.status(404).json({ message: 'Programa no encontrado' });
+//       }
+//     }
+
+//     console.log("fileeeees,", req.file);
+
+//     if (req.file) {
+//       if (project.image_url) {
+//         const oldImage = project.image_url.startsWith('/uploads/')
+//           ? project.image_url.slice(9)
+//           : project.image_url;
+//         fs.unlink(path.join('uploads', oldImage), (err) => {
+//           if (err) console.error('No se pudo eliminar imagen antigua:', err.message);
+//         });
+//       }
+//       project.image_url = `/uploads/${req.file.filename}`;
+//     } else if (req.body.image_url === '' || req.body.image_url === null) {
+//       if (project.image_url) {
+//         const oldImage = project.image_url.startsWith('/uploads/')
+//           ? project.image_url.slice(9)
+//           : project.image_url;
+//         fs.unlink(path.join('uploads', oldImage), (err) => {
+//           if (err) console.error('No se pudo eliminar imagen antigua:', err.message);
+//         });
+//       }
+//       project.image_url = null;
+//     }
+
+//     project.name = name || project.name;
+//     project.description = description || project.description;
+//     project.program = program || project.program;
+
+//     const updatedProject = await projectRepository.save(project);
+
+//     // ----------- Manejo de responsables -----------
+//     if (Array.isArray(preEliminados) && preEliminados.length > 0) {
+//       // Eliminar responsables
+//       for (const r of preEliminados) {
+//         await responsibleRepository.delete({ user: { id: r.id }, operationalProject: { id: project.id } });
+//       }
+//     }
+
+//     if (Array.isArray(preAnadidos) && preAnadidos.length > 0) {
+//       // Agregar responsables
+//       for (const r of preAnadidos) {
+//         const user = await userRepository.findOneBy({ id: r.id });
+//         if (!user) continue;
+
+//         const newResponsible = responsibleRepository.create({
+//           user,
+//           operationalProject: project,
+//         });
+//         await responsibleRepository.save(newResponsible);
+//       }
+//     }
+//     // ----------------------------------------------
+
+//     await queryRunner.commitTransaction();
+
+//     return getProjectById(req, res);
+//   } catch (error) {
+//     await queryRunner.rollbackTransaction();
+//     console.error('Error al actualizar el proyecto:', error);
+//     return res.status(500).json({ message: 'Error interno del servidor' });
+//   } finally {
+//     await queryRunner.release();
+//   }
+// };
+
 export const updateOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
 
@@ -394,7 +604,7 @@ export const updateOperationalProject = async (req, res) => {
     const { id } = req.params;
     const { name, description, program_id, preEliminados, preAnadidos } = req.body;
 
-    console.log("req update op project", req.body);
+    console.log("📩 req update op project:", req.body);
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -404,66 +614,86 @@ export const updateOperationalProject = async (req, res) => {
     const userRepository = queryRunner.manager.getRepository(User);
     const responsibleRepository = queryRunner.manager.getRepository(ProjectResponsible);
 
+    // Buscar el proyecto
     const project = await projectRepository.findOne({
       where: { id: parseInt(id) },
-      relations: ['projectResponsibles'],
+      relations: ["projectResponsibles"],
     });
 
     if (!project) {
       await queryRunner.rollbackTransaction();
-      return res.status(404).json({ message: 'Proyecto no encontrado' });
+      return res.status(404).json({ message: "Proyecto no encontrado" });
     }
 
+    // Validar el programa si se envía
     let program = null;
     if (program_id) {
       program = await programRepository.findOneBy({ id: parseInt(program_id) });
       if (!program) {
         await queryRunner.rollbackTransaction();
-        return res.status(404).json({ message: 'Programa no encontrado' });
+        return res.status(404).json({ message: "Programa no encontrado" });
       }
     }
 
-    console.log("fileeeees,", req.file);
+    // Manejo de imagen
+    console.log("📂 Archivo recibido:", req.file);
 
     if (req.file) {
       if (project.image_url) {
-        const oldImage = project.image_url.startsWith('/uploads/')
+        const oldImage = project.image_url.startsWith("/uploads/")
           ? project.image_url.slice(9)
           : project.image_url;
-        fs.unlink(path.join('uploads', oldImage), (err) => {
-          if (err) console.error('No se pudo eliminar imagen antigua:', err.message);
+        fs.unlink(path.join("uploads", oldImage), (err) => {
+          if (err) console.error("⚠️ No se pudo eliminar imagen antigua:", err.message);
         });
       }
       project.image_url = `/uploads/${req.file.filename}`;
-    } else if (req.body.image_url === '' || req.body.image_url === null) {
+    } else if (req.body.image_url === "" || req.body.image_url === null) {
       if (project.image_url) {
-        const oldImage = project.image_url.startsWith('/uploads/')
+        const oldImage = project.image_url.startsWith("/uploads/")
           ? project.image_url.slice(9)
           : project.image_url;
-        fs.unlink(path.join('uploads', oldImage), (err) => {
-          if (err) console.error('No se pudo eliminar imagen antigua:', err.message);
+        fs.unlink(path.join("uploads", oldImage), (err) => {
+          if (err) console.error("⚠️ No se pudo eliminar imagen antigua:", err.message);
         });
       }
       project.image_url = null;
     }
 
+    // Actualizar datos básicos
     project.name = name || project.name;
     project.description = description || project.description;
     project.program = program || project.program;
 
+    // Guardar cambios del proyecto
     const updatedProject = await projectRepository.save(project);
 
-    // ----------- Manejo de responsables -----------
-    if (Array.isArray(preEliminados) && preEliminados.length > 0) {
-      // Eliminar responsables
-      for (const r of preEliminados) {
-        await responsibleRepository.delete({ user: { id: r.id }, operationalProject: { id: project.id } });
+    // 🔍 Parsear JSON de responsables
+    let parsedPreAnadidos = [];
+    let parsedPreEliminados = [];
+
+    try {
+      if (preAnadidos) parsedPreAnadidos = JSON.parse(preAnadidos);
+      if (preEliminados) parsedPreEliminados = JSON.parse(preEliminados);
+    } catch (e) {
+      console.error("❌ Error al parsear preAnadidos o preEliminados:", e.message);
+    }
+
+    // 🗑️ Eliminar responsables
+    if (Array.isArray(parsedPreEliminados) && parsedPreEliminados.length > 0) {
+      console.log("🗑️ Eliminando responsables:", parsedPreEliminados.map(r => r.id));
+      for (const r of parsedPreEliminados) {
+        await responsibleRepository.delete({
+          user: { id: r.id },
+          operationalProject: { id: project.id },
+        });
       }
     }
 
-    if (Array.isArray(preAnadidos) && preAnadidos.length > 0) {
-      // Agregar responsables
-      for (const r of preAnadidos) {
+    // ➕ Agregar responsables
+    if (Array.isArray(parsedPreAnadidos) && parsedPreAnadidos.length > 0) {
+      console.log("➕ Añadiendo responsables:", parsedPreAnadidos.map(r => r.id));
+      for (const r of parsedPreAnadidos) {
         const user = await userRepository.findOneBy({ id: r.id });
         if (!user) continue;
 
@@ -474,19 +704,21 @@ export const updateOperationalProject = async (req, res) => {
         await responsibleRepository.save(newResponsible);
       }
     }
-    // ----------------------------------------------
 
     await queryRunner.commitTransaction();
 
+    console.log("✅ Proyecto actualizado correctamente:", updatedProject.id);
     return getProjectById(req, res);
+
   } catch (error) {
     await queryRunner.rollbackTransaction();
-    console.error('Error al actualizar el proyecto:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    console.error("Error al actualizar el proyecto:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
   } finally {
     await queryRunner.release();
   }
 };
+
 
 
 

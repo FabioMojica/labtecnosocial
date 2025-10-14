@@ -25,12 +25,13 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
         firstName: r.firstName,
         lastName: r.lastName,
         email: r.email,
-        projectCount: 0,
+        image_url: r.image_url,
+        projectCount: r.projectCount,
         role: (r).role,
         state: r.state,
-        created_at: (r).created_at,
-        updated_at: (r).updated_at,
     }));
+
+    console.log("------>", initialResponsibles);
 
     const {
         projectResponsibles,
@@ -91,7 +92,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                 p: 1,
                 display: "flex",
                 flexDirection: "column",
-                gap: 1,
+                gap: 1, 
             }}
         >
             <CssBaseline />
@@ -131,7 +132,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                             }
                         }}
                         height={40}
-                        optionFontSize={{sm: '0.9rem'}}
+                        optionFontSize={{ sm: '0.9rem' }}
                     />
                 </Box>
 
@@ -140,7 +141,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                         message="Este proyecto no tiene responsables asignados"
                         buttonText="Asignar responsables"
                         onButtonClick={() => setSelectedView("assign")}
-                        sx={{height: '50vh'}}
+                        sx={{ height: '50vh' }}
                     />
                 ) : !hasResults ? (
                     <NoResultsScreen message="No se encontraron responsables" sx={{ height: '50vh' }} />

@@ -18,7 +18,7 @@ const TabPanel = ({ children, value, index }) => (
   </div>
 );
 
-export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange }) => {
+export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange, onChange }) => {
   const theme = useTheme();
   const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
   const [searchParams, setSearchParams] = useSearchParams();
@@ -50,10 +50,13 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange 
     }
   }, [labels, onTabsHeightChange]);
 
-
   const handleChange = (_event, newValue) => {
     setValue(newValue);
     setSearchParams({ tab: paramsLabels[newValue] });
+    onTabsHeightChange?.(tabsRef.current?.getBoundingClientRect().height ?? 0);
+    if (typeof onChange === "function") {
+      onChange(paramsLabels[newValue]);
+    }
   };
 
 

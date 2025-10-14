@@ -2,10 +2,12 @@ import React, { useRef, useState } from "react";
 import { Box, Button, List, ListItem, ListItemText, Paper, TextField, Typography } from "@mui/material";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import { useFetchAndLoad } from "../../../hooks";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import { FullScreenProgress } from "../../../generalComponents";
 import { deleteProjectByIdApi } from "../../../api";
+import { Link as MuiLink } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 
 
 export const MorePanel = ({ project, panelHeight }) => {
@@ -25,13 +27,13 @@ export const MorePanel = ({ project, panelHeight }) => {
     const handleDelete = async () => {
         try {
             await callEndpoint(deleteProjectByIdApi(project.id));
-            navigate('/proyectos'); 
+            navigate('/proyectos');
             notify("Proyecto eliminado correctamente", "success");
         } catch (err) {
             notify(err.message, "error");
-        } 
+        }
     };
- 
+
     return (
         <Box
             sx={{
@@ -93,11 +95,13 @@ export const MorePanel = ({ project, panelHeight }) => {
                                 primary={
                                     <>
                                         * Se eliminará también todo su{' '}
-                                        <Link
+                                        <MuiLink
+                                            component={RouterLink}
                                             to={`/planificacion/operativa/${project?.id}`}
+                                            sx={{ color: 'orange', fontWeight: 'bold', textDecoration: 'none' }}
                                         >
                                             plan operativo
-                                        </Link>{' '}
+                                        </MuiLink>{' '}
                                         asociado.
                                     </>
                                 }
@@ -116,8 +120,8 @@ export const MorePanel = ({ project, panelHeight }) => {
                     </List>
                 </Box>
 
-                <Box sx={{display: 'flex', flexDirection: 'column', gap: 1}}>
-                    <Box sx={{display: 'flex', flexDirection: 'column', gap: 1}}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         <Typography variant="subtitle2">
                             Por favor, escribe el nombre exacto del proyecto para confirmar:
                         </Typography>
@@ -134,9 +138,9 @@ export const MorePanel = ({ project, panelHeight }) => {
                         />
                     </Box>
 
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap : 2 }}>
-                        <Button onClick={() => navigate('/proyectos')} disabled={loading}>
-                            Volver atrás
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                        <Button onClick={() => setInputName('')} disabled={loading}>
+                            Cancelar
                         </Button>
                         <Button
                             variant="contained"

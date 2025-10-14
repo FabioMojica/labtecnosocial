@@ -43,6 +43,7 @@ export const ProjectPage = () => {
     const navigate = useNavigate();
     if (!id) return <ErrorScreen message="Proyecto no encontrado" buttonText="Volver a proyectos" onButtonClick={() => navigate('/proyectos')} />;
     const projectId = id;
+    const [activeTab, setActiveTab] = useState("Información del proyecto");
     const [project, setProject] = useState(null);
     const originalProjectRef = useRef(null);
     const projectUpdatedRef = useRef(null);
@@ -54,13 +55,14 @@ export const ProjectPage = () => {
     const fetchProjectById = async () => {
         try {
             const resp = await callEndpoint(getProjectByIdApi(projectId));
+            console.log("proyecto llegfando>>>>>>>>>>>>>>>>>>>>>>>", resp);
             setProject(resp);
             originalProjectRef.current = structuredClone({
                 ...resp,
                 preEliminados: [],
                 preAnadidos: []
             });
-            projectUpdatedRef.current = resp; 
+            projectUpdatedRef.current = resp;
             setError(false);
         } catch (err) {
             notify(err?.message, "error");
@@ -108,6 +110,7 @@ export const ProjectPage = () => {
         if (!project) return;
 
         try {
+            console.log("project antes del form data", project);
             const formData = updateProjectFormData(project);
 
             const resp = await callEndpoint(updateProjectApi(project.id, formData));
@@ -150,6 +153,7 @@ export const ProjectPage = () => {
                 labels={["Información del proyecto", "Responsables", "Integraciones con apis", "Plan operativo", "Más"]}
                 paramsLabels={["Información del proyecto", "Responsables", "Integraciones con apis", "Plan operativo", "Más"]}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
+                onChange={(newTab) => setActiveTab(newTab)}
             >
 
                 <ProjectInfoPanel onChange={handleProjectChange} panelHeight={tabsHeight} project={project} />
@@ -180,29 +184,29 @@ export const ProjectPage = () => {
                 onConfirm={handleConfirmCancelModal}
             />
 
-
-            <ActionBarButtons
-                visible={isDirty}
-                buttons={[
-                    {
-                        label: "Cancelar",
-                        variant: "outlined",
-                        color: "secondary",
-                        icon: <ModeStandbyRoundedIcon />,
-                        onClick: handleCancelChanges,
-                    },
-                    {
-                        label: "Guardar",
-                        variant: "contained",
-                        color: "primary",
-                        icon: <LibraryAddCheckRoundedIcon />,
-                        onClick: handleSave,
-                        triggerOnEnter: true,
-                        disabled: !project?.name || !project?.description,
-                    },
-                ]}
-            />
-
+            {activeTab !== "Más" && (
+                <ActionBarButtons
+                    visible={isDirty}
+                    buttons={[
+                        {
+                            label: "Cancelar",
+                            variant: "outlined",
+                            color: "secondary",
+                            icon: <ModeStandbyRoundedIcon />,
+                            onClick: handleCancelChanges,
+                        },
+                        {
+                            label: "Guardar",
+                            variant: "contained",
+                            color: "primary",
+                            icon: <LibraryAddCheckRoundedIcon />,
+                            onClick: handleSave,
+                            triggerOnEnter: true,
+                            disabled: !project?.name || !project?.description,
+                        },
+                    ]}
+                />
+            )}
         </>
     );
 }
