@@ -1,9 +1,11 @@
 export * from './CreateProjectPage/CreateProjectPage';
 export * from './CreateUserPage/CreateUserPage';
 export * from './HomePage/HomePage';
-export * from './LoginPage/LoginPage';
+export * from './Loginpage/LoginPage';
 export * from './NotFoundPage/NotFoundPage';
 export * from './ProjectPage/ProjectPage';
 export * from './ProjectsListPage/ProjectsListPage';
 export * from './UserPage/UserPage';
 export * from './UsersListPage/UsersListPage';
+export { StrategicPlan } from './StrategicPlan/StrategicPlan';
+export { CreateStrategicPlan } from './StrategicPlan';

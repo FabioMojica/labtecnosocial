@@ -1,0 +1,2009 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Typography,
+  Grid,
+  Select,
+  MenuItem,
+  Button,
+  IconButton,
+  Paper,
+  Modal,
+  TextField,
+  Avatar,
+} from '@mui/material';
+import { updateStrategicPlanApi, getStrategicPlanByYearApi } from '../../api/strategicPlan';
+import { getAllOperationalProjectsApi, assignProjectToProgram as assignProjectToProgramApi } from '../../api/operationalProjects';
+import { useNotification } from '../../contexts';
+import { NoResultsScreen } from '../../generalComponents';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+
+const years = Array.from({ length: 2025 - 2000 + 1 }, (_, i) => 2000 + i);
+
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: { xs: '90%', sm: 400 },
+  maxHeight: { xs: '90vh', sm: '80vh' },
+  overflowY: 'auto',
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: { xs: 2, sm: 4 },
+};
+
+import DocumentView from './DocumentView';
+
+import { useAuth } from "../../contexts";
+
+export const StrategicPlan = () => {
+  const { user } = useAuth();
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [view, setView] = useState(user?.role === 'coordinator' ? 'document' : 'editable');
+  const [loading, setLoading] = useState(true);
+  const [selectedObjective, setSelectedObjective] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalData, setOriginalData] = useState({
+    mission: '',
+    objectives: []
+  });
+
+  const [showEmptyColumns, setShowEmptyColumns] = useState(false);
+
+  //funcion de busqueda
+  const checkForChanges = (currentMission, currentObjectives) => {
+    //mision
+    const missionMatches = currentMission === originalData.mission;
+    
+    //objetivos
+    const objectivesMatch = currentObjectives.length === originalData.objectives.length &&
+      currentObjectives.every(currObj => {
+        const originalObj = originalData.objectives.find(
+          orig => orig.objectiveTitle === currObj.title
+        );
+        
+        if (!originalObj) return false;
+        
+        //indicadores
+        const indicatorsMatch = currObj.indicators.length === originalObj.indicators.length &&
+          currObj.indicators.every(currInd => {
+            return originalObj.indicators.some(
+              origInd => 
+                origInd.concept === currInd.concept &&
+                Number(origInd.amount) === Number(currInd.quantity)
+            );
+          });
+          
+        return indicatorsMatch;
+      });
+    
+    return missionMatches && objectivesMatch;
+  };
+  const { notify } = useNotification();
+  const navigate = useNavigate();
+
+  //coorinador a docu
+  useEffect(() => {
+    if (user?.role === 'coordinador') {
+      setView('document');
+    }
+  }, [user]);
+
+  const [openModal, setOpenModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [openDeleteItemModal, setOpenDeleteItemModal] = useState(false);
+  const [openDeletePlanModal, setOpenDeletePlanModal] = useState(false);
+  const [openCreatePlanModal, setOpenCreatePlanModal] = useState(false);
+  const [currentColumn, setCurrentColumn] = useState(null);
+  const [editedItem, setEditedItem] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [inputValue, setInputValue] = useState('');
+  const [newObjective, setNewObjective] = useState({
+    title: '',
+    indicators: [{ id: Date.now(), quantity: 0, concept: '' }]
+  });
+  const [newPlanData, setNewPlanData] = useState({
+    mission: '',
+    objectives: [{ title: '', indicators: [{ amount: '', concept: '' }] }]
+  });
+  const [deletePlanConfirmationInput, setDeletePlanConfirmationInput] = useState('');
+
+  const [missionItems, setMissionItems] = useState([]);
+  const [objectiveItems, setObjectiveItems] = useState([]);
+  const [programItems, setProgramItems] = useState([]);
+  const [projectItems, setProjectItems] = useState([]);
+  const [openProjectSelectionModal, setOpenProjectSelectionModal] = useState(false);
+  const [availableProjects, setAvailableProjects] = useState([]);
+  const [selectedProgram, setSelectedProgram] = useState(null);
+
+  useEffect(() => {
+    const programs = [];
+    const projects = [];
+    objectiveItems.forEach(obj => {
+      (obj.programs || []).forEach(p => {
+        programs.push({ id: p.id, text: p.description || p.programDescription || '' });
+        (p.operationalProjects || []).forEach(proj => {
+          projects.push({ id: proj.id, title: proj.name || proj.title, description: proj.description || '' });
+        });
+      });
+    });
+    setProgramItems(programs);
+    setProjectItems(projects);
+  }, [objectiveItems]);
+
+  const scrollbarStyles = {
+    '&::-webkit-scrollbar': { width: '2px' },
+    '&::-webkit-scrollbar-track': { boxShadow: 'inset 0 0 6px rgba(0,0,0,0.1)' },
+    '&::-webkit-scrollbar-thumb': { backgroundColor: 'rgba(0,0,0,.2)', borderRadius: '2px' },
+  };
+
+  const getColumnStyles = (theme) => ({
+    p: 2,
+    width: { xs: '100%', md: '260px' },
+    backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : 'grey.200',
+    color: theme.palette.mode === 'dark' ? theme.palette.grey[100] : 'inherit',
+    transition: 'background-color 0.2s',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    flexGrow: 1,
+    minHeight: { xs: 'auto', md: '500px' },
+  });
+
+  const getPaperItemStyles = (theme) => ({
+    p: { xs: 1, sm: 2 },
+    mt: 1,
+    backgroundColor: theme.palette.mode === 'dark' ? '#2c3136' : theme.palette.grey[100],
+    color: theme.palette.mode === 'dark' ? theme.palette.grey[100] : 'inherit',
+    height: { xs: 'auto', sm: '180px' },
+    minHeight: { xs: '180px', sm: '180px' },
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'background-color 0.2s',
+  });
+
+    //cargar proyectos
+  const fetchProjects = async () => {
+    try {
+      const projects = await getAllOperationalProjectsApi();
+      if (projects && Array.isArray(projects)) {
+        const formattedProjects = projects.map(project => ({
+          id: project.id,
+          title: project.title || project.name || '',
+          description: project.description || '',
+          status: project.status || 'pending',
+          startDate: project.startDate,
+          endDate: project.endDate
+        }));
+        setProjectItems(formattedProjects);
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      notify('Error al cargar los proyectos', 'error');
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, [selectedYear]); 
+  useEffect(() => {
+    const fetchStrategicPlan = async () => {
+      setLoading(true);
+      setSelectedObjective(null); 
+      try {
+        const plan = await getStrategicPlanByYearApi(selectedYear);
+        if (!plan) {
+          setMissionItems([]);
+          setObjectiveItems([]);
+          setProgramItems([]);
+          setProjectItems([]);
+          setOriginalData({
+            mission: '',
+            objectives: []
+          });
+          setHasChanges(false);
+          setLoading(false);
+          return;
+        }
+        
+        //guardar datos originales
+        setOriginalData({
+          mission: plan.mission || '',
+          objectives: plan.objectives || []
+        });
+
+        setMissionItems(plan.mission ? [{ id: 1, text: plan.mission }] : []);
+
+        setObjectiveItems(
+          plan.objectives?.map(obj => ({
+            id: obj.id,
+            title: obj.title,
+            indicators: obj.indicators?.map(ind => ({
+              id: ind.id,
+              quantity: ind.amount,
+              concept: ind.concept,
+            })) || [],
+            programs: obj.programs || [],
+          })) || []
+        );
+
+        const allPrograms = [];
+        const allProjects = [];
+        plan.objectives?.forEach(obj => {
+          obj.programs?.forEach(prog => {
+            allPrograms.push({ id: prog.id, text: prog.description });
+            prog.operationalProjects?.forEach(proj => {
+              allProjects.push({
+                id: proj.id,
+                title: proj.name || proj.title,
+                description: proj.description || '',
+              });
+            });
+          });
+        });
+        setProgramItems(allPrograms);
+        setProjectItems(allProjects);
+        setLoading(false);
+
+      } catch (error) {
+        console.error(error);
+        setMissionItems([]);
+        setObjectiveItems([]);
+        setProgramItems([]);
+        setProjectItems([]);
+        setLoading(false);
+      }
+    };
+
+    fetchStrategicPlan();
+    setShowEmptyColumns(false);
+  }, [selectedYear]);
+
+  const PageHeader = () => (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Typography variant="h4">Planificación estratégica</Typography>
+      <Select
+        value={selectedYear}
+        onChange={(e) => setSelectedYear(e.target.value)}
+        size="small"
+      >
+        {years.map((year) => (
+          <MenuItem key={year} value={year}>{year}</MenuItem>
+        ))}
+      </Select>
+    </Box>
+  );
+
+  if (!loading && missionItems.length === 0 && objectiveItems.length === 0 && !showEmptyColumns) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <PageHeader />
+        <NoResultsScreen
+          message={`No existe planificación estratégica para el año ${selectedYear}`}
+          buttonText="Crear una"
+          onButtonClick={() => {
+            setShowEmptyColumns(true);
+            setMissionItems([]);
+            setObjectiveItems([]);
+            setProgramItems([]);
+            setProjectItems([]);
+            setSelectedObjective(null);
+            setHasChanges(false);
+            setView('editable');
+          }}
+        />
+      </Box>
+    );
+  }
+
+  if (view === 'document') {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4">Planificación estratégica</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              size="small"
+            >
+              {years.map((year) => (
+                <MenuItem key={year} value={year}>{year}</MenuItem>
+              ))}
+            </Select>
+            {user?.role !== 'coordinador' && (
+              <Select value={view} onChange={(e) => setView(e.target.value)} size="small">
+                <MenuItem value="editable">Vista editable</MenuItem>
+                <MenuItem value="document">Vista documento</MenuItem>
+              </Select>
+            )}
+          </Box>
+        </Box>
+        <DocumentView 
+          selectedYear={selectedYear}
+          missionItems={missionItems}
+          objectiveItems={objectiveItems}
+        />
+      </Box>
+    );
+  }
+
+  const handleOpenModal = async (column) => {
+    if (column === 'Proyectos') {
+      try {
+        const projects = await getAllOperationalProjectsApi();
+        // mostrar todos los proyectos
+        setAvailableProjects(projects);
+        setOpenProjectSelectionModal(true);
+      } catch (error) {
+        console.error('Error al obtener proyectos:', error);
+        notify('Error al cargar los proyectos', 'error');
+      }
+    } else {
+      setCurrentColumn(column);
+      setOpenModal(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setCurrentColumn(null);
+    setInputValue('');
+  };
+
+  const handleSaveItem = async () => {
+    try {
+      let newItem;
+      
+      if (currentColumn === 'Objetivos') {
+        if (!newObjective.title.trim() || newObjective.indicators.length === 0) {
+          notify('El objetivo debe tener un título y al menos un indicador', 'error');
+          return;
+        }
+        newItem = {
+          id: Date.now(),
+          title: newObjective.title,
+          indicators: newObjective.indicators,
+        };
+      } else {
+        if (inputValue.trim() === '') return;
+        newItem = {
+          id: Date.now(),
+          text: inputValue,
+          title: inputValue,
+          description: '',
+          indicators: [],
+        };
+      }
+
+      let updatedPlan;
+
+      switch (currentColumn) {
+        case 'Misión':
+          updatedPlan = {
+            mission: inputValue,
+            objectives: objectiveItems.map(obj => ({
+              objectiveTitle: obj.title,
+              indicators: obj.indicators.map(ind => ({
+                concept: ind.concept,
+                amount: Number(ind.quantity)
+              }))
+            }))
+          };
+          break;
+        case 'Objetivos':
+          updatedPlan = {
+            mission: missionItems[0]?.text || '',
+            objectives: [
+              ...objectiveItems.map(obj => ({
+                objectiveTitle: obj.title,
+                indicators: obj.indicators.map(ind => ({
+                  concept: ind.concept,
+                  amount: Number(ind.quantity)
+                }))
+              })),
+              {
+                objectiveTitle: newObjective.title,
+                indicators: newObjective.indicators.map(ind => ({
+                  concept: ind.concept,
+                  amount: Number(ind.quantity)
+                }))
+              }
+            ]
+          };
+          break;
+        case 'Programas':
+          if (!selectedObjective) {
+            notify('Selecciona primero un objetivo para agregar un programa', 'warning');
+            updatedPlan = null;
+            break;
+          }
+
+          const objectivesPayloadForProgram = objectiveItems.map(obj => ({
+            objectiveTitle: obj.title,
+            indicators: obj.indicators.map(ind => ({ concept: ind.concept, amount: Number(ind.quantity) })),
+            programs: obj.programs ? obj.programs.map(p => ({ id: p.id, programDescription: p.description || p.text })) : []
+          }));
+
+          const selIndex = objectiveItems.findIndex(o => o.id === selectedObjective.id);
+          if (selIndex >= 0) {
+            const newProgramPayload = { programDescription: inputValue, operationalProjects: [] };
+            if (!objectivesPayloadForProgram[selIndex].programs) objectivesPayloadForProgram[selIndex].programs = [];
+            objectivesPayloadForProgram[selIndex].programs.push(newProgramPayload);
+          }
+
+          updatedPlan = {
+            mission: missionItems[0]?.text || '',
+            objectives: objectivesPayloadForProgram
+          };
+          break;
+        default:
+          updatedPlan = null;
+      }
+
+      if (updatedPlan) {
+        const result = await updateStrategicPlanApi(selectedYear, updatedPlan);
+        
+        if (result) {
+          notify('Elemento agregado exitosamente', 'success');
+
+          if (result.objectives) {
+            const refreshedObjectives = result.objectives.map(obj => ({
+              id: obj.id || Date.now(),
+              title: obj.title || obj.objectiveTitle,
+              indicators: obj.indicators?.map(ind => ({ id: ind.id || Date.now(), quantity: ind.amount, concept: ind.concept })) || [],
+              programs: obj.programs?.map(p => ({ id: p.id || Date.now(), description: p.description || p.programDescription })) || []
+            }));
+
+            setObjectiveItems(refreshedObjectives);
+
+            if (selectedObjective) {
+              const found = refreshedObjectives.find(o => o.id === selectedObjective.id);
+              if (found) setSelectedObjective(found);
+              else setSelectedObjective(null);
+            }
+          }
+
+          if (result.mission !== undefined) {
+            setMissionItems(result.mission ? [{ id: 1, text: result.mission }] : []);
+          }
+        }
+      } else {
+        switch (currentColumn) {
+          case 'Proyectos':
+            setProjectItems([...projectItems, { id: Date.now(), title: inputValue, description: '' }]);
+            break;
+          default:
+            break;
+        }
+      }
+    } catch (error) {
+      console.error('Error adding item:', error);
+      notify(error.message || 'Error al agregar el elemento', 'error');
+    }
+    
+    handleCloseModal();
+  };
+
+  const handleOpenEditModal = (item, column) => {
+    setCurrentColumn(column);
+    setEditedItem({ ...item });
+    setOpenEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setOpenEditModal(false);
+    setEditedItem(null);
+    setCurrentColumn(null);
+  };
+
+  const handleSaveEditedItem = async () => {
+    if (!editedItem) return;
+
+    try {
+      let updatedMissionItems = [...missionItems];
+      let updatedObjectiveItems = [...objectiveItems];
+
+      switch (currentColumn) {
+        case 'Misión':
+          updatedMissionItems = missionItems.map(item => 
+            item.id === editedItem.id ? editedItem : item
+          );
+          setMissionItems(updatedMissionItems);
+          break;
+        case 'Objetivos':
+          updatedObjectiveItems = objectiveItems.map(item => 
+            item.id === editedItem.id ? editedItem : item
+          );
+          setObjectiveItems(updatedObjectiveItems);
+          if (editedItem.id === selectedObjective?.id) {
+            setSelectedObjective(editedItem);
+          }
+          break;
+        case 'Programas':
+          let updatedObjs = [...objectiveItems];
+          let updated = false;
+          updatedObjs = updatedObjs.map(obj => {
+            const programs = (obj.programs || []).map(p => {
+              if (p.id === editedItem.id) {
+                updated = true;
+                return { ...p, description: editedItem.text || editedItem.description || p.description };
+              }
+              return p;
+            });
+            return { ...obj, programs };
+          });
+
+          if (!updated && selectedObjective) {
+            updatedObjs = updatedObjs.map(obj => obj.id === selectedObjective.id ? { ...obj, programs: [...(obj.programs || []), { id: editedItem.id, description: editedItem.text || editedItem.description }] } : obj);
+          }
+
+          setObjectiveItems(updatedObjs);
+
+          try {
+            const payload = {
+              mission: missionItems[0]?.text || '',
+              objectives: updatedObjs.map(o => ({
+                id: o.id,
+                objectiveTitle: o.title,
+                indicators: o.indicators?.map(ind => ({ id: ind.id, concept: ind.concept, amount: Number(ind.quantity) })) || [],
+                programs: o.programs?.map(p => ({ id: p.id, programDescription: p.description || p.programDescription || p.text })) || []
+              }))
+            };
+
+            const res = await updateStrategicPlanApi(selectedYear, payload);
+            if (res && res.objectives) {
+              const refreshed = res.objectives.map(obj => ({
+                id: obj.id || Date.now(),
+                title: obj.title || obj.objectiveTitle,
+                indicators: obj.indicators?.map(ind => ({ id: ind.id || Date.now(), quantity: ind.amount, concept: ind.concept })) || [],
+                programs: obj.programs?.map(p => ({ id: p.id || Date.now(), description: p.description || p.programDescription })) || []
+              }));
+              setObjectiveItems(refreshed);
+              if (selectedObjective) {
+                const found = refreshed.find(o => o.id === selectedObjective.id);
+                if (found) setSelectedObjective(found);
+              }
+            }
+          } catch (err) {
+            console.error('Error saving edited program:', err);
+            notify('Error al guardar programa', 'error');
+          }
+
+          break;
+        case 'Proyectos':
+          setProjectItems(projectItems.map(item => item.id === editedItem.id ? editedItem : item));
+          break;
+      }
+
+      //verificar si los datos actuales son diferentes a los originales
+      const currentPlan = {
+        mission: currentColumn === 'Misión' ? 
+          updatedMissionItems[0]?.text : 
+          missionItems[0]?.text,
+        objectives: currentColumn === 'Objetivos' ? 
+          updatedObjectiveItems : 
+          objectiveItems
+      };
+
+      const hasActualChanges = !checkForChanges(
+        currentPlan.mission || '',
+        currentPlan.objectives.map(obj => ({
+          title: obj.title,
+          indicators: obj.indicators.map(ind => ({
+            concept: ind.concept,
+            quantity: ind.quantity
+          }))
+        }))
+      );
+
+      setHasChanges(hasActualChanges);
+      
+    } catch (error) {
+      console.error('Error updating item:', error);
+      notify(error.message || 'Error al actualizar el elemento', 'error');
+    }
+    
+    handleCloseEditModal();
+  };
+
+  const handleOpenDeleteItemModal = (item, column) => {
+    setItemToDelete(item);
+    setCurrentColumn(column);
+
+    if (column === 'Objetivos') {
+      const objective = objectiveItems.find(obj => obj.id === item.id);
+      if (objective) {
+        item.relatedContent = {
+          programs: objective.programs?.map(prog => ({
+            description: prog.description || prog.programDescription || prog.text,
+            projects: projectItems.filter(proj => proj.program?.id === prog.id)
+          })) || []
+        };
+      }
+    }
+    else if (column === 'Programas') {
+      item.relatedContent = {
+        projects: projectItems.filter(proj => proj.program?.id === item.id)
+      };
+    }
+
+    setOpenDeleteItemModal(true);
+  };
+
+  const handleCloseDeleteItemModal = () => {
+    setOpenDeleteItemModal(false);
+    setItemToDelete(null);
+    setCurrentColumn(null);
+  };
+
+  const handleConfirmDeleteItem = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      switch (currentColumn) {
+        case 'Objetivos':
+          if (selectedObjective?.id === itemToDelete.id) {
+            setSelectedObjective(null);
+          }
+          
+          const updatedObjectives = objectiveItems.filter(item => item.id !== itemToDelete.id);
+          setObjectiveItems(updatedObjectives);
+
+          const updatedPlan = {
+            mission: missionItems[0]?.text || '',
+            objectives: updatedObjectives.map(obj => ({
+              objectiveTitle: obj.title,
+              indicators: obj.indicators.map(ind => ({
+                concept: ind.concept,
+                amount: Number(ind.quantity)
+              }))
+            }))
+          };
+          
+          await updateStrategicPlanApi(selectedYear, updatedPlan);
+          notify('Objetivo eliminado exitosamente', 'success');
+          break;
+
+        case 'Programas':
+            const updatedObjsAfterDelete = objectiveItems.map(obj => ({
+              ...obj,
+              programs: (obj.programs || []).filter(p => p.id !== itemToDelete.id)
+            }));
+            setObjectiveItems(updatedObjsAfterDelete);
+            try {
+              const payloadAfterDelete = {
+                mission: missionItems[0]?.text || '',
+                objectives: updatedObjsAfterDelete.map(o => ({
+                  id: o.id,
+                  objectiveTitle: o.title,
+                  indicators: o.indicators?.map(ind => ({ id: ind.id, concept: ind.concept, amount: Number(ind.quantity) })) || [],
+                  programs: o.programs?.map(p => ({ id: p.id, programDescription: p.description || p.programDescription || p.text })) || []
+                }))
+              };
+              await updateStrategicPlanApi(selectedYear, payloadAfterDelete);
+              notify('Programa eliminado exitosamente', 'success');
+            } catch (err) {
+              console.error('Error deleting program:', err);
+              notify('Error al eliminar programa', 'error');
+            }
+          break;
+        case 'Proyectos':
+          setProjectItems(projectItems.filter(item => item.id !== itemToDelete.id));
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      notify(error.message || 'Error al eliminar el elemento', 'error');
+    }
+    
+    handleCloseDeleteItemModal();
+  };
+
+  const handleOpenDeletePlanModal = () => setOpenDeletePlanModal(true);
+  const handleCloseDeletePlanModal = () => {
+    setOpenDeletePlanModal(false);
+    setDeletePlanConfirmationInput('');
+  };
+  const handleConfirmDeletePlan = async () => {
+    try {
+      const result = await updateStrategicPlanApi(selectedYear, { mission: '', objectives: [] });
+      
+      if (result) {
+        notify(`Plan estratégico del año ${selectedYear} eliminado exitosamente`, 'success');
+        setMissionItems([]);
+        setObjectiveItems([]);
+        setProgramItems([]);
+        setProjectItems([]);
+        setSelectedObjective(null);
+      }
+    } catch (error) {
+      console.error('Error deleting strategic plan:', error);
+      notify(error.message || 'Error al eliminar el plan estratégico', 'error');
+    }
+    
+    handleCloseDeletePlanModal();
+  };
+
+  const handleEditedItemChange = (e) => {
+    const { name, value } = e.target;
+    setEditedItem(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditedIndicatorChange = (index, e) => {
+    const { name, value } = e.target;
+    const newIndicators = [...editedItem.indicators];
+    newIndicators[index] = { ...newIndicators[index], [name]: value };
+    setEditedItem(prev => ({ ...prev, indicators: newIndicators }));
+  };
+
+  const addIndicator = () => {
+    const newIndicator = { id: Date.now(), quantity: 0, concept: '' };
+    setEditedItem(prev => ({ ...prev, indicators: [...prev.indicators, newIndicator] }));
+  };
+
+  const removeIndicator = (id) => {
+    setEditedItem(prev => ({ ...prev, indicators: prev.indicators.filter(ind => ind.id !== id) }));
+  };
+
+  const handleAssignProjectToProgram = async (projectId, programId) => {
+    try {
+      const result = await assignProjectToProgramApi(projectId, programId);
+      
+      if (result) {
+        notify('Proyecto asignado exitosamente', 'success');
+        
+        const projects = await getAllOperationalProjectsApi();
+        if (projects && Array.isArray(projects)) {
+          const formattedProjects = projects.map(project => ({
+            id: project.id,
+            name: project.name,
+            title: project.title || project.name,
+            description: project.description || '',
+            status: project.status || 'pending',
+            startDate: project.startDate,
+            endDate: project.endDate,
+            program: project.program
+          }));
+          setProjectItems(formattedProjects);
+          setAvailableProjects(formattedProjects); 
+        }
+
+        const plan = await getStrategicPlanByYearApi(selectedYear);
+        if (plan && plan.objectives) {
+          setObjectiveItems(
+            plan.objectives?.map(obj => ({
+              id: obj.id,
+              title: obj.title,
+              indicators: obj.indicators?.map(ind => ({
+                id: ind.id,
+                quantity: ind.amount,
+                concept: ind.concept,
+              })) || [],
+              programs: obj.programs || [],
+            })) || []
+          );
+        }
+
+        setOpenProjectSelectionModal(false);
+      }
+    } catch (error) {
+      console.error('Error al asignar proyecto:', error);
+      notify(error.message || 'Error al asignar el proyecto al programa', 'error');
+    }
+  };
+
+  const columnData = {
+    'Misión': { items: missionItems, handler: () => handleOpenModal('Misión') },
+    'Objetivos': { items: objectiveItems, handler: () => handleOpenModal('Objetivos') },
+    'Programas': {
+      items: selectedObjective && selectedObjective.programs
+        ? (selectedObjective.programs.map(p => ({ id: p.id, text: p.description || p.programDescription || p.text })) || [])
+        : [],
+      handler: () => handleOpenModal('Programas')
+    },
+    'Proyectos': { 
+      items: selectedProgram ? 
+        projectItems
+          .filter(project => {
+            return project.program && project.program.id === selectedProgram.id;
+          })
+          .map(project => ({
+            id: project.id,
+            title: project.name || project.title || '',
+            description: project.description || '',
+            status: project.status || 'pending',
+            startDate: project.startDate,
+            endDate: project.endDate,
+            program: project.program
+          }))
+        : [],
+      handler: () => handleOpenModal('Proyectos') 
+    },
+  };
+
+
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ mb: 4 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: 2,
+            mb: 3,
+            width: '100%',
+          }}
+        >
+          <Typography
+            variant="h4"
+            sx={{
+              fontSize: { xs: '1.3rem', sm: '2rem' },
+              mb: { xs: 2, sm: 0 },
+              textAlign: { xs: 'center', sm: 'left' },
+              width: { xs: '100%', sm: 'auto' },
+              wordBreak: 'break-word',
+            }}
+          >
+            Planificación estratégica
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: 2,
+              width: { xs: '100%', sm: 'auto' },
+              flexWrap: 'wrap',
+            }}
+          >
+            <Select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              size="small"
+              sx={{ width: { xs: '100%', sm: 120 } }}
+            >
+              {years.map((year) => (
+                <MenuItem key={year} value={year}>{year}</MenuItem>
+              ))}
+            </Select>
+            {user?.role !== 'coordinador' && (
+              <Select
+                value={view}
+                onChange={(e) => setView(e.target.value)}
+                size="small"
+                sx={{ width: { xs: '100%', sm: 160 } }}
+              >
+                <MenuItem value="editable">Vista editable</MenuItem>
+                <MenuItem value="document">Vista documento</MenuItem>
+              </Select>
+            )}
+            {user?.role !== 'coordinador' && (
+              <IconButton
+                size="small"
+                onClick={handleOpenDeletePlanModal}
+                sx={{ alignSelf: { xs: 'flex-end', sm: 'center' }, mt: { xs: 1, sm: 0 } }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            )}
+          </Box>
+        </Box>
+
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+         
+          p: 0
+        }}>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              fontWeight: 'bold',
+              color: theme => theme.palette.mode === 'dark' ? theme.palette.grey[300] : theme.palette.grey[700],
+              letterSpacing: '2px'
+            }}
+          >
+            {selectedYear}
+          </Typography>
+
+          {hasChanges && (
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button 
+                variant="outlined" 
+                color="inherit"
+                onClick={() => {
+                  if (originalData.mission) {
+                    setMissionItems([{ id: 1, text: originalData.mission }]);
+                  }
+                  
+                  const objectives = originalData.objectives.map(obj => ({
+                    id: obj.id,
+                    title: obj.objectiveTitle,
+                    indicators: obj.indicators?.map(ind => ({
+                      id: ind.id,
+                      quantity: ind.amount,
+                      concept: ind.concept,
+                    })) || [],
+                  }));
+                  
+                  setObjectiveItems(objectives);
+                  setSelectedObjective(null);
+                  setHasChanges(false);
+                  notify('Cambios cancelados', 'info');
+                }}
+              >
+                Cancelar cambios
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={async () => {
+                  try {
+                    const updatedPlan = {
+                      mission: missionItems[0]?.text || '',
+                      objectives: objectiveItems.map(obj => ({
+                        objectiveTitle: obj.title,
+                        indicators: obj.indicators.map(ind => ({
+                          concept: ind.concept,
+                          amount: Number(ind.quantity)
+                        }))
+                      }))
+                    };
+
+                    const result = await updateStrategicPlanApi(selectedYear, updatedPlan);
+                    if (result) {
+                      setOriginalData({
+                        mission: updatedPlan.mission,
+                        objectives: updatedPlan.objectives.map(obj => ({
+                          ...obj,
+                          id: Date.now() 
+                        }))
+                      });
+                      setHasChanges(false);
+                      notify('Cambios guardados exitosamente', 'success');
+
+                      // verificar si los datos volvieron a su estado original
+                      const hasActualChanges = !checkForChanges(
+                        updatedPlan.mission,
+                        updatedPlan.objectives.map(obj => ({
+                          title: obj.objectiveTitle,
+                          indicators: obj.indicators
+                        }))
+                      );
+                      setHasChanges(hasActualChanges);
+                    }
+                  } catch (error) {
+                    console.error('Error saving changes:', error);
+                    notify('Error al guardar los cambios', 'error');
+                  }
+                }}
+              >
+                Guardar cambios
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </Box>
+
+<Grid
+  container
+  spacing={2}
+  direction={{ xs: 'column', md: 'row' }}
+  sx={{
+    mt: 2,
+    alignItems: 'stretch',
+    width: '100%',
+    flexWrap: { xs: 'nowrap', md: 'nowrap' },
+    overflowX: { xs: 'visible', md: 'auto' },
+  }}
+>
+  {Object.entries(columnData).map(([title, { items, handler }]) => (
+    <Grid
+      item
+      key={`column-${title}`}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: { xs: '100%', md: '260px' },
+        maxWidth: { xs: '100%', md: '260px' },
+        minWidth: { xs: '100%', md: '260px' },
+        margin: { xs: '0 auto 16px auto', md: 0 },
+      }}
+    >
+      <Paper
+        sx={(theme) => ({
+          ...getColumnStyles(theme),
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%', 
+        })}
+      >
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">{title}</Typography>
+              {title === 'Programas' ? (
+                selectedObjective ? (
+                  <IconButton size="small" onClick={handler}>
+                    <AddCircleOutlineIcon />
+                  </IconButton>
+                ) : null
+              ) : (
+                <IconButton size="small" onClick={handler}>
+                  <AddCircleOutlineIcon />
+                </IconButton>
+              )}
+            </Box>
+          <Box 
+            sx={{ 
+              width: '100%', 
+              height: '1px', 
+              backgroundColor: theme => theme.palette.divider,
+              mb: 2
+            }} 
+          />
+        </Box>
+
+        <Box sx={{ 
+          height: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          overflow: 'hidden'
+        }}>
+          {title === 'Objetivos' && missionItems[0] && (
+            <Typography
+              variant="caption"
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                color: 'text.secondary',
+              }}
+            >
+              Misión seleccionada: {missionItems[0].text}
+            </Typography>
+          )}
+
+          {title === 'Programas' && selectedObjective && (
+            <Typography
+              variant="caption"
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                color: 'text.secondary',
+              }}
+            >
+              Objetivo seleccionado: {selectedObjective.title}
+            </Typography>
+          )}
+        </Box>
+
+        <Box
+          sx={{
+            mt: 1,
+            borderRadius: 2,
+            p: 0.5,
+            flexGrow: 1,
+            overflowY: 'auto',
+            '& > .MuiPaper-root': {
+              height: '180px',
+              mb: 2,
+            },
+            ...scrollbarStyles,
+          }}
+        >
+          {items.map((item) => (
+            <Paper key={item.id} sx={(theme) => getPaperItemStyles(theme)}>
+              <Box 
+                sx={{ 
+                  p: 1, 
+                  flexGrow: 1, 
+                  overflowY: 'auto',
+                  cursor: title === 'Objetivos' ? 'pointer' : 'default',
+                }}
+                onClick={() => {
+                  if (title === 'Objetivos') {
+                    setSelectedObjective(item);
+                  }
+                }}
+              >
+                {title === 'Objetivos' ? (
+                  <Box>
+                    <Box
+                      sx={(theme) => ({
+                        backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : theme.palette.grey[200],
+                        borderRadius: 1,
+                        p: 0.5,
+                        textAlign: 'center',
+                        mb: 1,
+                        border:
+                          selectedObjective?.id === item.id
+                            ? '2px solid #1976d2'
+                            : 'none',
+                      })}
+                      onClick={() => {
+                        setSelectedProgram(null); 
+                      }}
+                    >
+                      <Typography variant="subtitle2" sx={(theme) => ({
+                        color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700]
+                      })}>{item.title}</Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ pl: 1, pt: 1, color: theme => theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700] }}>
+                      Indicadores
+                    </Typography>
+                    {item.indicators.map((ind) => (
+                      <Box
+                        key={`indicator-${item.id}-${ind.id}`}
+                        sx={(theme) => ({
+                          backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : theme.palette.grey[200],
+                          borderRadius: 1,
+                          p: 1,
+                          my: 1,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                        })}
+                      >
+                        <Typography variant="caption">Cantidad: {ind.quantity}</Typography>
+                        <Typography variant="caption">Concepto: {ind.concept}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                ) : title === 'Programas' ? (
+                  <Box>
+                    <Box
+                      sx={(theme) => ({
+                        backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : theme.palette.grey[200],
+                        borderRadius: 1,
+                        p: 1,
+                        textAlign: 'left',
+                        mb: 1,
+                        border: selectedProgram?.id === item.id ? '2px solid #1976d2' : 'none',
+                        cursor: 'pointer',
+                      })}
+                      onClick={() => setSelectedProgram(item)}
+                    >
+                      <Typography variant="subtitle2" sx={(theme) => ({
+                        color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700],
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      })}>{item.text}</Typography>
+                    </Box>
+                  </Box>
+                ) : title === 'Proyectos' ? (
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
+                      <Avatar
+                        sx={(theme) => ({
+                          width: 30,
+                          height: 30,
+                          bgcolor: item.status === 'completed' ? 'success.main' : 
+                                  item.status === 'in-progress' ? 'primary.main' : 'grey.500',
+                          mr: 1,
+                          color: theme.palette.mode === 'dark' ? theme.palette.grey[100] : 'inherit',
+                        })}
+                      >
+                        P
+                      </Avatar>
+                      <Box
+                        sx={(theme) => ({
+                          backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : theme.palette.grey[200],
+                          borderRadius: 1,
+                          p: 1,
+                          flexGrow: 1,
+                          minHeight: '30px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                        })}
+                      >
+                        <Typography variant="subtitle2" sx={(theme) => ({
+                          mb: 0.5,
+                          color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700],
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        })}>{item.title}</Typography>
+                        {item.status && (
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              color: item.status === 'completed' ? 'success.main' : 
+                                    item.status === 'in-progress' ? 'primary.main' : 'text.secondary'
+                            }}
+                          >
+                            Estado: {item.status === 'completed' ? 'Completado' : 
+                                    item.status === 'in-progress' ? 'En progreso' : 'Pendiente'}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                    <Box
+                      sx={(theme) => ({
+                        backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : theme.palette.grey[200],
+                        borderRadius: 1,
+                        p: 1,
+                      })}
+                    >
+                      <Typography variant="body2" sx={{ 
+                        mb: 1,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {item.description}
+                      </Typography>
+                      {(item.startDate || item.endDate) && (
+                        <Box sx={{ 
+                          display: 'flex', 
+                          gap: 2, 
+                          mt: 1,
+                          fontSize: '0.75rem',
+                          color: 'text.secondary'
+                        }}>
+                          {item.startDate && (
+                            <Typography variant="caption">
+                              Inicio: {new Date(item.startDate).toLocaleDateString()}
+                            </Typography>
+                          )}
+                          {item.endDate && (
+                            <Typography variant="caption">
+                              Fin: {new Date(item.endDate).toLocaleDateString()}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                ) : title === 'Misión' ? (
+                  <Box 
+                    sx={(theme) => ({
+                      backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : 'grey.50',
+                      borderRadius: 1,
+                      p: 2,
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'left',
+                      justifyContent: 'left'
+                    })}
+                  >
+                    <Typography 
+                      variant="subtitle2" 
+                      sx={(theme) => ({ 
+                        textAlign: 'left',
+                        lineHeight: 1.6,
+                        color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700]
+                      })}
+                    >
+                      {item.text}
+                    </Typography>
+                  </Box>
+                ) : (
+                  item.text
+                )}
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  pt: 1,
+                  borderTop: '1px solid grey',
+                  mt: 'auto',
+                  position: 'sticky',
+                  bottom: 0,
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? '#2c3136' : 'grey.100',
+                }}
+              >
+                <IconButton size="small" onClick={() => handleOpenEditModal(item, title)}>
+                  <VisibilityIcon fontSize="small" />
+                </IconButton>
+                {title !== 'Misión' && (
+                  <IconButton size="small" onClick={() => handleOpenDeleteItemModal(item, title)}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
+            </Paper>
+          ))}
+        </Box>
+      </Paper>
+    </Grid>
+  ))}
+</Grid>
+
+            <Modal
+              open={openCreatePlanModal}
+              onClose={() => setOpenCreatePlanModal(false)}
+            >
+              <Box sx={{
+                ...modalStyle,
+                width: 600,
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                ...scrollbarStyles
+              }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6">Crear Planificación Estratégica</Typography>
+                  <Typography variant="h6" color="primary">{selectedYear}</Typography>
+                </Box>
+                
+                <Typography variant="subtitle1" sx={{ mt: 2 }}>Misión</Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={newPlanData.mission}
+                  onChange={(e) => setNewPlanData(prev => ({...prev, mission: e.target.value}))}
+                  placeholder="Describe la misión de la planificación estratégica"
+                />
+
+                <Typography variant="subtitle1" sx={{ mt: 3 }}>Objetivos</Typography>
+                {newPlanData.objectives.map((objective, objIndex) => (
+                  <Box key={objIndex} sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                      <TextField
+                        fullWidth
+                        label="Título del objetivo"
+                        value={objective.title}
+                        onChange={(e) => {
+                          const newObjectives = [...newPlanData.objectives];
+                          newObjectives[objIndex].title = e.target.value;
+                          setNewPlanData(prev => ({...prev, objectives: newObjectives}));
+                        }}
+                      />
+                      {objIndex > 0 && (
+                        <IconButton 
+                          size="small" 
+                          onClick={() => {
+                            const newObjectives = newPlanData.objectives.filter((_, i) => i !== objIndex);
+                            setNewPlanData(prev => ({...prev, objectives: newObjectives}));
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      )}
+                    </Box>
+
+                    <Typography variant="subtitle2" sx={{ mt: 2 }}>Indicadores</Typography>
+                    {objective.indicators.map((indicator, indIndex) => (
+                      <Box key={indIndex} sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <TextField
+                          label="Cantidad"
+                          size="small"
+                          type="number"
+                          value={indicator.amount}
+                          onChange={(e) => {
+                            const newObjectives = [...newPlanData.objectives];
+                            newObjectives[objIndex].indicators[indIndex].amount = e.target.value;
+                            setNewPlanData(prev => ({...prev, objectives: newObjectives}));
+                          }}
+                          sx={{ width: 100 }}
+                        />
+                        <TextField
+                          label="Concepto"
+                          size="small"
+                          fullWidth
+                          value={indicator.concept}
+                          onChange={(e) => {
+                            const newObjectives = [...newPlanData.objectives];
+                            newObjectives[objIndex].indicators[indIndex].concept = e.target.value;
+                            setNewPlanData(prev => ({...prev, objectives: newObjectives}));
+                          }}
+                        />
+                        {indIndex > 0 && (
+                          <IconButton 
+                            size="small"
+                            onClick={() => {
+                              const newObjectives = [...newPlanData.objectives];
+                              newObjectives[objIndex].indicators = objective.indicators.filter((_, i) => i !== indIndex);
+                              setNewPlanData(prev => ({...prev, objectives: newObjectives}));
+                            }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        )}
+                      </Box>
+                    ))}
+                    <Button 
+                      size="small" 
+                      onClick={() => {
+                        const newObjectives = [...newPlanData.objectives];
+                        newObjectives[objIndex].indicators.push({ amount: '', concept: '' });
+                        setNewPlanData(prev => ({...prev, objectives: newObjectives}));
+                      }}
+                      sx={{ mt: 1 }}
+                    >
+                      + Agregar indicador
+                    </Button>
+                  </Box>
+                ))}
+
+                <Button 
+                  onClick={() => {
+                    setNewPlanData(prev => ({
+                      ...prev,
+                      objectives: [...prev.objectives, { title: '', indicators: [{ amount: '', concept: '' }] }]
+                    }));
+                  }}
+                  sx={{ mt: 2 }}
+                >
+                  + Agregar objetivo
+                </Button>
+
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <Button variant="outlined" onClick={() => {
+                    setOpenCreatePlanModal(false);
+                    setNewPlanData({
+                      mission: '',
+                      objectives: [{ title: '', indicators: [{ amount: '', concept: '' }] }]
+                    });
+                  }}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    onClick={async () => {
+                      try {
+                        if (!newPlanData.mission.trim()) {
+                          notify('La misión es requerida', 'error');
+                          return;
+                        }
+
+                        const validObjectives = newPlanData.objectives
+                          .filter(obj => obj.title.trim())
+                          .map(obj => ({
+                            objectiveTitle: obj.title,
+                            indicators: obj.indicators
+                              .filter(ind => ind.concept.trim() && ind.amount)
+                              .map(ind => ({
+                                concept: ind.concept,
+                                amount: Number(ind.amount)
+                              }))
+                          }));
+
+                        if (validObjectives.length === 0) {
+                          notify('Se requiere al menos un objetivo con título', 'error');
+                          return;
+                        }
+
+                        const payload = {
+                          mission: newPlanData.mission,
+                          objectives: validObjectives
+                        };
+
+                        console.log('Creating strategic plan for year:', selectedYear);
+                        console.log('Sending payload:', payload);
+
+                        const result = await updateStrategicPlanApi(selectedYear, payload);
+                        
+                        if (result) {
+                          notify(`Plan estratégico para ${selectedYear} creado exitosamente`, 'success');
+                          setOpenCreatePlanModal(false);
+                          setNewPlanData({
+                            mission: '',
+                            objectives: [{ title: '', indicators: [{ amount: '', concept: '' }] }]
+                          });
+                          const plan = await getStrategicPlanByYearApi(selectedYear);
+                          if (plan) {
+                            setMissionItems(plan.mission ? [{ id: 1, text: plan.mission }] : []);
+                            setObjectiveItems(
+                              plan.objectives?.map(obj => ({
+                                id: obj.id,
+                                title: obj.title,
+                                indicators: obj.indicators?.map(ind => ({
+                                  id: ind.id,
+                                  quantity: ind.amount,
+                                  concept: ind.concept,
+                                })) || [],
+                                programs: obj.programs || [],
+                              })) || []
+                            );
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Error creating strategic plan:', error);
+                        notify(error.message || 'Error al crear el plan estratégico', 'error');
+                      }
+                    }}
+                  >
+                    Crear
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
+
+            <Modal
+              open={openModal}
+              onClose={handleCloseModal}
+            >
+              <Box sx={modalStyle}>
+                <Typography variant="h6">Añadir a {currentColumn}</Typography>
+                {currentColumn === 'Objetivos' ? (
+                  <Box sx={{maxHeight: '60vh', overflowY: 'auto', ...scrollbarStyles, p: 1}}>
+                    <TextField
+                      fullWidth
+                      label="Título del objetivo"
+                      value={newObjective.title}
+                      onChange={(e) => setNewObjective(prev => ({ ...prev, title: e.target.value }))}
+                      inputProps={{ maxLength: 100 }}
+                      helperText={`${newObjective.title.length}/100 caracteres`}
+                      sx={{ mt: 2 }}
+                      required
+                    />
+                    <Typography sx={{ mt: 2 }}>Indicadores:</Typography>
+                    {newObjective.indicators.map((indicator, index) => (
+                      <Box key={indicator.id} sx={{ display: 'flex', gap: 1, mt: 1, alignItems: 'center' }}>
+                        <TextField
+                          label="Cantidad"
+                          type="number"
+                          value={indicator.quantity}
+                          onChange={(e) => {
+                            const value = Math.max(0, Number(e.target.value));
+                            const newIndicators = [...newObjective.indicators];
+                            newIndicators[index] = { ...newIndicators[index], quantity: value };
+                            setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
+                          }}
+                          sx={{
+                            flex: 1,
+                            '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
+                              '-webkit-appearance': 'none',
+                              margin: 0
+                            },
+                            '& input[type=number]': {
+                              '-moz-appearance': 'textfield'
+                            }
+                          }}
+                          inputProps={{
+                            min: 0,
+                            step: 1
+                          }}
+                        />
+                        <TextField
+                          label="Concepto"
+                          value={indicator.concept}
+                          onChange={(e) => {
+                            const newIndicators = [...newObjective.indicators];
+                            newIndicators[index] = { ...newIndicators[index], concept: e.target.value };
+                            setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
+                          }}
+                          sx={{flex: 2}}
+                        />
+                        {index > 0 && (
+                          <IconButton 
+                            onClick={() => {
+                              const newIndicators = newObjective.indicators.filter((_, i) => i !== index);
+                              setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
+                            }} 
+                            size="small"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        )}
+                      </Box>
+                    ))}
+                    <Button 
+                      onClick={() => {
+                        setNewObjective(prev => ({
+                          ...prev,
+                          indicators: [...prev.indicators, { id: Date.now(), quantity: 0, concept: '' }]
+                        }));
+                      }} 
+                      size="small" 
+                      sx={{mt: 1}}
+                    >
+                      Añadir indicador
+                    </Button>
+                  </Box>
+                ) : (
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    sx={{ mt: 2 }}
+                  />
+                )}
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <Button 
+                    variant="outlined" 
+                    onClick={() => {
+                      handleCloseModal();
+                      if (currentColumn === 'Objetivos') {
+                        setNewObjective({
+                          title: '',
+                          indicators: [{ id: Date.now(), quantity: 0, concept: '' }]
+                        });
+                      }
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    onClick={handleSaveItem}
+                    disabled={currentColumn === 'Objetivos' && (!newObjective.title.trim() || newObjective.indicators.some(ind => !ind.concept.trim()))}
+                  >
+                    Guardar
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
+            
+            <Modal
+              open={openEditModal}
+              onClose={handleCloseEditModal}
+            >
+              <Box sx={modalStyle}>
+                <Typography variant="h6">Editar {currentColumn}</Typography>
+                {editedItem && (
+                  <Box sx={{maxHeight: '60vh', overflowY: 'auto', ...scrollbarStyles, p: 1}}>
+                    {currentColumn === 'Misión' && (
+                      <TextField
+                        fullWidth
+                        label="Misión"
+                        name="text"
+                        multiline
+                        rows={4}
+                        value={editedItem.text}
+                        onChange={handleEditedItemChange}
+                        sx={{ mt: 2 }}
+                      />
+                    )}
+                    {currentColumn === 'Objetivos' && (
+                      <>
+                        <TextField
+                          fullWidth
+                          label="Título del objetivo"
+                          name="title"
+                          value={editedItem.title}
+                          onChange={handleEditedItemChange}
+                          inputProps={{ maxLength: 100 }}
+                          helperText={`${editedItem.title.length}/100 caracteres`}
+                          sx={{ mt: 2 }}
+                          required
+                        />
+                        <Typography sx={{ mt: 2 }}>Indicadores:</Typography>
+                        {editedItem.indicators.map((indicator, index) => (
+                          <Box key={indicator.id} sx={{ display: 'flex', gap: 1, mt: 1, alignItems: 'center' }}>
+                            <TextField
+                              label="Cantidad"
+                              name="quantity"
+                              type="number"
+                              value={indicator.quantity}
+                              onChange={(e) => {
+                                const value = Math.max(0, Number(e.target.value));
+                                const event = {
+                                  target: {
+                                    name: 'quantity',
+                                    value: value
+                                  }
+                                };
+                                handleEditedIndicatorChange(index, event);
+                              }}
+                              sx={{
+                                flex: 1,
+                                '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
+                                  '-webkit-appearance': 'none',
+                                  margin: 0
+                                },
+                                '& input[type=number]': {
+                                  '-moz-appearance': 'textfield'
+                                }
+                              }}
+                              inputProps={{
+                                min: 0,
+                                step: 1
+                              }}
+                            />
+                            <TextField
+                              label="Concepto"
+                              name="concept"
+                              value={indicator.concept}
+                              onChange={(e) => handleEditedIndicatorChange(index, e)}
+                              sx={{flex: 2}}
+                            />
+                            <IconButton onClick={() => removeIndicator(indicator.id)} size="small">
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        ))}
+                        <Button onClick={addIndicator} size="small" sx={{mt: 1}}>Añadir indicador</Button>
+                      </>
+                    )}
+                    {currentColumn === 'Programas' && (
+                       <TextField
+                        fullWidth
+                        label="Programa"
+                        name="text"
+                        value={editedItem.text}
+                        onChange={handleEditedItemChange}
+                        sx={{ mt: 2 }}
+                      />
+                    )}
+                    {currentColumn === 'Proyectos' && (
+                      <>
+                        <TextField
+                          fullWidth
+                          label="Título del proyecto"
+                          name="title"
+                          value={editedItem.title}
+                          onChange={handleEditedItemChange}
+                          sx={{ mt: 2 }}
+                        />
+                        <TextField
+                          fullWidth
+                          label="Descripción del proyecto"
+                          name="description"
+                          multiline
+                          rows={4}
+                          value={editedItem.description}
+                          onChange={handleEditedItemChange}
+                          sx={{ mt: 2 }}
+                        />
+                      </>
+                    )}
+                  </Box>
+                )}
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <Button variant="outlined" onClick={handleCloseEditModal}>Cancelar</Button>
+                  <Button 
+                    variant="contained" 
+                    onClick={handleSaveEditedItem}
+                    disabled={currentColumn === 'Objetivos' && (!editedItem?.title || editedItem.title.trim() === '')}
+                  >
+                    Guardar
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
+      
+            <Modal
+              open={openDeleteItemModal}
+              onClose={handleCloseDeleteItemModal}
+            >
+              <Box sx={modalStyle}>
+                <Typography variant="h6" color="error.main" gutterBottom>
+                  ¿Estás seguro que deseas borrar este elemento?
+                </Typography>
+                
+                <Paper 
+                  elevation={0} 
+                  sx={{ 
+                    p: 2, 
+                    bgcolor: 'background.default',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    mb: 2 
+                  }}
+                >
+                  {currentColumn === 'Objetivos' && itemToDelete && (
+                    <>
+                      <Typography variant="subtitle1" gutterBottom>
+                        <b>Objetivo a eliminar:</b>
+                      </Typography>
+                      <Typography paragraph>{itemToDelete.title}</Typography>
+                      
+                      <Typography variant="subtitle2" gutterBottom>Indicadores:</Typography>
+                      {itemToDelete.indicators?.map((ind, index) => (
+                        <Typography key={index} variant="body2" sx={{ ml: 2 }}>
+                          • {ind.quantity} {ind.concept}
+                        </Typography>
+                      ))}
+
+                      {itemToDelete.relatedContent?.programs?.length > 0 && (
+                        <>
+                          <Typography variant="subtitle2" sx={{ mt: 2, color: 'warning.main' }}>
+                            Este objetivo contiene los siguientes programas que también serán eliminados:
+                          </Typography>
+                          {itemToDelete.relatedContent.programs.map((prog, index) => (
+                            <Box key={index} sx={{ ml: 2, mt: 1 }}>
+                              <Typography variant="body2">
+                                • Programa: {prog.description}
+                              </Typography>
+                              {prog.projects?.length > 0 && (
+                                <Box sx={{ ml: 2 }}>
+                                  <Typography variant="body2" color="warning.main">
+                                    Proyectos que serán desvinculados:
+                                  </Typography>
+                                  {prog.projects.map((proj, idx) => (
+                                    <Typography key={idx} variant="body2" sx={{ ml: 2 }}>
+                                      ◦ {proj.title || proj.name}
+                                    </Typography>
+                                  ))}
+                                </Box>
+                              )}
+                            </Box>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  )}
+
+                  {currentColumn === 'Programas' && itemToDelete && (
+                    <>
+                      <Typography variant="subtitle1" gutterBottom>
+                        <b>Programa a eliminar:</b>
+                      </Typography>
+                      <Typography paragraph>{itemToDelete.text || itemToDelete.description}</Typography>
+
+                      {itemToDelete.relatedContent?.projects?.length > 0 && (
+                        <>
+                          <Typography variant="subtitle2" sx={{ color: 'warning.main' }}>
+                            Los siguientes proyectos serán desvinculados:
+                          </Typography>
+                          {itemToDelete.relatedContent.projects.map((proj, index) => (
+                            <Typography key={index} variant="body2" sx={{ ml: 2 }}>
+                              • {proj.title || proj.name}
+                            </Typography>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  )}
+
+                  {currentColumn === 'Proyectos' && itemToDelete && (
+                    <>
+                      <Typography variant="subtitle1" gutterBottom>
+                        <b>Proyecto a desvincular:</b>
+                      </Typography>
+                      <Typography variant="body1">{itemToDelete.title}</Typography>
+                      {itemToDelete.description && (
+                        <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+                          {itemToDelete.description}
+                        </Typography>
+                      )}
+                    </>
+                  )}
+                </Paper>
+
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <Button variant="outlined" onClick={handleCloseDeleteItemModal}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    color="error"
+                    onClick={handleConfirmDeleteItem} 
+                  >
+                    Eliminar
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
+      
+            <Modal
+              open={openDeletePlanModal}
+              onClose={handleCloseDeletePlanModal}
+            >
+              <Box sx={modalStyle}>
+                <Typography variant="h6">¿Estás seguro que quieres eliminar esta planificación estratégica?</Typography>
+                <Typography sx={{ mt: 1, color: 'text.secondary' }}>Esto es irreversible.</Typography>
+                <Typography sx={{ mt: 2 }}>
+                  Año seleccionado: <b>{selectedYear}</b>
+                </Typography>
+                <Typography sx={{ mt: 2 }}>
+                  Digite el año de la planificación estratégica para eliminarlo
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={deletePlanConfirmationInput}
+                  onChange={(e) => setDeletePlanConfirmationInput(e.target.value)}
+                  sx={{ mt: 1 }}
+                />
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <Button variant="outlined" onClick={handleCloseDeletePlanModal}>Cancelar</Button>
+                  <Button 
+                    variant="contained" 
+                    color="error"
+                    onClick={handleConfirmDeletePlan} 
+                    disabled={deletePlanConfirmationInput !== String(selectedYear)}
+                  >
+                    Eliminar
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
+
+            <Modal
+              open={openProjectSelectionModal}
+              onClose={() => setOpenProjectSelectionModal(false)}
+            >
+              <Box sx={modalStyle}>
+                <Typography variant="h6">Asignar Proyecto</Typography>
+                {selectedProgram ? (
+                  <Typography variant="subtitle2" sx={{ mt: 1, color: 'text.secondary' }}>
+                    Asignar proyecto al programa: <strong>{selectedProgram.text || selectedProgram.description}</strong>
+                  </Typography>
+                ) : (
+                  <Typography variant="subtitle2" sx={{ mt: 1, color: 'warning.main' }}>
+                    Selecciona primero un programa para poder asignarle un proyecto
+                  </Typography>
+                )}
+
+                <Box sx={{ maxHeight: '400px', mt: 3, overflowY: 'auto', ...scrollbarStyles }}>
+                  {availableProjects.map((project) => (
+                    <Paper
+                      key={project.id}
+                      sx={(theme) => ({
+                        p: 2,
+                        mb: 2,
+                        backgroundColor: theme.palette.mode === 'dark' ? '#2c3136' : theme.palette.grey[100],
+                        cursor: selectedProgram ? 'pointer' : 'not-allowed',
+                        opacity: selectedProgram ? 1 : 0.7,
+                        '&:hover': {
+                          backgroundColor: selectedProgram ? 
+                            (theme.palette.mode === 'dark' ? '#353a40' : theme.palette.grey[200]) : 
+                            (theme.palette.mode === 'dark' ? '#2c3136' : theme.palette.grey[100]),
+                        },
+                      })}
+                      onClick={() => {
+                        if (selectedProgram) {
+                          handleAssignProjectToProgram(project.id, selectedProgram.id)
+                        } else {
+                          notify('Selecciona primero un programa', 'warning');
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                        <Avatar
+                          sx={(theme) => ({
+                            width: 30,
+                            height: 30,
+                            bgcolor: 'primary.main',
+                            color: theme.palette.grey[100]
+                          })}
+                        >
+                          P
+                        </Avatar>
+                        <Box sx={{ flexGrow: 1 }}>
+                          <Typography variant="subtitle1" sx={{ mb: 1 }}>{project.name || project.title}</Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                            {project.description}
+                          </Typography>
+                          {project.program && (
+                            <Typography variant="caption" color="warning.main">
+                              Actualmente asignado a: {project.program.name || project.program.description}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+
+                  {availableProjects.length === 0 && (
+                    <Typography variant="body1" sx={{ textAlign: 'center', py: 3, color: 'text.secondary' }}>
+                      No hay proyectos disponibles
+                    </Typography>
+                  )}
+                </Box>
+
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <Button variant="outlined" onClick={() => setOpenProjectSelectionModal(false)}>
+                    Cancelar
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
+
+    </Box>
+  );
+};

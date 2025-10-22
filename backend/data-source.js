@@ -19,9 +19,7 @@ export const AppDataSource = new DataSource({
   port: 5432,
   username: 'postgres',
   password: 'postgres',
-  database: isTest 
-    ? 'labtecnosocial_test' 
-    : 'labtecnosocial_db',
+  database: 'labtecnosocial_db',
 
   // Solo limpia la DB en tests
   synchronize: true,
