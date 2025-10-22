@@ -157,7 +157,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                             {errors.name}
                         </Typography>
                     )}
-                </Grid>
+                </Grid> 
 
                 <Grid size={12}>
                     <TextFieldMultiline

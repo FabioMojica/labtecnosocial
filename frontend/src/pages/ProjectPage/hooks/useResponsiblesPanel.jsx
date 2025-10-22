@@ -55,17 +55,21 @@ export const useResponsiblesPanel = (
     //notify(`${user.firstName} ${user.lastName} se removió de pre añadidos`, "info");
   };
 
-
   const addPreResponsible = (user) => {
     setPreAnadidos(prev => {
       const alreadyExists = prev.some(r => r.id === user.id);
       if (alreadyExists) return prev;
 
       const updatedPreAnadidos = [...prev, user];
-      notifyParent(projectResponsibles, preEliminados, updatedPreAnadidos);
+      const updatedProjectResponsibles = [...projectResponsibles, user];
+
+      notifyParent(updatedProjectResponsibles, preEliminados, updatedPreAnadidos);
+      setProjectResponsibles(updatedProjectResponsibles);
+
       return updatedPreAnadidos;
     });
   };
+
 
 
   const reset = () => {
@@ -82,6 +86,7 @@ export const useResponsiblesPanel = (
     restoreResponsible,
     addPreResponsible,
     removePreResponsible,
-    reset
+    reset,
+    initialRef
   };
 };

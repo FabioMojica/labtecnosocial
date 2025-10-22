@@ -7,7 +7,7 @@ import path from 'path';
 import { comparePassword, hashPassword } from '../utils/passwordUtils.js';
 
 export const createUser = async (req, res) => {
-  try {
+  try { 
     const { firstName, lastName, email, password, role, state } = req.body;
 
     if (!firstName || !lastName || !email || !password || !role) {

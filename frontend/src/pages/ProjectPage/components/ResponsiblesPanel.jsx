@@ -41,14 +41,29 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
         restoreResponsible,
         addPreResponsible,
         removePreResponsible,
-        reset
+        reset,
+        initialRef
     } = useResponsiblesPanel(initialResponsibles, allUsers, onChange);
 
     const noInitialResponsibles = initialResponsibles.length === 0;
 
     useEffect(() => {
+        if (!responsibles) return;
+
+        initialRef.current = responsibles.map(r => ({
+            id: Number(r.id),
+            firstName: r.firstName,
+            lastName: r.lastName,
+            email: r.email,
+            image_url: r.image_url,
+            projectCount: r.projectCount,
+            role: r.role,
+            state: r.state,
+        }));
+
         reset();
-    }, [resetTrigger]);
+    }, [responsibles]);
+
 
     const dataToSearch = getFilteredResponsibles({
         selectedView,
@@ -115,7 +130,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                         sm: "row",
                     },
                 }}>
- 
+
                     <SearchBar
                         data={dataToSearch}
                         fields={["firstName", "lastName"]}
@@ -154,9 +169,19 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                         buttonText="Asignar responsables"
                         onButtonClick={() => setSelectedView("assign")}
                         sx={{ height: '50vh' }}
-                    /> 
+                    />
                 ) : !hasResults ? (
-                    <NoResultsScreen message="No se encontraron responsables" sx={{ height: '50vh' }} />
+                    selectedView === "assign" && allUsers.length > 0 && projectResponsibles.length === allUsers.length ? (
+                        <NoResultsScreen
+                            message="Todos los usuarios fueron añadidos al proyecto"
+                            sx={{ height: '50vh' }}
+                        />
+                    ) : (
+                        <NoResultsScreen
+                            message="No se encontraron responsables"
+                            sx={{ height: '50vh' }}
+                        />
+                    )
                 ) : (
                     <Stack spacing={1} sx={{ width: "100%", pb: { sm: 15, xs: 150 } }}>
                         {renderResponsiblesList({
@@ -174,4 +199,3 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
         </Box>
     );
 };
- 

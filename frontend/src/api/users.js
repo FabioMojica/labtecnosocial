@@ -75,3 +75,24 @@ export const deleteUserApi = async ({ email, password, requesterEmail }) => {
     throw new Error("Error al intentar eliminar el usuario");
   }
 };
+
+export const createUserApi = async (userData) => {
+  const controller = loadAbort();
+  try {
+    const response = await axiosInstance.post(
+      Routes.CREATE_USER,
+      userData,
+      {
+        signal: controller.signal, 
+      }
+    );
+
+    if (response.status === 200) return response.data;
+    return null;
+  } catch (error) {
+    console.log(error);
+    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
+    if (error.response) throw new Error(error.response.data.message || "Error al crear el usuario");
+    throw new Error("Error al intentar crear el usuario");
+  }
+};

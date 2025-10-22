@@ -1,8 +1,6 @@
 export function updateProjectFormData(projectData) {
     const formData = new FormData();
 
-    console.log("pD--------->", projectData);
-
     if (projectData.name) formData.append("name", projectData.name);
     if (projectData.description) formData.append("description", projectData.description);
 

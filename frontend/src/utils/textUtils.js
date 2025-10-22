@@ -31,3 +31,16 @@ export const validateTextLength = (text, min, max, fieldName = "Campo") => {
   if (cleaned.length > max) return `${fieldName} no puede exceder ${max} caracteres.`;
   return null;
 };
+
+/**
+ * Valida que un texto contenga solo letras (y espacios opcionalmente).
+ * @param {string} text - Texto a validar.
+ * @param {string} fieldName - Nombre del campo (para el mensaje de error).
+ * @returns {string|null} Mensaje de error o null si es válido.
+ */
+export const validateOnlyLetters = (text, fieldName = "Campo") => {
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(text)) {
+    return `${fieldName} solo debe contener letras y espacios`;
+  }
+  return null;
+};

@@ -16,10 +16,13 @@ export const validateEmail = (email) => {
  * @param password - Contraseña a validar.
  * @returns Mensaje de error o null si es válida.
  */
-export const validatePasswordMaxLength = (password) => {
+export const validatePasswordLength = (password) => {
   if (!password) return "La contraseña es requerida";
-  return password.length <= 8 ? null : "La contraseña no debe exceder los 8 caracteres";
+  return password.length === 8
+    ? null
+    : "La contraseña debe tener exactamente 8 caracteres";
 };
+
 
 /**
  * Valida la complejidad de la contraseña:
@@ -34,9 +37,12 @@ export const validatePasswordMaxLength = (password) => {
 export const validatePassword = (password) => {
   if (!password) return "La contraseña es requerida";
 
-  // Reutilizamos la validación de longitud máxima
-  const lengthError = validatePasswordMaxLength(password);
+  // Verifica longitud exacta
+  const lengthError = validatePasswordLength(password);
   if (lengthError) return lengthError;
+
+  // No debe tener espacios
+  if (/\s/.test(password)) return "La contraseña no puede contener espacios";
 
   if (!/[A-Z]/.test(password)) return "La contraseña debe contener al menos una mayúscula";
   if (!/[0-9]/.test(password)) return "La contraseña debe contener al menos un número";
@@ -46,3 +52,4 @@ export const validatePassword = (password) => {
 
   return null;
 };
+

@@ -19,6 +19,7 @@ import { ResponsiblesPanel } from "./components/ResponsiblesPanel";
 import { ProjectInfoPanel } from "./components/ProjectInfoPanel";
 import { getProjectByIdApi, updateProjectApi } from "../../api";
 import { updateProjectFormData } from "./utils/updateProjectFormData";
+import { ProjectIntegrationsWithApisPanel } from "./components/ProjectIntegrationsWithApisPanel copy";
 
 const areResponsiblesEqual = (
     a,
@@ -171,9 +172,13 @@ export const ProjectPage = () => {
                     }
                 />
 
-                <Box>Apis</Box>
-                <Box>Apis</Box>
+                <ProjectIntegrationsWithApisPanel
+                    panelHeight={tabsHeight}
+                    selectedIntegrations={project?.integrations || []}
+                    onChange={(newIntegrations) => handleProjectChange({ integrations: newIntegrations })}
+                />
 
+                <Box>Apis</Box>
                 <MorePanel project={project} panelHeight={tabsHeight}></MorePanel>
             </TabButtons>
 

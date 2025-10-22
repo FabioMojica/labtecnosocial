@@ -1,16 +1,16 @@
 import { Avatar, Box } from "@mui/material";
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 
-
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const UserProfileImage = ({ user, sx, src, boxSx }) => {
   if (!user) return null;
+  
+  const finalSrc =
+    src ||
+    (user.image_url ? `${API_UPLOADS}${user.image_url}` : undefined);
 
-  const backendUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-  const avatarSrc = user.image_url ? `${backendUrl}${user.image_url}` : undefined;
-
-  const hasImage = Boolean(avatarSrc);
+  const hasImage = Boolean(finalSrc);
 
   const initials =
     user.firstName && user.lastName
@@ -29,12 +29,8 @@ export const UserProfileImage = ({ user, sx, src, boxSx }) => {
       }}
     >
       <Avatar
-        src={
-          user.image_url
-            ? `${API_UPLOADS}${user.image_url}`
-            : undefined
-        }
-        alt={`${user.firstName} ${user.lastName}`}
+        src={finalSrc}
+        alt={`${user.firstName ?? ""} ${user.lastName ?? ""}`}
         sx={{
           width: '100%',
           height: '100%',
@@ -42,16 +38,12 @@ export const UserProfileImage = ({ user, sx, src, boxSx }) => {
           objectFit: 'cover',
           borderRadius: 0,
           fontWeight: 'bold',
-          ...sx
+          ...sx,
         }}
       >
         <Box sx={{ fontSize: '2rem', ...boxSx }}>
           {!hasImage ? (
-            initials ? (
-              initials
-            ) : (
-              <PersonRoundedIcon fontSize="large" />
-            )
+            initials ? initials : <PersonRoundedIcon fontSize="large" />
           ) : null}
         </Box>
       </Avatar>

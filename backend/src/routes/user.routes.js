@@ -9,7 +9,7 @@ const userRoutes = Router();
 
 userRoutes.use(verifyJwt);
 
-userRoutes.post('/', uploadSingleFile, authorizeRole(["admin"]),createUser);
+userRoutes.post('/createUser', uploadSingleFile, authorizeRole(["admin"]), createUser);
 userRoutes.get('/coordinators',getCoordinators);
 userRoutes.get('/getAllUsers', authorizeRole(["admin", "coordinator"]),getAllUsers);
 userRoutes.get('/:email', getUserByEmail);
