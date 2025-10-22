@@ -10,7 +10,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import { useEffect, useRef, useState } from "react";
-import { useHeaderHeight, useNotification } from "../../../contexts"; 
+import { useHeaderHeight, useNotification } from "../../../contexts";
 
 import {
   SelectComponent,
@@ -74,7 +74,7 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
     handleRemoveImage();
   };
 
-  let longPressTimer; 
+  let longPressTimer;
   const handleTouchStart = () => {
     longPressTimer = setTimeout(() => handleRemoveImage(), 1000);
   };
@@ -97,8 +97,10 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
     }
 
     onChange?.({ password });
+    validateField("password", password);
     notify("Contraseña segura generada", "info");
   };
+
 
   const roleOptions = Object.entries(roleConfig).map(([key, value]) => ({
     value: key,
@@ -128,7 +130,7 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
         error =
           validateRequiredText(cleaned, "Apellido del usuario") ||
           validateTextLength(cleaned, 3, 100, "Apellido del usuario") ||
-          validateOnlyLetters(cleaned, "Apellido del usuario"); 
+          validateOnlyLetters(cleaned, "Apellido del usuario");
         break;
       case "email":
         error = validateEmail(cleaned);
@@ -295,8 +297,8 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
                     <ContentCopyIcon fontSize="small" />
                   </IconButton>
                 </InputAdornment>
-              ), 
-            }} 
+              ),
+            }}
           />
           {errors.password && (
             <Typography color="error" variant="caption">

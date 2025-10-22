@@ -7,8 +7,10 @@ import path from 'path';
 import { comparePassword, hashPassword } from '../utils/passwordUtils.js';
 
 export const createUser = async (req, res) => {
-  try { 
+  try {
     const { firstName, lastName, email, password, role, state } = req.body;
+
+    console.log("datos al back: ", firstName, lastName, email, password, role, state)
 
     if (!firstName || !lastName || !email || !password || !role) {
       return res.status(400).json({ message: 'Faltan datos requeridos' });
@@ -18,8 +20,9 @@ export const createUser = async (req, res) => {
 
     const existingUser = await userRepository.findOneBy({ email });
     if (existingUser) {
-      return res.status(409).json({ message: 'El correo ya está registrado' });
+      return res.status(409).json({ message: 'El correo que ingresaste ya pertenece a otro usuario. Prueba con uno diferente.' });
     }
+
 
     const hashedPassword = await hashPassword(password, 10);
 
@@ -81,7 +84,7 @@ export const getAllUsers = async (req, res) => {
       .addGroupBy('user.lastName')
       .addGroupBy('user.email')
       .addGroupBy('user.role')
-      .addGroupBy('user.state') 
+      .addGroupBy('user.state')
       .addGroupBy('user.image_url')
       .addGroupBy('user.created_at')
       .addGroupBy('user.updated_at')

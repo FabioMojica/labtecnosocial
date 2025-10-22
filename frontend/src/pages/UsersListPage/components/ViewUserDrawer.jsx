@@ -2,6 +2,10 @@ import { Avatar, Box, Divider, Paper, Toolbar, Typography } from "@mui/material"
 import { Grid } from "@mui/material";
 import { UserProfileImage, NoResultsScreen } from "../../../generalComponents";
 import { useNavigate } from "react-router-dom";
+import { roleConfig, stateConfig } from "../../../utils";
+
+
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const ViewUserDrawer = ({ user }) => {
     if (!user) return;
@@ -13,31 +17,31 @@ export const ViewUserDrawer = ({ user }) => {
             <Box sx={{
                 width: '100%',
                 height: '100%',
-                px: 2,
-                py: 2,
+                p: 1,
                 overflowY: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'center',
             }}>
                 <Box
                     sx={{
                         width: "100%",
-                        minHeight: "45%",
+                        height: "40%",
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
                         borderTopLeftRadius: 2,
                         borderTopRightRadius: 2,
+                        pb: 0.5,
                     }}
                     onClick={() => navigate(`/usuario/${encodeURIComponent(user.email)}`)}
                 >
                     <Box
                         sx={{
                             position: "relative",
-                            width: "80%",
+                            width: "75%",
                             height: "100%",
                             borderTopLeftRadius: 2,
                             borderTopRightRadius: 2,
@@ -86,7 +90,7 @@ export const ViewUserDrawer = ({ user }) => {
                     <Paper
                         elevation={3}
                         sx={{
-                            width: '80%',
+                            width: '75%',
                             display: 'flex',
                             flexDirection: 'row',
                             borderBottomLeftRadius: 8,
@@ -135,10 +139,15 @@ export const ViewUserDrawer = ({ user }) => {
                 <Box
                     sx={{
                         width: "100%",
+                        height: 'auto',
                         textAlign: "center",
-                        mt: 1,
-                        mb: 1,
+                        mt: 0.5,
+                        mb: 0.5,
                         px: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 0.5,
                     }}
                 >
                     <Typography
@@ -155,12 +164,10 @@ export const ViewUserDrawer = ({ user }) => {
                         {user.firstName} {user.lastName}
                     </Typography>
 
-                    {/* Email */}
                     <Typography
                         variant="body2"
                         color="text.secondary"
                         sx={{
-                            mt: 0.5,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
@@ -169,65 +176,149 @@ export const ViewUserDrawer = ({ user }) => {
                     >
                         {user.email}
                     </Typography>
+
+                    {/* Estado y Rol */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            mt: 0.5,
+                        }}
+                    >
+                        {/* Estado */}
+                        {stateConfig[user.state] && (() => {
+                            const StateIcon = stateConfig[user.state].icon;
+                            return (
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                    <StateIcon sx={{ color: stateConfig[user.state].color }} />
+                                    <Typography variant="body2" color="text.secondary">
+                                        {stateConfig[user.state].label}
+                                    </Typography>
+                                </Box>
+                            );
+                        })()}
+
+                        {/* Rol */}
+                        {roleConfig[user.role] && (() => {
+                            const RoleIcon = roleConfig[user.role].icon;
+                            return (
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                    <RoleIcon sx={{ color: "primary.main" }} />
+                                    <Typography variant="body2" color="text.secondary">
+                                        {roleConfig[user.role].role}
+                                    </Typography>
+                                </Box>
+                            );
+                        })()}
+                    </Box>
                 </Box>
 
-                <Paper sx={{ width: '100%', height: '100%', p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', overflowY: 'auto', overflowX: 'hidden' }}>
-                    {user.projectResponsibles?.length === 0 ? (
-                        <NoResultsScreen message="Sin proyectos asignados" iconSX={{ fontSize: 50, }} />
+
+                <Paper
+                    sx={{
+                        width: '100%',
+                        height: '40%',
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        gap: 1,
+                        overflowY: 'auto',
+                    }}
+                >
+                    {user.projects?.length === 0 ? (
+                        <NoResultsScreen
+                            message="Sin proyectos asignados"
+                            iconSX={{ fontSize: 50 }}
+                        />
                     ) : (
                         <>
-                            <Typography variant="h6" fontWeight="bold">Proyectos Asignados</Typography>
-                            <Grid container spacing={2} columns={4} sx={{ mt: 1 }}>
-                                {user.projectResponsibles?.map((project) => (
-                                    <Grid size={1}>
+                            <Typography variant="h6" fontWeight="bold">
+                                Proyectos Asignados ({user.projects?.length})
+                            </Typography>
+
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    flexGrow: 1,
+                                    overflowY: 'auto',
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    justifyContent: 'flex-start',
+                                    gap: 2,
+                                    p: 1,
+                                    "&::-webkit-scrollbar": { width: "4px" },
+                                    "&::-webkit-scrollbar-track": { backgroundColor: 'background.default', borderRadius: 2 },
+                                    "&::-webkit-scrollbar-thumb": { backgroundColor: 'primary.main', borderRadius: 2 },
+                                    "&::-webkit-scrollbar-thumb:hover": { backgroundColor: 'primary.dark' },
+                                }}
+                            >
+                                {user.projects?.map((project) => (
+                                    <Box
+                                        key={project.id}
+                                        sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            width: 90,
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                            '&:hover': { transform: 'scale(1.1)' },
+                                        }}
+                                        onClick={() => navigate(`/proyecto/${project.id}`)}
+                                    >
                                         <Box
                                             sx={{
-                                                width: "100%",
-                                                aspectRatio: "1 / 1",
+                                                width: '100%',
+                                                aspectRatio: '1 / 1',
                                                 borderRadius: 2,
-                                                overflow: "hidden",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                cursor: "pointer",
-                                                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                                overflow: 'hidden',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                position: 'relative',
                                                 boxShadow: 1,
-                                                "&:hover": {
-                                                    transform: "scale(1.1)",
-                                                    boxShadow: 6,
-                                                },
                                             }}
-                                            onClick={() => navigate(`/proyecto/${project.id}`)}
                                         >
                                             <Avatar
-                                                src={project.operationalProject.image_url ?? undefined}
-                                                alt={project.operationalProject.name}
+                                                src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                                                alt={project.name}
                                                 sx={{
-                                                    width: "100%",
-                                                    height: "100%",
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'cover',
                                                     borderRadius: 0,
-                                                    objectFit: "cover",
-                                                    fontSize: "1rem",
-                                                    fontWeight: 'bold'
+                                                    fontWeight: 'bold',
                                                 }}
                                             >
-                                                {project.operationalProject.name[0]}
+                                                {project.name[0]}
                                             </Avatar>
                                         </Box>
+
                                         <Typography
                                             variant="body2"
                                             align="center"
-                                            noWrap
-                                            sx={{ mt: 0.5, fontSize: "0.8rem" }}
+                                            sx={{
+                                                mt: 0.5,
+                                                fontSize: '0.7rem',
+                                                color: 'text.secondary',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                                width: '100%',
+                                            }}
                                         >
-                                            {project.operationalProject.name}
+                                            {project.name}
                                         </Typography>
-                                    </Grid>
+                                    </Box>
                                 ))}
-                            </Grid>
+                            </Box>
                         </>
                     )}
                 </Paper>
+
             </Box>
         </>
     );

@@ -46,10 +46,11 @@ export const validatePassword = (password) => {
 
   if (!/[A-Z]/.test(password)) return "La contraseña debe contener al menos una mayúscula";
   if (!/[0-9]/.test(password)) return "La contraseña debe contener al menos un número";
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+  if (!/[!@#$%^&*()_+{}\[\]<>?]/.test(password)) {
     return "La contraseña debe contener al menos un carácter especial";
   }
 
-  return null;
+
+  return null; 
 };
 

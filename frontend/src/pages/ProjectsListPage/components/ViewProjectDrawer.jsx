@@ -6,7 +6,7 @@ import { useTheme } from "@emotion/react";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
-export const ViewProjectDrawer = ({ project }) => {
+export const ViewProjectDrawer = ({ project }) => { 
     if (!project) return null;
     const navigate = useNavigate();
     const theme = useTheme();
@@ -18,7 +18,7 @@ export const ViewProjectDrawer = ({ project }) => {
                 width: '100%',
                 height: '100%',
                 p: 1,
-                overflowY: 'auto',
+                overflowY: 'auto', 
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -54,7 +54,7 @@ export const ViewProjectDrawer = ({ project }) => {
 
                 </Box>
 
-                <Box sx={{ width: "100%", height: '10%', textAlign: "center", mt: 1, mb: 0.5, px: 2 }}>
+                <Box sx={{ width: "100%", height: '10%', textAlign: "center", mt: 0.5, mb: 0.5, px: 2 }}>
                     <Typography
                         variant="h7"
                         fontWeight="bold"
@@ -205,7 +205,7 @@ export const ViewProjectDrawer = ({ project }) => {
                                                     borderRadius: 0,
                                                     fontWeight: 'bold',
                                                 }}
-                                            >
+                                            > 
                                                 {`${responsible.firstName[0]}${responsible.lastName[0]}`}
                                             </Avatar>
 
