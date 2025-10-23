@@ -7,7 +7,7 @@ import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
 
 export const navBarOptionsConfig = {
   admin: [
-    { text: "Planificación Estratégica", link: "/planificacion/estrategica", icon: <AccountTreeRoundedIcon /> },
+    { text: "Planificación Estratégica", link: "/planificacion-estrategica", icon: <AccountTreeRoundedIcon /> },
     { text: "Planificación Operativa", link: "/planificacion/operativa", icon: <TableChartRoundedIcon /> },
     { text: "Proyectos", link: "/proyectos", icon: <FolderCopyRoundedIcon /> },
     { text: "Usuarios", link: "/usuarios", icon: <PeopleOutlineRoundedIcon /> },
@@ -15,7 +15,7 @@ export const navBarOptionsConfig = {
     { text: "Reportes", link: "/reportes", icon: <SummarizeRoundedIcon /> },
   ],
   coordinator: [
-    { text: "Planificación Estratégica", link: "/planificacion/estrategica", icon: <AccountTreeRoundedIcon /> },
+    { text: "Planificación Estratégica", link: "/planificacion-estrategica", icon: <AccountTreeRoundedIcon /> },
     { text: "Planificación Operativa", link: "/planificacion/operativa", icon: <TableChartRoundedIcon /> },
     { text: "Proyectos", link: "/proyectos", icon: <FolderCopyRoundedIcon /> },
     { text: "Dashboard de APIs", link: "/dashboard", icon: <AssessmentRoundedIcon /> },

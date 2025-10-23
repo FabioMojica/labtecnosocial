@@ -147,3 +147,20 @@ export const assignProjectResponsiblesApi = async ({ projectId, responsibles }) 
     throw new Error("Error al intentar asignar responsables");
   }
 };
+
+export const assignProjectToProgram = async (projectId, programId) => {
+  const controller = loadAbort();
+  try {
+    const response = await axiosInstance.patch(
+      `${Routes.UPDATE_PROJECT}/${projectId}`, 
+      { program_id: programId },
+      { signal: controller.signal }
+    );
+    if (response.status === 200) return response.data;
+    return null;
+  } catch (error) {
+    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
+    if (error.response) throw new Error(error.response.data.message || "Error al asignar proyecto al programa");
+    throw new Error("Error al intentar asignar proyecto al programa");
+  }
+};
