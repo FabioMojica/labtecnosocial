@@ -16,7 +16,6 @@ import {
   CreateUserPage, 
   UserPage,
   StrategicPlan,
-  CreateStrategicPlan
 } from './pages';
 
 
@@ -60,8 +59,7 @@ const AppContent = () => {
         <Route path="/proyectos" element={<PrivateRoute element={<ProjectsListPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/proyectos/crear" element={<PrivateRoute element={<CreateProjectPage />} allowedRoles={[ROLES.ADMIN]} />} />
         <Route path="/proyecto/:id" element={<PrivateRoute element={<ProjectPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/planificacion-estrategica" element={<PrivateRoute element={<StrategicPlan />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/planificacion-estrategica/crear/:year" element={<PrivateRoute element={<CreateStrategicPlan />} allowedRoles={[ROLES.ADMIN]} />} />
+        <Route path="/planificacion-estrategica/:year" element={<PrivateRoute element={<StrategicPlan />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>

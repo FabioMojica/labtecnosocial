@@ -202,7 +202,7 @@ const DocumentView = ({ selectedYear, missionItems, objectiveItems }) => {
   };
 
   return (
-    <Box sx={{ p: 3, width: '100%' }}>
+    <Box sx={{ p: 1, width: '100%' }}>
       <Box id="exportContent" ref={contentRef} sx={(theme) => ({ 
         maxWidth: '100%',
         margin: 0,
@@ -219,7 +219,7 @@ const DocumentView = ({ selectedYear, missionItems, objectiveItems }) => {
         '& .MuiTypography-caption': { color: theme.palette.mode === 'dark' ? theme.palette.grey[600] : 'inherit' }
       })}>
         {/* Document Title */}
-    <Typography variant="h4" sx={{ textAlign: 'center', mb: 4 }}>
+    <Typography variant="h4" sx={{ textAlign: 'center', mb: 4, fontSize: { xs: '1rem', sm: '2rem'} }}>
       Planificación Estratégica {selectedYear}
     </Typography>
 

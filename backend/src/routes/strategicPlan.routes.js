@@ -14,6 +14,6 @@ strategicPlanRoutes.use(verifyJwt);
 strategicPlanRoutes.get('/', getAllStrategicPlans);
 strategicPlanRoutes.get('/:year', getStrategicPlanByYear);
 strategicPlanRoutes.put('/:year', updateStrategicPlan);
-strategicPlanRoutes.delete('/:year', deleteStrategicPlanByYear);
+strategicPlanRoutes.delete("/deleteStrategicPlan/:year", deleteStrategicPlanByYear);
 
 export default strategicPlanRoutes;

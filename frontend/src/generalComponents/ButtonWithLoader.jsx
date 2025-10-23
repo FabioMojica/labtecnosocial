@@ -6,7 +6,7 @@ export const ButtonWithLoader = ({
   loaderSize = 24,
   loaderColor = "inherit",
   backgroundButton,
-  children,
+  children, 
   disabled,
   className = "",
   triggerOnEnter = false,

@@ -27,7 +27,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
             return;
         }
 
-        // Si ya tenemos un cambio local en image_file, usarlo
+
         if (project.image_file instanceof File) {
             setPreviewImage(URL.createObjectURL(project.image_file));
         }
