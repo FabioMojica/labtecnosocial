@@ -369,7 +369,7 @@ export const deleteUserByEmail = async (req, res) => {
 
     const isPasswordValid = await comparePassword(password, userToDelete.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Credenciales inválidas.' });
+      return res.status(401).json({ message: 'Email o contraseña incorrectos.' });
     }
 
     await userRepository.remove(userToDelete);

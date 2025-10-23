@@ -1,12 +1,12 @@
 export const Routes = {
   LOGIN: "/auth/login",
-  LOGOUT: "/auth/logout",
+  LOGOUT: "/auth/logout", 
 
-  
   GET_ALL_USERS: "/users/getAllUsers",
   GET_USER_BY_EMAIL: "/users/getUserByEmail",
   CREATE_USER: "/users/createUser",
-  
+  DELETE_USER: "/users/deleteUser",
+   
   GET_SUMMARY_DATA: '/projects/sumaryData',
   CREATE_PROJECT: "/projects/create",
   GET_ALL_PROJECTS: "/projects/getAll",

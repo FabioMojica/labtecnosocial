@@ -82,8 +82,6 @@ export const ProjectPage = () => {
         }
     }, [id, navigate]);
 
-
-
     const handleProjectChange = (changes) => {
         if (!project) return;
 

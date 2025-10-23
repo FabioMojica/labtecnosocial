@@ -32,7 +32,7 @@ export const fetchCoordinatorsApi = async () => {
 };
 
 // Obtener usuario por email
-export const fetchUserByEmailApi = async (email) => {
+export const getUserByEmailApi = async (email) => {
   const controller = loadAbort();
   try {
     const response = await axiosInstance.get(`${Routes.GET_USER_BY_EMAIL}/${encodeURIComponent(email)}`, { signal: controller.signal });
@@ -59,13 +59,12 @@ export const updateUserApi = async (email, data) => {
   }
 };
 
-// Eliminar usuario
 export const deleteUserApi = async ({ email, password, requesterEmail }) => {
   const controller = loadAbort();
   try {
     const response = await axiosInstance.delete(`${Routes.DELETE_USER}/${encodeURIComponent(email)}`, {
       data: { password, requesterEmail },
-      signal: controller.signal,
+      signal: controller.signal, 
     });
     if (response.status === 200) return response.data;
     return null;
