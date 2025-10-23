@@ -20,24 +20,43 @@ import { NoResultsScreen } from '../../generalComponents';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import CloseIcon from '@mui/icons-material/Close';
 
 const years = Array.from({ length: 2025 - 2000 + 1 }, (_, i) => 2000 + i);
 
-const modalStyle = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: { xs: '90%', sm: 400 },
-  maxHeight: { xs: '90vh', sm: '80vh' },
-  overflowY: 'auto',
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: { xs: 2, sm: 4 },
-};
-
-import DocumentView from './DocumentView';
+  const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: { xs: '90%', sm: 400 },
+    maxHeight: { xs: '90vh', sm: '80vh' },
+    overflowY: 'auto',
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: { xs: 2, sm: 4 },
+    // Estilos de scrollbar
+    '&::-webkit-scrollbar': {
+      width: '2px',
+      height: '2px',
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'transparent',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: 'rgba(128, 128, 128, 0.7)',
+      borderRadius: '2px',
+    },
+    '&::-webkit-scrollbar-corner': {
+      background: 'transparent',
+    },
+    // Firefox
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(128, 128, 128, 0.7) transparent',
+    // IE
+    '-ms-overflow-style': 'thin',
+  };import DocumentView from './DocumentView';
 
 import { useAuth } from "../../contexts";
 
@@ -106,7 +125,7 @@ export const StrategicPlan = () => {
   const [inputValue, setInputValue] = useState('');
   const [newObjective, setNewObjective] = useState({
     title: '',
-    indicators: [{ id: Date.now(), quantity: 0, concept: '' }]
+    indicators: []
   });
   const [newPlanData, setNewPlanData] = useState({
     mission: '',
@@ -115,37 +134,72 @@ export const StrategicPlan = () => {
   const [deletePlanConfirmationInput, setDeletePlanConfirmationInput] = useState('');
 
   const [missionItems, setMissionItems] = useState([]);
+  const [pendingMission, setPendingMission] = useState('');
+  const [showMissionPreview, setShowMissionPreview] = useState(false);
   const [objectiveItems, setObjectiveItems] = useState([]);
+  const [pendingObjectives, setPendingObjectives] = useState([]);
   const [programItems, setProgramItems] = useState([]);
   const [projectItems, setProjectItems] = useState([]);
+  const [pendingProjects, setPendingProjects] = useState([]);
   const [openProjectSelectionModal, setOpenProjectSelectionModal] = useState(false);
   const [availableProjects, setAvailableProjects] = useState([]);
   const [selectedProgram, setSelectedProgram] = useState(null);
 
   useEffect(() => {
     const programs = [];
-    const projects = [];
+    const projectsFromPlan = [];
     objectiveItems.forEach(obj => {
       (obj.programs || []).forEach(p => {
         programs.push({ id: p.id, text: p.description || p.programDescription || '' });
         (p.operationalProjects || []).forEach(proj => {
-          projects.push({ id: proj.id, title: proj.name || proj.title, description: proj.description || '' });
+          projectsFromPlan.push({ id: proj.id, title: proj.name || proj.title, description: proj.description || '' });
         });
       });
     });
+
+    // Obtener todos los proyectos operativos (de la API)
+    // projectItems ya contiene los proyectos de la API por fetchProjects
+    // Unir ambos arrays y eliminar duplicados por id
     setProgramItems(programs);
-    setProjectItems(projects);
+    setProjectItems(prev => {
+      const all = [...projectsFromPlan, ...prev];
+      const unique = [];
+      const seen = new Set();
+      for (const p of all) {
+        if (!seen.has(p.id)) {
+          unique.push(p);
+          seen.add(p.id);
+        }
+      }
+      return unique;
+    });
   }, [objectiveItems]);
 
   const scrollbarStyles = {
-    '&::-webkit-scrollbar': { width: '2px' },
-    '&::-webkit-scrollbar-track': { boxShadow: 'inset 0 0 6px rgba(0,0,0,0.1)' },
-    '&::-webkit-scrollbar-thumb': { backgroundColor: 'rgba(0,0,0,.2)', borderRadius: '2px' },
+    '&::-webkit-scrollbar': {
+      width: '2px',
+      height: '2px', // Para scrollbars horizontales
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'transparent',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: 'rgba(128, 128, 128, 0.7)',
+      borderRadius: '2px',
+    },
+    '&::-webkit-scrollbar-corner': {
+      background: 'transparent',
+    },
+    // Firefox
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(128, 128, 128, 0.7) transparent',
+    // IE
+    '-ms-overflow-style': 'thin',
   };
 
   const getColumnStyles = (theme) => ({
-    p: 2,
-    width: { xs: '100%', md: '260px' },
+    p: 1,
+    width: '100%',
     backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : 'grey.200',
     color: theme.palette.mode === 'dark' ? theme.palette.grey[100] : 'inherit',
     transition: 'background-color 0.2s',
@@ -267,7 +321,12 @@ export const StrategicPlan = () => {
 
   const PageHeader = () => (
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-      <Typography variant="h4">Planificación estratégica</Typography>
+      <Typography 
+        variant="h4"
+        sx={{ fontSize: { xs: '1.1rem', sm: '2rem' } }}
+      >
+        Planificación estratégica
+      </Typography>
       <Select
         value={selectedYear}
         onChange={(e) => setSelectedYear(e.target.value)}
@@ -284,20 +343,30 @@ export const StrategicPlan = () => {
     return (
       <Box sx={{ p: 3 }}>
         <PageHeader />
-        <NoResultsScreen
-          message={`No existe planificación estratégica para el año ${selectedYear}`}
-          buttonText="Crear una"
-          onButtonClick={() => {
-            setShowEmptyColumns(true);
-            setMissionItems([]);
-            setObjectiveItems([]);
-            setProgramItems([]);
-            setProjectItems([]);
-            setSelectedObjective(null);
-            setHasChanges(false);
-            setView('editable');
-          }}
-        />
+        {user?.role === 'coordinator' ? (
+          //coordinadores no ven btn de crear
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="h6" color="text.secondary">
+              No existe planificación estratégica para el año {selectedYear}
+            </Typography>
+          </Box>
+        ) : (
+          <NoResultsScreen
+            message={`No existe planificación estratégica para el año ${selectedYear}`}
+            buttonText="Crear una"
+            onButtonClick={() => {
+              setShowEmptyColumns(true);
+              setMissionItems([]);
+              setObjectiveItems([]);
+              setProgramItems([]);
+              setProjectItems([]);
+              setSelectedObjective(null);
+              setHasChanges(false);
+              setView('editable');
+            }}
+            sx={{ height: '60vh' }}
+          />
+        )}
       </Box>
     );
   }
@@ -306,7 +375,12 @@ export const StrategicPlan = () => {
     return (
       <Box sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4">Planificación estratégica</Typography>
+          <Typography 
+            variant="h4"
+            sx={{ fontSize: { xs: '1.1rem', sm: '2rem' } }}
+          >
+            Planificación estratégica
+          </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Select
               value={selectedYear}
@@ -317,12 +391,6 @@ export const StrategicPlan = () => {
                 <MenuItem key={year} value={year}>{year}</MenuItem>
               ))}
             </Select>
-            {user?.role !== 'coordinador' && (
-              <Select value={view} onChange={(e) => setView(e.target.value)} size="small">
-                <MenuItem value="editable">Vista editable</MenuItem>
-                <MenuItem value="document">Vista documento</MenuItem>
-              </Select>
-            )}
           </Box>
         </Box>
         <DocumentView 
@@ -338,7 +406,6 @@ export const StrategicPlan = () => {
     if (column === 'Proyectos') {
       try {
         const projects = await getAllOperationalProjectsApi();
-        // mostrar todos los proyectos
         setAvailableProjects(projects);
         setOpenProjectSelectionModal(true);
       } catch (error) {
@@ -347,6 +414,9 @@ export const StrategicPlan = () => {
       }
     } else {
       setCurrentColumn(column);
+      if (column === 'Objetivos') {
+        setNewObjective({ title: '', indicators: [] });
+      }
       setOpenModal(true);
     }
   };
@@ -358,19 +428,33 @@ export const StrategicPlan = () => {
   };
 
   const handleSaveItem = async () => {
+    if (currentColumn === 'Misión') {
+      const missionText = inputValue.trim();
+      if (missionText === '') return;
+      
+      setPendingMission(missionText);
+      setShowMissionPreview(true);
+      setHasChanges(true);
+      handleCloseModal();
+      return;
+    }
     try {
       let newItem;
-      
       if (currentColumn === 'Objetivos') {
-        if (!newObjective.title.trim() || newObjective.indicators.length === 0) {
-          notify('El objetivo debe tener un título y al menos un indicador', 'error');
+        if (!newObjective.title.trim()) {
+          notify('El objetivo debe tener un título', 'error');
           return;
         }
-        newItem = {
+        const newObjectiveItem = {
           id: Date.now(),
           title: newObjective.title,
           indicators: newObjective.indicators,
         };
+        setPendingObjectives([...pendingObjectives, newObjectiveItem]);
+        setObjectiveItems([...objectiveItems, newObjectiveItem]);
+        setHasChanges(true);
+        handleCloseModal();
+        return;
       } else {
         if (inputValue.trim() === '') return;
         newItem = {
@@ -381,22 +465,8 @@ export const StrategicPlan = () => {
           indicators: [],
         };
       }
-
       let updatedPlan;
-
       switch (currentColumn) {
-        case 'Misión':
-          updatedPlan = {
-            mission: inputValue,
-            objectives: objectiveItems.map(obj => ({
-              objectiveTitle: obj.title,
-              indicators: obj.indicators.map(ind => ({
-                concept: ind.concept,
-                amount: Number(ind.quantity)
-              }))
-            }))
-          };
-          break;
         case 'Objetivos':
           updatedPlan = {
             mission: missionItems[0]?.text || '',
@@ -424,20 +494,17 @@ export const StrategicPlan = () => {
             updatedPlan = null;
             break;
           }
-
           const objectivesPayloadForProgram = objectiveItems.map(obj => ({
             objectiveTitle: obj.title,
             indicators: obj.indicators.map(ind => ({ concept: ind.concept, amount: Number(ind.quantity) })),
             programs: obj.programs ? obj.programs.map(p => ({ id: p.id, programDescription: p.description || p.text })) : []
           }));
-
           const selIndex = objectiveItems.findIndex(o => o.id === selectedObjective.id);
           if (selIndex >= 0) {
             const newProgramPayload = { programDescription: inputValue, operationalProjects: [] };
             if (!objectivesPayloadForProgram[selIndex].programs) objectivesPayloadForProgram[selIndex].programs = [];
             objectivesPayloadForProgram[selIndex].programs.push(newProgramPayload);
           }
-
           updatedPlan = {
             mission: missionItems[0]?.text || '',
             objectives: objectivesPayloadForProgram
@@ -446,13 +513,10 @@ export const StrategicPlan = () => {
         default:
           updatedPlan = null;
       }
-
       if (updatedPlan) {
         const result = await updateStrategicPlanApi(selectedYear, updatedPlan);
-        
         if (result) {
           notify('Elemento agregado exitosamente', 'success');
-
           if (result.objectives) {
             const refreshedObjectives = result.objectives.map(obj => ({
               id: obj.id || Date.now(),
@@ -460,16 +524,13 @@ export const StrategicPlan = () => {
               indicators: obj.indicators?.map(ind => ({ id: ind.id || Date.now(), quantity: ind.amount, concept: ind.concept })) || [],
               programs: obj.programs?.map(p => ({ id: p.id || Date.now(), description: p.description || p.programDescription })) || []
             }));
-
             setObjectiveItems(refreshedObjectives);
-
             if (selectedObjective) {
               const found = refreshedObjectives.find(o => o.id === selectedObjective.id);
               if (found) setSelectedObjective(found);
               else setSelectedObjective(null);
             }
           }
-
           if (result.mission !== undefined) {
             setMissionItems(result.mission ? [{ id: 1, text: result.mission }] : []);
           }
@@ -477,8 +538,21 @@ export const StrategicPlan = () => {
       } else {
         switch (currentColumn) {
           case 'Proyectos':
-            setProjectItems([...projectItems, { id: Date.now(), title: inputValue, description: '' }]);
-            break;
+            if (!selectedProgram) {
+              notify('Debes seleccionar un programa primero', 'error');
+              return;
+            }
+            const newProject = {
+              id: Date.now(),
+              title: inputValue,
+              description: '',
+              program: selectedProgram
+            };
+            setProjectItems([...projectItems, newProject]);
+            setPendingProjects([...pendingProjects, newProject]);
+            setHasChanges(true);
+            handleCloseModal();
+            return;
           default:
             break;
         }
@@ -487,8 +561,6 @@ export const StrategicPlan = () => {
       console.error('Error adding item:', error);
       notify(error.message || 'Error al agregar el elemento', 'error');
     }
-    
-    handleCloseModal();
   };
 
   const handleOpenEditModal = (item, column) => {
@@ -801,17 +873,32 @@ export const StrategicPlan = () => {
     }
   };
 
+  // Control de habilitación de botones +
+  const hasMission = (missionItems.length > 0 && missionItems[0]?.text?.trim()) || (typeof pendingMission === 'string' && pendingMission.trim().length > 0);
+  const hasObjectives = objectiveItems.length > 0;
+  const hasSelectedObjective = !!selectedObjective && selectedObjective.programs && selectedObjective.programs.length > 0;
+  const hasSelectedProgram = !!selectedProgram;
+
   const columnData = {
-    'Misión': { items: missionItems, handler: () => handleOpenModal('Misión') },
-    'Objetivos': { items: objectiveItems, handler: () => handleOpenModal('Objetivos') },
+    'Misión': {
+      items: missionItems,
+      handler: () => handleOpenModal('Misión'),
+      addEnabled: !hasMission // Solo habilitado si no hay misión ni pendingMission
+    },
+    'Objetivos': {
+      items: objectiveItems,
+      handler: () => handleOpenModal('Objetivos'),
+      addEnabled: hasMission // Habilitado si hay misión o pendingMission
+    },
     'Programas': {
       items: selectedObjective && selectedObjective.programs
         ? (selectedObjective.programs.map(p => ({ id: p.id, text: p.description || p.programDescription || p.text })) || [])
         : [],
-      handler: () => handleOpenModal('Programas')
+      handler: () => handleOpenModal('Programas'),
+      addEnabled: hasObjectives && !!selectedObjective // Solo habilitado si hay objetivo seleccionado
     },
-    'Proyectos': { 
-      items: selectedProgram ? 
+    'Proyectos': {
+      items: selectedProgram ?
         projectItems
           .filter(project => {
             return project.program && project.program.id === selectedProgram.id;
@@ -826,7 +913,8 @@ export const StrategicPlan = () => {
             program: project.program
           }))
         : [],
-      handler: () => handleOpenModal('Proyectos') 
+      handler: () => handleOpenModal('Proyectos'),
+      addEnabled: hasSelectedProgram // Solo habilitado si hay programa seleccionado
     },
   };
 
@@ -846,18 +934,36 @@ export const StrategicPlan = () => {
             width: '100%',
           }}
         >
-          <Typography
-            variant="h4"
-            sx={{
-              fontSize: { xs: '1.3rem', sm: '2rem' },
-              mb: { xs: 2, sm: 0 },
-              textAlign: { xs: 'center', sm: 'left' },
-              width: { xs: '100%', sm: 'auto' },
-              wordBreak: 'break-word',
-            }}
-          >
-            Planificación estratégica
-          </Typography>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: { xs: 'center', sm: 'flex-start' },
+            width: '100%',
+            mb: { xs: 2, sm: 0 }
+          }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontSize: { xs: '1.1rem', sm: '2rem' },
+                textAlign: { xs: 'left', sm: 'left' },
+                wordBreak: 'break-word',
+                flexGrow: 1,
+              }}
+            >
+              Planificación estratégica
+            </Typography>
+            {user?.role !== 'coordinador' && (
+              <IconButton
+                size="small"
+                onClick={handleOpenDeletePlanModal}
+                sx={{ 
+                  display: { xs: 'flex', sm: 'none' },
+                  ml: 1
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            )}
+          </Box>
           <Box
             sx={{
               display: 'flex',
@@ -865,14 +971,14 @@ export const StrategicPlan = () => {
               alignItems: { xs: 'stretch', sm: 'center' },
               gap: 2,
               width: { xs: '100%', sm: 'auto' },
-              flexWrap: 'wrap',
+              flexWrap: { xs: 'wrap', sm: 'nowrap' },
             }}
           >
             <Select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               size="small"
-              sx={{ width: { xs: '100%', sm: 120 } }}
+              sx={{ width: { xs: '100%', sm: 160 } }}
             >
               {years.map((year) => (
                 <MenuItem key={year} value={year}>{year}</MenuItem>
@@ -893,7 +999,10 @@ export const StrategicPlan = () => {
               <IconButton
                 size="small"
                 onClick={handleOpenDeletePlanModal}
-                sx={{ alignSelf: { xs: 'flex-end', sm: 'center' }, mt: { xs: 1, sm: 0 } }}
+                sx={{ 
+                  display: { xs: 'none', sm: 'flex' },
+                  alignSelf: 'center'
+                }}
               >
                 <DeleteIcon />
               </IconButton>
@@ -919,16 +1028,23 @@ export const StrategicPlan = () => {
             {selectedYear}
           </Typography>
 
-          {hasChanges && (
+          {(hasChanges || pendingMission) && (
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button 
                 variant="outlined" 
                 color="inherit"
-                onClick={() => {
+                onClick={async () => {
+                  // Restaurar misión
+                  if (pendingMission) {
+                    setPendingMission(null);
+                  }
                   if (originalData.mission) {
                     setMissionItems([{ id: 1, text: originalData.mission }]);
+                  } else {
+                    setMissionItems([]);
                   }
                   
+                  // Restaurar objetivos
                   const objectives = originalData.objectives.map(obj => ({
                     id: obj.id,
                     title: obj.objectiveTitle,
@@ -938,9 +1054,30 @@ export const StrategicPlan = () => {
                       concept: ind.concept,
                     })) || [],
                   }));
-                  
                   setObjectiveItems(objectives);
+                  setPendingObjectives([]);
                   setSelectedObjective(null);
+                  
+                  // Restaurar proyectos
+                  try {
+                    const projects = await getAllOperationalProjectsApi();
+                    if (projects && Array.isArray(projects)) {
+                      const formattedProjects = projects.map(project => ({
+                        id: project.id,
+                        title: project.title || project.name || '',
+                        description: project.description || '',
+                        status: project.status || 'pending',
+                        startDate: project.startDate,
+                        endDate: project.endDate,
+                        program: project.program
+                      }));
+                      setProjectItems(formattedProjects);
+                      setPendingProjects([]);
+                    }
+                  } catch (error) {
+                    console.error('Error al restaurar proyectos:', error);
+                  }
+                  
                   setHasChanges(false);
                   notify('Cambios cancelados', 'info');
                 }}
@@ -951,41 +1088,80 @@ export const StrategicPlan = () => {
                 variant="contained" 
                 onClick={async () => {
                   try {
+                    // Si hay proyectos pendientes, guardarlos primero
+                    if (pendingProjects.length > 0) {
+                      for (const project of pendingProjects) {
+                        if (project.program) {
+                          try {
+                            await assignProjectToProgramApi(project.id, project.program.id);
+                          } catch (error) {
+                            console.error('Error al asignar proyecto:', error);
+                            notify(`Error al asignar el proyecto "${project.title}"`, 'error');
+                            return;
+                          }
+                        }
+                      }
+                    }
+
+                    // Crear la planificación estratégica con la misión y/o objetivos pendientes
                     const updatedPlan = {
-                      mission: missionItems[0]?.text || '',
+                      mission: pendingMission || (missionItems[0]?.text || ''),
                       objectives: objectiveItems.map(obj => ({
                         objectiveTitle: obj.title,
                         indicators: obj.indicators.map(ind => ({
                           concept: ind.concept,
-                          amount: Number(ind.quantity)
+                          amount: Number(ind.quantity || 0)
                         }))
                       }))
                     };
-
+                    
+                    // Hacer el POST a la API
                     const result = await updateStrategicPlanApi(selectedYear, updatedPlan);
+                    
                     if (result) {
-                      setOriginalData({
-                        mission: updatedPlan.mission,
-                        objectives: updatedPlan.objectives.map(obj => ({
-                          ...obj,
-                          id: Date.now() 
-                        }))
-                      });
+                      // Actualizar el estado local con la respuesta del servidor
+                      if (result.mission) {
+                        setMissionItems([{ id: 1, text: result.mission }]);
+                        setPendingMission('');
+                        setShowMissionPreview(false);
+                      }
+                      
+                      if (result.objectives) {
+                        const refreshedObjectives = result.objectives.map(obj => ({
+                          id: obj.id || Date.now(),
+                          title: obj.title || obj.objectiveTitle,
+                          indicators: obj.indicators?.map(ind => ({
+                            id: ind.id || Date.now(),
+                            quantity: ind.amount,
+                            concept: ind.concept
+                          })) || [],
+                          programs: obj.programs || []
+                        }));
+                        setObjectiveItems(refreshedObjectives);
+                        setPendingObjectives([]);
+                      }
+
+                      // Actualizar la lista de proyectos
+                      const projects = await getAllOperationalProjectsApi();
+                      if (projects && Array.isArray(projects)) {
+                        const formattedProjects = projects.map(project => ({
+                          id: project.id,
+                          title: project.title || project.name || '',
+                          description: project.description || '',
+                          status: project.status || 'pending',
+                          startDate: project.startDate,
+                          endDate: project.endDate,
+                          program: project.program
+                        }));
+                        setProjectItems(formattedProjects);
+                        setPendingProjects([]);
+                      }
+                      
                       setHasChanges(false);
                       notify('Cambios guardados exitosamente', 'success');
-
-                      // verificar si los datos volvieron a su estado original
-                      const hasActualChanges = !checkForChanges(
-                        updatedPlan.mission,
-                        updatedPlan.objectives.map(obj => ({
-                          title: obj.objectiveTitle,
-                          indicators: obj.indicators
-                        }))
-                      );
-                      setHasChanges(hasActualChanges);
                     }
                   } catch (error) {
-                    console.error('Error saving changes:', error);
+                    console.error('Error al guardar cambios:', error);
                     notify('Error al guardar los cambios', 'error');
                   }
                 }}
@@ -999,27 +1175,30 @@ export const StrategicPlan = () => {
 
 <Grid
   container
-  spacing={2}
+  spacing={0}
   direction={{ xs: 'column', md: 'row' }}
   sx={{
     mt: 2,
     alignItems: 'stretch',
     width: '100%',
-    flexWrap: { xs: 'nowrap', md: 'nowrap' },
+    flexWrap: 'nowrap',
     overflowX: { xs: 'visible', md: 'auto' },
+    gap: 0,
   }}
 >
-  {Object.entries(columnData).map(([title, { items, handler }]) => (
+  {Object.entries(columnData).map(([title, { items, handler, addEnabled }], index, array) => (
     <Grid
       item
       key={`column-${title}`}
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        width: { xs: '100%', md: '260px' },
-        maxWidth: { xs: '100%', md: '260px' },
-        minWidth: { xs: '100%', md: '260px' },
-        margin: { xs: '0 auto 16px auto', md: 0 },
+        flex: 1,
+        width: '100%',
+        margin: { xs: '0 0 16px 0', md: 0 },
+        ...(index < array.length - 1 && {
+          mr: { md: 2 }
+        }),
       }}
     >
       <Paper
@@ -1031,66 +1210,100 @@ export const StrategicPlan = () => {
         })}
       >
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">{title}</Typography>
-              {title === 'Programas' ? (
-                selectedObjective ? (
-                  <IconButton size="small" onClick={handler}>
-                    <AddCircleOutlineIcon />
-                  </IconButton>
-                ) : null
-              ) : (
-                <IconButton size="small" onClick={handler}>
-                  <AddCircleOutlineIcon />
-                </IconButton>
-              )}
-            </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="h6">{title}</Typography>
+            {/* Mostrar el botón + si está habilitado según la lógica de cada columna */}
+            {addEnabled && (
+              <IconButton size="small" onClick={handler}>
+                <AddCircleOutlineIcon />
+              </IconButton>
+            )}
+          </Box>
           <Box 
             sx={{ 
               width: '100%', 
               height: '1px', 
               backgroundColor: theme => theme.palette.divider,
-              mb: 2
+              mb: 1
             }} 
           />
         </Box>
 
         <Box sx={{ 
-          height: '40px',
+          minHeight: '50px',
           display: 'flex',
-          alignItems: 'center',
-          overflow: 'hidden'
+          alignItems: 'flex-start',
+          mb: 1.5,
+          py: 0.5
         }}>
           {title === 'Objetivos' && missionItems[0] && (
-            <Typography
-              variant="caption"
-              sx={{
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                color: 'text.secondary',
-              }}
-            >
-              Misión seleccionada: {missionItems[0].text}
-            </Typography>
+            <Box sx={{ width: '100%' }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 'medium',
+                  display: 'block',
+                  mb: 0.5
+                }}
+              >
+                Misión seleccionada:
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  width: '100%'
+                }}
+              >
+                {missionItems[0].text}
+              </Typography>
+            </Box>
           )}
 
           {title === 'Programas' && selectedObjective && (
-            <Typography
-              variant="caption"
-              sx={{
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                color: 'text.secondary',
-              }}
-            >
-              Objetivo seleccionado: {selectedObjective.title}
-            </Typography>
+            <Box sx={{ width: '100%' }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 'medium',
+                  display: 'block',
+                  mb: 0.5
+                }}
+              >
+                Objetivo seleccionado:
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  width: '100%'
+                }}
+              >
+                {selectedObjective.title}
+              </Typography>
+            </Box>
           )}
         </Box>
+
+        {/* Divider antes de los items */}
+        <Box 
+          sx={{ 
+            width: '100%', 
+            height: '1px', 
+            backgroundColor: theme => theme.palette.divider,
+            mb: 1
+          }} 
+        />
 
         <Box
           sx={{
@@ -1106,8 +1319,46 @@ export const StrategicPlan = () => {
             ...scrollbarStyles,
           }}
         >
+          {/* Mostrar misión pendiente */}
+          {title === 'Misión' && showMissionPreview && pendingMission && (
+            <Paper sx={(theme) => getPaperItemStyles(theme)}>
+              <Box sx={{ p: 1, flexGrow: 1, overflowY: 'auto' }}>
+                <Box 
+                  sx={(theme) => ({
+                    backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : 'grey.50',
+                    borderRadius: 1,
+                    p: 2,
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'left',
+                    justifyContent: 'left'
+                  })}
+                >
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={(theme) => ({ 
+                      textAlign: 'left',
+                      lineHeight: 1.6,
+                      color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700]
+                    })}
+                  >
+                    {pendingMission}
+                  </Typography>
+                </Box>
+              </Box>
+            </Paper>
+          )}
+          {/* Mostrar items existentes */}
           {items.map((item) => (
-            <Paper key={item.id} sx={(theme) => getPaperItemStyles(theme)}>
+            <Paper 
+              key={item.id} 
+              sx={(theme) => ({
+                ...getPaperItemStyles(theme),
+                border: title === 'Objetivos' && selectedObjective?.id === item.id
+                  ? '2px solid #1976d2'
+                  : 'none',
+              })}
+            >
               <Box 
                 sx={{ 
                   p: 1, 
@@ -1130,10 +1381,6 @@ export const StrategicPlan = () => {
                         p: 0.5,
                         textAlign: 'center',
                         mb: 1,
-                        border:
-                          selectedObjective?.id === item.id
-                            ? '2px solid #1976d2'
-                            : 'none',
                       })}
                       onClick={() => {
                         setSelectedProgram(null); 
@@ -1331,7 +1578,7 @@ export const StrategicPlan = () => {
 
             <Modal
               open={openCreatePlanModal}
-              onClose={() => setOpenCreatePlanModal(false)}
+              onClose={() => {}}
             >
               <Box sx={{
                 ...modalStyle,
@@ -1343,6 +1590,9 @@ export const StrategicPlan = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h6">Crear Planificación Estratégica</Typography>
                   <Typography variant="h6" color="primary">{selectedYear}</Typography>
+                  <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={() => setOpenCreatePlanModal(false)}>
+                    <CloseIcon />
+                  </IconButton>
                 </Box>
                 
                 <Typography variant="subtitle1" sx={{ mt: 2 }}>Misión</Typography>
@@ -1402,24 +1652,23 @@ export const StrategicPlan = () => {
                           size="small"
                           fullWidth
                           value={indicator.concept}
+                          inputProps={{ maxLength: 100 }}
                           onChange={(e) => {
                             const newObjectives = [...newPlanData.objectives];
                             newObjectives[objIndex].indicators[indIndex].concept = e.target.value;
                             setNewPlanData(prev => ({...prev, objectives: newObjectives}));
                           }}
                         />
-                        {indIndex > 0 && (
-                          <IconButton 
-                            size="small"
-                            onClick={() => {
-                              const newObjectives = [...newPlanData.objectives];
-                              newObjectives[objIndex].indicators = objective.indicators.filter((_, i) => i !== indIndex);
-                              setNewPlanData(prev => ({...prev, objectives: newObjectives}));
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        )}
+                        <IconButton 
+                          size="small"
+                          onClick={() => {
+                            const newObjectives = [...newPlanData.objectives];
+                            newObjectives[objIndex].indicators = objective.indicators.filter((_, i) => i !== indIndex);
+                            setNewPlanData(prev => ({...prev, objectives: newObjectives}));
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
                       </Box>
                     ))}
                     <Button 
@@ -1449,15 +1698,7 @@ export const StrategicPlan = () => {
                 </Button>
 
                 <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                  <Button variant="outlined" onClick={() => {
-                    setOpenCreatePlanModal(false);
-                    setNewPlanData({
-                      mission: '',
-                      objectives: [{ title: '', indicators: [{ amount: '', concept: '' }] }]
-                    });
-                  }}>
-                    Cancelar
-                  </Button>
+                  {/* Botón Cancelar eliminado, solo X arriba */}
                   <Button 
                     variant="contained" 
                     onClick={async () => {
@@ -1532,12 +1773,42 @@ export const StrategicPlan = () => {
 
             <Modal
               open={openModal}
-              onClose={handleCloseModal}
+              onClose={() => {}}
             >
-              <Box sx={modalStyle}>
-                <Typography variant="h6">Añadir a {currentColumn}</Typography>
+              <Box sx={{ ...modalStyle, height: 500, display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6">Añadir a {currentColumn}</Typography>
+                  <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={handleCloseModal}>
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
                 {currentColumn === 'Objetivos' ? (
-                  <Box sx={{maxHeight: '60vh', overflowY: 'auto', ...scrollbarStyles, p: 1}}>
+                  <Box sx={{
+                    flex: 1,
+                    minHeight: 0,
+                    overflowY: 'auto',
+                    p: 1,
+                    // Estilos de scrollbar
+                    '&::-webkit-scrollbar': {
+                      width: '2px',
+                      height: '2px',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      background: 'transparent',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      background: 'rgba(128, 128, 128, 0.7)',
+                      borderRadius: '2px',
+                    },
+                    '&::-webkit-scrollbar-corner': {
+                      background: 'transparent',
+                    },
+                    // Firefox
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgba(128, 128, 128, 0.7) transparent',
+                    // IE
+                    '-ms-overflow-style': 'thin',
+                  }}>
                     <TextField
                       fullWidth
                       label="Título del objetivo"
@@ -1548,57 +1819,57 @@ export const StrategicPlan = () => {
                       sx={{ mt: 2 }}
                       required
                     />
-                    <Typography sx={{ mt: 2 }}>Indicadores:</Typography>
-                    {newObjective.indicators.map((indicator, index) => (
-                      <Box key={indicator.id} sx={{ display: 'flex', gap: 1, mt: 1, alignItems: 'center' }}>
-                        <TextField
-                          label="Cantidad"
-                          type="number"
-                          value={indicator.quantity}
-                          onChange={(e) => {
-                            const value = Math.max(0, Number(e.target.value));
-                            const newIndicators = [...newObjective.indicators];
-                            newIndicators[index] = { ...newIndicators[index], quantity: value };
-                            setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
-                          }}
-                          sx={{
-                            flex: 1,
-                            '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
-                              '-webkit-appearance': 'none',
-                              margin: 0
-                            },
-                            '& input[type=number]': {
-                              '-moz-appearance': 'textfield'
-                            }
-                          }}
-                          inputProps={{
-                            min: 0,
-                            step: 1
-                          }}
-                        />
-                        <TextField
-                          label="Concepto"
-                          value={indicator.concept}
-                          onChange={(e) => {
-                            const newIndicators = [...newObjective.indicators];
-                            newIndicators[index] = { ...newIndicators[index], concept: e.target.value };
-                            setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
-                          }}
-                          sx={{flex: 2}}
-                        />
-                        {index > 0 && (
-                          <IconButton 
-                            onClick={() => {
-                              const newIndicators = newObjective.indicators.filter((_, i) => i !== index);
-                              setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
-                            }} 
-                            size="small"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        )}
-                      </Box>
-                    ))}
+                    {newObjective.indicators.length > 0 && (
+                      <>
+                        <Typography sx={{ mt: 2 }}>Indicadores:</Typography>
+                        {newObjective.indicators.map((indicator, index) => (
+                          <Box key={indicator.id} sx={{ display: 'flex', gap: 1, mt: 1, alignItems: 'center' }}>
+                            <TextField
+                              label="Cantidad"
+                              type="text"
+                              value={indicator.quantity === 0 ? (indicator.quantity === '' ? '' : '0') : indicator.quantity}
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                // Permitir string vacío o solo números positivos
+                                if (value === '' || /^\d*$/.test(value)) {
+                                  const newIndicators = [...newObjective.indicators];
+                                  newIndicators[index] = { ...newIndicators[index], quantity: value };
+                                  setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
+                                }
+                              }}
+                              sx={{
+                                flex: 1
+                              }}
+                              inputProps={{
+                                inputMode: 'numeric',
+                                pattern: '[0-9]*',
+                                min: 0
+                              }}
+                            />
+                            <TextField
+                              label="Concepto"
+                              value={indicator.concept}
+                              inputProps={{ maxLength: 100 }}
+                              onChange={(e) => {
+                                const newIndicators = [...newObjective.indicators];
+                                newIndicators[index] = { ...newIndicators[index], concept: e.target.value };
+                                setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
+                              }}
+                              sx={{flex: 2}}
+                            />
+                            <IconButton 
+                              onClick={() => {
+                                const newIndicators = newObjective.indicators.filter((_, i) => i !== index);
+                                setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
+                              }} 
+                              size="small"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        ))}
+                      </>
+                    )}
                     <Button 
                       onClick={() => {
                         setNewObjective(prev => ({
@@ -1607,7 +1878,7 @@ export const StrategicPlan = () => {
                         }));
                       }} 
                       size="small" 
-                      sx={{mt: 1}}
+                      sx={{mt: 2}}
                     >
                       Añadir indicador
                     </Button>
@@ -1623,24 +1894,14 @@ export const StrategicPlan = () => {
                   />
                 )}
                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                  <Button 
-                    variant="outlined" 
-                    onClick={() => {
-                      handleCloseModal();
-                      if (currentColumn === 'Objetivos') {
-                        setNewObjective({
-                          title: '',
-                          indicators: [{ id: Date.now(), quantity: 0, concept: '' }]
-                        });
-                      }
-                    }}
-                  >
-                    Cancelar
-                  </Button>
+                  {/* Botón Cancelar eliminado, solo X arriba */}
                   <Button 
                     variant="contained" 
                     onClick={handleSaveItem}
-                    disabled={currentColumn === 'Objetivos' && (!newObjective.title.trim() || newObjective.indicators.some(ind => !ind.concept.trim()))}
+                    disabled={
+                      (currentColumn === 'Objetivos' && !newObjective.title.trim()) ||
+                      (currentColumn === 'Misión' && !inputValue.trim())
+                    }
                   >
                     Guardar
                   </Button>
@@ -1650,12 +1911,17 @@ export const StrategicPlan = () => {
             
             <Modal
               open={openEditModal}
-              onClose={handleCloseEditModal}
+              onClose={() => {}}
             >
-              <Box sx={modalStyle}>
-                <Typography variant="h6">Editar {currentColumn}</Typography>
+              <Box sx={{ ...modalStyle, height: 500, display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6">Editar {currentColumn}</Typography>
+                  <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={handleCloseEditModal}>
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
                 {editedItem && (
-                  <Box sx={{maxHeight: '60vh', overflowY: 'auto', ...scrollbarStyles, p: 1}}>
+                  <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', ...scrollbarStyles, p: 1 }}>
                     {currentColumn === 'Misión' && (
                       <TextField
                         fullWidth
@@ -1687,37 +1953,35 @@ export const StrategicPlan = () => {
                             <TextField
                               label="Cantidad"
                               name="quantity"
-                              type="number"
-                              value={indicator.quantity}
+                              type="text"
+                              value={indicator.quantity === 0 ? (indicator.quantity === '' ? '' : '0') : indicator.quantity}
                               onChange={(e) => {
-                                const value = Math.max(0, Number(e.target.value));
-                                const event = {
-                                  target: {
-                                    name: 'quantity',
-                                    value: value
-                                  }
-                                };
-                                handleEditedIndicatorChange(index, event);
-                              }}
-                              sx={{
-                                flex: 1,
-                                '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
-                                  '-webkit-appearance': 'none',
-                                  margin: 0
-                                },
-                                '& input[type=number]': {
-                                  '-moz-appearance': 'textfield'
+                                let value = e.target.value;
+                                // Permitir string vacío o solo números positivos
+                                if (value === '' || /^\d*$/.test(value)) {
+                                  const event = {
+                                    target: {
+                                      name: 'quantity',
+                                      value: value
+                                    }
+                                  };
+                                  handleEditedIndicatorChange(index, event);
                                 }
                               }}
+                              sx={{
+                                flex: 1
+                              }}
                               inputProps={{
-                                min: 0,
-                                step: 1
+                                inputMode: 'numeric',
+                                pattern: '[0-9]*',
+                                min: 0
                               }}
                             />
                             <TextField
                               label="Concepto"
                               name="concept"
                               value={indicator.concept}
+                              inputProps={{ maxLength: 100 }}
                               onChange={(e) => handleEditedIndicatorChange(index, e)}
                               sx={{flex: 2}}
                             />
@@ -1764,7 +2028,7 @@ export const StrategicPlan = () => {
                   </Box>
                 )}
                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                  <Button variant="outlined" onClick={handleCloseEditModal}>Cancelar</Button>
+                  {/* Botón Cancelar eliminado, solo X arriba */}
                   <Button 
                     variant="contained" 
                     onClick={handleSaveEditedItem}
@@ -1778,12 +2042,17 @@ export const StrategicPlan = () => {
       
             <Modal
               open={openDeleteItemModal}
-              onClose={handleCloseDeleteItemModal}
+              onClose={() => {}}
             >
               <Box sx={modalStyle}>
-                <Typography variant="h6" color="error.main" gutterBottom>
-                  ¿Estás seguro que deseas borrar este elemento?
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6" color="error.main" gutterBottom>
+                    ¿Estás seguro que deseas borrar este elemento?
+                  </Typography>
+                  <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={handleCloseDeleteItemModal}>
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
                 
                 <Paper 
                   elevation={0} 
@@ -1876,9 +2145,7 @@ export const StrategicPlan = () => {
                 </Paper>
 
                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                  <Button variant="outlined" onClick={handleCloseDeleteItemModal}>
-                    Cancelar
-                  </Button>
+                  {/* Botón Cancelar eliminado, solo X arriba */}
                   <Button 
                     variant="contained" 
                     color="error"
@@ -1892,11 +2159,16 @@ export const StrategicPlan = () => {
       
             <Modal
               open={openDeletePlanModal}
-              onClose={handleCloseDeletePlanModal}
+              onClose={() => {}}
             >
               <Box sx={modalStyle}>
-                <Typography variant="h6">¿Estás seguro que quieres eliminar esta planificación estratégica?</Typography>
-                <Typography sx={{ mt: 1, color: 'text.secondary' }}>Esto es irreversible.</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6">¿Estás seguro que quieres eliminar esta planificación estratégica?</Typography>
+                  <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={handleCloseDeletePlanModal}>
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
+                <Typography sx={{ mt: 1, color: 'error.main' }}>Esto es irreversible.</Typography>
                 <Typography sx={{ mt: 2 }}>
                   Año seleccionado: <b>{selectedYear}</b>
                 </Typography>
@@ -1910,7 +2182,7 @@ export const StrategicPlan = () => {
                   sx={{ mt: 1 }}
                 />
                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                  <Button variant="outlined" onClick={handleCloseDeletePlanModal}>Cancelar</Button>
+                  {/* Botón Cancelar eliminado, solo X arriba */}
                   <Button 
                     variant="contained" 
                     color="error"
@@ -1927,19 +2199,44 @@ export const StrategicPlan = () => {
               open={openProjectSelectionModal}
               onClose={() => setOpenProjectSelectionModal(false)}
             >
-              <Box sx={modalStyle}>
-                <Typography variant="h6">Asignar Proyecto</Typography>
-                {selectedProgram ? (
-                  <Typography variant="subtitle2" sx={{ mt: 1, color: 'text.secondary' }}>
-                    Asignar proyecto al programa: <strong>{selectedProgram.text || selectedProgram.description}</strong>
-                  </Typography>
-                ) : (
-                  <Typography variant="subtitle2" sx={{ mt: 1, color: 'warning.main' }}>
-                    Selecciona primero un programa para poder asignarle un proyecto
-                  </Typography>
-                )}
-
-                <Box sx={{ maxHeight: '400px', mt: 3, overflowY: 'auto', ...scrollbarStyles }}>
+              <Box
+                sx={{
+                  ...modalStyle,
+                  width: 500,
+                  height: 500,
+                  maxWidth: '95vw',
+                  maxHeight: '90vh',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  p: 0,
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, pb: 1, borderBottom: '1px solid', borderColor: 'divider', position: 'relative' }}>
+                  <Typography variant="h6">Asignar Proyecto</Typography>
+                  <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={() => setOpenProjectSelectionModal(false)}>
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
+                <Box sx={{ p: 2, pt: 1, flex: '0 0 auto' }}>
+                  {selectedProgram ? (
+                    <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
+                      Asignar proyecto al programa: <strong>{selectedProgram.text || selectedProgram.description}</strong>
+                    </Typography>
+                  ) : (
+                    <Typography variant="subtitle2" sx={{ color: 'warning.main' }}>
+                      Selecciona primero un programa para poder asignarle un proyecto
+                    </Typography>
+                  )}
+                </Box>
+                <Box
+                  sx={{
+                    flex: '1 1 0',
+                    overflowY: 'auto',
+                    px: 2,
+                    pb: 2,
+                    ...scrollbarStyles,
+                  }}
+                >
                   {availableProjects.map((project) => (
                     <Paper
                       key={project.id}
@@ -1994,12 +2291,6 @@ export const StrategicPlan = () => {
                       No hay proyectos disponibles
                     </Typography>
                   )}
-                </Box>
-
-                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                  <Button variant="outlined" onClick={() => setOpenProjectSelectionModal(false)}>
-                    Cancelar
-                  </Button>
                 </Box>
               </Box>
             </Modal>
