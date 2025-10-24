@@ -44,3 +44,37 @@ export const validateOnlyLetters = (text, fieldName = "Campo") => {
   }
   return null;
 };
+/**
+ * Limpia y valida que una cantidad sea un número real positivo.
+ * - Elimina espacios.
+ * - Quita ceros innecesarios al inicio (excepto "0" o "0.xx").
+ * - Convierte comas en puntos para decimales.
+ * - Rechaza valores negativos o no numéricos.
+ * Retorna:
+ *   - número limpio como string (por ejemplo "12.5")
+ *   - "" si es inválido
+ */
+export const cleanAndValidatePositiveNumber = (input = "") => {
+  if (typeof input !== "string" && typeof input !== "number") return "";
+  
+  let value = String(input).trim();
+
+  // Reemplaza comas por puntos (por si el usuario usa coma decimal)
+  value = value.replace(",", ".");
+
+  // Elimina ceros a la izquierda, pero conserva "0" o "0.xx"
+  if (/^0+\d+$/.test(value)) {
+    value = value.replace(/^0+/, ""); // ej: "007" → "7"
+  }
+
+  // Si está vacío o no es número, retornar vacío
+  if (!value || isNaN(value)) return "";
+
+  const num = parseFloat(value);
+
+  // Permitir cero exacto, pero no negativos
+  if (num < 0) return "";
+
+  // Limpiar decimales innecesarios (e.g. "12.00" → "12")
+  return num % 1 === 0 ? String(parseInt(num)) : String(num);
+};

@@ -61,6 +61,10 @@ const modalStyle = {
 import { useAuth } from "../../contexts";
 import DeleteStrategicPlanModal from './components/DeleteStrategicPlanModal';
 import { useFetchAndLoad } from '../../hooks';
+import AddModal from './components/AddModal';
+import EditModal from './components/EditModal';
+import DeleteModal from './components/DeleteModal';
+import { useTheme } from '@emotion/react';
 
 export const StrategicPlan = () => {
   const { user } = useAuth();
@@ -69,6 +73,8 @@ export const StrategicPlan = () => {
   const { year } = useParams();
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
+
+  const theme = useTheme();
 
   const [selectedYear, setSelectedYear] = useState(() => {
     return year ? parseInt(year) : currentYear;
@@ -199,28 +205,6 @@ export const StrategicPlan = () => {
     });
   }, [objectiveItems]);
 
-  const scrollbarStyles = {
-    '&::-webkit-scrollbar': {
-      width: '2px',
-      height: '2px', // Para scrollbars horizontales
-    },
-    '&::-webkit-scrollbar-track': {
-      background: 'transparent',
-    },
-    '&::-webkit-scrollbar-thumb': {
-      background: 'rgba(128, 128, 128, 0.7)',
-      borderRadius: '2px',
-    },
-    '&::-webkit-scrollbar-corner': {
-      background: 'transparent',
-    },
-    // Firefox
-    scrollbarWidth: 'thin',
-    scrollbarColor: 'rgba(128, 128, 128, 0.7) transparent',
-    // IE
-    '-ms-overflow-style': 'thin',
-  };
-
   const getColumnStyles = (theme) => ({
     p: 1,
     width: '100%',
@@ -235,12 +219,11 @@ export const StrategicPlan = () => {
   });
 
   const getPaperItemStyles = (theme) => ({
-    p: { xs: 1, sm: 2 },
+    p: { xs: 1, sm: 1 },
     mt: 1,
     backgroundColor: theme.palette.mode === 'dark' ? '#2c3136' : theme.palette.grey[100],
     color: theme.palette.mode === 'dark' ? theme.palette.grey[100] : 'inherit',
-    height: { xs: 'auto', sm: '180px' },
-    minHeight: { xs: '180px', sm: '180px' },
+    height: '300px',
     display: 'flex',
     flexDirection: 'column',
     transition: 'background-color 0.2s',
@@ -363,7 +346,7 @@ export const StrategicPlan = () => {
         ) : (
           <NoResultsScreen
             message={`No existe planificación estratégica para el año ${selectedYear}`}
-            buttonText="Crear una"
+            buttonText="Crear plan"
             onButtonClick={() => {
               setShowEmptyColumns(true);
               setMissionItems([]);
@@ -432,8 +415,10 @@ export const StrategicPlan = () => {
       if (missionText === '') return;
 
       setPendingMission(missionText);
+      setMissionItems([{ id: Date.now(), text: missionText }]);
       setShowMissionPreview(true);
       setHasChanges(true);
+
       handleCloseModal();
       return;
     }
@@ -779,29 +764,6 @@ export const StrategicPlan = () => {
     handleCloseDeleteItemModal();
   };
 
-  const handleOpenDeletePlanModal = () => setOpenDeletePlanModal(true);
-
-  const handleEditedItemChange = (e) => {
-    const { name, value } = e.target;
-    setEditedItem(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleEditedIndicatorChange = (index, e) => {
-    const { name, value } = e.target;
-    const newIndicators = [...editedItem.indicators];
-    newIndicators[index] = { ...newIndicators[index], [name]: value };
-    setEditedItem(prev => ({ ...prev, indicators: newIndicators }));
-  };
-
-  const addIndicator = () => {
-    const newIndicator = { id: Date.now(), quantity: 0, concept: '' };
-    setEditedItem(prev => ({ ...prev, indicators: [...prev.indicators, newIndicator] }));
-  };
-
-  const removeIndicator = (id) => {
-    setEditedItem(prev => ({ ...prev, indicators: prev.indicators.filter(ind => ind.id !== id) }));
-  };
-
   const handleAssignProjectToProgram = async (projectId, programId) => {
     try {
       const result = await assignProjectToProgramApi(projectId, programId);
@@ -848,8 +810,6 @@ export const StrategicPlan = () => {
       notify(error.message || 'Error al asignar el proyecto al programa', 'error');
     }
   };
-
-  // Control de habilitación de botones +
   const hasMission = (missionItems.length > 0 && missionItems[0]?.text?.trim()) || (typeof pendingMission === 'string' && pendingMission.trim().length > 0);
   const hasObjectives = objectiveItems.length > 0;
   const hasSelectedObjective = !!selectedObjective && selectedObjective.programs && selectedObjective.programs.length > 0;
@@ -1092,7 +1052,6 @@ export const StrategicPlan = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                   <Typography variant="h6">{title}</Typography>
-                  {/* Mostrar el botón + si está habilitado según la lógica de cada columna */}
                   {addEnabled && (
                     <IconButton size="small" onClick={handler}>
                       <AddCircleOutlineIcon />
@@ -1193,41 +1152,11 @@ export const StrategicPlan = () => {
                   flexGrow: 1,
                   overflowY: 'auto',
                   '& > .MuiPaper-root': {
-                    height: '180px',
+                    height: '250px',
                     mb: 2,
                   },
-                  ...scrollbarStyles,
                 }}
               >
-                {/* Mostrar misión pendiente */}
-                {title === 'Misión' && showMissionPreview && pendingMission && (
-                  <Paper sx={(theme) => getPaperItemStyles(theme)}>
-                    <Box sx={{ p: 1, flexGrow: 1, overflowY: 'auto' }}>
-                      <Box
-                        sx={(theme) => ({
-                          backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : 'grey.50',
-                          borderRadius: 1,
-                          p: 2,
-                          height: '100%',
-                          display: 'flex',
-                          alignItems: 'left',
-                          justifyContent: 'left'
-                        })}
-                      >
-                        <Typography
-                          variant="subtitle2"
-                          sx={(theme) => ({
-                            textAlign: 'left',
-                            lineHeight: 1.6,
-                            color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700]
-                          })}
-                        >
-                          {pendingMission}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Paper>
-                )}
                 {/* Mostrar items existentes */}
                 {items.map((item) => (
                   <Paper
@@ -1253,7 +1182,25 @@ export const StrategicPlan = () => {
                       }}
                     >
                       {title === 'Objetivos' ? (
-                        <Box>
+                        <Box
+                          sx={(theme) => ({
+                            borderRadius: 1,
+
+                            height: '100%',
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            justifyContent: 'flex-start',
+                            overflowY: 'auto',
+                            "&::-webkit-scrollbar": { width: "2px" },
+                            "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+                            "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+                            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+                          })}
+                        >
+                          <Typography variant="body2" sx={{ color: theme => theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700], mb: 1, fontWeight: 'bold', }}>
+                            Título del objetivo:
+                          </Typography>
                           <Box
                             sx={(theme) => ({
                               backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : theme.palette.grey[200],
@@ -1261,34 +1208,108 @@ export const StrategicPlan = () => {
                               p: 0.5,
                               textAlign: 'center',
                               mb: 1,
+                              width: '100%',
                             })}
                             onClick={() => {
                               setSelectedProgram(null);
                             }}
                           >
-                            <Typography variant="subtitle2" sx={(theme) => ({
-                              color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700]
-                            })}>{item.title}</Typography>
-                          </Box>
-                          <Typography variant="body2" sx={{ pl: 1, pt: 1, color: theme => theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700] }}>
-                            Indicadores
-                          </Typography>
-                          {item.indicators.map((ind) => (
-                            <Box
-                              key={`indicator-${item.id}-${ind.id}`}
+
+                            <Typography
+                              variant="subtitle2"
                               sx={(theme) => ({
-                                backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : theme.palette.grey[200],
-                                borderRadius: 1,
-                                p: 1,
-                                my: 1,
-                                display: 'flex',
-                                justifyContent: 'space-between',
+                                textAlign: 'left',
+                                lineHeight: 1.6,
+                                color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700],
+                                wordBreak: 'break-word',
+                                overflowWrap: 'break-word',
+                                whiteSpace: 'pre-wrap',
+                                width: '100%',
                               })}
+                            >{item.title}</Typography>
+                          </Box>
+                          <Typography variant="body2" sx={{ pt: 1, color: theme => theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700], fontWeight: 'bold' }}>
+                            Indicadores:
+                          </Typography>
+                          {item.indicators && item.indicators.length > 0 ? (
+
+                            item.indicators.map((ind, index) => (
+                              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+                                <Typography variant="caption" sx={{ fontWeight: 'bold', mr: 1, width: 'auto' }}>
+                                  {index + 1}.
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'row', width: '90%', gap: 0.5 }}>
+                                  <Box sx={{ width: '50%' }}>
+                                    <Typography variant="caption">
+                                      Cantidad:
+                                    </Typography>
+                                    <Box
+                                      key={`indicator-${item.id}-${ind.id}`}
+                                      sx={(theme) => ({
+                                        backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : theme.palette.grey[200],
+                                        borderRadius: 1,
+                                        p: 0.5,
+                                        my: 1,
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        overflowX: 'auto',
+                                        "&::-webkit-scrollbar": { height: "2px" },
+                                        "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+                                        "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+                                        "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+                                      })}
+                                    >
+                                      <Typography variant="caption">
+                                        {ind.quantity}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+
+                                  <Box sx={{ width: '50%' }}>
+                                    <Typography variant="caption">
+                                      Concepto:
+                                    </Typography>
+                                    <Box
+                                      key={`indicator-${item.id}-${ind.id}`}
+                                      sx={(theme) => ({
+                                        backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : theme.palette.grey[200],
+                                        borderRadius: 1,
+                                        p: 0.5,
+                                        my: 1,
+                                        display: 'flex',
+                                        whiteSpace: 'nowrap',
+                                        alignItems: 'center',
+                                        overflowX: 'auto',
+                                        "&::-webkit-scrollbar": { height: "2px" },
+                                        "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+                                        "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+                                        "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+
+                                      })}
+                                    >
+                                      <Typography variant="caption">
+                                        {ind.concept}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </Box>
+                              </Box>
+                            ))) : (
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                pt: 2,
+                                color: theme => theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[500],
+                                fontStyle: 'italic',
+                                textAlign: 'center',
+                                width: '100%'
+                              }}
                             >
-                              <Typography variant="caption">Cantidad: {ind.quantity}</Typography>
-                              <Typography variant="caption">Concepto: {ind.concept}</Typography>
-                            </Box>
-                          ))}
+                              Sin indicadores registrados
+                            </Typography>
+                          )}
+
                         </Box>
                       ) : title === 'Programas' ? (
                         <Box>
@@ -1403,26 +1424,36 @@ export const StrategicPlan = () => {
                           sx={(theme) => ({
                             backgroundColor: theme.palette.mode === 'dark' ? '#23272b' : 'grey.50',
                             borderRadius: 1,
-                            p: 2,
+                            p: 1,
                             height: '100%',
                             display: 'flex',
-                            alignItems: 'left',
-                            justifyContent: 'left'
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            justifyContent: 'flex-start',
+                            overflowY: 'auto',
+                            "&::-webkit-scrollbar": { width: "2px" },
+                            "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+                            "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+                            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
                           })}
                         >
                           <Typography
                             variant="subtitle2"
-                            sx={(theme) => ({
+                            sx={{
                               textAlign: 'left',
                               lineHeight: 1.6,
-                              color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700]
-                            })}
+                              color: theme.palette.mode === 'dark' ? 'inherit' : theme.palette.grey[700],
+                              wordBreak: 'break-word',
+                              overflowWrap: 'break-word',
+                              whiteSpace: 'pre-wrap',
+                            }}
                           >
                             {item.text}
                           </Typography>
                         </Box>
+
                       ) : (
-                        item.text
+                        null
                       )}
                     </Box>
 
@@ -1456,586 +1487,36 @@ export const StrategicPlan = () => {
         ))}
       </Grid>
 
-      <Modal
-        open={openCreatePlanModal}
-        onClose={() => { }}
-      >
-        <Box sx={{
-          ...modalStyle,
-          width: 600,
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          ...scrollbarStyles
-        }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">Crear Planificación Estratégica</Typography>
-            <Typography variant="h6" color="primary">{selectedYear}</Typography>
-            <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={() => setOpenCreatePlanModal(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
+      
 
-          <Typography variant="subtitle1" sx={{ mt: 2 }}>Misión</Typography>
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            value={newPlanData.mission}
-            onChange={(e) => setNewPlanData(prev => ({ ...prev, mission: e.target.value }))}
-            placeholder="Describe la misión de la planificación estratégica"
-          />
-
-          <Typography variant="subtitle1" sx={{ mt: 3 }}>Objetivos</Typography>
-          {newPlanData.objectives.map((objective, objIndex) => (
-            <Box key={objIndex} sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                <TextField
-                  fullWidth
-                  label="Título del objetivo"
-                  value={objective.title}
-                  onChange={(e) => {
-                    const newObjectives = [...newPlanData.objectives];
-                    newObjectives[objIndex].title = e.target.value;
-                    setNewPlanData(prev => ({ ...prev, objectives: newObjectives }));
-                  }}
-                />
-                {objIndex > 0 && (
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      const newObjectives = newPlanData.objectives.filter((_, i) => i !== objIndex);
-                      setNewPlanData(prev => ({ ...prev, objectives: newObjectives }));
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                )}
-              </Box>
-
-              <Typography variant="subtitle2" sx={{ mt: 2 }}>Indicadores</Typography>
-              {objective.indicators.map((indicator, indIndex) => (
-                <Box key={indIndex} sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-                  <TextField
-                    label="Cantidad"
-                    size="small"
-                    type="number"
-                    value={indicator.amount}
-                    onChange={(e) => {
-                      const newObjectives = [...newPlanData.objectives];
-                      newObjectives[objIndex].indicators[indIndex].amount = e.target.value;
-                      setNewPlanData(prev => ({ ...prev, objectives: newObjectives }));
-                    }}
-                    sx={{ width: 100 }}
-                  />
-                  <TextField
-                    label="Concepto"
-                    size="small"
-                    fullWidth
-                    value={indicator.concept}
-                    inputProps={{ maxLength: 100 }}
-                    onChange={(e) => {
-                      const newObjectives = [...newPlanData.objectives];
-                      newObjectives[objIndex].indicators[indIndex].concept = e.target.value;
-                      setNewPlanData(prev => ({ ...prev, objectives: newObjectives }));
-                    }}
-                  />
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      const newObjectives = [...newPlanData.objectives];
-                      newObjectives[objIndex].indicators = objective.indicators.filter((_, i) => i !== indIndex);
-                      setNewPlanData(prev => ({ ...prev, objectives: newObjectives }));
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              ))}
-              <Button
-                size="small"
-                onClick={() => {
-                  const newObjectives = [...newPlanData.objectives];
-                  newObjectives[objIndex].indicators.push({ amount: '', concept: '' });
-                  setNewPlanData(prev => ({ ...prev, objectives: newObjectives }));
-                }}
-                sx={{ mt: 1 }}
-              >
-                + Agregar indicador
-              </Button>
-            </Box>
-          ))}
-
-          <Button
-            onClick={() => {
-              setNewPlanData(prev => ({
-                ...prev,
-                objectives: [...prev.objectives, { title: '', indicators: [{ amount: '', concept: '' }] }]
-              }));
-            }}
-            sx={{ mt: 2 }}
-          >
-            + Agregar objetivo
-          </Button>
-
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            {/* Botón Cancelar eliminado, solo X arriba */}
-            <Button
-              variant="contained"
-              onClick={async () => {
-                try {
-                  if (!newPlanData.mission.trim()) {
-                    notify('La misión es requerida', 'error');
-                    return;
-                  }
-
-                  const validObjectives = newPlanData.objectives
-                    .filter(obj => obj.title.trim())
-                    .map(obj => ({
-                      objectiveTitle: obj.title,
-                      indicators: obj.indicators
-                        .filter(ind => ind.concept.trim() && ind.amount)
-                        .map(ind => ({
-                          concept: ind.concept,
-                          amount: Number(ind.amount)
-                        }))
-                    }));
-
-                  if (validObjectives.length === 0) {
-                    notify('Se requiere al menos un objetivo con título', 'error');
-                    return;
-                  }
-
-                  const payload = {
-                    mission: newPlanData.mission,
-                    objectives: validObjectives
-                  };
-
-                  console.log('Creating strategic plan for year:', selectedYear);
-                  console.log('Sending payload:', payload);
-
-                  const result = await updateStrategicPlanApi(selectedYear, payload);
-
-                  if (result) {
-                    notify(`Plan estratégico para ${selectedYear} creado exitosamente`, 'success');
-                    setOpenCreatePlanModal(false);
-                    setNewPlanData({
-                      mission: '',
-                      objectives: [{ title: '', indicators: [{ amount: '', concept: '' }] }]
-                    });
-                    const plan = await getStrategicPlanByYearApi(selectedYear);
-                    if (plan) {
-                      setMissionItems(plan.mission ? [{ id: 1, text: plan.mission }] : []);
-                      setObjectiveItems(
-                        plan.objectives?.map(obj => ({
-                          id: obj.id,
-                          title: obj.title,
-                          indicators: obj.indicators?.map(ind => ({
-                            id: ind.id,
-                            quantity: ind.amount,
-                            concept: ind.concept,
-                          })) || [],
-                          programs: obj.programs || [],
-                        })) || []
-                      );
-                    }
-                  }
-                } catch (error) {
-                  console.error('Error creating strategic plan:', error);
-                  notify(error.message || 'Error al crear el plan estratégico', 'error');
-                }
-              }}
-            >
-              Crear
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-
-      <Modal
+      <AddModal
         open={openModal}
-        onClose={() => { }}
-      >
-        <Box sx={{ ...modalStyle, height: 500, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">Añadir a {currentColumn}</Typography>
-            <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={handleCloseModal}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          {currentColumn === 'Objetivos' ? (
-            <Box sx={{
-              flex: 1,
-              minHeight: 0,
-              overflowY: 'auto',
-              p: 1,
-              // Estilos de scrollbar
-              '&::-webkit-scrollbar': {
-                width: '2px',
-                height: '2px',
-              },
-              '&::-webkit-scrollbar-track': {
-                background: 'transparent',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: 'rgba(128, 128, 128, 0.7)',
-                borderRadius: '2px',
-              },
-              '&::-webkit-scrollbar-corner': {
-                background: 'transparent',
-              },
-              // Firefox
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'rgba(128, 128, 128, 0.7) transparent',
-              // IE
-              '-ms-overflow-style': 'thin',
-            }}>
-              <TextField
-                fullWidth
-                label="Título del objetivo"
-                value={newObjective.title}
-                onChange={(e) => setNewObjective(prev => ({ ...prev, title: e.target.value }))}
-                inputProps={{ maxLength: 100 }}
-                helperText={`${newObjective.title.length}/100 caracteres`}
-                sx={{ mt: 2 }}
-                required
-              />
-              {newObjective.indicators.length > 0 && (
-                <>
-                  <Typography sx={{ mt: 2 }}>Indicadores:</Typography>
-                  {newObjective.indicators.map((indicator, index) => (
-                    <Box key={indicator.id} sx={{ display: 'flex', gap: 1, mt: 1, alignItems: 'center' }}>
-                      <TextField
-                        label="Cantidad"
-                        type="text"
-                        value={indicator.quantity === 0 ? (indicator.quantity === '' ? '' : '0') : indicator.quantity}
-                        onChange={(e) => {
-                          let value = e.target.value;
-                          // Permitir string vacío o solo números positivos
-                          if (value === '' || /^\d*$/.test(value)) {
-                            const newIndicators = [...newObjective.indicators];
-                            newIndicators[index] = { ...newIndicators[index], quantity: value };
-                            setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
-                          }
-                        }}
-                        sx={{
-                          flex: 1
-                        }}
-                        inputProps={{
-                          inputMode: 'numeric',
-                          pattern: '[0-9]*',
-                          min: 0
-                        }}
-                      />
-                      <TextField
-                        label="Concepto"
-                        value={indicator.concept}
-                        inputProps={{ maxLength: 100 }}
-                        onChange={(e) => {
-                          const newIndicators = [...newObjective.indicators];
-                          newIndicators[index] = { ...newIndicators[index], concept: e.target.value };
-                          setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
-                        }}
-                        sx={{ flex: 2 }}
-                      />
-                      <IconButton
-                        onClick={() => {
-                          const newIndicators = newObjective.indicators.filter((_, i) => i !== index);
-                          setNewObjective(prev => ({ ...prev, indicators: newIndicators }));
-                        }}
-                        size="small"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  ))}
-                </>
-              )}
-              <Button
-                onClick={() => {
-                  setNewObjective(prev => ({
-                    ...prev,
-                    indicators: [...prev.indicators, { id: Date.now(), quantity: 0, concept: '' }]
-                  }));
-                }}
-                size="small"
-                sx={{ mt: 2 }}
-              >
-                Añadir indicador
-              </Button>
-            </Box>
-          ) : (
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              sx={{ mt: 2 }}
-            />
-          )}
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            {/* Botón Cancelar eliminado, solo X arriba */}
-            <Button
-              variant="contained"
-              onClick={handleSaveItem}
-              disabled={
-                (currentColumn === 'Objetivos' && !newObjective.title.trim()) ||
-                (currentColumn === 'Misión' && !inputValue.trim())
-              }
-            >
-              Guardar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+        onClose={handleCloseModal}
+        title={`Añadir a ${currentColumn}`}
+        contentType={currentColumn === 'Objetivos' ? 'objective' : 'text'}
+        value={currentColumn === 'Objetivos' ? newObjective : inputValue}
+        setValue={currentColumn === 'Objetivos' ? setNewObjective : setInputValue}
+        onSave={handleSaveItem}
+      />
 
-      <Modal
+      <EditModal
         open={openEditModal}
-        onClose={() => { }}
-      >
-        <Box sx={{ ...modalStyle, height: 500, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">Editar {currentColumn}</Typography>
-            <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={handleCloseEditModal}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          {editedItem && (
-            <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', ...scrollbarStyles, p: 1 }}>
-              {currentColumn === 'Misión' && (
-                <TextField
-                  fullWidth
-                  label="Misión"
-                  name="text"
-                  multiline
-                  rows={4}
-                  value={editedItem.text}
-                  onChange={handleEditedItemChange}
-                  sx={{ mt: 2 }}
-                />
-              )}
-              {currentColumn === 'Objetivos' && (
-                <>
-                  <TextField
-                    fullWidth
-                    label="Título del objetivo"
-                    name="title"
-                    value={editedItem.title}
-                    onChange={handleEditedItemChange}
-                    inputProps={{ maxLength: 100 }}
-                    helperText={`${editedItem.title.length}/100 caracteres`}
-                    sx={{ mt: 2 }}
-                    required
-                  />
-                  <Typography sx={{ mt: 2 }}>Indicadores:</Typography>
-                  {editedItem.indicators.map((indicator, index) => (
-                    <Box key={indicator.id} sx={{ display: 'flex', gap: 1, mt: 1, alignItems: 'center' }}>
-                      <TextField
-                        label="Cantidad"
-                        name="quantity"
-                        type="text"
-                        value={indicator.quantity === 0 ? (indicator.quantity === '' ? '' : '0') : indicator.quantity}
-                        onChange={(e) => {
-                          let value = e.target.value;
-                          // Permitir string vacío o solo números positivos
-                          if (value === '' || /^\d*$/.test(value)) {
-                            const event = {
-                              target: {
-                                name: 'quantity',
-                                value: value
-                              }
-                            };
-                            handleEditedIndicatorChange(index, event);
-                          }
-                        }}
-                        sx={{
-                          flex: 1
-                        }}
-                        inputProps={{
-                          inputMode: 'numeric',
-                          pattern: '[0-9]*',
-                          min: 0
-                        }}
-                      />
-                      <TextField
-                        label="Concepto"
-                        name="concept"
-                        value={indicator.concept}
-                        inputProps={{ maxLength: 100 }}
-                        onChange={(e) => handleEditedIndicatorChange(index, e)}
-                        sx={{ flex: 2 }}
-                      />
-                      <IconButton onClick={() => removeIndicator(indicator.id)} size="small">
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  ))}
-                  <Button onClick={addIndicator} size="small" sx={{ mt: 1 }}>Añadir indicador</Button>
-                </>
-              )}
-              {currentColumn === 'Programas' && (
-                <TextField
-                  fullWidth
-                  label="Programa"
-                  name="text"
-                  value={editedItem.text}
-                  onChange={handleEditedItemChange}
-                  sx={{ mt: 2 }}
-                />
-              )}
-              {currentColumn === 'Proyectos' && (
-                <>
-                  <TextField
-                    fullWidth
-                    label="Título del proyecto"
-                    name="title"
-                    value={editedItem.title}
-                    onChange={handleEditedItemChange}
-                    sx={{ mt: 2 }}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Descripción del proyecto"
-                    name="description"
-                    multiline
-                    rows={4}
-                    value={editedItem.description}
-                    onChange={handleEditedItemChange}
-                    sx={{ mt: 2 }}
-                  />
-                </>
-              )}
-            </Box>
-          )}
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            {/* Botón Cancelar eliminado, solo X arriba */}
-            <Button
-              variant="contained"
-              onClick={handleSaveEditedItem}
-              disabled={currentColumn === 'Objetivos' && (!editedItem?.title || editedItem.title.trim() === '')}
-            >
-              Guardar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+        onClose={() => setOpenEditModal(false)}
+        title={`Editar ${currentColumn}`}
+        item={editedItem}
+        setItem={setEditedItem}
+        onSave={handleSaveEditedItem}
+        contentType={currentColumn}
+      />
 
-      <Modal
+      <DeleteModal
         open={openDeleteItemModal}
-        onClose={() => { }}
-      >
-        <Box sx={modalStyle}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" color="error.main" gutterBottom>
-              ¿Estás seguro que deseas borrar este elemento?
-            </Typography>
-            <IconButton sx={{ position: 'absolute', top: 8, right: 8 }} onClick={handleCloseDeleteItemModal}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              bgcolor: 'background.default',
-              border: '1px solid',
-              borderColor: 'divider',
-              mb: 2
-            }}
-          >
-            {currentColumn === 'Objetivos' && itemToDelete && (
-              <>
-                <Typography variant="subtitle1" gutterBottom>
-                  <b>Objetivo a eliminar:</b>
-                </Typography>
-                <Typography paragraph>{itemToDelete.title}</Typography>
-
-                <Typography variant="subtitle2" gutterBottom>Indicadores:</Typography>
-                {itemToDelete.indicators?.map((ind, index) => (
-                  <Typography key={index} variant="body2" sx={{ ml: 2 }}>
-                    • {ind.quantity} {ind.concept}
-                  </Typography>
-                ))}
-
-                {itemToDelete.relatedContent?.programs?.length > 0 && (
-                  <>
-                    <Typography variant="subtitle2" sx={{ mt: 2, color: 'warning.main' }}>
-                      Este objetivo contiene los siguientes programas que también serán eliminados:
-                    </Typography>
-                    {itemToDelete.relatedContent.programs.map((prog, index) => (
-                      <Box key={index} sx={{ ml: 2, mt: 1 }}>
-                        <Typography variant="body2">
-                          • Programa: {prog.description}
-                        </Typography>
-                        {prog.projects?.length > 0 && (
-                          <Box sx={{ ml: 2 }}>
-                            <Typography variant="body2" color="warning.main">
-                              Proyectos que serán desvinculados:
-                            </Typography>
-                            {prog.projects.map((proj, idx) => (
-                              <Typography key={idx} variant="body2" sx={{ ml: 2 }}>
-                                ◦ {proj.title || proj.name}
-                              </Typography>
-                            ))}
-                          </Box>
-                        )}
-                      </Box>
-                    ))}
-                  </>
-                )}
-              </>
-            )}
-
-            {currentColumn === 'Programas' && itemToDelete && (
-              <>
-                <Typography variant="subtitle1" gutterBottom>
-                  <b>Programa a eliminar:</b>
-                </Typography>
-                <Typography paragraph>{itemToDelete.text || itemToDelete.description}</Typography>
-
-                {itemToDelete.relatedContent?.projects?.length > 0 && (
-                  <>
-                    <Typography variant="subtitle2" sx={{ color: 'warning.main' }}>
-                      Los siguientes proyectos serán desvinculados:
-                    </Typography>
-                    {itemToDelete.relatedContent.projects.map((proj, index) => (
-                      <Typography key={index} variant="body2" sx={{ ml: 2 }}>
-                        • {proj.title || proj.name}
-                      </Typography>
-                    ))}
-                  </>
-                )}
-              </>
-            )}
-
-            {currentColumn === 'Proyectos' && itemToDelete && (
-              <>
-                <Typography variant="subtitle1" gutterBottom>
-                  <b>Proyecto a desvincular:</b>
-                </Typography>
-                <Typography variant="body1">{itemToDelete.title}</Typography>
-                {itemToDelete.description && (
-                  <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-                    {itemToDelete.description}
-                  </Typography>
-                )}
-              </>
-            )}
-          </Paper>
-
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            {/* Botón Cancelar eliminado, solo X arriba */}
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleConfirmDeleteItem}
-            >
-              Eliminar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+        onClose={() => setOpenDeleteItemModal(false)}
+        item={itemToDelete}
+        onConfirm={handleConfirmDeleteItem}
+        contentType={currentColumn}
+        modalStyle={modalStyle}
+      />
 
       <DeleteStrategicPlanModal
         open={openDeletePlanModal}
@@ -2084,7 +1565,6 @@ export const StrategicPlan = () => {
               overflowY: 'auto',
               px: 2,
               pb: 2,
-              ...scrollbarStyles,
             }}
           >
             {availableProjects.map((project) => (
@@ -2144,7 +1624,6 @@ export const StrategicPlan = () => {
           </Box>
         </Box>
       </Modal>
-
     </Box>
   );
 };
