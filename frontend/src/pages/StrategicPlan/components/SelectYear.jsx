@@ -1,18 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, Modal, Grid, Typography, IconButton } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 const years = Array.from({ length: 3000 - 2000 + 1 }, (_, i) => 2000 + i);
-const YEARS_PER_PAGE = 16; // Bloque de años por página
+const YEARS_PER_PAGE = 16;
 
 export const SelectYear = ({ selectedYear, onChange }) => {
+
   const [open, setOpen] = useState(false);
-  const [page, setPage] = useState(() => {
-    // Calcular página inicial para mostrar el año seleccionado
-    const index = years.indexOf(selectedYear);
-    return Math.floor(index / YEARS_PER_PAGE);
-  });
+
+  const [page, setPage] = useState(0);
+  useEffect(() => {
+    if (selectedYear) {
+      const index = years.indexOf(selectedYear);
+      if (index >= 0) {
+        setPage(Math.floor(index / YEARS_PER_PAGE));
+      }
+    }
+  }, [selectedYear]);
+
 
   const handleSelect = (year) => {
     onChange(year);
@@ -30,9 +37,9 @@ export const SelectYear = ({ selectedYear, onChange }) => {
     if ((page + 1) * YEARS_PER_PAGE < years.length) setPage(page + 1);
   };
 
-  return ( 
+  return (
     <>
-      <Button variant="outlined" onClick={() => setOpen(true)} sx={{width: 'auto', fontSize: '1rem'}}>
+      <Button variant="outlined" onClick={() => setOpen(true)} sx={{ width: 'auto', fontSize: '1rem' }}>
         {selectedYear}
       </Button>
 
@@ -70,7 +77,7 @@ export const SelectYear = ({ selectedYear, onChange }) => {
           </Box>
 
           <Grid container spacing={1}>
-            {currentYears.map((year) => ( 
+            {currentYears.map((year) => (
               <Grid size={3} key={year}>
                 <Button
                   fullWidth

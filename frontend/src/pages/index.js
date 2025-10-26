@@ -7,4 +7,4 @@ export * from './ProjectPage/ProjectPage';
 export * from './ProjectsListPage/ProjectsListPage';
 export * from './UserPage/UserPage';
 export * from './UsersListPage/UsersListPage';
-export * from './StrategicPlan/StrategicPlan';
+export * from './StrategicPlan/StrategicPlanningDashboardPage';

@@ -15,12 +15,12 @@ import {
   CreateProjectPage, 
   CreateUserPage, 
   UserPage,
-  StrategicPlan,
 } from './pages';
 
 
 import { FullScreenProgress, Header, PrivateRoute } from './generalComponents';
 import { getDrawerClosedWidth } from './utils';
+import StrategicPlanningDashboardPage from './pages/StrategicPlan/StrategicPlanningDashboardPage';
 
 export const ROLES = {
   ADMIN: "admin",
@@ -59,7 +59,7 @@ const AppContent = () => {
         <Route path="/proyectos" element={<PrivateRoute element={<ProjectsListPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/proyectos/crear" element={<PrivateRoute element={<CreateProjectPage />} allowedRoles={[ROLES.ADMIN]} />} />
         <Route path="/proyecto/:id" element={<PrivateRoute element={<ProjectPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/planificacion-estrategica/:year" element={<PrivateRoute element={<StrategicPlan />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
+        <Route path="/planificacion-estrategica/:year" element={<PrivateRoute element={<StrategicPlanningDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>

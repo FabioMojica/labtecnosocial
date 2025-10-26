@@ -1,0 +1,1 @@
+export const generateTempIdObjective = () => `temp-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
