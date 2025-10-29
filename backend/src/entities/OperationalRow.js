@@ -21,6 +21,7 @@ export const OperationalRow = new EntitySchema({
     indicator_concept: {
       type: String,
       nullable: true,
+      length: 200, 
     },
     team: {
       type: 'text',

@@ -69,7 +69,7 @@ const CreateMisionItemModal = ({ open, onClose, onSave, maxLength = 3000 }) => {
         <Typography variant="h6" gutterBottom>
           Crear Misión
         </Typography>
-        <TextField
+        <TextField 
           fullWidth
           label="Descripción de la misión"
           variant="outlined"
@@ -106,7 +106,7 @@ const CreateMisionItemModal = ({ open, onClose, onSave, maxLength = 3000 }) => {
         <Typography
           variant="caption"
           color={charsLeft === 0 ? "error" : "textSecondary"}
-          sx={{ mt: 0.5 }}
+          sx={{ mt: 0.5, display: "block", textAlign: "right", mb: 2 }}
         >
           Caracteres: {misionText.length} / {maxLength}
         </Typography>

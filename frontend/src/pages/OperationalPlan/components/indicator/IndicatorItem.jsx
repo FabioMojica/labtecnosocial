@@ -3,19 +3,21 @@ import {
   Typography,
   Box,
   IconButton,
-  Tooltip
+  Tooltip,
+  useTheme
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import EditIcon from '@mui/icons-material/Edit';
-import EditViewIndicatorModal from './EditViewIndicatorModal';
+import EditViewIndicatorModal from './EditViewIndicatorModal'; 
 
 const IndicatorItem = ({ value, onUpdate, onDelete }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const theme = useTheme();
 
   const handleSave = (newValue) => {
-    onUpdate(newValue); 
+    onUpdate(newValue);
   };
 
   const hasIndicator = Boolean(value?.quantity?.trim() || value?.concept?.trim());
@@ -24,42 +26,76 @@ const IndicatorItem = ({ value, onUpdate, onDelete }) => {
     <>
       <Box
         sx={{
-          padding: 1,
+          padding: 0.5,
           borderRadius: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           height: '100%',
+          textAlign: 'left',
           justifyContent: 'space-between',
           boxShadow: 3,
-          gap: 1,
+          gap: 0.5
         }}
       >
         {hasIndicator ? (
-          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1, overflowY: 'auto'}}>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1, height: 180 }}>
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>Cantidad:</Typography>
-              <Box sx={{
-                padding: '4px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: 1,
-                overflowWrap: 'break-word',
-                overflow: 'hidden',
-                WebkitLineClamp: 1,
-              }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Cantidad:
+              </Typography>
+              <Typography
+                sx={{
+                  display: "block",
+                  padding: 0.5,
+                  whiteSpace: "pre-wrap",
+                  wordWrap: "break-word",
+                  wordBreak: 'break-word',
+                  borderRadius: 1,
+                  backgroundColor:
+                    theme.palette.mode === 'light'
+                      ? 'rgba(200, 200, 200, 0.3)'
+                      : 'rgba(100, 100, 100, 0.3)',
+                  color: theme.palette.text.primary,
+                  WebkitLineClamp: 1,
+                }}
+                variant="caption"
+              >
                 {value.quantity}
-              </Box>
+              </Typography>
             </Box>
-            <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>Concepto:</Typography>
-              <Box sx={{
-                padding: '4px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: 1,
-                overflowWrap: 'break-word'
-              }}>
+
+            <Box sx={{height: '100%', width: '100%'}}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Concepto:
+              </Typography>
+              
+              <Typography
+                sx={{
+                  display: "block",
+                  padding: 0.5,
+                  height: 75,
+                  whiteSpace: "pre-wrap",
+                  wordWrap: "break-word",
+                  wordBreak: 'break-word',
+                  borderRadius: 1, 
+                  overflowY: 'auto',
+            "&::-webkit-scrollbar": { width: "2px" },
+            "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+            "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+                  backgroundColor:
+                    theme.palette.mode === 'light'
+                      ? 'rgba(200, 200, 200, 0.3)'
+                      : 'rgba(100, 100, 100, 0.3)',
+                  color: theme.palette.text.primary,
+                  WebkitLineClamp: 1,
+        
+                }}
+                variant="caption"
+              >
                 {value.concept}
-              </Box>
+              </Typography>
             </Box>
           </Box>
         ) : (

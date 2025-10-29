@@ -274,7 +274,7 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
     const handleDeleteRow = () => {
         confirm({
             title: "Eliminar fila",
-            description: "¿Estás seguro que deseas borrar esta fila? Si la elimina y NO presiona guardar tabla podrá recuperar la fila resfrescando la página. Pero si presiona guardar tabla borrará la fila permanentemente",
+            description: "¿Estás seguro que deseas borrar esta fila? Si la elimina y NO presiona guardar tabla podrá recuperar la fila descartando los cambios (si la fila no está vacia). Pero si presiona guardar tabla borrará la fila permanentemente",
             confirmationText: "Sí, borrar",
             cancellationText: "Cancelar",
         })
@@ -509,6 +509,7 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
     }
 
     const handleTouchStart = (event, index) => {
+        setHoveredRow(index);
         const timeout = setTimeout(() => {
             setContextMenu({
                 mouseX: event.touches[0].clientX - 2,
@@ -521,6 +522,7 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
     };
 
     const handleTouchEnd = (event) => {
+        setHoveredRow(null);
         clearTimeout(event.currentTarget.longPressTimeout);
     };
 
@@ -543,17 +545,19 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
                         </Button>
                     )}
 
-                    <ButtonWithLoader
-                        loading={loading}
-                        disabled={!hasChanges()}
-                        onClick={handleSave}
-                        variant="contained"
-                        sx={{ color: 'white', px: 2, width: '150px' }}
-                    >
-                        Guardar Plan
-                    </ButtonWithLoader>
-                        
-                    
+                    {rows.length > 0 && projectId && (
+                        <ButtonWithLoader
+                            loading={loading}
+                            disabled={!hasChanges() || rows.some(row => isRowEmpty(row))}
+                            onClick={handleSave}
+                            variant="contained"
+                            sx={{ color: 'white', px: 2, width: '150px' }}
+                        >
+                            Guardar Plan
+                        </ButtonWithLoader>
+                    )}
+
+
                 </Box>
                 {rows.length === 0 && !loadingProjectDetails && projectId ? (
                     <NoResultsScreen
@@ -567,7 +571,7 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
                         <Box
                             sx={{
                                 overflowX: 'auto',
-                                width: '100%',
+                                width: { xs: '100%', sm: '100%' },
                                 pb: 1,
                                 "&::-webkit-scrollbar": { height: "2px" },
                                 "&::-webkit-scrollbar-track": {
@@ -585,22 +589,13 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
                             <Grid
                                 container
                                 spacing={2}
-                                sx={{
-                                    mt: 1,
-                                    flexWrap: { xs: 'nowrap', md: 'wrap' },
-                                    minWidth: { xs: '800px', sm: '100%' },
-                                    overflowX: 'auto',
-                                    "&::-webkit-scrollbar": { height: "2px" },
-                                    "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
-                                    "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
-                                    "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
-                                }}
+                                sx={{ minWidth: '1020px' }}
                             >
                                 {columns.map(({ title, key, component: Component }) => (
                                     <Grid
                                         key={key}
                                         size={{
-                                            xs: 12,
+                                            xs: 2,
                                             sm: 2,
                                             md: 2,
                                             lg: 2,
@@ -627,14 +622,13 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
                                                         ? 'rgba(0, 0, 0, 0.05)'
                                                         : 'rgba(255, 255, 255, 0.08)' : 'transparent',
 
-
                                                     transition: 'background-color 0.2s ease',
-
                                                     borderRadius: 1,
                                                     padding: 0.5,
                                                     transition: 'background-color 0.2s',
                                                     cursor: 'pointer',
                                                     height: 200,
+                                                    minWidth: 160,
                                                     marginBottom: 1
                                                 }}
                                             >

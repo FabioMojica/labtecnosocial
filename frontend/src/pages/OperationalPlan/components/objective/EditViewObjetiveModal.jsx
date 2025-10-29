@@ -11,7 +11,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import useKeyboardShortcuts from '../../../../hooks/useKeyboardShortcuts';
 
-const EditViewObjectiveModal = ({ open, onClose, value, onSave,  maxLength = 300 }) => {
+const EditViewObjectiveModal = ({ open, onClose, value, onSave, maxLength = 300 }) => {
   const [text, setText] = useState('');
   const [isValid, setIsValid] = useState(false);
   const [charsLeft, setCharsLeft] = useState(maxLength);
@@ -30,8 +30,13 @@ const EditViewObjectiveModal = ({ open, onClose, value, onSave,  maxLength = 300
     setIsValid(cleanedText.length > 0 && cleanedText !== cleanedOriginal);
   }, [text]);
 
+
+
   const handleSave = () => {
-    const cleaned = text.trimStart().replace(/\s+$/, '');
+    const cleaned = text
+      .trim()
+      .replace(/\s+/g, ' ');
+
     if (cleaned.length > 0) {
       onSave(cleaned);
       onClose();
@@ -39,13 +44,19 @@ const EditViewObjectiveModal = ({ open, onClose, value, onSave,  maxLength = 300
   };
 
   useKeyboardShortcuts({
-    enabled: open,
+    enabled: open, 
     onEnter: handleSave,
     onEscape: onClose,
   });
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal
+      open={open}
+      onClose={(event, reason) => {
+        if (reason === "backdropClick") return;
+        onClose();
+      }}
+    >
       <Box sx={{
         position: 'absolute',
         top: '50%',
@@ -79,12 +90,11 @@ const EditViewObjectiveModal = ({ open, onClose, value, onSave,  maxLength = 300
           multiline
           rows={4}
           label="Texto del Objetivo"
-          value={text} 
+          value={text}
           onChange={(e) => setText(e.target.value)}
           variant="outlined"
-
+          inputProps={{ maxLength: maxLength }}
           sx={{
-            mb: 3,
             "& .MuiInputBase-input": {
               overflowY: "auto",
               maxHeight: "200px",
@@ -107,9 +117,9 @@ const EditViewObjectiveModal = ({ open, onClose, value, onSave,  maxLength = 300
         <Typography
           variant="caption"
           color={charsLeft === 0 ? "error" : "textSecondary"}
-          sx={{ mt: 0.5 }}
+          sx={{ mt: 0.5, display: "block", textAlign: "right", mb: 2 }}
         >
-          Caracteres: {text.length} / {300}
+          Caracteres: {text.length} / {maxLength}
         </Typography>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>

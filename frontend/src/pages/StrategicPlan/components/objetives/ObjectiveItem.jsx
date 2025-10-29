@@ -83,7 +83,7 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
             <Box
                 sx={{
                     maxHeight: '200px',
-                     overflowY: 'auto',
+                    overflowY: 'auto',
                         "&::-webkit-scrollbar": { width: "2px" },
                         "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
                         "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },

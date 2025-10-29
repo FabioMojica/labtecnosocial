@@ -123,7 +123,7 @@ const OperationalPlanningDashboardPage = () => {
             projects={projects}
             selectedProjectId={selectedProjectId}
             onChange={handleProjectChange}
-            loading={loading} 
+            loading={loading}
           />
 
           {selectedProjectId && hasPlan && (
@@ -131,7 +131,7 @@ const OperationalPlanningDashboardPage = () => {
               <InputLabel id="view-mode-label">Modo de vista</InputLabel>
               <Select
                 labelId="view-mode-label"
-                value={viewMode} 
+                value={viewMode}
                 label="Modo de vista"
                 onChange={(e) => setViewMode(e.target.value)}
               >
@@ -142,23 +142,23 @@ const OperationalPlanningDashboardPage = () => {
           )}
           {selectedProjectId && hasPlan && (
             <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }} 
-                        >
-          <Tooltip title="Eliminar plan operativo">
-            <IconButton
-              color="error"
-              onClick={() => setDeleteDialogOpen(true)}
-              sx={{ ml: 1 }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <DeleteOutlineIcon />
-            </IconButton>
-          </Tooltip>
-          </Box>
-        )}
+              <Tooltip title="Eliminar plan operativo">
+                <IconButton
+                  color="error"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  sx={{ ml: 1 }}
+                >
+                  <DeleteOutlineIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )}
         </Box>
       </Box>
 
@@ -170,7 +170,7 @@ const OperationalPlanningDashboardPage = () => {
       />
 
 
-      {
+      { 
         viewMode === 'editable' ? (
           <OperationalPlanningTable
             projectId={selectedProjectId}

@@ -5,17 +5,18 @@ import {
   Typography,
   TextField,
   Button,
-  IconButton
+  IconButton,
+  useTheme
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
+import useKeyboardShortcuts from '../../../../hooks/useKeyboardShortcuts';
 
-const EditViewIndicatorModal = ({ open, onClose, value, onSave }) => {
+const EditViewIndicatorModal = ({ open, onClose, value, onSave, maxLengthAmount = 10, maxLengthConcept = 300 }) => {
   const [quantity, setQuantity] = useState('');
   const [concept, setConcept] = useState('');
   const [isValid, setIsValid] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const originalValues = useRef({ quantity: '', concept: '' });
+  const theme = useTheme();
 
   useEffect(() => {
     const initial = {
@@ -25,30 +26,34 @@ const EditViewIndicatorModal = ({ open, onClose, value, onSave }) => {
     setQuantity(initial.quantity);
     setConcept(initial.concept);
     originalValues.current = initial;
-    setIsEditing(false);
   }, [value, open]);
 
-
   useEffect(() => {
-    setIsValid(quantity.trim().length > 0 && concept.trim().length > 0);
+    const cleanedQuantity = quantity.trim().replace(/\s+/g, ' ');
+    const cleanedConcept = concept.trim().replace(/\s+/g, ' ');
+
+    const hasChanges =
+      cleanedQuantity !== originalValues.current.quantity ||
+      cleanedConcept !== originalValues.current.concept;
+
+    const validInputs = cleanedQuantity.length > 0 && cleanedConcept.length > 0;
+
+    setIsValid(validInputs && hasChanges);
   }, [quantity, concept]);
 
   const handleSave = () => {
-    const cleanedQuantity = quantity.trimStart().replace(/\s+$/, '');
-    const cleanedConcept = concept.trimStart().replace(/\s+$/, '');
+    const cleanedQuantity = quantity.trim().replace(/\s+/g, ' ');
+    const cleanedConcept = concept
+      .split('\n')
+      .map(line => line.trim().replace(/\s+/g, ' '))
+      .filter(line => line.length > 0)
+      .join('\n');
+
     if (cleanedQuantity.length > 0 && cleanedConcept.length > 0) {
       onSave({ quantity: cleanedQuantity, concept: cleanedConcept });
       onClose();
     }
   };
-
-  const handleCancel = () => {
-    setQuantity(originalValues.current.quantity);
-    setConcept(originalValues.current.concept);
-    setIsEditing(false);
-  };
-
-  const shouldCloseOnBackdropClick = !isEditing;
 
   const handleQuantityChange = (e) => {
     const newQuantity = e.target.value;
@@ -58,113 +63,106 @@ const EditViewIndicatorModal = ({ open, onClose, value, onSave }) => {
   };
 
   const handleConceptChange = (e) => {
-    const newConcept = e.target.value;
-    setConcept(newConcept);
+    setConcept(e.target.value);
   };
+
+  useKeyboardShortcuts({
+    enabled: open,
+    onEnter: handleSave,
+    onEscape: onClose,
+  });
 
   return (
     <Modal
       open={open}
-      onClose={(e, reason) => {
-        if (shouldCloseOnBackdropClick || reason !== 'backdropClick') {
-          onClose();
-        }
+      onClose={(event, reason) => {
+        if (reason === "backdropClick") return;
+        onClose();
       }}
     >
-      <Box sx={{
-        position: 'absolute', top: '50%', left: '50%',
+      <Box sx={{ 
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: 400, bgcolor: 'background.paper',
-        borderRadius: 2, boxShadow: 24, p: 3, pt: 2
+        width: {
+          xs: 300,
+          md: 500,
+        },
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        boxShadow: 24,
+        p: 3,
+        pt: 2
       }}>
-        {!isEditing && (
-          <IconButton
-            onClick={onClose}
-            sx={{ position: 'absolute', top: 8, right: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        )}
+        <IconButton
+          onClick={onClose}
+          sx={{ position: 'absolute', top: 8, right: 8 }}
+        >
+          <CloseIcon />
+        </IconButton>
 
         <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
-          {isEditing ? 'Editar Indicador' : 'Vista de indicador'}
+          Indicador
         </Typography>
 
-        {isEditing ? (
-          <>
-            <TextField
-              fullWidth
-              label="Cantidad"
-              value={quantity}
-              onChange={handleQuantityChange}
-              variant="outlined"
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              fullWidth
-              label="Concepto"
-              value={concept}
-              onChange={handleConceptChange}
-              variant="outlined"
-              multiline
-              rows={4}
-            />
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-              <Button onClick={handleCancel} color="secondary">Cancelar</Button>
-              <Button onClick={handleSave} disabled={!isValid} variant="contained">
-                Guardar
-              </Button>
-            </Box>
-          </>
-        ) : (
-          <>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              Cantidad:
-            </Typography>
-            <Box sx={{
-              padding: '4px',
-              backgroundColor: '#f5f5f5',
-              borderRadius: 1,
-              whiteSpace: 'normal',
-              wordBreak: 'break-word',
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              WebkitLineClamp: 1,
-              fontStyle: quantity ? 'normal' : 'italic',
-              textAlign: quantity ? 'left' : 'center',
-              height: 'auto',
-            }}>
-              {quantity || '(Sin cantidad definida)'}
-            </Box>
+        <TextField
+          fullWidth
+          label="Cantidad"
+          value={quantity}
+          onChange={handleQuantityChange}
+          variant="outlined"
+          inputProps={{ maxLength: maxLengthAmount }}
+        />
+        <Typography
+          variant="caption"
+          color="textSecondary"
+          sx={{ mt: 0.5, display: "block", textAlign: "right", mb: 2 }}
+        >
+          Caracteres: {quantity.length} / {maxLengthAmount}
+        </Typography>
 
-            <Typography variant="body2" sx={{ fontWeight: 600, mt: 2 }}>
-              Concepto:
-            </Typography>
-            <Box sx={{
-              padding: '4px',
-              backgroundColor: '#f5f5f5',
-              borderRadius: 1,
-              whiteSpace: 'normal',
-              wordBreak: 'break-all',
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              WebkitLineClamp: 1,
-              height: 'auto',
-              fontStyle: concept ? 'normal' : 'italic',
-              textAlign: concept ? 'left' : 'center',
-            }}>
-              {concept || '(Sin concepto definido)'}
-            </Box>
+        <TextField
+          fullWidth
+          label="Concepto"
+          value={concept}
+          onChange={handleConceptChange}
+          variant="outlined"
+          multiline
+          inputProps={{ maxLength: maxLengthConcept }}
+          rows={4}
+          sx={{
+            "& .MuiInputBase-input": {
+              overflowY: "auto",
+              maxHeight: "200px",
+              "&::-webkit-scrollbar": { width: "2px" },
+              "&::-webkit-scrollbar-track": {
+                backgroundColor: theme.palette.background.default,
+                borderRadius: "2px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: theme.palette.primary.main,
+                borderRadius: "2px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                backgroundColor: theme.palette.primary.dark,
+              },
+            },
+          }}
+        />
+        <Typography
+          variant="caption"
+          color="textSecondary"
+          sx={{ mt: 0.5, display: "block", textAlign: "right", mb: 2 }}
+        >
+          Caracteres: {concept.length} / {maxLengthConcept}
+        </Typography>
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <IconButton onClick={() => setIsEditing(true)}>
-                <EditIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          </>
-        )}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+          <Button onClick={handleSave} disabled={!isValid} variant="contained">
+            Guardar
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );
