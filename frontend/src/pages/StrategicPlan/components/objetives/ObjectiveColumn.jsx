@@ -15,6 +15,8 @@ const ObjectivesColumn = ({
 }) => {
   const theme = useTheme();
 
+  const isAddDisabled = !mission;
+
   return (
     <Box
       sx={{
@@ -31,10 +33,16 @@ const ObjectivesColumn = ({
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Objetivos</Typography>
-          <Tooltip title="Agregar objetivo">
-            <IconButton onClick={onCreateObjective} size="small" color="primary">
-              <AddIcon />
+          <Typography variant="h6">{`Objetivos (${objectives.length})`}</Typography>
+          <Tooltip 
+            size="small"
+            title={ 
+              isAddDisabled
+                ? "Debes crear o seleccionar una misión antes de agregar objetivos"
+                : "Agregar objetivo"
+            }>
+            <IconButton onClick={onCreateObjective} size="small" color="primary" disabled={isAddDisabled}>
+              <AddIcon fontSize="small"/>
             </IconButton>
           </Tooltip>
         </Box>

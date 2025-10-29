@@ -21,6 +21,8 @@ import {
 import { FullScreenProgress, Header, PrivateRoute } from './generalComponents';
 import { getDrawerClosedWidth } from './utils';
 import StrategicPlanningDashboardPage from './pages/StrategicPlan/StrategicPlanningDashboardPage';
+import OperationalPlanningDashboardPage from './pages/OperationalPlan/OperationalPlanningDashboardPage';
+import { ConfirmProvider } from 'material-ui-confirm';
 
 export const ROLES = {
   ADMIN: "admin",
@@ -60,6 +62,7 @@ const AppContent = () => {
         <Route path="/proyectos/crear" element={<PrivateRoute element={<CreateProjectPage />} allowedRoles={[ROLES.ADMIN]} />} />
         <Route path="/proyecto/:id" element={<PrivateRoute element={<ProjectPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/planificacion-estrategica/:year" element={<PrivateRoute element={<StrategicPlanningDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
+         <Route path="/planificacion/operativa/:id?" element={<OperationalPlanningDashboardPage />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>
@@ -77,21 +80,8 @@ function App() {
           <BrowserRouter>
             <AuthProvider>
               <HeaderHeightProvider>
+                <ConfirmProvider>
                 <CssBaseline />
-                {/* <Box sx={{
-                  flexGrow: 1,
-                  width: {
-                    xs: `calc(100vw - ${getDrawerClosedWidth(theme, 'xs')} + ${getDrawerClosedWidth(theme, 'xs')} - 8px)`,
-                    sm: `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} + ${getDrawerClosedWidth(theme, 'xs')} - 8px)`,
-                  },
-                  minHeight: '100vh',
-                  pl: {
-                    xs: getDrawerClosedWidth(theme, 'xs'),
-                    sm: getDrawerClosedWidth(theme, 'sm'),
-                  },
-                  p: 1,
-                  maxWidth: 1600,
-                }}> */}
                 <Box sx={{ 
                   flexGrow: 1,
                   padding: 1,
@@ -105,6 +95,7 @@ function App() {
                 
                   <AppContent />
                 </Box>
+                </ConfirmProvider>
               </HeaderHeightProvider>
             </AuthProvider>
           </BrowserRouter>

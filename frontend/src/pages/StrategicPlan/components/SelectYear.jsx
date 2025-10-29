@@ -6,7 +6,7 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 const years = Array.from({ length: 3000 - 2000 + 1 }, (_, i) => 2000 + i);
 const YEARS_PER_PAGE = 16;
 
-export const SelectYear = ({ selectedYear, onChange }) => {
+export const SelectYear = ({ disabled, selectedYear, onChange }) => {
 
   const [open, setOpen] = useState(false);
 
@@ -39,7 +39,7 @@ export const SelectYear = ({ selectedYear, onChange }) => {
 
   return (
     <>
-      <Button variant="outlined" onClick={() => setOpen(true)} sx={{ width: 'auto', fontSize: '1rem' }}>
+      <Button variant="outlined" onClick={() => setOpen(true)} disabled={disabled} sx={{ width: 'auto', fontSize: '1rem' }}>
         {selectedYear}
       </Button>
 

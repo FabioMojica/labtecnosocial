@@ -12,6 +12,7 @@ export const OperationalRow = new EntitySchema({
     objective: {
       type: String,
       nullable: true,
+      length: 300, 
     },
     indicator_amount: {
       type: 'numeric',

@@ -78,9 +78,7 @@ export const LoginPage = () => {
             <BoxContainer className={styles.loginBoxContainer}>
 
                 <Box className={styles.headerBoxContainer}>
-                    <Typography variant="h4"
-                        sx={{ color: theme => theme.palette.primary.principalText }}
-                    >
+                    <Typography variant="h4"> 
                         Iniciar Sesión
                     </Typography>
                     <Image src={logoToShow} alt="Lab Tecno Social Logo" className={styles.logo} width={100} height={50} />

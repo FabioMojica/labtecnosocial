@@ -4,9 +4,8 @@ import VolumeUp from "@mui/icons-material/VolumeUp";
 import VolumeOff from "@mui/icons-material/VolumeOff";
 import { useSound } from "../contexts";
 
-export const VolumenToggleButton = ({sizeIconButton = "small", sizeButton="small"}) => {
+export const VolumenToggleButton = ({sizeIconButton = "small", sizeButton="small", sx={}}) => {
   const { settings, setSettings } = useSound();
-  const theme = useTheme();
 
   const toggleSound = () => {
     setSettings({ ...settings, enabled: !settings.enabled });
@@ -14,7 +13,10 @@ export const VolumenToggleButton = ({sizeIconButton = "small", sizeButton="small
 
   return (
     <Tooltip arrow title={settings.enabled ? "Apagar sonido" : "Encender sonido"}>
-      <IconButton onClick={toggleSound} size={sizeIconButton} sx={{ color: theme.palette.primary.principal }}>
+      <IconButton onClick={toggleSound} size={sizeIconButton} sx={{
+          transition: "color 0.2s",
+          ...sx, 
+        }}>
         {settings.enabled ? <VolumeUp fontSize={sizeButton}/> : <VolumeOff fontSize={sizeButton}/>}
       </IconButton>
     </Tooltip>

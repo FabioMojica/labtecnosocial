@@ -27,7 +27,7 @@ export const ProjectItem = ({ project, onClick }) => {
             fontWeight: "bold",
           }}
         >
-          {project.name[0]}
+          {project.name[0].toUpperCase()}
         </Avatar>
 
         <Box sx={{ display: "flex", flexDirection: "column" }}>

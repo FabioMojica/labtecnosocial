@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Modal,
+  Box,
+  Typography,
   TextField,
   Button,
-  Typography,
+  Stack,
+  Divider
 } from '@mui/material';
-
-import useKeyboardShortcuts from '../../../../hooks/useKeyBoardShortcuts.js';
-
+import useKeyboardShortcuts from '../../../../hooks/useKeyboardShortcuts.js';
 import { sanitizeText, isValidSanitizedText } from "../../../../utils/textSanitizer.js";
+import { useTheme } from '@emotion/react';
 
 const MAX_PROGRAM_LENGTH = 1000;
 
 const CreateProgramModal = ({ open, onClose, onSave }) => {
   const [programText, setProgramText] = useState('');
   const [charsLeft, setCharsLeft] = useState(MAX_PROGRAM_LENGTH);
+  const theme = useTheme();
 
   useEffect(() => {
     if (!open) {
@@ -57,9 +57,34 @@ const CreateProgramModal = ({ open, onClose, onSave }) => {
   });
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Crear Nuevo Programa</DialogTitle>
-      <DialogContent>
+    <Modal
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="create-program-title"
+    >
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90%',
+          maxWidth: 600,
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          boxShadow: 24,
+          p: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
+        <Typography id="create-program-title" variant="h6" fontWeight="bold">
+          Crear Nuevo Programa
+        </Typography>
+
+        <Divider />
+
         <TextField
           fullWidth
           multiline
@@ -71,27 +96,46 @@ const CreateProgramModal = ({ open, onClose, onSave }) => {
           variant="outlined"
           margin="normal"
           inputProps={{ maxLength: MAX_PROGRAM_LENGTH }}
+           sx={{
+            "& .MuiInputBase-input": {
+              overflowY: "auto",
+              maxHeight: "200px",
+              "&::-webkit-scrollbar": { width: "2px" },
+              "&::-webkit-scrollbar-track": {
+                backgroundColor: theme.palette.background.default,
+                borderRadius: "2px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: theme.palette.primary.main,
+                borderRadius: "2px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                backgroundColor: theme.palette.primary.dark,
+              },
+            },
+          }}
         />
+
         <Typography
           variant="caption"
           sx={{
             color: charsLeft === 0 ? 'error.main' : 'text.secondary',
-            display: 'block',
             textAlign: 'right',
-            mt: -1,
-            mb: 1,
           }}
         >
           Caracteres: {programText.length} / {MAX_PROGRAM_LENGTH}
         </Typography>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color="secondary">Cancelar</Button>
-        <Button onClick={handleSave} disabled={!isValid} variant="contained">
-          Guardar Programa
-        </Button>
-      </DialogActions>
-    </Dialog>
+
+        <Stack direction="row" justifyContent="flex-end" spacing={2} mt={2}>
+          <Button onClick={handleClose}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSave} disabled={!isValid} variant="contained">
+            Guardar Programa
+          </Button>
+        </Stack>
+      </Box>
+    </Modal>
   );
 };
 

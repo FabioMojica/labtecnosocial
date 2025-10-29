@@ -38,7 +38,13 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
         flexDirection: 'column',
         justifyContent: 'space-between',
         padding: 1,
-        '&:hover': { backgroundColor: '#e5e5e5' },
+        '&:hover': {
+                    backgroundColor:
+                        theme.palette.mode === 'light'
+                            ? 'rgba(0, 0, 0, 0.05)'
+                            : 'rgba(255, 255, 255, 0.1)',
+                    transition: 'background-color 0.2s ease',
+                },
         border: isSelected ? '2px solid #90caf9' : '1px solid #e0e0e0', 
         borderRadius: 1,
         marginBottom: 1,
@@ -54,7 +60,6 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
         variant="caption"
           sx={{
             padding: '4px',
-            backgroundColor: '#f5f5f5',
             borderRadius: 1,
             whiteSpace: 'normal',
             wordBreak: 'break-word', 
@@ -69,7 +74,7 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
                         color: theme.palette.text.primary,
           }}
         >
-          {program.programDescription} 
+          {program.programDescription}
         </Typography>
       </Box>
 

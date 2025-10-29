@@ -34,15 +34,16 @@ const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect }) => {
                     '&:hover': {
                         backgroundColor:
                             theme.palette.mode === 'light'
-                                ? 'rgba(0, 0, 0, 0.05)'   // leve sombra para light
-                                : 'rgba(255, 255, 255, 0.08)', // leve brillo para dark
+                                ? 'rgba(0, 0, 0, 0.05)'
+                                : 'rgba(255, 255, 255, 0.08)',
                         transition: 'background-color 0.2s ease',
                     },
+
                     borderRadius: 1,
                     marginBottom: 1,
                     cursor: 'pointer',
                     border: '1px solid #e0e0e0',
-                    boxShadow: isSelected
+                    boxShadow: text
                         ? '0 6px 15px rgba(25, 118, 210, 0.5)'
                         : '0px 2px 5px rgba(0, 0, 0, 0.1)',
                     transition: 'box-shadow 0.3s ease',

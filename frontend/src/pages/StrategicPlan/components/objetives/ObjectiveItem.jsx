@@ -10,7 +10,7 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
     const [showViewObjective, setShowViewObjective] = useState(false);
 
     const handleViewObjective = () => {
-        setShowViewObjective(true);
+        setShowViewObjective(true); 
     };
 
     const handleCloseViewObjective = () => {
@@ -70,7 +70,7 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                         color: theme.palette.text.primary,
                     }}
                     variant="caption"
-                >
+                > 
                     {objective.objectiveTitle}
                 </Typography>
             </Box>

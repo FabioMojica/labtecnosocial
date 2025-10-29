@@ -35,7 +35,7 @@ export const UserItem = ({ user, onClick }) => {
                             fontWeight: 'bold',
                         }}
                     >
-                        {user.firstName[0]}{user.lastName[0]}
+                        {user.firstName[0].toUpperCase()}{user.lastName[0].toUpperCase()}
                     </Avatar>,
                     <Box sx={{ display: "flex", flexDirection: "column" }}>
                         <Typography>{user.firstName}</Typography>

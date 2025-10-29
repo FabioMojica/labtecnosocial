@@ -64,36 +64,6 @@ export const deleteProjectByIdApi = async (id) => {
   }
 };
 
-export const saveOperationalRowsApi = async (projectId, rowsPayload) => {
-  const controller = loadAbort();
-  try {
-    const response = await axiosInstance.post(
-      `${Routes.SAVE_ROWS}/${projectId}`,
-      rowsPayload,
-      { signal: controller.signal }
-    );
-    if (response.status === 200) return response.data;
-    return null;
-  } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al guardar filas");
-    throw new Error("Error al intentar guardar filas");
-  }
-};
-
-export const deleteOperationalPlanningApi = async (projectId) => {
-  const controller = loadAbort();
-  try {
-    const response = await axiosInstance.delete(`${Routes.DELETE_OPERATIONAL_PLANNING}/${projectId}`, { signal: controller.signal });
-    if (response.status === 200) return response.data;
-    return null;
-  } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al eliminar planificación operativa");
-    throw new Error("Error al intentar eliminar planificación operativa");
-  }
-};
-
 export const updateProjectApi = async (id, formData) => {
   const controller = loadAbort();
   try {

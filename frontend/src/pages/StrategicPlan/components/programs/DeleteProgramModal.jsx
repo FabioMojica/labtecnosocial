@@ -1,14 +1,18 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, Avatar } from '@mui/material';
 import RenderAvatar from '../../../../generalComponents/RenderAvatar';
+import { useTheme } from '@emotion/react';
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
+
 
 const DeleteProgramModal = ({ open, onClose, program, onDelete }) => {
     const [showModal, setShowModal] = useState(open);
+    const theme = useTheme();
 
     useEffect(() => {
-        setShowModal(open); 
+        setShowModal(open);
     }, [open]);
 
     const handleClose = () => {
@@ -17,13 +21,13 @@ const DeleteProgramModal = ({ open, onClose, program, onDelete }) => {
     };
 
     const handleDelete = () => {
-        onDelete(); 
+        onDelete();
         setShowModal(false);
     };
 
-    return (
+    return ( 
         <Dialog open={showModal} onClose={handleClose}>
-            <DialogTitle sx={{ backgroundColor: '#f5f5f5', fontWeight: 600 }}>Eliminar Programa</DialogTitle>
+            <DialogTitle sx={{ fontWeight: 'bold' }}>Eliminar Programa</DialogTitle>
             <Typography
                 sx={{
                     backgroundColor: '#fdecea',
@@ -48,33 +52,54 @@ const DeleteProgramModal = ({ open, onClose, program, onDelete }) => {
                         Proyectos asociados:
                     </Typography>
                     {program?.operationalProjects && program.operationalProjects.length > 0 ? (
-                        <Box sx={{ maxHeight: '200px', overflowY: 'auto' }}>
+                        <Box sx={{
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            "&::-webkit-scrollbar": { width: "2px" },
+                            "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+                            "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+                            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+                        }}>
                             {program.operationalProjects.map((project, index) => (
-                                <Box key={index} sx={{ display: 'flex', flexDirection: 'row',justifyContent: 'flex-start', marginBottom: 1, gap: 2}}>
-                                    <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 600}}>
+                                <Box key={index} sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginBottom: 1, gap: 2 }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 600 }}>
                                         {index + 1}.
                                     </Box>
-                                    <RenderAvatar
-                                        image={project.image_url || project.image }
-                                        fallbackText={project.name}
-                                        size={38}
-                                        type="project"
-                                    />
-                                    <Box sx={{ width: '30%' }}>
-                                        <Box
+                                    <Avatar
+                                        src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                                        sx={{
+                                            width: 56,
+                                            height: 56,
+                                            borderRadius: 2,
+                                            objectFit: "cover",
+                                            fontWeight: "bold",
+                                        }}
+                                    >
+                                        {project.name[0]}
+                                    </Avatar>
+                                    <Box sx={{ width: '100%' }}>
+                                        <Typography
                                             sx={{
                                                 padding: '4px',
-                                                backgroundColor: '#f9f9f9',
                                                 borderRadius: 1,
+                                                whiteSpace: 'normal',
+                                                wordBreak: 'break-word',
+                                                display: '-webkit-box',
+                                                WebkitBoxOrient: 'vertical',
                                                 overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                height: "auto",
-                                                whiteSpace: 'nowrap', 
-                                                wordBreak: 'break-all',
+                                                WebkitLineClamp: 2,
+                                                height: 'auto',
+                                                width: '100%',
+                                                backgroundColor:
+                                                    theme.palette.mode === 'light'
+                                                        ? 'rgba(200, 200, 200, 0.3)'
+                                                        : 'rgba(100, 100, 100, 0.3)',
+                                                color: theme.palette.text.primary,
                                             }}
+                                            variant="caption"
                                         >
                                             {project.name}
-                                        </Box>
+                                        </Typography>
                                     </Box>
                                 </Box>
                             ))}
@@ -85,7 +110,7 @@ const DeleteProgramModal = ({ open, onClose, program, onDelete }) => {
                 </Box>
             </DialogContent>
             <DialogActions sx={{ padding: 2 }}>
-                <Button onClick={handleClose} sx={{ color: '#1976d2' }}>Cancelar</Button>
+                <Button onClick={handleClose}>Cancelar</Button>
                 <Button onClick={handleDelete} color="error" variant="contained">Eliminar</Button>
             </DialogActions>
         </Dialog>

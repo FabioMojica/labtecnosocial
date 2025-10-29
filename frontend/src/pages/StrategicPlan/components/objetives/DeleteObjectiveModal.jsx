@@ -29,7 +29,7 @@ const DeleteObjectiveModal = ({ open, onClose, objective, onDelete }) => {
                     color: '#d32f2f',
                     fontSize: '12px',
                     padding: '4px',
-                    borderRadius: '4px',
+                    borderRadius: '4px', 
                     marginTop: 1,
                     marginX: 1,
                 }}
@@ -66,7 +66,6 @@ const DeleteObjectiveModal = ({ open, onClose, objective, onDelete }) => {
                                         <Typography
                                             sx={{
                                                 padding: '4px',
-                                                backgroundColor: '#f5f5f5',
                                                 borderRadius: 1,
                                                 whiteSpace: 'normal',
                                                 wordBreak: 'break-word',
@@ -90,7 +89,6 @@ const DeleteObjectiveModal = ({ open, onClose, objective, onDelete }) => {
                                         <Typography
                                             sx={{
                                                 padding: '4px',
-                                                backgroundColor: '#f5f5f5',
                                                 borderRadius: 1,
                                                 whiteSpace: 'normal',
                                                 wordBreak: 'break-word',
@@ -136,14 +134,13 @@ const DeleteObjectiveModal = ({ open, onClose, objective, onDelete }) => {
                         >
                             {objective.programs.map((program, index) => (
                                 <Box key={index} sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 1, gap: 1 }}>
-                                    <Typography variant="caption"sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                    <Typography variant="caption" sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
                                         {index + 1}.
                                     </Typography>
                                     <Box sx={{ width: '100%' }}>
                                         <Typography
                                             sx={{
                                                 padding: '4px',
-                                                backgroundColor: '#f5f5f5',
                                                 borderRadius: 1,
                                                 whiteSpace: 'normal',
                                                 wordBreak: 'break-word',
@@ -172,7 +169,7 @@ const DeleteObjectiveModal = ({ open, onClose, objective, onDelete }) => {
                 </Box>
             </DialogContent>
             <DialogActions sx={{ padding: 2 }}>
-                <Button onClick={handleClose} sx={{ color: '#1976d2' }}>Cancelar</Button>
+                <Button onClick={handleClose}>Cancelar</Button>
                 <Button onClick={handleDelete} color="error" variant="contained">Eliminar</Button>
             </DialogActions>
         </Dialog>

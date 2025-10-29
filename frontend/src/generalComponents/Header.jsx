@@ -107,8 +107,8 @@ export const Header = () => {
 
 
                             <div>
-                                <ThemeToggleButton />
-                                <VolumenToggleButton />
+                                <ThemeToggleButton sx={{color: '#FFFFFF'}}/>
+                                <VolumenToggleButton sx={{color: '#FFFFFF'}}/>
 
                                 <IconButton
                                     size="large"

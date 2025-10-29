@@ -14,6 +14,11 @@ export const Routes = {
   UPDATE_PROJECT: "/projects",
   DELETE_PROJECT: "/projects",
 
+  //Plan. operativa
+  OPERATIONAL_PLAN: "/operational-plans",
+  UPDATE_OPERATIONAL_PLAN: "/operational-plans/updateOperationalPlan",
+  DELETE_OPERATIONAL_PLAN: "/operational-plans/deleteOperationalPlan",
+
   //Plan. estrategica
   STRATEGIC_PLAN: "/strategic-plans",
   UPDATE_STRATEGIC_PLAN: "/strategic-plans/updateStrategicPlan",
@@ -21,7 +26,7 @@ export const Routes = {
   
   GET_OBJECTIVES: "/objectives",
   CREATE_OBJECTIVE: "/objectives",
-  UPDATE_OBJECTIVE: "/objectives",
+  UPDATE_OBJECTIVE: "/objectives", 
   DELETE_OBJECTIVE: "/objectives",
   GET_INDICATORS: "/indicators",
   CREATE_INDICATOR: "/indicators",

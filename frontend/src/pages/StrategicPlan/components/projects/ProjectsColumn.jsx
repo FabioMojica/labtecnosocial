@@ -38,7 +38,7 @@ const ProjectsColumn = ({
       {/* Header con título y botón de agregar */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Proyectos</Typography>
+          <Typography variant="h6">{`Proyectos (${allPrograms.reduce((acc, p) => acc + (p.operationalProjects?.length || 0), 0)})`}</Typography>
           {selectedProgram && (
             <Tooltip title="Agregar proyecto operativo">
               <IconButton onClick={onAddProject}>
@@ -62,6 +62,14 @@ const ProjectsColumn = ({
             whiteSpace: 'normal',
             wordBreak: 'break-word',
             WebkitLineClamp: 2,
+            ...(selectedProgram
+              ? {}
+              : {
+                color: 'gray',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                fontSize: '0.75rem',
+              }),
           }}
         >
           {selectedProgram
@@ -108,23 +116,52 @@ const ProjectsColumn = ({
           Selecciona un programa para ver sus proyectos.
         </Typography>
       ) : selectedProgram.operationalProjects?.length > 0 ? (
-        selectedProgram.operationalProjects.map(project => (
-          <ProjectItem
-            key={project.id}
-            project={project}
-            onDelete={() => onUnlinkProject(selectedProgram.id, project.id)}
-            onEdit={(editedProject) => {
-              const updatedProgram = {
-                ...selectedProgram,
-                operationalProjects: selectedProgram.operationalProjects.map(p =>
-                  p.id === editedProject.id ? editedProject : p
-                ),
-              };
-              onEditProgram(updatedProgram);
+          <Box
+            key={selectedProgram.id}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              padding: 1,
+
+              cursor: 'pointer',
+              borderRadius: 1,
+              marginBottom: 3,
+              border: '1px solid #e0e0e0',
             }}
-            onView={() => onViewProject(project.id)}
-          />
-        ))
+          >
+            <Typography
+              fontWeight="bold"
+              noWrap
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                width: '100%',
+                mb: 0.5
+              }}
+            >
+              {`Proyectos (${selectedProgram.operationalProjects.length}):`}
+            </Typography>
+
+            {selectedProgram.operationalProjects.map(project => (
+            <ProjectItem
+              key={project.id}
+              project={project}
+              onDelete={() => onUnlinkProject(selectedProgram.id, project.id)}
+              onEdit={(editedProject) => {
+                const updatedProgram = {
+                  ...selectedProgram,
+                  operationalProjects: selectedProgram.operationalProjects.map(p =>
+                    p.id === editedProject.id ? editedProject : p
+                  ),
+                };
+                onEditProgram(updatedProgram);
+              }}
+              onView={() => onViewProject(project.id)}
+            />
+            ))}
+          </Box>
       ) : (
         <Typography
           variant="body2"

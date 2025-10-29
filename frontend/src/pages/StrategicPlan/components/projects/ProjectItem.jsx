@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Box, Typography, IconButton, Tooltip } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip, Avatar } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditProjectModal from './EditProjectModal.jsx';
 import RenderAvatar from '../../../../generalComponents/RenderAvatar.jsx';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { useTheme } from '@emotion/react';
 
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
   const [pressTimer, setPressTimer] = useState(null);
+  const theme = useTheme();
 
   const handleMouseDown = () => {
     const timer = setTimeout(() => {
@@ -40,7 +43,13 @@ const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
         flexDirection: 'column',
         justifyContent: 'space-between',
         padding: 1,
-        '&:hover': { backgroundColor: '#f5f5f5' },
+        '&:hover': {
+          backgroundColor:
+            theme.palette.mode === 'light'
+              ? 'rgba(0, 0, 0, 0.05)'
+              : 'rgba(255, 255, 255, 0.08)',
+          transition: 'background-color 0.2s ease',
+        },
         borderRadius: 1,
         marginBottom: 1,
         cursor: 'pointer',
@@ -53,49 +62,70 @@ const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
       <Box sx={{ marginBottom: 1 }}>
         <Typography sx={{ fontWeight: 600, mb: 0.5 }}>Proyecto:</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <RenderAvatar
-            image={project.image_url || project.image}
-            fallbackText={project.name}
-            size={38}
-            type={"project"}
-          />
-          <Box
+
+          <Avatar
+            src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
             sx={{
+              width: 46,
+              height: 46,
+              borderRadius: 2,
+              objectFit: "cover",
+              fontWeight: "bold",
+              boxShadow:
+      theme.palette.mode === 'light'
+        ? '0 0 0 1px rgba(0,0,0,0.3)'   
+        : '0 0 0 1px rgba(255,255,255,0.3)',
+            }}
+          >
+            {project.name[0].toUpperCase()}
+          </Avatar>
+          <Typography
+            variant="caption"
+            sx={{
+              width: '100%',
               padding: '4px',
-              backgroundColor: '#f5f5f5',
               borderRadius: 1,
               whiteSpace: 'normal',
               wordBreak: 'break-word',
               display: '-webkit-box',
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
-              WebkitLineClamp: 1,
-              height: 'auto',
+              WebkitLineClamp: 2,
+              backgroundColor:
+                theme.palette.mode === 'light'
+                  ? 'rgba(200, 200, 200, 0.3)'
+                  : 'rgba(100, 100, 100, 0.3)',
+              color: theme.palette.text.primary,
             }}
           >
             {project.name}
-          </Box>
+          </Typography>
         </Box>
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
           Descripción del proyecto:
         </Typography>
-        <Box
+        <Typography
+          variant="caption"
           sx={{
+            width: '100%',
             padding: '4px',
-            backgroundColor: '#f5f5f5',
             borderRadius: 1,
             whiteSpace: 'normal',
             wordBreak: 'break-word',
             display: '-webkit-box',
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            WebkitLineClamp: 1,
-            height: 'auto',
+            WebkitLineClamp: 2,
+            backgroundColor:
+              theme.palette.mode === 'light'
+                ? 'rgba(200, 200, 200, 0.3)'
+                : 'rgba(100, 100, 100, 0.3)',
+            color: theme.palette.text.primary,
           }}
         >
           {project.description}
-        </Box>
-      </Box> 
+        </Typography>
+      </Box>
       {project.projectDescription && (
         <Box sx={{ marginBottom: 1 }}>
           <Typography sx={{ fontWeight: 600 }}>Descripción:</Typography>

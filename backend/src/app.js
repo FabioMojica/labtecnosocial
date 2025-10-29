@@ -15,6 +15,7 @@ import dotenv from 'dotenv';
 import projectIntegrationRouter from './routes/apis/projectIntegrations.routes.js';
 import XRouter from './routes/apis/X.routes.js';
 import cookieParser from 'cookie-parser';
+import operationalPlanRoutes from './routes/operationalPlan.routes.js';
 
 
 dotenv.config();
@@ -43,7 +44,7 @@ app.use(cookieParser());
 
 app.use(express.json());
 if (process.env.NODE_ENV !== 'test') {
-  app.use(morgan('dev'));
+  app.use(morgan('dev')); 
 }
 
 
@@ -53,6 +54,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', operationalProjectRoutes); 
 app.use('/api/strategic-plans', strategicPlanRoutes);
+app.use('/api/operational-plans', operationalPlanRoutes);
 app.use('/api/apis/github', githubRouter);
 app.use('/api/apis/facebook', facebookRouter);
 app.use('/api/apis/instagram', instagramRouter);

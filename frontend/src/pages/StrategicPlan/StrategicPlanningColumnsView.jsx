@@ -19,7 +19,12 @@ import { normalizePlanData } from './utils/normalizePlanData.js';
 import { useFetchAndLoad } from "../../hooks/useFetchAndLoad.js";
 import { ButtonWithLoader } from "../../generalComponents/ButtonWithLoader.jsx";
 
+import isEqual from "lodash.isequal";
+import cloneDeep from "lodash/cloneDeep";
+
+
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
+  const originalDataRef = useRef(cloneDeep(data));
   const [mission, setMission] = useState(data?.mission || '');
   const [selectedItem, setSelectedItem] = useState('mision');
   const [isDirty, setIsDirty] = useState(false);
@@ -46,8 +51,25 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const containerRef = useRef(null);
 
   useEffect(() => {
-    onDirtyChange(isDirty);
+    if (onDirtyChange) {
+      onDirtyChange(isDirty); 
+    }
   }, [isDirty, onDirtyChange]);
+
+
+  useEffect(() => {
+    const currentData = {
+      mission,
+      objectives
+    };
+
+    const hasChanges = !isEqual(currentData, {
+      mission: originalDataRef.current?.mission || '',
+      objectives: originalDataRef.current?.objectives || []
+    });
+
+    setIsDirty(hasChanges);
+  }, [mission, objectives]);
 
   useEffect(() => {
     setMission(data?.mission || '');
@@ -79,12 +101,11 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   };
 
   const handleSelectObjective = (id) => {
+    setSelectedProgramId(null);
     setSelectedObjectiveId(id);
     setSelectedItem('objetivo');
     containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-
 
   const handleEditObjective = (id, editedObj) => {
     setObjectives((prev) =>
@@ -234,6 +255,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
       const updated = await callEndpoint(updateStrategicPlanApi(year, payload));
       if (onPlanSaved) onPlanSaved(normalizePlanData(updated));
+      originalDataRef.current = cloneDeep(updated);
       setIsDirty(false);
 
       notify('Plan estratégico guardado correctamente.', 'success');
@@ -246,17 +268,30 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
   return (
     <>
-      <Box sx={{ p: 2, borderTop: '1px solid #ccc', display: 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ p: 2, borderTop: '1px solid #ccc', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        {isDirty && (
+          <Button
+            variant="outlined"
+            color="error"
+            sx={{ width: '170px' }}
+            onClick={() => {
+              setMission(originalDataRef.current.mission || '');
+              setObjectives(cloneDeep(originalDataRef.current.objectives || []));
+              setIsDirty(false);
+            }}
+          >
+            Descartar cambios
+          </Button>
+        )}
         <ButtonWithLoader
           loading={loading}
           onClick={handleSavePlan}
           disabled={!isDirty}
           variant="contained"
-          sx={{ color: 'white', px: 2, minWidth: '100px' }}
+          sx={{ color: 'white', px: 2, width: '150px' }}
         >
-          Guardar Planp
+          Guardar Plan
         </ButtonWithLoader>
-
       </Box>
       <Grid
         container
@@ -316,6 +351,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             selectedProgramId={selectedProgramId}
             selectedObjectiveId={selectedObjectiveId}
             onSelectProgram={handleSelectProgram}
+            handleSelectObjective={handleSelectObjective}
             onEditProgram={handleEditProgram}
             onDeleteProgram={handleDeleteProgram}
             onViewProgram={() => { }}

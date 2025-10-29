@@ -26,7 +26,7 @@ const MisionColumn = ({ mission, onEdit, onDelete, onCreate, isSelected, onSelec
           {!mission && (
             <Tooltip title="Agregar misión">
               <IconButton onClick={onCreate} size="small" color="primary">
-                <AddIcon />
+                <AddIcon fontSize="small"/>
               </IconButton>
             </Tooltip>
           )}

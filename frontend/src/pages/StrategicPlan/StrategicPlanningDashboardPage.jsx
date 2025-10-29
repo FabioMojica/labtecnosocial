@@ -24,10 +24,10 @@ import { useFetchAndLoad } from "../../hooks/useFetchAndLoad.js";
 import { SelectYear } from "./components/SelectYear";
 import { NoResultsScreen } from "../../generalComponents/NoResultsScreen";
 import { FullScreenProgress } from "../../generalComponents/FullScreenProgress.jsx";
+import { useConfirmNavigation } from "./hooks/usePreventNavigation.js";
 
 const StrategicPlanningDashboardPage = () => {
   const { year } = useParams();
-  console.log(year)
   const [selectedYear, setSelectedYear] = useState(null);
   const { user } = useAuth();
   const { loading, callEndpoint } = useFetchAndLoad();
@@ -39,7 +39,24 @@ const StrategicPlanningDashboardPage = () => {
   const [isChildDirty, setIsChildDirty] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const currentYear = new Date().getFullYear();
+  const [loadingPlan, setLoadingPlan] = useState(false);
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isChildDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isChildDirty]);
 
   useEffect(() => {
     if (!year) {
@@ -49,18 +66,13 @@ const StrategicPlanningDashboardPage = () => {
       setSelectedYear(parseInt(year, 10));
     }
   }, [year, navigate]);
-
-  // console.log("xsssssss", year);
-
-
-
+  
   useEffect(() => {
     if (user?.role === "coordinator") {
       setSelectedView("Documento");
     }
   }, [user]);
 
-  // ✅ Obtener todos los planes
   useEffect(() => {
     const fetchAllPlans = async () => {
       try {
@@ -73,12 +85,12 @@ const StrategicPlanningDashboardPage = () => {
     fetchAllPlans();
   }, []);
 
-  // ✅ Obtener plan por año
   useEffect(() => {
     const yearToFetch = year ? parseInt(year) : currentYear;
 
     const fetchPlan = async () => {
       try {
+        setLoadingPlan(true);
         setShowColumnsView(false);
         setPlanData(null);
 
@@ -86,13 +98,15 @@ const StrategicPlanningDashboardPage = () => {
         setPlanData(normalizePlanData(res));
         setShowColumnsView(true);
       } catch (error) {
-        console.log("Error fetching plan:", error);
-        if (error.response && error.response.status === 404) {
-          setShowColumnsView(false);
+        if (error.message?.includes("No se encontró plan estratégico")) {
+          notify(`No existe un plan estratégico para el año ${yearToFetch}`, "info");
           setPlanData(null);
+          setShowColumnsView(false);
         } else {
-          notify(`Error obteniendo el plan estratégico del año ${yearToFetch}.`, "error");
+          notify(`Error obteniendo el plan estratégico del año ${yearToFetch}. Inténtalo de nuevo más tarde.`, "error");
         }
+      } finally {
+        setLoadingPlan(false);
       }
     };
 
@@ -116,7 +130,7 @@ const StrategicPlanningDashboardPage = () => {
     setSelectedView(event.target.value);
   };
 
-  if(loading) {
+  if (loading) {
     return <FullScreenProgress text="Obteniendo el plan estratégico" />;
   }
 
@@ -150,10 +164,10 @@ const StrategicPlanningDashboardPage = () => {
             sm: 'row'
           },
           gap: 2,
-
         }}>
           <SelectYear
             selectedYear={selectedYear}
+            disabled={isChildDirty}
             onChange={(newYear) => {
               setIsChildDirty(false);
               setSelectedYear(newYear);
@@ -163,10 +177,10 @@ const StrategicPlanningDashboardPage = () => {
             }}
           />
 
-          {user?.role === "admin" && (
-            <FormControl sx={{ minWidth: 150 }} variant="outlined">
+          {user?.role === "admin" && planData?.id && (
+            <FormControl sx={{ minWidth: 150 }} variant="outlined" size="small">
               <InputLabel>Seleccionar Vista</InputLabel>
-              <Select value={selectedView} onChange={handleViewChange} label="Seleccionar Vista">
+              <Select value={selectedView} onChange={handleViewChange} label="Seleccionar Vista" disabled={isChildDirty}>
                 <MenuItem value="Columna">Columna</MenuItem>
                 <MenuItem value="Documento">Documento</MenuItem>
               </Select>
@@ -174,7 +188,6 @@ const StrategicPlanningDashboardPage = () => {
           )}
 
           {planData?.id && selectedView === "Columna" && user.role === "admin" && (
-
             <Box
               sx={{
                 display: 'flex',
@@ -185,6 +198,7 @@ const StrategicPlanningDashboardPage = () => {
               <Tooltip title={`Borrar el plan estratégico del año ${selectedYear}`}>
                 <IconButton
                   onClick={() => setDeleteDialogOpen(true)}
+                  disabled={isChildDirty}
                   sx={{
                     boxShadow: 3,
                     width: 40,
@@ -199,7 +213,7 @@ const StrategicPlanningDashboardPage = () => {
         </Box>
       </Box>
 
-      {!showColumnsView && (
+      {(!showColumnsView && !loadingPlan && !planData) && (
         <NoResultsScreen
           message="Año sin plan estratégico registrado"
           buttonText={
