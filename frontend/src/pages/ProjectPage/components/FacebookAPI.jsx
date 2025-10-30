@@ -117,7 +117,20 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                                 ))}
                             </Stack>
                         ) : (
-                            <Typography align="center" variant="body1">Sin páginas seleccionadas</Typography>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                align="center"
+                                sx={{
+                                    padding: '4px',
+                                    color: 'gray',
+                                    fontStyle: 'italic',
+                                    textAlign: 'center',
+                                    fontSize: '0.9rem',
+                                }}
+                            >
+                                Sin páginas seleccionadas
+                            </Typography>
                         )}
                     </Box>
 
@@ -128,11 +141,13 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                         {filteredPages.length === 0 ? (
                             <NoResultsScreen message="Búsqueda de páginas sin resultados" sx={{ minHeight: '100%' }} />
                         ) : (
-                            <List sx={{ overflowY: "auto", minHeight: '100%', width: '100%', pb: 6,
+                            <List sx={{
+                                overflowY: "auto", minHeight: '100%', width: '100%', pb: 6,
                                 "&::-webkit-scrollbar": { width: "2px" },
                                 "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "8px" },
                                 "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "8px" },
-                                "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark }}}>
+                                "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark }
+                            }}>
                                 {filteredPages.map(page => {
                                     const checked = selectedPages.some(r => r.id === page.id);
 
@@ -163,7 +178,7 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                                 })}
 
                                 {tooltipContent && (
-                                    <Tooltip open title={tooltipContent} PopperProps={{ anchorEl: { getBoundingClientRect: () => ({ top: tooltipPosition.top, left: tooltipPosition.left, right: tooltipPosition.left, bottom: tooltipPosition.top, width: 0, height: 0 }) }}} placement="top-start">
+                                    <Tooltip open title={tooltipContent} PopperProps={{ anchorEl: { getBoundingClientRect: () => ({ top: tooltipPosition.top, left: tooltipPosition.left, right: tooltipPosition.left, bottom: tooltipPosition.top, width: 0, height: 0 }) } }} placement="top-start">
                                         <span />
                                     </Tooltip>
                                 )}

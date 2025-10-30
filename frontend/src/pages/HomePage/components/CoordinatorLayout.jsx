@@ -113,7 +113,7 @@ export const CoordinatorLayout = () => {
                             title="Planificación Estratégica"
                             description="Infórmate sobre los planes estratégicos anuales"
                             icon={<AccountTreeRoundedIcon fontSize="large" />}
-                            link="/planificación/estratégica"
+                            link={`/planificacion-estrategica/${new Date().getFullYear()}`}
                         />
                     </Grid >
                     <Grid size={{ xs: 6, md: 4 }}>

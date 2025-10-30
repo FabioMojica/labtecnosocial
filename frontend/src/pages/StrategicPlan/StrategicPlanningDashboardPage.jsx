@@ -206,9 +206,10 @@ const StrategicPlanningDashboardPage = () => {
                 justifyContent: 'center',
               }}
             >
-              <Tooltip title={`Borrar el plan estratégico del año ${selectedYear}`}>
+              <Tooltip title={`Eliminar el plan estratégico del año ${selectedYear}`}>
                 <IconButton
                   onClick={() => setDeleteDialogOpen(true)}
+                  color="error"
                   disabled={isChildDirty}
                   sx={{
                     boxShadow: 3,

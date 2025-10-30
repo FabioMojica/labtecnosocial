@@ -234,7 +234,7 @@ const OperationalPlanningDashboardPage = () => {
           message="Seleccione un proyecto para visualizar la planificación operativa"
           icon={<TouchAppRoundedIcon sx={{ fontSize: 90, color: 'text.secondary' }} />}
           sx={{
-            height: '60vh',
+            height: '50vh',
             justifyContent: 'center',
           }}
         />

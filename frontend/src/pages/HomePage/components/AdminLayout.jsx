@@ -109,7 +109,7 @@ export const AdminLayout = () => {
                             title="Planificación Estratégica"
                             description="Gestiona todos tus planes estratégicos anuales"
                             icon={<AccountTreeRoundedIcon fontSize="large" />}
-                            link="/planificación/estratégica"
+                            link={`/planificacion-estrategica/${new Date().getFullYear()}`}
                         />
                     </Grid >
                     <Grid size={{ xs: 6, md: 4 }}>

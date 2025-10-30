@@ -34,7 +34,7 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [error, setError] = useState(false);
-    
+
     const [pages, setPages] = useState([]);
     const [filteredPages, setFilteredPages] = useState([]);
     const selectedPages = selected;
@@ -136,7 +136,20 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                                 ))}
                             </Stack>
                         ) : (
-                            <Typography align="center" variant="body1">Sin páginas seleccionadas</Typography>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                align="center"
+                                sx={{
+                                    padding: '4px',
+                                    color: 'gray',
+                                    fontStyle: 'italic',
+                                    textAlign: 'center',
+                                    fontSize: '0.9rem',
+                                }}
+                            >
+                                Sin páginas seleccionadas
+                            </Typography>
                         )}
                     </Box>
 

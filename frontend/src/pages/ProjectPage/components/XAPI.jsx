@@ -161,7 +161,20 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                                 ))}
                             </Stack>
                         ) : (
-                            <Typography align="center" variant="body1">Sin cuentas de X seleccionadas</Typography>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                align="center"
+                                sx={{
+                                    padding: '4px',
+                                    color: 'gray',
+                                    fontStyle: 'italic',
+                                    textAlign: 'center',
+                                    fontSize: '0.9rem',
+                                }}
+                            >
+                                Sin cuentas de X seleccionadas
+                            </Typography>
                         )}
                     </Box>
 
@@ -280,7 +293,7 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                                                         height: 0,
                                                     }),
                                                 },
-                                                
+
                                             }}
                                             placement="top-start"
                                         >
