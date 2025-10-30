@@ -3,7 +3,8 @@ import {
   Typography,
   Box,
   IconButton,
-  Tooltip
+  Tooltip,
+  useTheme
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,52 +14,88 @@ import EditViewBudgetModal from './EditViewBudgetModal';
 
 const BudgetItem = ({ value, onUpdate, onDelete }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const theme = useTheme();
 
   const handleSave = (newValue) => {
     onUpdate(newValue);
   };
 
-  const hasBudget = Boolean(value?.amount?.toString().trim() || value?.description?.trim());
+   const hasBudget = Boolean(value?.amount?.toString().trim() || value?.description?.trim());
 
   return (
     <>
       <Box
         sx={{
-          padding: 1,
+          padding: 0.5,
           borderRadius: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          textAlign: 'left',
-          gap: 1,
           height: '100%',
+          textAlign: 'left',
+          justifyContent: 'space-between',
           boxShadow: 3,
-          justifyContent: 'space-between'
+          gap: 0.5
         }}
       >
         {hasBudget ? (
-          <Box sx={{ width: '100%',display: 'flex', flexDirection: 'column', gap: 1, overflowY: 'auto' }}>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1, height: 180 }}>
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>Monto:</Typography>
-              <Box sx={{
-                padding: '4px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: 1,
-                overflowWrap: 'break-word',
-              }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Monto:
+              </Typography>
+              <Typography
+                sx={{
+                  display: "block",
+                  padding: 0.5,
+                  whiteSpace: "pre-wrap",
+                  wordWrap: "break-word",
+                  wordBreak: 'break-word',
+                  borderRadius: 1,
+                  backgroundColor:
+                    theme.palette.mode === 'light'
+                      ? 'rgba(200, 200, 200, 0.3)'
+                      : 'rgba(100, 100, 100, 0.3)',
+                  color: theme.palette.text.primary,
+                  WebkitLineClamp: 1,
+                }}
+                variant="caption"
+              >
                 {value.amount}
-              </Box>
+              </Typography>
             </Box>
-            <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>Descripción:</Typography>
-              <Box sx={{
-                padding: '4px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: 1,
-                overflowWrap: 'break-word'
-              }}>
+
+            <Box sx={{height: '100%', width: '100%'}}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Descripción:
+              </Typography>
+              
+              <Typography
+                sx={{
+                  display: "block",
+                  padding: 0.5,
+                  height: 75,
+                  whiteSpace: "pre-wrap",
+                  wordWrap: "break-word",
+                  wordBreak: 'break-word',
+                  borderRadius: 1, 
+                  overflowY: 'auto',
+            "&::-webkit-scrollbar": { width: "2px" },
+            "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+            "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+                  backgroundColor:
+                    theme.palette.mode === 'light'
+                      ? 'rgba(200, 200, 200, 0.3)'
+                      : 'rgba(100, 100, 100, 0.3)',
+                  color: theme.palette.text.primary,
+                  WebkitLineClamp: 1,
+        
+                }}
+                variant="caption"
+              >
                 {value.description}
-              </Box>
+              </Typography>
             </Box>
           </Box>
         ) : (
@@ -71,21 +108,21 @@ const BudgetItem = ({ value, onUpdate, onDelete }) => {
                 fontSize: '0.75rem',
                 textAlign: 'center'
               }}>
-              No se ha declarado un presupuesto
+              No se ha declarado un indicador
             </Typography>
           </Box>
         )}
 
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
           {!hasBudget ? (
-            <Tooltip title="Crear presupuesto">
+            <Tooltip title="Crear indicador">
               <IconButton size="small" onClick={() => setModalOpen(true)}>
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           ) : (
             <>
-              <Tooltip title="Ver presupuesto">
+              <Tooltip title="Ver indicador">
                 <IconButton size="small" onClick={() => setModalOpen(true)}>
                   <VisibilityIcon fontSize="small" />
                 </IconButton>

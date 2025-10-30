@@ -14,7 +14,7 @@ import isEqual from "lodash.isequal";
 import cloneDeep from "lodash/cloneDeep";
 
 
-import { getOperationalPlanOfProjectApi, saveOperationalRowsApi, deleteOperationalPlanningApi } from '../../api';
+import { getOperationalPlanOfProjectApi, saveOperationalRowsApi } from '../../api';
 
 import { isRowEmpty, toNullableNumber } from './utils/rowsFuncions';
 import { useNotification } from '../../contexts';
@@ -22,7 +22,7 @@ import { ButtonWithLoader, FullScreenProgress, NoResultsScreen } from '../../gen
 import { useFetchAndLoad } from '../../hooks';
 
 
-const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
+const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onEditingChange }) => {
     const confirm = useConfirm();
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
@@ -32,10 +32,10 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
     const [contextMenu, setContextMenu] = useState(null);
 
     const [loadingProjectDetails, setLoadingProjectDetails] = useState(false);
-    const [projects, setProjects] = useState([]);
     const [saving, setSaving] = useState(false);
     const [initialRows, setInitialRows] = useState([]);
     const [hasLoadError, setHasLoadError] = useState(false);
+
 
     useEffect(() => {
         if (!projectId) {
@@ -71,8 +71,7 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
                         end: row.period_end || ''
                     },
                 }));
-                // setRows(transformedRows);
-                // setInitialRows(transformedRows);
+
                 setRows(transformedRows);
                 setInitialRows(cloneDeep(transformedRows));
                 setHasLoadError(false);
@@ -272,6 +271,12 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
     };
 
     const handleDeleteRow = () => {
+        if (rows.length === 1) {
+            notify("No puedes dejar un plan operativo sin filas operativas.", "info");
+            setContextMenu(null);
+            return;
+        }
+
         confirm({
             title: "Eliminar fila",
             description: "¿Estás seguro que deseas borrar esta fila? Si la elimina y NO presiona guardar tabla podrá recuperar la fila descartando los cambios (si la fila no está vacia). Pero si presiona guardar tabla borrará la fila permanentemente",
@@ -399,11 +404,13 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
         },
     ];
 
-    // const hasChanges = () => {
-    //     return JSON.stringify(rows) !== JSON.stringify(initialRows);
-
-    // };
     const hasChanges = () => !isEqual(rows, initialRows);
+
+    useEffect(() => {
+        if (onEditingChange) {
+            onEditingChange(hasChanges());
+        }
+    }, [rows, initialRows]);
 
     const handleDiscardChanges = () => {
         confirm({
@@ -483,8 +490,6 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
                 },
             }));
 
-            // setInitialRows(updatedRows);
-            // setRows(updatedRows);
             setInitialRows(cloneDeep(updatedRows));
             setRows(updatedRows);
 
@@ -507,27 +512,6 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
     if (hasLoadError) {
         return null;
     }
-
-    const handleTouchStart = (event, index) => {
-        setHoveredRow(index);
-        const timeout = setTimeout(() => {
-            setContextMenu({
-                mouseX: event.touches[0].clientX - 2,
-                mouseY: event.touches[0].clientY - 4,
-                rowIndex: index
-            });
-        }, 600);
-
-        event.currentTarget.longPressTimeout = timeout;
-    };
-
-    const handleTouchEnd = (event) => {
-        setHoveredRow(null);
-        clearTimeout(event.currentTarget.longPressTimeout);
-    };
-
-    const hasEmptyRows = rows.some(row => isRowEmpty(row));
-
 
     return (
         <>
@@ -615,8 +599,7 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan }) => {
                                                 onMouseEnter={() => handleMouseEnter(index)}
                                                 onMouseLeave={handleMouseLeave}
                                                 onContextMenu={(e) => handleContextMenu(e, index)}
-                                                onTouchStart={(e) => handleTouchStart(e, index)}
-                                                onTouchEnd={handleTouchEnd}
+
                                                 sx={{
                                                     backgroundColor: hoveredRow === index ? theme.palette.mode === 'light'
                                                         ? 'rgba(0, 0, 0, 0.05)'

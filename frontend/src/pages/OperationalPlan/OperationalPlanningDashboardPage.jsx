@@ -4,9 +4,9 @@ import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Tooltip, Ic
 import OperationalPlanningTable from "./OperationalPlannigTable";
 import OperationalPlanningReadOnlyTable from "./OperationalPlanningReadOnlyTable";
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
-import { NoResultsScreen } from "../../generalComponents";
+import { ErrorScreen, FullScreenProgress, NoResultsScreen } from "../../generalComponents";
 import { SelectProjectModal } from "./components/SelectProjectModal";
-import { getAllOperationalProjectsApi } from "../../api";
+import { deleteOperationalPlanningApi, getAllOperationalProjectsApi } from "../../api";
 import { useFetchAndLoad } from "../../hooks";
 import { useNotification } from "../../contexts";
 import DeleteOperationalPlanningTableDialog from "./components/DeleteOperationalPlanningTableDialog";
@@ -17,27 +17,39 @@ const VIEW_MODE_KEY = "operationalPlanningViewMode";
 const OperationalPlanningDashboardPage = () => {
   const { id } = useParams();
   const [projects, setProjects] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState(id || "");
+  const [selectedProjectId, setSelectedProjectId] = useState(() => {
+    const parsed = Number(id);
+    return !isNaN(parsed) ? parsed : "";
+  });
   const { loading, callEndpoint } = useFetchAndLoad();
   const { notify } = useNotification();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
+  const [error, setError] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const navigate = useNavigate();
-
 
   const [hasPlan, setHasPlan] = useState(true);
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await callEndpoint(getAllOperationalProjectsApi());
-        console.log("...........>", res)
-        setProjects(res);
-      } catch (error) {
-        notify('Error al cargar lista de proyectos. Inténtalo de nuevo más tarde.', 'error');
-      }
-    };
+    if (selectedProjectId) {
+      setHasPlan(true);
+    }
+  }, [selectedProjectId]);
+
+  const fetchProjects = async () => {
+    try {
+      const res = await callEndpoint(getAllOperationalProjectsApi());
+
+      setProjects(res);
+      setError(false);
+    } catch (error) {
+      setError(true);
+      notify('Error al cargar lista de proyectos. Inténtalo de nuevo más tarde.', 'error');
+    }
+  };
+
+  useEffect(() => {
     fetchProjects();
   }, []);
 
@@ -49,9 +61,14 @@ const OperationalPlanningDashboardPage = () => {
     }
   }, [selectedProjectId, navigate]);
 
+
+
   useEffect(() => {
-    if (id !== selectedProjectId) {
-      setSelectedProjectId(Number(id) || "");
+    if (id) {
+      const parsedId = Number(id);
+      if (!isNaN(parsedId) && parsedId !== selectedProjectId) {
+        setSelectedProjectId(parsedId);
+      }
     }
   }, [id]);
 
@@ -85,7 +102,15 @@ const OperationalPlanningDashboardPage = () => {
     }
   };
 
+  if (loading) {
+    return <FullScreenProgress text={"Obteniendo los proyectos"} />
+  }
 
+  if (error) {
+    return <ErrorScreen message="Ocurrió un error al obtener los proyectos" buttonText="Intentar de nuevo" onButtonClick={() => fetchProjects()} />
+  }
+
+  const selectedProject = projects.find(p => p.id === Number(selectedProjectId));
 
   return (
     <Box maxWidth sx={{ padding: 1 }}>
@@ -113,11 +138,11 @@ const OperationalPlanningDashboardPage = () => {
         <Box sx={{
           display: 'flex',
           flexDirection: {
-            xs: 'column',
+            xs: 'row',
             sm: 'row'
           },
           alignItems: 'center',
-          gap: 2,
+          gap: {xs: 0.5, sm: 2}
         }}>
           <SelectProjectModal
             projects={projects}
@@ -127,19 +152,36 @@ const OperationalPlanningDashboardPage = () => {
           />
 
           {selectedProjectId && hasPlan && (
-            <FormControl sx={{ minWidth: 150 }} size="small" disabled={!selectedProjectId}>
+            <FormControl
+              sx={{
+                minWidth: { xs: 100, sm: 150 },
+              }}
+              size="small"
+              disabled={!selectedProjectId || isEditing}
+            >
               <InputLabel id="view-mode-label">Modo de vista</InputLabel>
               <Select
                 labelId="view-mode-label"
                 value={viewMode}
                 label="Modo de vista"
                 onChange={(e) => setViewMode(e.target.value)}
+                sx={{
+                  '& .MuiSelect-select': {
+                    display: 'block',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '100%',
+                  },
+                }}
               >
                 <MenuItem value="editable">Editable</MenuItem>
                 <MenuItem value="readonly">Solo lectura</MenuItem>
               </Select>
             </FormControl>
+
           )}
+
           {selectedProjectId && hasPlan && (
             <Box
               sx={{
@@ -153,6 +195,7 @@ const OperationalPlanningDashboardPage = () => {
                   color="error"
                   onClick={() => setDeleteDialogOpen(true)}
                   sx={{ ml: 1 }}
+                  disabled={isEditing}
                 >
                   <DeleteOutlineIcon />
                 </IconButton>
@@ -169,18 +212,19 @@ const OperationalPlanningDashboardPage = () => {
         onDeletePlan={handleDeleteOperationalPlanningTable}
       />
 
-
-      { 
+      {
         viewMode === 'editable' ? (
           <OperationalPlanningTable
             projectId={selectedProjectId}
             onProjectIdChange={setSelectedProjectId}
             onProjectWithoutPlan={handleProjectWithoutPlan}
+            onEditingChange={setIsEditing}
           />
         ) : (
           <OperationalPlanningReadOnlyTable
             projectId={selectedProjectId}
             onProjectIdChange={setSelectedProjectId}
+            project={selectedProject}
           />
         )
       }

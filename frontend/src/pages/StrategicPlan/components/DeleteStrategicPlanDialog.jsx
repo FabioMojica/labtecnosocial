@@ -1,17 +1,21 @@
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, Typography, Box
+  Button, TextField, Typography, Box,
+  useTheme
 } from '@mui/material';
 import { useRef, useState, useEffect } from 'react';
 import { deleteStrategicPlanApi } from '../../../api/strategicPlan';
 import { useNotification } from '../../../contexts';
+import { ButtonWithLoader } from '../../../generalComponents/ButtonWithLoader';
+import { useFetchAndLoad } from '../../../hooks/useFetchAndLoad.js';
 
 const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
   const yearDigits = String(year).split('');
   const [inputDigits, setInputDigits] = useState(Array(4).fill(''));
-  const [loading, setLoading] = useState(false);
   const inputRefs = useRef([]);
   const { notify } = useNotification();
+  const { loading, callEndpoint } = useFetchAndLoad();
+  const theme = useTheme();
 
   useEffect(() => {
     if (open) {
@@ -43,15 +47,12 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
 
   const handleDelete = async () => {
     try {
-      setLoading(true);
-      await deleteStrategicPlanApi(year);
+      await callEndpoint(deleteStrategicPlanApi(year));
       onDeleted();
       onClose();
       notify(`Plan estratégico del año ${year} eliminado correctamente.`, 'success');
     } catch (err) {
       notify(`Error eliminando el plan estratégico del año ${year}. Inténtalo de nuevo más tarde.`, 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -63,8 +64,8 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
       fullWidth
       PaperProps={{
         sx: {
-          width: { xs: '90%', sm: '500px' }, // 90% en móviles, 500px en desktop
-          maxWidth: '90%',                  // nunca exceder pantalla
+          width: { xs: '90%', sm: '500px' },
+          maxWidth: '90%',
         },
       }}
     >
@@ -110,14 +111,23 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
           <Button onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
-          <Button
-            variant="contained"
-            color="error"
-            disabled={!isConfirmed || loading}
+
+          <ButtonWithLoader
+            loading={loading}
             onClick={handleDelete}
+            disabled={!isConfirmed || loading}
+            variant="contained"
+            backgroundButton={theme => theme.palette.error.main}
+            sx={{
+              width: '100px',
+              color: "white",
+              "&:hover": {
+                backgroundColor: theme => theme.palette.error.dark,
+              },
+            }}
           >
             Eliminar
-          </Button>
+          </ButtonWithLoader>
         </DialogActions>
       </Box>
     </Dialog>

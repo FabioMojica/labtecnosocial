@@ -4,6 +4,7 @@ import {
   Box,
   IconButton,
   Tooltip,
+  useTheme,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -14,6 +15,7 @@ import { formatDate } from '../../../../utils/formatDate';
 
 const PeriodItem = ({ value, onUpdate, onDelete }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const theme = useTheme();
 
   const handleSave = (newValue) => {
     onUpdate(newValue);
@@ -40,26 +42,54 @@ const PeriodItem = ({ value, onUpdate, onDelete }) => {
         {hasPeriod ? (
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1, overflowY: 'auto' }}>
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>Inicio:</Typography>
-              <Box sx={{
-                padding: '4px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: 1,
-                overflowWrap: 'break-word',
-              }}>
+
+              <Typography variant="body2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Inicio:
+              </Typography>
+
+              <Typography
+                sx={{
+                  display: "block",
+                  padding: 0.5,
+                  whiteSpace: "pre-wrap",
+                  wordWrap: "break-word",
+                  wordBreak: 'break-word',
+                  borderRadius: 1,
+                  backgroundColor:
+                    theme.palette.mode === 'light'
+                      ? 'rgba(200, 200, 200, 0.3)'
+                      : 'rgba(100, 100, 100, 0.3)',
+                  color: theme.palette.text.primary,
+                  WebkitLineClamp: 1,
+                }}
+                variant="caption"
+              >
                 {formatDate(value.start)}
-              </Box>
+              </Typography>
             </Box>
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>Fin:</Typography>
-              <Box sx={{
-                padding: '4px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: 1,
-                overflowWrap: 'break-word',
-              }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Fin:
+              </Typography>
+              <Typography
+                sx={{
+                  display: "block",
+                  padding: 0.5,
+                  whiteSpace: "pre-wrap",
+                  wordWrap: "break-word",
+                  wordBreak: 'break-word',
+                  borderRadius: 1,
+                  backgroundColor:
+                    theme.palette.mode === 'light'
+                      ? 'rgba(200, 200, 200, 0.3)'
+                      : 'rgba(100, 100, 100, 0.3)',
+                  color: theme.palette.text.primary,
+                  WebkitLineClamp: 1,
+                }}
+                variant="caption"
+              >
                 {formatDate(value.end)}
-              </Box>
+              </Typography>
             </Box>
           </Box>
         ) : (

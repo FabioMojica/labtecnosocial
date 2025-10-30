@@ -114,7 +114,7 @@ const EditViewIndicatorModal = ({ open, onClose, value, onSave, maxLengthAmount 
           variant="outlined"
           inputProps={{ maxLength: maxLengthAmount }}
         />
-        <Typography
+        <Typography 
           variant="caption"
           color="textSecondary"
           sx={{ mt: 0.5, display: "block", textAlign: "right", mb: 2 }}

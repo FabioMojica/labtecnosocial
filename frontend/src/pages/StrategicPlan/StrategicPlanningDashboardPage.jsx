@@ -24,7 +24,7 @@ import { useFetchAndLoad } from "../../hooks/useFetchAndLoad.js";
 import { SelectYear } from "./components/SelectYear";
 import { NoResultsScreen } from "../../generalComponents/NoResultsScreen";
 import { FullScreenProgress } from "../../generalComponents/FullScreenProgress.jsx";
-import { useConfirmNavigation } from "./hooks/usePreventNavigation.js";
+import { ErrorScreen } from "../../generalComponents/ErrorScreen.jsx";
 
 const StrategicPlanningDashboardPage = () => {
   const { year } = useParams();
@@ -40,6 +40,8 @@ const StrategicPlanningDashboardPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const currentYear = new Date().getFullYear();
   const [loadingPlan, setLoadingPlan] = useState(false);
+  const [errorPlan, setErrorPlan] = useState(false);
+  const [errorPlans, setErrorPlans] = useState(false);
 
   const navigate = useNavigate();
 
@@ -66,50 +68,54 @@ const StrategicPlanningDashboardPage = () => {
       setSelectedYear(parseInt(year, 10));
     }
   }, [year, navigate]);
-  
+
   useEffect(() => {
     if (user?.role === "coordinator") {
       setSelectedView("Documento");
     }
   }, [user]);
 
+  const fetchAllPlans = async () => {
+    try {
+      setErrorPlans(false);
+      const res = await callEndpoint(getAllStrategicPlansApi());
+      setAllPlans(res);
+    } catch (error) {
+      setErrorPlans(true);
+      notify("Error obteniendo planes estratégicos. Inténtalo de nuevo más tarde.", "error");
+    }
+  };
+
   useEffect(() => {
-    const fetchAllPlans = async () => {
-      try {
-        const res = await callEndpoint(getAllStrategicPlansApi());
-        setAllPlans(res);
-      } catch (error) {
-        notify("Error obteniendo planes estratégicos. Inténtalo de nuevo más tarde.", "error");
-      }
-    };
     fetchAllPlans();
   }, []);
 
-  useEffect(() => {
+  const fetchPlan = async () => {
     const yearToFetch = year ? parseInt(year) : currentYear;
-
-    const fetchPlan = async () => {
-      try {
-        setLoadingPlan(true);
-        setShowColumnsView(false);
+    try {
+      setErrorPlan(false);
+      setLoadingPlan(true);
+      setShowColumnsView(false);
+      setPlanData(null);
+      
+      const res = await callEndpoint(getStrategicPlanByYearApi(yearToFetch));
+      setPlanData(normalizePlanData(res));
+      setShowColumnsView(true);
+    } catch (error) {
+      if (error.message?.includes("No se encontró plan estratégico")) {
+        notify(`No existe un plan estratégico para el año ${yearToFetch}`, "info");
         setPlanData(null);
-
-        const res = await callEndpoint(getStrategicPlanByYearApi(yearToFetch));
-        setPlanData(normalizePlanData(res));
-        setShowColumnsView(true);
-      } catch (error) {
-        if (error.message?.includes("No se encontró plan estratégico")) {
-          notify(`No existe un plan estratégico para el año ${yearToFetch}`, "info");
-          setPlanData(null);
-          setShowColumnsView(false);
-        } else {
-          notify(`Error obteniendo el plan estratégico del año ${yearToFetch}. Inténtalo de nuevo más tarde.`, "error");
-        }
-      } finally {
-        setLoadingPlan(false);
+        setShowColumnsView(false);
+      } else {
+        setErrorPlan(true);
+        notify(`Error obteniendo el plan estratégico del año ${yearToFetch}. Inténtalo de nuevo más tarde.`, "error");
       }
-    };
+    } finally {
+      setLoadingPlan(false);
+    }
+  };
 
+  useEffect(() => {
     fetchPlan();
   }, [year, selectedView]);
 
@@ -132,6 +138,14 @@ const StrategicPlanningDashboardPage = () => {
 
   if (loading) {
     return <FullScreenProgress text="Obteniendo el plan estratégico" />;
+  }
+
+  if (errorPlan) {
+    return <ErrorScreen message="Ocurrió un error al obtener el plan estratégico" buttonText="Intentar de nuevo" onButtonClick={() => fetchPlan()}/>
+  }
+
+  if (errorPlans) {
+    return <ErrorScreen message="Ocurrió un error al obtener los planes estratégicos" buttonText="Intentar de nuevo" onButtonClick={() => fetchAllPlans()}/>
   }
 
   return (
@@ -159,10 +173,7 @@ const StrategicPlanningDashboardPage = () => {
 
         <Box sx={{
           display: 'flex',
-          flexDirection: {
-            xs: 'column',
-            sm: 'row'
-          },
+
           gap: 2,
         }}>
           <SelectYear
