@@ -288,39 +288,39 @@ const handleExportPDF = async (rows, project) => {
   }
 
   // --- Dibuja avatar o imagen ---
-let titleY;
-if (imageUrl) {
-  try {
-    const img = await fetch(imageUrl);
-    const blob = await img.blob();
-    const reader = new FileReader();
-    await new Promise((resolve) => {
-      reader.onload = () => {
-        doc.addImage(reader.result, 'JPEG', avatarX, avatarY, avatarSize, avatarSize, '', 'FAST');
-        resolve();
-      };
-      reader.readAsDataURL(blob);
-    });
-    titleY = avatarY + avatarSize * 0.6; // ✅ altura ideal si hay imagen
-  } catch (err) {
-    console.warn('⚠️ Error cargando imagen, se usará inicial:', err);
+  let titleY;
+  if (imageUrl) {
+    try {
+      const img = await fetch(imageUrl);
+      const blob = await img.blob();
+      const reader = new FileReader();
+      await new Promise((resolve) => {
+        reader.onload = () => {
+          doc.addImage(reader.result, 'JPEG', avatarX, avatarY, avatarSize, avatarSize, '', 'FAST');
+          resolve();
+        };
+        reader.readAsDataURL(blob);
+      });
+      titleY = avatarY + avatarSize * 0.6; // ✅ altura ideal si hay imagen
+    } catch (err) {
+      console.warn('⚠️ Error cargando imagen, se usará inicial:', err);
+      drawInitialAvatar(doc, project.name, avatarX, avatarY, avatarSize);
+      titleY = avatarY + avatarSize * 0.7; // ✅ ligeramente más bajo
+    }
+  } else {
     drawInitialAvatar(doc, project.name, avatarX, avatarY, avatarSize);
-    titleY = avatarY + avatarSize * 0.7; // ✅ ligeramente más bajo
+    titleY = avatarY + avatarSize * 0.7;
   }
-} else {
-  drawInitialAvatar(doc, project.name, avatarX, avatarY, avatarSize);
-  titleY = avatarY + avatarSize * 0.7;
-}
 
-// --- Título ---
-doc.setTextColor(0, 0, 0); // 🔥 <-- esto arregla el color del texto
-doc.setFontSize(18);
-doc.setFont('helvetica', 'bold');
-doc.text(
-  `Planificación Operativa - ${project.name}`,
-  avatarX + avatarSize + 20,
-  titleY
-);
+  // --- Título ---
+  doc.setTextColor(0, 0, 0); // 🔥 <-- esto arregla el color del texto
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text(
+    `Planificación Operativa - ${project.name}`,
+    avatarX + avatarSize + 20,
+    titleY
+  );
 
 
 
@@ -395,13 +395,19 @@ doc.text(
 
 
 
-const OperationalPlanningReadOnlyTable = ({ projectId, project }) => {
+const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithoutPlan, hasPlan }) => {
   const theme = useTheme();
   const [rows, setRows] = useState([]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [gridKey, setGridKey] = useState(0);
   const [hasLoadError, setHasLoadError] = useState(false);
   const notify = useNotification();
+
+  useEffect(() => {
+      if (!projectId || !hasPlan) {
+          setRows([]);
+      }
+  }, [projectId, hasPlan]);
 
   useEffect(() => {
     if (!projectId) {
@@ -413,6 +419,10 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project }) => {
       setLoadingRows(true);
       try {
         const res = await getOperationalPlanOfProjectApi(projectId);
+
+        if (Array.isArray(res) && res.length === 0) {
+          if (onProjectWithoutPlan) onProjectWithoutPlan(projectId);
+        }
 
         const transformedRows = res.map(row => ({
           id: row.id,
@@ -480,11 +490,12 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project }) => {
           <CircularProgress />
         </Box>
       ) : !rows.length ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 10 }}>
-          <Typography variant="body1" color="text.secondary">
-            {projectId && "No hay datos para mostrar."}
-          </Typography>
-        </Box>
+        <>
+          <NoResultsScreen
+            message="Este proyecto no tiene un plan operativo. Crea uno desde la vista editable."
+            sx={{ height: '50vh' }}
+          />
+        </>
       ) : (
         <Box sx={{ height: 'auto', width: '100%' }}>
           <DataGrid

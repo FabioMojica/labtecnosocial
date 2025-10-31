@@ -153,7 +153,7 @@ export function ProjectsListPage() {
 
     return (
         <Box sx={{ display: 'flex' }}>
-            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%', mt: { xs: 1, sm: 0} }}>
                 <Box sx={{
                     display: 'flex', gap: 1, flexDirection: {
                         xs: 'column-reverse',

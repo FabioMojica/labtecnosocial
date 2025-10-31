@@ -22,7 +22,7 @@ import { ButtonWithLoader, FullScreenProgress, NoResultsScreen } from '../../gen
 import { useFetchAndLoad } from '../../hooks';
 
 
-const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onEditingChange }) => {
+const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHasPlan, onEditingChange, hasPlan }) => {
     const confirm = useConfirm();
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
@@ -35,6 +35,13 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onEditingCh
     const [saving, setSaving] = useState(false);
     const [initialRows, setInitialRows] = useState([]);
     const [hasLoadError, setHasLoadError] = useState(false);
+
+    useEffect(() => {
+    if (!projectId || !hasPlan) {
+        setRows([]);
+        setInitialRows([]);
+    }
+}, [projectId, hasPlan]);
 
 
     useEffect(() => {
@@ -450,6 +457,13 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onEditingCh
         });
 
         const formattedRows = rows.map(formatRow);
+
+        const hasPlanYet = initialRows.length > 0;
+        
+        if (!hasPlanYet && formattedRows.length > 0) {
+            if (onProjectHasPlan) onProjectHasPlan(projectId);
+        }
+
         const formattedInitialRows = initialRows.map(formatRow);
 
         const initialMap = new Map(formattedInitialRows.map(row => [row.id, row]));

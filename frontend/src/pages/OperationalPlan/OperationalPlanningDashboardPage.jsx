@@ -29,13 +29,14 @@ const OperationalPlanningDashboardPage = () => {
 
   const navigate = useNavigate();
 
-  const [hasPlan, setHasPlan] = useState(true);
+  const [hasPlan, setHasPlan] = useState(true); 
 
   useEffect(() => {
     if (selectedProjectId) {
       setHasPlan(true);
-    }
+    } 
   }, [selectedProjectId]);
+  
 
   const fetchProjects = async () => {
     try {
@@ -90,7 +91,7 @@ const OperationalPlanningDashboardPage = () => {
   };
 
   const handleDeleteOperationalPlanningTable = async () => {
-    if (!selectedProjectId) return;
+    if (!selectedProjectId) return; 
     try {
       await deleteOperationalPlanningApi(selectedProjectId);
       notify('Planificación operativa del proyecto eliminada correctamente.', 'success');
@@ -151,7 +152,7 @@ const OperationalPlanningDashboardPage = () => {
             loading={loading}
           />
 
-          {selectedProjectId && hasPlan && (
+          {selectedProjectId && (
             <FormControl
               sx={{
                 minWidth: { xs: 100, sm: 150 },
@@ -218,13 +219,17 @@ const OperationalPlanningDashboardPage = () => {
             projectId={selectedProjectId}
             onProjectIdChange={setSelectedProjectId}
             onProjectWithoutPlan={handleProjectWithoutPlan}
+            onProjectHasPlan={() => setHasPlan(true)}
             onEditingChange={setIsEditing}
+            hasPlan={hasPlan}
           />
         ) : (
-          <OperationalPlanningReadOnlyTable
+          <OperationalPlanningReadOnlyTable 
             projectId={selectedProjectId}
             onProjectIdChange={setSelectedProjectId}
             project={selectedProject}
+            onProjectWithoutPlan={handleProjectWithoutPlan}
+            hasPlan={hasPlan}
           />
         )
       }

@@ -265,13 +265,13 @@ const StrategicPlanningDashboardPage = () => {
           )}
         </Box>
       )}
-
+ 
       <DeleteStrategicPlanDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         year={selectedYear}
         onDeleted={() => {
-          setPlanData(null);
+          setPlanData(null); 
           setShowColumnsView(false);
           setAllPlans((prev) => prev.filter((p) => p.year !== parseInt(year || currentYear, 10)));
         }}

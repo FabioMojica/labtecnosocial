@@ -78,7 +78,7 @@ export const SelectProjectModal = ({
                                 height: 46,
                                 borderRadius: 2,
                                 objectFit: "cover",
-                                fontWeight: "bold",
+                                fontWeight: "bold", 
                                 boxShadow:
                                     theme.palette.mode === 'light'
                                         ? '0 0 0 1px rgba(0,0,0,0.3)'
@@ -105,7 +105,7 @@ export const SelectProjectModal = ({
                         </Typography>
                     </>
                 ) : (
-                    <Typography textAlign={'center'}>Seleccionar Proyecto</Typography>
+                    <Typography textAlign={'center'} sx={{fontSize: '1rem'}}>Seleccionar Proyecto</Typography>
                 )}
             </Button>
 
@@ -160,9 +160,25 @@ export const SelectProjectModal = ({
         />
 
         {filteredProjects.length === 0 ? (
-          // 🟢 Si no hay coincidencias, mostrar mensaje
-          <Box textAlign="center" py={4}>
-            <Typography variant="body1" color="textSecondary">
+          
+           <Box 
+    textAlign="center" 
+    py={4} 
+    sx={{
+      maxWidth: "100%",        
+      wordBreak: "break-word", 
+      overflowWrap: "break-word",
+      px: 2,                  
+    }}
+  >
+            <Typography variant="body1" color="textSecondary" sx={{
+                                    
+                                    color: 'gray',
+                                    fontStyle: 'italic',
+                                    textAlign: 'center',
+                                    fontSize: '0.9rem',
+                                }}>
+              
               No se encontraron resultados para “{searchTerm}”
             </Typography>
           </Box>

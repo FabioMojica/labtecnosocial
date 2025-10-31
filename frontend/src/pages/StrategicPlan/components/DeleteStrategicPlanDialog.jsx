@@ -70,12 +70,18 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
       }}
     >
       <Box>
-        <DialogTitle sx={{ color: 'error.main', fontWeight: 'bold' }}>
+        <DialogTitle sx={{ color:
+        theme.palette.mode === 'dark'
+          ? theme.palette.error.light
+          : theme.palette.error.main, fontWeight: 'bold' }}>
           ⚠️ Eliminar Plan Estratégico
         </DialogTitle>
         <DialogContent>
           <Typography gutterBottom sx={{ mb: 2 }}>
-            Esta acción eliminará <strong style={{ color: 'error.main' }}>TODO</strong> el plan estratégico del año <strong>{year}</strong>, y desvinculará todos los proyectos operativos asociados a cada programa. Esta operación es <strong>IRREVERSIBLE</strong>.
+            Esta acción eliminará <strong style={{ color:
+        theme.palette.mode === 'dark'
+          ? theme.palette.error.light
+          : theme.palette.error.main, }}>TODO</strong> el plan estratégico del año <strong>{year}</strong>, y desvinculará todos los proyectos operativos asociados a cada programa. Esta operación es <strong>IRREVERSIBLE</strong>.
           </Typography>
 
           <Typography variant="subtitle2" sx={{ mb: 1 }}>

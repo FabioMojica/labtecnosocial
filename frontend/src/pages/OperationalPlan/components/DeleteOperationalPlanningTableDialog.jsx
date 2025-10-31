@@ -1,13 +1,17 @@
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, Typography, List, ListItem, ListItemText, Box
+  Button, TextField, Typography, List, ListItem, ListItemText, Box,
+  useTheme
 } from '@mui/material';
 import { useState, useEffect, useRef } from 'react';
+import { ButtonWithLoader } from '../../../generalComponents';
+import { useFetchAndLoad } from '../../../hooks';
 
 const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDeletePlan }) => {
   const [inputName, setInputName] = useState('');
-  const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
+  const { loading, callEndpoint } = useFetchAndLoad();
+  const theme = useTheme();
 
   useEffect(() => {
     if (open) {
@@ -15,23 +19,23 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [open]);
-
+ 
   const isConfirmed = inputName === project?.name;
 
   const handleDelete = async () => {
     try {
-      setLoading(true);
-      await onDeletePlan();
+      await callEndpoint(onDeletePlan());
       onClose();
     } catch (error) {
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ color: 'error.main', fontWeight: 'bold' }}>
+      <DialogTitle sx={{ color:
+        theme.palette.mode === 'dark'
+          ? theme.palette.error.light
+          : theme.palette.error.main, fontWeight: 'bold' }}>
         ⚠️ Eliminar Plan Operativo
       </DialogTitle>
 
@@ -40,7 +44,10 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
           Esta acción eliminará toda la <strong>planificación operativa</strong> del proyecto{' '}
           <Box
             component="span"
-            sx={{ color: 'error.main', fontWeight: 'bold', userSelect: 'none' }}
+            sx={{ fontWeight: 'bold', color:
+        theme.palette.mode === 'dark'
+          ? theme.palette.error.light
+          : theme.palette.error.main, }}
           >
             {project?.name}
           </Box>{' '}
@@ -55,7 +62,12 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
             <ListItemText primary="* La vista documento del plan operativo también se eliminará permanentemente." />
           </ListItem>
           <ListItem sx={{ display: 'list-item', py: 0 }}>
-            <ListItemText primary="* Esta operación no se puede deshacer." sx={{ color: 'red' }} />
+            <ListItemText primary="* Esta operación no se puede deshacer." sx={{
+      color:
+        theme.palette.mode === 'dark'
+          ? theme.palette.error.light
+          : theme.palette.error.main
+    }}/>
           </ListItem>
         </List>
 
@@ -76,14 +88,24 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
         <Button onClick={onClose} disabled={loading}>
           Cancelar
         </Button>
-        <Button
-          variant="contained"
-          color="error"
-          disabled={!isConfirmed || loading}
-          onClick={handleDelete}
-        >
-          Eliminar
-        </Button>
+        <ButtonWithLoader
+            loading={loading}
+            onClick={handleDelete}
+            disabled={!isConfirmed || loading}
+            variant="contained"
+            backgroundButton={theme => theme.palette.error.main}
+            sx={{
+              width: '100px',
+              color: "white",
+              "&:hover": {
+                backgroundColor: theme => theme.palette.error.dark,
+              },
+            }}
+          >
+            Eliminar
+          </ButtonWithLoader>
+
+        
       </DialogActions>
     </Dialog>
   );
