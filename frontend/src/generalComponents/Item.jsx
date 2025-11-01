@@ -1,4 +1,4 @@
-import { Paper, Box, ListItem, ListItemButton } from "@mui/material";
+import { Paper, Box, ListItem, ListItemButton, useTheme } from "@mui/material";
 
 
 export const Item = ({
@@ -7,8 +7,14 @@ export const Item = ({
   sx = {},
   onClick,
 }) => {
+  const theme = useTheme();
   return (
-    <ListItem disablePadding>
+    <ListItem disablePadding sx={{
+      boxShadow:
+          theme.palette.mode === 'dark'
+            ? '0 4px 12px rgba(0,0,0,0.8)'
+            : 3,
+    }}>
       <Paper
         elevation={2} 
         sx={{

@@ -25,7 +25,7 @@ export const QuestionModal = ({ open, question, onConfirm, onCancel }) => {
         <Typography variant="h6">{question}</Typography>
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button variant="outlined" onClick={onCancel}>
             Cancelar
           </Button>
           <Button variant="contained" color="primary" onClick={onConfirm}>

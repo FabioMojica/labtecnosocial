@@ -1,4 +1,4 @@
-import { Grid, Typography } from "@mui/material";
+import { Grid, IconButton, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import {
@@ -12,14 +12,39 @@ import {
     validateTextLength,
 } from "../../../utils/textUtils";
 
-export const CreateProjectInfoPanel = ({ project, panelHeight, onChange }) => {
+
+const debounce = (func, delay = 100) => {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+};
+
+
+
+export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValidationChange }) => {
     const fileInputRef = useRef(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [overlayText, setOverlayText] = useState("Subir una imagen");
     const [errors, setErrors] = useState({ name: "", description: "" });
-
+    const [localName, setLocalName] = useState(project?.name ?? "");
+    const [localDescription, setLocalDescription] = useState(project?.description ?? "");
+    
+    
     const { notify } = useNotification();
     const { headerHeight } = useHeaderHeight();
+    
+    const debouncedChange = useRef(debounce(onChange, 5));
+    
+    useEffect(() => {
+        const isValid =
+            !errors.name &&
+            !errors.description &&
+            project?.name?.trim().length >= 3 &&
+            project?.description?.trim().length >= 5;
+        onValidationChange?.(isValid);
+    }, [errors, project, onValidationChange]);
 
     useEffect(() => {
         if (previewImage) {
@@ -36,7 +61,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange }) => {
 
     useEffect(() => {
         setPreviewImage(project?.image_url ?? null);
-    }, [project]);
+    }, []);
 
     const handleOverlayClick = () => fileInputRef.current?.click();
 
@@ -70,28 +95,41 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange }) => {
     };
     const handleTouchEnd = () => clearTimeout(longPressTimer);
 
-    // --- Validación de texto ---
     const handleNameChange = (e) => {
         const raw = e.target.value;
-        const cleaned = cleanExtraSpaces(raw);
-        const error =
-            validateRequiredText(cleaned, "Nombre del proyecto") ||
-            validateTextLength(cleaned, 3, 100, "Nombre del proyecto");
+        setLocalName(raw);
 
+        const error =
+            validateRequiredText(raw, "Nombre del proyecto") ||
+            validateTextLength(raw, 3, 100, "Nombre del proyecto");
         setErrors((prev) => ({ ...prev, name: error || "" }));
-        onChange?.({ name: cleaned });
+    };
+
+    const handleNameBlur = () => {
+        const cleaned = cleanExtraSpaces(localName);
+        setLocalName(cleaned);
+        onChange?.({ name: cleaned }); // actualizar proyecto global
+        debouncedChange.current({ name: cleaned });
     };
 
     const handleDescriptionChange = (e) => {
         const raw = e.target.value;
-        const cleaned = cleanExtraSpaces(raw);
-        const error =
-            validateRequiredText(cleaned, "Descripción") ||
-            validateTextLength(cleaned, 5, 300, "Descripción");
+        setLocalDescription(raw);
 
+        const error =
+            validateRequiredText(raw, "Descripción") ||
+            validateTextLength(raw, 5, 300, "Descripción");
         setErrors((prev) => ({ ...prev, description: error || "" }));
-        onChange?.({ description: cleaned });
     };
+
+    const handleDescriptionBlur = () => {
+        const cleaned = cleanExtraSpaces(localDescription);
+        setLocalDescription(cleaned);
+        onChange?.({ description: cleaned });
+        debouncedChange.current({ description: cleaned });
+
+    };
+
 
     return (
         <Grid
@@ -122,6 +160,8 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                     onContextMenu={handleContextMenu}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
+                    // fallbackLetter={localName.trim().charAt(0)?.toUpperCase()}
+                    fallbackLetter={(localName)?.trim().charAt(0)?.toUpperCase()}
                 />
             </Grid>
 
@@ -129,25 +169,21 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                 container
                 spacing={2}
                 size={{ xs: 12, md: 7 }}
-                sx={{ height: "auto", display: 'flex', flexDirection: 'column', pb: {
-                    xs: 20,
-                    sm: 0,
-                }}}
+                sx={{
+                    height: "auto", display: 'flex', flexDirection: 'column', pb: {
+                        xs: 20,
+                        sm: 0,
+                    }
+                }}
             >
                 <Grid size={12}>
                     <TextField
                         label="Ingrese un nombre para el proyecto (máx. 100 car.)*"
                         variant="filled"
-                        value={project?.name}
-                        onChange={(e) => onChange?.({ name: e.target.value })}
-                        onBlur={(e) => {
-                            const cleaned = cleanExtraSpaces(e.target.value);
-                            const error =
-                                validateRequiredText(cleaned, "Nombre del proyecto") ||
-                                validateTextLength(cleaned, 3, 100, "Nombre del proyecto");
-                            setErrors((prev) => ({ ...prev, name: error || "" }));
-                            onChange?.({ name: cleaned });
-                        }}
+                        // value={project?.name}
+                        value={localName}
+                        onChange={handleNameChange}
+                        onBlur={handleNameBlur}
                         maxLength={100}
                         error={!!errors.name}
                     />
@@ -157,29 +193,23 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                             {errors.name}
                         </Typography>
                     )}
-                </Grid> 
+                </Grid>
 
                 <Grid size={12}>
                     <TextFieldMultiline
                         rows={8}
                         variant="filled"
                         label="Ingrese una descripción para el proyecto (máx. 300 car.)*"
-                        value={project?.description}
-                        onChange={(e) => onChange?.({ description: e.target.value })}
-                        onBlur={(e) => {
-                            const cleaned = cleanExtraSpaces(e.target.value);
-                            const error =
-                                validateRequiredText(cleaned, "Descripción") ||
-                                validateTextLength(cleaned, 5, 300, "Descripción");
-                            setErrors((prev) => ({ ...prev, description: error || "" }));
-                            onChange?.({ description: cleaned });
-                        }}
+                        // value={project?.description}
+                        value={localDescription}
+                        onChange={handleDescriptionChange}
+                        onBlur={handleDescriptionBlur}
                         maxLength={300}
                         error={!!errors.description}
                     />
 
                     {errors.description && (
-                        <Typography color="error" variant="caption">
+                        <Typography color="error" variant="caption" textAlign={'right'} sx={{ width: '100%' }}>
                             {errors.description}
                         </Typography>
                     )}

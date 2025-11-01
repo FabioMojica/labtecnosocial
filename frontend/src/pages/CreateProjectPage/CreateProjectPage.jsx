@@ -1,8 +1,6 @@
 // 1. Librerías externas
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
-import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRounded';
 
 // 2. Hooks personalizados
 import { useFetchAndLoad } from "../../hooks";
@@ -14,7 +12,6 @@ import { createProjectFormData } from "./utils/createProjectFormData";
 
 // 4. Componentes
 import {
-    ActionBarButtons,
     FullScreenProgress,
     QuestionModal,
     TabButtons,
@@ -36,6 +33,7 @@ import { createOperationalProjectApi } from "../../api";
 
 // 8. Tipos
 import { IntegrationsWithAPIsPanel } from "./components/IntegrationWithAPIsPanel";
+import { ProjectPreviewPanel } from "./components/ProjectPreviewPanel";
 
 export const CreateProjectPage = () => {
     const initialProject = {
@@ -47,13 +45,34 @@ export const CreateProjectPage = () => {
         integrations: [],
     };
     const [project, setProject] = useState({ ...initialProject });
-    const [selectedResponsibles, setSelectedResponsibles] = useState(new Set());
     const [tabsHeight, setTabsHeight] = useState(0);
     const { notify } = useNotification();
     const [isDirty, setIsDirty] = useState(false);
     const [questionModalOpen, setQuestionModalOpen] = useState(false);
     const { loading, callEndpoint } = useFetchAndLoad();
+    const [isProjectValid, setIsProjectValid] = useState(false);
+
     const navigate = useNavigate();
+    useEffect(() => {
+        setIsDirty(!isProjectEqual(project, initialProject));
+    }, [project]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = "";
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, [isDirty]);
+
+
 
     const handleCreateProject = async () => {
         if (!project) {
@@ -61,16 +80,18 @@ export const CreateProjectPage = () => {
             return;
         }
         try {
+            const responsiblesIds = project.newResponsibles?.map(u => u.id) ?? [];
+
             const projectToSend = {
                 name: project.name,
                 description: project.description,
                 image_file: project.image_file ?? null,
-                responsibles: project.newResponsibles ?? [],
+                responsibles: responsiblesIds,
                 integrations: project.integrations ?? [],
             };
             const formData = createProjectFormData(projectToSend);
             await callEndpoint(createOperationalProjectApi(formData));
-            notify("Proyecto creado correctamente", "success"); 
+            notify("Proyecto creado correctamente", "success");
             navigate("/proyectos");
         } catch (error) {
             notify(error?.message || "Error al crear el proyecto", "error");
@@ -78,49 +99,66 @@ export const CreateProjectPage = () => {
     };
 
 
+    // const handleProjectChange = (changes) => {
+    //     setProject(prev => {
+    //         if (!prev) return prev;
+
+    //         const updated = { ...prev, ...changes };
+    //         setIsDirty(!isProjectEqual(updated, initialProject));
+    //         return updated;
+    //     });
+    // };
     const handleProjectChange = (changes) => {
         setProject(prev => {
             if (!prev) return prev;
-
-            const updated = { ...prev, ...changes };
-            setIsDirty(!isProjectEqual(updated, initialProject));
-            return updated;
+            return { ...prev, ...changes };
         });
     };
- 
-    const handleSave = () => {
-        handleCreateProject();
-    }
 
-    const handleCancelChanges = () => {
-        setQuestionModalOpen(true);
-    }
+    const handleResponsiblesChange = useCallback(
+        (newSelected) => {
+            handleProjectChange({ newResponsibles: newSelected });
+        },
+        [] // solo se define una vez
+    );
+
 
     const handleConfirmCancelModal = () => {
         setProject({ ...initialProject });
         setIsDirty(false);
         setQuestionModalOpen(false);
         notify("Cambios descartados correctamente", "info");
+        navigate('/proyectos', { replace: true });
     };
+
 
     if (loading) return <FullScreenProgress text="Creando el proyecto" />
 
     return (
         <>
             <TabButtons
-                labels={["Información del proyecto", "Asignar Responsables", "Integraciones con apis"]}
-                paramsLabels={["información", "asignarResponsables", "integrarAPIs"]}
+                labels={["Información del proyecto", "Asignar Responsables", "Integraciones con apis", "Crear Proyecto"]}
+                paramsLabels={["información", "asignarResponsables", "integrarAPIs", "crearProyecto"]}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
+                canChangeTab={(newIndex) => {
+                    if (newIndex === 3 && !isProjectValid) {
+                        notify("Por favor, completa un nombre y una descripción válidos antes de crear el proyecto.", "info");
+                        return false;
+                    }
+                    return true;
+                }}
             >
-                <CreateProjectInfoPanel onChange={handleProjectChange} panelHeight={tabsHeight} project={project} />
+                <CreateProjectInfoPanel
+                    onChange={handleProjectChange}
+                    panelHeight={tabsHeight}
+                    project={project}
+                    onValidationChange={setIsProjectValid}
+                />
 
                 <AssignResponsiblesPanel
                     panelHeight={tabsHeight}
-                    selectedUsers={selectedResponsibles}
-                    onChange={(selectedIds) => {
-                        setSelectedResponsibles(new Set(selectedIds));
-                        handleProjectChange({ newResponsibles: selectedIds });
-                    }}
+                    // onChange={(newSelected) => handleProjectChange({ newResponsibles: newSelected })}
+                    onChange={handleResponsiblesChange}
                 />
 
                 <IntegrationsWithAPIsPanel
@@ -128,35 +166,20 @@ export const CreateProjectPage = () => {
                     selectedIntegrations={project.integrations}
                     onChange={(integrations) => handleProjectChange({ integrations })}
                 />
+
+                <ProjectPreviewPanel
+                    project={project}
+                    panelHeight={tabsHeight}
+                    onCancel={() => setQuestionModalOpen(true)}
+                    onSave={handleCreateProject}
+                />
             </TabButtons>
 
             <QuestionModal
                 open={questionModalOpen}
-                question="¿Deseas descartar los cambios no guardados?"
-                onCancel={() => setQuestionModalOpen(false)}
+                question="¿Estás seguro de que quieres cancelar la creación del proyecto? Perderás todos los cambios y serás redirigido a la lista de proyectos."
                 onConfirm={handleConfirmCancelModal}
-            />
-
-            <ActionBarButtons
-                visible={isDirty}
-                buttons={[
-                    {
-                        label: "Cancelar",
-                        variant: "outlined",
-                        color: "secondary",
-                        icon: <ModeStandbyRoundedIcon />,
-                        onClick: handleCancelChanges, 
-                    },
-                    {
-                        label: "Crear proyecto",
-                        variant: "contained",
-                        color: "primary",
-                        icon: <LibraryAddCheckRoundedIcon />,
-                        onClick: handleSave,
-                        triggerOnEnter: true,
-                        disabled: !project?.name || !project?.description,
-                    },
-                ]}
+                onCancel={() => setQuestionModalOpen(false)}
             />
         </>
     );

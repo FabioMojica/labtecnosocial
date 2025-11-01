@@ -11,39 +11,6 @@ export const IntegrationsWithAPIsPanel = ({ panelHeight, selectedIntegrations, o
     const instagramSelected = selectedIntegrations.filter(i => i.type === 'instagram').map(i => i.data);
     const xSelected = selectedIntegrations.filter(i => i.type === 'x').map(i => i.data);
 
-    // // Handlers para cada API
-    // const handleGithubChange = (items) => {
-    //     const others = selectedIntegrations.filter(i => i.type !== 'github');
-    //     onChange?.([
-    //         ...others,
-    //         ...items.map(r => ({ type: 'github', data: r }))
-    //     ]);
-    // };
-
-    // const handleFacebookChange = (items) => {
-    //     const others = selectedIntegrations.filter(i => i.type !== 'facebook');
-    //     onChange?.([
-    //         ...others,
-    //         ...items.map(r => ({ type: 'facebook', data: r }))
-    //     ]);
-    // };
-
-    // const handleInstagramChange = (items) => {
-    //     const others = selectedIntegrations.filter(i => i.type !== 'instagram');
-    //     onChange?.([
-    //         ...others,
-    //         ...items.map(r => ({ type: 'instagram', data: r }))
-    //     ]);
-    // };
-
-    // const handleXChange = (items) => {
-    //     const others = selectedIntegrations.filter(i => i.type !== 'x');
-    //     onChange?.([
-    //         ...others,
-    //         ...items.map(r => ({ type: 'x', data: r }))
-    //     ]);
-    // };
-
     // Solo una integración de cada tipo
     const handleGithubChange = (items) => {
         const others = selectedIntegrations.filter(i => i.type !== 'github');

@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, Box, Typography, Checkbox, Tooltip } from "@mui/material";
+import { Avatar, Box, Typography, Checkbox, Tooltip, useTheme } from "@mui/material";
 import { Item } from "./Item";
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import { useSound } from "../contexts";
@@ -11,10 +11,10 @@ const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const AssignResponsibleCheckBoxItem = ({
   responsible,
-  checked = false,  
+  checked = false,
   onChange,
 }) => {
-  const navigate = useNavigate();
+  const theme = useTheme();
 
   const roleData = roleConfig[responsible.role] ?? {
     icon: QuestionMarkRoundedIcon,
@@ -31,36 +31,41 @@ export const AssignResponsibleCheckBoxItem = ({
     const newChecked = !checked;
 
     onChange?.(newChecked);
-  }; 
+  };
 
   return (
     <Item
+      onClick={(e) => {
+        handleToggle();
+      }}
+
       leftComponents={[
-        <Tooltip title="Ir al usuario" key="left">
-          <Box
-            sx={{ display: "flex", gap: 1 }}
-            onClick={() => navigate(`/usuario/${responsible.email}`)}
+        <Box
+          sx={{ display: "flex", gap: 1, }}
+
+        >
+          <Avatar
+            src={responsible.image_url ? `${API_UPLOADS}${responsible.image_url}` : ""}
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: 2,
+              objectFit: "cover",
+              fontWeight: "bold",
+            }}
           >
-            <Avatar
-              src={responsible.image_url ? `${API_UPLOADS}${responsible.image_url}` : undefined}
-              sx={{
-                width: 56,
-                height: 56,
-                borderRadius: 2,
-                objectFit: "cover",
-                fontWeight: "bold",
-              }}
-            >
-              {responsible.firstName[0]}
-              {responsible.lastName[0]}
-            </Avatar>
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Typography>{responsible.firstName}</Typography>
-              <Typography>{responsible.lastName}</Typography>
-              <Typography variant="caption">{responsible.email}</Typography>
-            </Box>
+
+            {/* {responsible.firstName[0].toUpperCase()}
+            {responsible.lastName[0].toUpperCase()} */}
+            {responsible.firstName?.[0]?.toUpperCase() ?? ""}
+  {responsible.lastName?.[0]?.toUpperCase() ?? ""}
+          </Avatar>
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Typography>{responsible.firstName}</Typography>
+            <Typography>{responsible.lastName}</Typography>
+            <Typography variant="caption">{responsible.email}</Typography>
           </Box>
-        </Tooltip>,
+        </Box>
       ]}
       rightComponents={[
         <Box
@@ -68,10 +73,10 @@ export const AssignResponsibleCheckBoxItem = ({
           sx={{
             display: "flex",
             height: "100%",
-            width: { sm: 350, xs: 250 },
             marginTop: { xs: 2, sm: 0 },
             alignItems: "center",
             justifyContent: "space-between",
+            gap: 1
           }}
         >
           <Box
@@ -83,7 +88,7 @@ export const AssignResponsibleCheckBoxItem = ({
             }}
           >
             <Typography>{responsible.projectCount}</Typography>
-            <Typography variant="caption">Proyectos</Typography>
+            <Typography variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem' }}>Proyectos</Typography>
           </Box>
           <Box
             sx={{
@@ -94,7 +99,7 @@ export const AssignResponsibleCheckBoxItem = ({
             }}
           >
             {React.createElement(roleData.icon, { fontSize: "small" })}
-            <Typography variant="caption">{responsible.role}</Typography>
+            <Typography variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem' }}>{responsible.role}</Typography>
           </Box>
           <Box
             sx={{
@@ -108,13 +113,12 @@ export const AssignResponsibleCheckBoxItem = ({
               fontSize: "small",
               sx: { color: stateData.color },
             })}
-            <Typography variant="caption">{responsible.state}</Typography>
+            <Typography variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem' }}>{responsible.state}</Typography>
           </Box>
           <Checkbox
             checked={checked}
             onChange={(e) => onChange?.(e.target.checked)}
             onClick={(e) => {
-              e.stopPropagation();
               handleToggle();
             }}
           />

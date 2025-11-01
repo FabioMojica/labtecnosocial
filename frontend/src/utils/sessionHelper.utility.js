@@ -13,4 +13,5 @@ export const clearSession = () => {
   sessionStorage.removeItem("user");
   sessionStorage.removeItem("token_expiration");
   sessionStorage.removeItem("homeData");
+  localStorage.removeItem("operationalPlanningViewMode");
 };

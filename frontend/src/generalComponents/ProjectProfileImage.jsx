@@ -1,13 +1,14 @@
+// ProjectProfileImage.jsx
 import { Avatar, Box } from "@mui/material";
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
+import React, { memo, useEffect } from "react";
 
-export const ProjectProfileImage = ({ project, sx, src }) => {
-  if (!project) return null;
 
-  const fallbackLetter = project.name?.trim().charAt(0)?.toUpperCase() || null;
-
-  console.log("src por aqu", src)
-
+const ProjectProfileImageComponent = ({ fallbackLetter, src, sx }) => {
+  useEffect(() => {
+          console.log("fallbarck", fallbackLetter)
+      },[fallbackLetter]);
+  
   return (
     <Box
       sx={{
@@ -20,8 +21,7 @@ export const ProjectProfileImage = ({ project, sx, src }) => {
       }}
     >
       <Avatar
-        src={src ?? project.image_url ?? undefined}
-        alt={project.name}
+        src={src}
         sx={{
           width: '100%',
           height: '100%',
@@ -32,8 +32,12 @@ export const ProjectProfileImage = ({ project, sx, src }) => {
           fontWeight: 'bold',
         }}
       >
-        {fallbackLetter ? fallbackLetter : <FolderRoundedIcon fontSize="large" />}
+        {fallbackLetter || <FolderRoundedIcon fontSize="large" />}
       </Avatar>
     </Box>
   );
 };
+
+export const ProjectProfileImage = memo(ProjectProfileImageComponent, (prev, next) => {
+    return prev.src === next.src && prev.fallbackLetter === next.fallbackLetter;
+});

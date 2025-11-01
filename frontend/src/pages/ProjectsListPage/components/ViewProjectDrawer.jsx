@@ -49,7 +49,12 @@ export const ViewProjectDrawer = ({ project }) => {
                             },
                         }}
                     >
-                        <ProjectImageDates overlay={true} overlayText="Ir al proyecto" project={project} />
+                        <ProjectImageDates 
+                            overlay={true} 
+                            overlayText="Ir al proyecto" 
+                            project={project} 
+                            fallbackLetter={project?.name?.trim().charAt(0)?.toUpperCase()}
+                        />
                     </Box>
 
                 </Box>

@@ -5,27 +5,30 @@ import { useSearchParams } from "react-router-dom";
 const TabPanel = ({ children, value, index }) => (
   <div
     role="tabpanel"
-    hidden={value !== index}
     id={`tab-panel-${index}`}
     aria-labelledby={`tab-${index}`}
-    style={{ height: "100%" }}
+    style={{
+      height: "100%",
+      display: value === index ? "flex" : "none",
+      flexDirection: "column",
+    }}
   >
-    {value === index && (
-      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-        {children}
-      </Box>
-    )}
+    {children}
   </div>
 );
 
-export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange, onChange }) => {
+export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange, onChange, canChangeTab }) => {
   const theme = useTheme();
   const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
   const [searchParams, setSearchParams] = useSearchParams();
 
   const paramValue = searchParams.get("tab") ?? paramsLabels[0];
-  const initialValue = paramsLabels.indexOf(paramValue);
-  const [value, setValue] = useState(initialValue >= 0 ? initialValue : 0);
+
+  const initialValue = Math.max(0, paramsLabels.indexOf(paramValue));
+  const [value, setValue] = useState(initialValue);
+  const [mountedTabs, setMountedTabs] = useState(new Set([initialValue]));
+
+  const [nextTab, setNextTab] = useState(null);
 
   const tabsRef = useRef(null);
   const variant = isLaptop ? "fullWidth" : "scrollable";
@@ -36,13 +39,12 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
       const decodedParam = decodeURIComponent(paramValue);
       const newValue = paramsLabels.indexOf(decodedParam);
       if (newValue >= 0 && newValue !== value) {
-        setValue(newValue);
+        handleTabChange(newValue);
       }
     }
-  }, [searchParams, paramsLabels, value]);
+  }, [searchParams]);
 
-
-
+  // Calcula la altura del Tabs
   useEffect(() => {
     if (tabsRef.current) {
       const height = tabsRef.current.getBoundingClientRect().height;
@@ -50,22 +52,49 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
     }
   }, [labels, onTabsHeightChange]);
 
-  const handleChange = (_event, newValue) => {
-    setValue(newValue);
+  // const handleTabChange = (_event, newValue) => {
+  //   if (!mountedTabs.has(newValue)) {
+  //     setMountedTabs(prev => new Set([...prev, newValue]));
+  //     setNextTab(newValue);
+  //   } else {
+  //     setValue(newValue);
+  //   }
+
+  //   setSearchParams({ tab: paramsLabels[newValue] });
+  //   onTabsHeightChange?.(tabsRef.current?.getBoundingClientRect().height ?? 0);
+  //   onChange?.(paramsLabels[newValue]);
+  // };
+  const handleTabChange = (_event, newValue) => {
+    // ✅ Evitar cambiar a tab si canChangeTab devuelve false
+    if (typeof canChangeTab === "function" && !canChangeTab(newValue)) {
+      return; // no hacer nada
+    }
+
+    if (!mountedTabs.has(newValue)) {
+      setMountedTabs(prev => new Set([...prev, newValue]));
+      setNextTab(newValue);
+    } else {
+      setValue(newValue);
+    }
+
     setSearchParams({ tab: paramsLabels[newValue] });
     onTabsHeightChange?.(tabsRef.current?.getBoundingClientRect().height ?? 0);
-    if (typeof onChange === "function") {
-      onChange(paramsLabels[newValue]);
-    }
+    onChange?.(paramsLabels[newValue]);
   };
 
+  useEffect(() => {
+    if (nextTab !== null && mountedTabs.has(nextTab)) {
+      setValue(nextTab);
+      setNextTab(null);
+    }
+  }, [nextTab, mountedTabs]);
 
   return (
     <Box>
       <Tabs
         ref={tabsRef}
         value={value}
-        onChange={handleChange}
+        onChange={handleTabChange}
         indicatorColor="primary"
         textColor="inherit"
         variant={variant}
@@ -89,11 +118,13 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
         ))}
       </Tabs>
 
-      {children.map((child, idx) => (
-        <TabPanel key={idx} value={value} index={idx}>
-          {child}
-        </TabPanel>
-      ))}
+      {children.map((child, idx) =>
+        mountedTabs.has(idx) ? (
+          <TabPanel key={idx} value={value} index={idx}>
+            {child}
+          </TabPanel>
+        ) : null
+      )}
     </Box>
   );
 };

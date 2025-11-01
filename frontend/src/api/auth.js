@@ -30,7 +30,7 @@ export const loginUserApi = async (userData) => {
       throw new Error(error.response.data.message || 'Error en la autenticación');
     }
 
-    throw new Error('Error al intentar iniciar sesión');
+    throw new Error('Ocurrió un error al intentar iniciar sesión. Inténtalo de nuevo más tarde.');
   }
 };
 

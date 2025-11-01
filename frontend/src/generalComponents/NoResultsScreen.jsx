@@ -8,6 +8,7 @@ export const NoResultsScreen = ({
   sx,
   iconSX,
   icon,
+  textSx,
   buttonText,
   triggerOnEnter = false,
   onButtonClick,
@@ -29,7 +30,11 @@ export const NoResultsScreen = ({
     >
       {icon || <SentimentDissatisfiedRoundedIcon sx={{ fontSize: 80, color: 'gray', ...iconSX }} />}
       
-      <Typography variant="h6" color="text.secondary">
+      <Typography variant="h6" color="text.secondary"
+      sx={{
+        ...textSx
+      }}
+      >
         {message}
       </Typography>
 

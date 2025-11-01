@@ -1,27 +1,44 @@
 import { Box, Divider, Paper, Typography } from "@mui/material";
 import { ProjectProfileImage } from "./ProjectProfileImage";
 import { useHeaderHeight } from "../contexts";
+import React, { memo, useEffect, useState } from "react";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
-export const ProjectImageDates = ({
+export const ProjectImageDatesComponent = ({
     project,
     sx,
     overlay = false,
     overlayText = "Ir al proyecto",
     changeImage = false,
+    fallbackLetter,
     onChangeImage,
     previewImage,
     ...rest
 }) => {
     if (!project) return;
     const { headerHeight } = useHeaderHeight();
+    const [previewSrc, setPreviewSrc] = useState();
+
+    useEffect(() => {
+    if (project.image_file) {
+        const url = URL.createObjectURL(project.image_file);
+        setPreviewSrc(url);
+        return () => URL.revokeObjectURL(url);
+    } else {
+        setPreviewSrc(project.image_url ? `${API_UPLOADS}${encodeURI(project.image_url)}` : undefined);
+    }
+}, [project.image_file, project.image_url]);
+
+
 
     const imageSrc = project.image_url
         ? `${API_UPLOADS}${encodeURI(project.image_url)}`
         : undefined;
 
-        console.log("preview llegando aqui", previewImage)
+    useEffect(() => {
+        console.log("hola")
+    },[project, fallbackLetter]);
 
     return (
         <Box
@@ -58,7 +75,8 @@ export const ProjectImageDates = ({
 
                 <ProjectProfileImage
                     project={project}
-                    src={( previewImage || imageSrc ) ?? undefined}
+                    fallbackLetter={fallbackLetter}
+                    src={previewSrc}
                     sx={{
                         width: '100%',
                         objectFit: 'cover',
@@ -151,3 +169,11 @@ export const ProjectImageDates = ({
         </Box>
     );
 }
+
+export const ProjectImageDates = memo(ProjectImageDatesComponent, (prev, next) => {
+    return (
+        prev.project?.image_url === next.project?.image_url &&
+        prev.previewImage === next.previewImage &&
+        prev.fallbackLetter === next.fallbackLetter
+    );
+});

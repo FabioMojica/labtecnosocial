@@ -9,7 +9,7 @@ operationalPlanRoutes.use(verifyJwt);
 
 operationalPlanRoutes.get('/:id', getOperationalProjectRows);
 operationalPlanRoutes.post('/updateOperationalPlan/:id', saveOperationalRowsOfProject);
-operationalPlanRoutes.delete('/delete-operational-planning/:id', deleteOperationalPlanning);
+operationalPlanRoutes.delete('/deleteOperationalPlan/:id', deleteOperationalPlanning);
 
 export default operationalPlanRoutes;
  
