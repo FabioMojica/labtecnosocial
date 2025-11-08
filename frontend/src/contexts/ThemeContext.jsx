@@ -69,7 +69,7 @@ const darkTheme = createTheme({
       secondaryText: '#B5B5B5',
     },
     secondary: { main: '#020202ff' },
-    background: { default: '#121212 ', paper: '#2D2D2D' },
+    background: { default: '#121212', paper: '#2D2D2D' },
   },
   components: {
     MuiButton: {

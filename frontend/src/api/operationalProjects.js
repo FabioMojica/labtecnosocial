@@ -73,7 +73,7 @@ export const updateProjectApi = async (id, formData) => {
       {
         signal: controller.signal,
         headers: {
-          'Content-Type': 'multipart/form-data', // <-- obligatorio
+          'Content-Type': 'multipart/form-data',
         },
       },
     );
@@ -132,5 +132,24 @@ export const assignProjectToProgram = async (projectId, programId) => {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al asignar proyecto al programa");
     throw new Error("Error al intentar asignar proyecto al programa");
+  }
+};
+
+
+export const getOperationalProjectsWithIntegrationsApi = async (email) => {
+  const controller = loadAbort();
+  try {
+    const response = await axiosInstance.get(Routes.GET_PROJECTS_WITH_INTEGRATIONS, {
+      signal: controller.signal,
+      params: { email },
+    });
+
+    if (response.status === 200) return response.data.projects;
+    return null;
+  } catch (error) {
+    console.log(error);
+    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
+    if (error.response) throw new Error(error.response.data.message || "Error al obtener proyectos con integraciones");
+    throw new Error("Error al intentar obtener proyectos con integraciones");
   }
 };

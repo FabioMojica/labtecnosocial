@@ -5,15 +5,15 @@ import { AuthProvider, CustomThemeProvider, HeaderHeightProvider, SoundProvider,
 import { useAuthEffects } from './hooks';
 
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { 
-  LoginPage, 
-  NotFoundPage, 
-  HomePage, 
-  UsersListPage, 
-  ProjectsListPage, 
-  ProjectPage, 
-  CreateProjectPage, 
-  CreateUserPage, 
+import {
+  LoginPage,
+  NotFoundPage,
+  HomePage,
+  UsersListPage,
+  ProjectsListPage,
+  ProjectPage,
+  CreateProjectPage,
+  CreateUserPage,
   UserPage,
 } from './pages';
 
@@ -23,6 +23,12 @@ import { getDrawerClosedWidth } from './utils';
 import StrategicPlanningDashboardPage from './pages/StrategicPlan/StrategicPlanningDashboardPage';
 import OperationalPlanningDashboardPage from './pages/OperationalPlan/OperationalPlanningDashboardPage';
 import { ConfirmProvider } from 'material-ui-confirm';
+import { APIsDashboardPage } from './pages/APIsDashboardPage/ApisDashboardPage';
+import { ReportProvider } from './contexts/ReportContext';
+import { ReportBubble } from './generalComponents/ReportBubble';
+import { ReportModal } from './generalComponents/ReportModal';
+import { useState } from 'react';
+import { ReportEditor } from './pages/Reports/ReportEditor';
 
 export const ROLES = {
   ADMIN: "admin",
@@ -62,7 +68,9 @@ const AppContent = () => {
         <Route path="/proyectos/crear" element={<PrivateRoute element={<CreateProjectPage />} allowedRoles={[ROLES.ADMIN]} />} />
         <Route path="/proyecto/:id" element={<PrivateRoute element={<ProjectPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/planificacion-estrategica/:year" element={<PrivateRoute element={<StrategicPlanningDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-         <Route path="/planificacion/operativa/:id?" element={<OperationalPlanningDashboardPage />} />
+        <Route path="/planificacion/operativa/:id?" element={<PrivateRoute element={<OperationalPlanningDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
+        <Route path="/dashboard" element={<PrivateRoute element={<APIsDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
+        <Route path="/reportes/crear/:nombre/:id" element={<PrivateRoute element={<ReportEditor />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>
@@ -72,6 +80,7 @@ const AppContent = () => {
 
 function App() {
   const theme = useTheme();
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <CustomThemeProvider>
@@ -81,20 +90,24 @@ function App() {
             <AuthProvider>
               <HeaderHeightProvider>
                 <ConfirmProvider>
-                <CssBaseline />
-                <Box sx={{ 
-                  flexGrow: 1,
-                  padding: 1,
-                  minHeight: '100vh',
-                  pl: {
-                    xs: getDrawerClosedWidth(theme, 'xs'),
-                    sm: getDrawerClosedWidth(theme, 'sm'),
-                  },
-                  maxWidth: 1600,
-                }}>
-                
-                  <AppContent />
-                </Box>
+                  <ReportProvider>
+                    <CssBaseline />
+                    <Box sx={{
+                      flexGrow: 1,
+                      padding: 1,
+                      minHeight: '100vh',
+                      pl: {
+                        xs: getDrawerClosedWidth(theme, 'xs'),
+                        sm: getDrawerClosedWidth(theme, 'sm'),
+                      },
+                      maxWidth: 1600,
+                    }}>
+                       {/* BURBUJA DEL REPORTE */}
+                      <ReportBubble onClick={() => setModalOpen(true)} />
+                      <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
+                      <AppContent />
+                    </Box>
+                  </ReportProvider>
                 </ConfirmProvider>
               </HeaderHeightProvider>
             </AuthProvider>

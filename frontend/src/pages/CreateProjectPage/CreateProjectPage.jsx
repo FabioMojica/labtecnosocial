@@ -59,10 +59,8 @@ export const CreateProjectPage = () => {
 
     useEffect(() => {
         const handleBeforeUnload = (e) => {
-            if (isDirty) {
-                e.preventDefault();
-                e.returnValue = "";
-            }
+            e.preventDefault();
+            e.returnValue = "";
         };
 
         window.addEventListener("beforeunload", handleBeforeUnload);
@@ -70,9 +68,7 @@ export const CreateProjectPage = () => {
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
-    }, [isDirty]);
-
-
+    }, []);
 
     const handleCreateProject = async () => {
         if (!project) {
@@ -98,16 +94,6 @@ export const CreateProjectPage = () => {
         }
     };
 
-
-    // const handleProjectChange = (changes) => {
-    //     setProject(prev => {
-    //         if (!prev) return prev;
-
-    //         const updated = { ...prev, ...changes };
-    //         setIsDirty(!isProjectEqual(updated, initialProject));
-    //         return updated;
-    //     });
-    // };
     const handleProjectChange = (changes) => {
         setProject(prev => {
             if (!prev) return prev;
@@ -119,7 +105,7 @@ export const CreateProjectPage = () => {
         (newSelected) => {
             handleProjectChange({ newResponsibles: newSelected });
         },
-        [] // solo se define una vez
+        []
     );
 
 
@@ -140,13 +126,6 @@ export const CreateProjectPage = () => {
                 labels={["Información del proyecto", "Asignar Responsables", "Integraciones con apis", "Crear Proyecto"]}
                 paramsLabels={["información", "asignarResponsables", "integrarAPIs", "crearProyecto"]}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
-                canChangeTab={(newIndex) => {
-                    if (newIndex === 3 && !isProjectValid) {
-                        notify("Por favor, completa un nombre y una descripción válidos antes de crear el proyecto.", "info");
-                        return false;
-                    }
-                    return true;
-                }}
             >
                 <CreateProjectInfoPanel
                     onChange={handleProjectChange}
@@ -157,7 +136,6 @@ export const CreateProjectPage = () => {
 
                 <AssignResponsiblesPanel
                     panelHeight={tabsHeight}
-                    // onChange={(newSelected) => handleProjectChange({ newResponsibles: newSelected })}
                     onChange={handleResponsiblesChange}
                 />
 
@@ -172,6 +150,7 @@ export const CreateProjectPage = () => {
                     panelHeight={tabsHeight}
                     onCancel={() => setQuestionModalOpen(true)}
                     onSave={handleCreateProject}
+                    isProjectValid={isProjectValid}
                 />
             </TabButtons>
 

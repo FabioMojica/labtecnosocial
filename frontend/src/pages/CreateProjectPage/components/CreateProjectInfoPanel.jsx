@@ -35,7 +35,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
     const { notify } = useNotification();
     const { headerHeight } = useHeaderHeight();
     
-    const debouncedChange = useRef(debounce(onChange, 5));
+    const debouncedChange = useRef(debounce(onChange, 1));
     
     useEffect(() => {
         const isValid =

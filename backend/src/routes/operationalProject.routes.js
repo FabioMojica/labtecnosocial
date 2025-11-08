@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createOperationalProject, getAllOperationalProjects, assignProjectResponsibles, updateOperationalProject, getProjectById, deleteProjectById,removeProjectResponsible, getOperationalProjectRows, saveOperationalRowsOfProject, deleteOperationalPlanning, getSummaryData } from '../controllers/operationalProjects.controller.js';
+import { createOperationalProject, getAllOperationalProjects, assignProjectResponsibles, updateOperationalProject, getProjectById, deleteProjectById,removeProjectResponsible, getOperationalProjectRows, saveOperationalRowsOfProject, deleteOperationalPlanning, getSummaryData, getOperationalProjectsWithIntegrations } from '../controllers/operationalProjects.controller.js';
 import { upload } from '../middlewares/uploads.js';
 import { verifyJwt } from '../middlewares/verifyJwt.js';
 import { authorizeRole } from '../middlewares/authorizedRole.js';
@@ -26,6 +26,9 @@ operationalProjectRoutes.post('/complete-project/save-rows/:id', saveOperational
 operationalProjectRoutes.delete('/delete-operational-planning/:id', deleteOperationalPlanning);
 
 operationalProjectRoutes.get('/sumaryData/:id', getSummaryData); 
+
+
+operationalProjectRoutes.get('/getProjectsWithIntegrations', getOperationalProjectsWithIntegrations);
  
 export default operationalProjectRoutes;
  

@@ -13,16 +13,20 @@ export const Routes = {
   GET_PROJECT_BY_ID: "/projects/getProjectById", 
   UPDATE_PROJECT: "/projects",
   DELETE_PROJECT: "/projects",
+  GET_PROJECTS_WITH_INTEGRATIONS: "/projects/getProjectsWithIntegrations",
 
   //Plan. operativa
   OPERATIONAL_PLAN: "/operational-plans",
   UPDATE_OPERATIONAL_PLAN: "/operational-plans/updateOperationalPlan",
   DELETE_OPERATIONAL_PLAN: "/operational-plans/deleteOperationalPlan",
+  
 
   //Plan. estrategica
   STRATEGIC_PLAN: "/strategic-plans",
   UPDATE_STRATEGIC_PLAN: "/strategic-plans/updateStrategicPlan",
   DELETE_STRATEGIC_PLAN: "/strategic-plans/deleteStrategicPlan",
+
+  //Dashb
   
   GET_OBJECTIVES: "/objectives",
   CREATE_OBJECTIVE: "/objectives",

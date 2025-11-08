@@ -74,7 +74,7 @@ export const ProjectImageDatesComponent = ({
             >
 
                 <ProjectProfileImage
-                    project={project}
+                    project={project} 
                     fallbackLetter={fallbackLetter}
                     src={previewSrc}
                     sx={{

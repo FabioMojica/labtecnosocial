@@ -5,7 +5,7 @@ import OperationalPlanningTable from "./OperationalPlannigTable";
 import OperationalPlanningReadOnlyTable from "./OperationalPlanningReadOnlyTable";
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import { ErrorScreen, FullScreenProgress, NoResultsScreen } from "../../generalComponents";
-import { SelectProjectModal } from "./components/SelectProjectModal";
+import { SelectProjectModal } from "../../generalComponents/SelectProjectModal";
 import { deleteOperationalPlanningApi, getAllOperationalProjectsApi } from "../../api";
 import { useFetchAndLoad } from "../../hooks";
 import { useNotification } from "../../contexts";

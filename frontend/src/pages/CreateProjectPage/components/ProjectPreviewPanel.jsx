@@ -13,11 +13,12 @@ export const ProjectPreviewPanel = ({
     panelHeight,
     onCancel,
     onSave,
+    isProjectValid
 }) => {
     const { headerHeight } = useHeaderHeight();
     const heightCalc = `calc(100vh - ${headerHeight}px - ${panelHeight}px)`;
     const theme = useTheme();
-    
+
     return (
         <Grid
             container
@@ -40,10 +41,10 @@ export const ProjectPreviewPanel = ({
                 }}
             >
                 <ProjectImageDates
-    project={project}
-    sx={{ width: "100%", height: "100%" }}
-    fallbackLetter={project.name ? project.name[0].toUpperCase() : "?"}
-/>
+                    project={project}
+                    sx={{ width: "100%", height: "100%" }}
+                    fallbackLetter={project.name && project.name[0].toUpperCase()}
+                />
             </Grid>
 
             <Grid
@@ -74,12 +75,15 @@ export const ProjectPreviewPanel = ({
                                 theme.palette.mode === 'light'
                                     ? 'rgba(200, 200, 200, 0.3)'
                                     : 'rgba(100, 100, 100, 0.3)',
-                            color: theme.palette.text.primary,
+                            color: project.name && isProjectValid ? theme.palette.text.primary : 'gray',
+                            fontStyle: project.name && isProjectValid ? 'normal' : 'italic',
                         }}
                         variant="h7"
                         fontWeight="bold"
                     >
-                        {project.name}
+                        {project.name && isProjectValid
+                            ? project.name
+                            : "No ingresó un nombre válido para el proyecto"}
                     </Typography>
                     <Typography variant='h6' sx={{ fontWeight: 'bold' }}>Descripción del proyecto:</Typography>
                     <Typography
@@ -95,13 +99,15 @@ export const ProjectPreviewPanel = ({
                                 theme.palette.mode === 'light'
                                     ? 'rgba(200, 200, 200, 0.3)'
                                     : 'rgba(100, 100, 100, 0.3)',
-                            color: theme.palette.text.primary,
+                            color: project.description && isProjectValid ? theme.palette.text.primary : 'gray',
+                            fontStyle: project.description && isProjectValid ? 'normal' : 'italic',
                         }}
                         variant="body1"
                     >
-                        {project.description}
+                        {project.description && isProjectValid
+                            ? project.description
+                            : "No ingresó una descripción válida para el proyecto"}
                     </Typography>
-
                     <Box>
                         <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
                             Responsables asignados
@@ -127,15 +133,21 @@ export const ProjectPreviewPanel = ({
                                     <Avatar
                                         key={user.email}
                                         src={user.image_url ? `${API_UPLOADS}${user.image_url}` : undefined}
+                                        title={`${user.firstName} ${user.lastName}\n${user.email}\nrol: ${user.role}\nestado: ${user.state}`}
 
                                         sx={{
                                             width: 56,
                                             height: 56,
                                             borderRadius: 2,
-                                            objectFit: 'cover',
-                                            fontWeight: 'bold',
+                                            objectFit: "cover",
+                                            fontWeight: "bold",
                                             zIndex: 1,
+                                            boxShadow:
+                                                theme.palette.mode === 'light'
+                                                    ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                                    : '0 0 0 1px rgba(255,255,255,0.3)',
                                         }}
+
                                     >
                                         {user.firstName[0].toUpperCase()}
                                         {user.lastName[0].toUpperCase()}
@@ -145,11 +157,9 @@ export const ProjectPreviewPanel = ({
                                 <Typography
                                     variant="body2"
                                     color="text.secondary"
-                                    align="center"
                                     sx={{
                                         color: "gray",
                                         fontStyle: "italic",
-                                        textAlign: "center",
                                         fontSize: "0.9rem",
                                     }}
                                 >
@@ -161,7 +171,7 @@ export const ProjectPreviewPanel = ({
                     </Box>
                     <Box>
                         <Typography variant='h6' sx={{ fontWeight: 'bold' }}>Integraciones con APIs:</Typography>
-                        <Stack direction="row" spacing={1} mt={0.5} flexWrap="wrap" justifyContent="center" alignItems="center">
+                        <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" justifyContent="center" alignItems="center">
                             {project.integrations && project.integrations.length > 0 ? (
                                 project.integrations.map((integration) => {
                                     const config = integrationsConfig[integration.type];
@@ -199,19 +209,22 @@ export const ProjectPreviewPanel = ({
                                     );
                                 })
                             ) : (
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    align="center"
-                                    sx={{
-                                        color: 'gray',
-                                        fontStyle: 'italic',
-                                        textAlign: 'center',
-                                        fontSize: '0.9rem',
-                                    }}
-                                >
-                                    Este proyecto no tiene integraciones con ninguna plataforma
-                                </Typography>
+                                <Box sx={{ width: '100%', height: '100%' }}>
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+
+                                        sx={{
+                                            color: 'gray',
+                                            fontStyle: 'italic',
+                                            textAlign: 'left',
+                                            fontSize: '0.9rem',
+                                            ml: 1
+                                        }}
+                                    >
+                                        Este proyecto no tiene integraciones con ninguna plataforma
+                                    </Typography>
+                                </Box>
                             )}
                         </Stack>
                     </Box>
@@ -219,7 +232,7 @@ export const ProjectPreviewPanel = ({
 
                 {/* Botones de acción */}
                 <Box display="flex" gap={2} sx={{
-                    
+
                     justifyContent: 'end',
                     mt: {
                         xs: 2,
@@ -231,6 +244,7 @@ export const ProjectPreviewPanel = ({
                         color="primary"
                         startIcon={<LibraryAddCheckRoundedIcon />}
                         onClick={onSave}
+                        disabled={!project.name || !project.description || !isProjectValid}
                     >
                         Guardar Proyecto
                     </Button>
