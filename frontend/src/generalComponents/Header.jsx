@@ -5,7 +5,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import { Image } from "./Image";
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PersonIcon from "@mui/icons-material/Person";
@@ -13,13 +13,12 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import { ThemeToggleButton } from './ThemeToggleButton';
-import { VolumenToggleButton } from './VolumenToggleButton';
 import { useAuth, useHeaderHeight, useNotification } from '../contexts';
 
 import { Divider, Link, useTheme } from '@mui/material';
 import { useAuthEffects, useFetchAndLoad } from '../hooks';
 import { ButtonWithLoader } from './ButtonWithLoader';
- 
+
 import logoLight from "../assets/labTecnoSocialLogoLight.png";
 import logoDark from "../assets/labTecnoSocialLogoDark.png";
 import { DrawerNavBar } from './DrawerNavBar';
@@ -41,6 +40,7 @@ export const Header = () => {
     //const logoutUseCase = new LogoutUser(new ApiSessionRepository());
     const [open, setIsOpen] = React.useState(false);
     const toggleNav = () => setIsOpen(!open);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const updateHeight = () => {
@@ -69,7 +69,7 @@ export const Header = () => {
     const handleClickLogout = async () => {
         try {
             await callEndpoint(logoutUserApi());
-            handleLogout(); 
+            handleLogout();
             setAnchorEl(null);
         } catch (err) {
             handleLogout();
@@ -77,6 +77,15 @@ export const Header = () => {
         }
     };
 
+    const handleClickProfile = async () => {
+        handleClose();
+        handleCloseDrawer();
+        navigate(`/usuario/${encodeURIComponent(user.email)}`);
+    };
+
+    const cacheBustedUrl = user.photo
+        ? `${user.photo}?v=${user.updatedAt || Date.now()}`
+        : null;
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -101,14 +110,18 @@ export const Header = () => {
                                     component={RouterLink}
                                     to="/inicio"
                                 >
-                                    <Image src={logoToShow} alt="Lab Tecno Social Logo" width={100} height={43} />
+                                    <Image
+                                        src={logoToShow || cacheBustedUrl}
+                                        alt="Lab Tecno Social Logo"
+                                        width={100}
+                                        height={43}
+                                    />
                                 </Link>
                             </Box>
 
 
                             <div>
-                                <ThemeToggleButton sx={{color: '#FFFFFF'}}/>
-                                <VolumenToggleButton sx={{color: '#FFFFFF'}}/>
+                                <ThemeToggleButton sx={{ color: '#FFFFFF' }} />
 
                                 <IconButton
                                     size="large"
@@ -147,12 +160,30 @@ export const Header = () => {
                                         },
                                     }}
                                 >
-                                    <MenuItem onClick={handleClose}>
+                                    <MenuItem onClick={() => handleClickProfile()}>
                                         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                                             <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <Typography variant='body1'>{user.firstName}</Typography>
-                                                    <Typography variant='body1'>{user.lastName}</Typography>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: '70%' }}>
+                                                    <Typography
+                                                        variant='body1'
+                                                        sx={{
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            whiteSpace: 'nowrap',
+                                                        }}
+                                                    >
+                                                        {user.firstName}
+                                                    </Typography>
+                                                    <Typography
+                                                        variant='body1'
+                                                        sx={{
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            whiteSpace: 'nowrap',
+                                                        }}
+                                                    >
+                                                        {user.lastName}
+                                                    </Typography>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                                                     {user.role === "admin" ? (
@@ -169,10 +200,13 @@ export const Header = () => {
                                                 </Box>
                                             </Box>
 
-                                            <Typography variant='body2'>{user.email}</Typography>
+                                            <Typography variant='body2' sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {user.email}
+                                            </Typography>
                                         </Box>
                                     </MenuItem>
                                     <Divider />
+
                                     <MenuItem
                                         onClick={handleClickLogout} sx={{
                                             "&:hover": {
@@ -181,7 +215,7 @@ export const Header = () => {
                                             "&.Mui-focusVisible": {
                                                 backgroundColor: "transparent"
                                             }
-                                        }}> 
+                                        }}>
                                         <ButtonWithLoader
                                             backgroundButton='transparent'
                                             loading={loading}
@@ -190,7 +224,7 @@ export const Header = () => {
                                             fullWidth
                                             sx={{ gap: 2 }}
                                         >
-                                            <Typography variant="button" sx={{ color: theme => theme.palette.primary.principalText }}>Cerrar sesión</Typography>
+                                            <Typography variant="button" sx={{ color: theme => theme.primary }}>Cerrar sesión</Typography>
                                             <LogoutRoundedIcon fontSize='small' />
                                         </ButtonWithLoader>
                                     </MenuItem>

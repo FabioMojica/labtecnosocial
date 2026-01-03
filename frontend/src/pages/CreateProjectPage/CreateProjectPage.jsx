@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 // 2. Hooks personalizados
-import { useFetchAndLoad } from "../../hooks";
+import { useAuthEffects, useFetchAndLoad } from "../../hooks";
 import { useNotification } from "../../contexts";
 
 // 3. Utilidades / helpers
@@ -51,6 +51,7 @@ export const CreateProjectPage = () => {
     const [questionModalOpen, setQuestionModalOpen] = useState(false);
     const { loading, callEndpoint } = useFetchAndLoad();
     const [isProjectValid, setIsProjectValid] = useState(false);
+    
 
     const navigate = useNavigate();
     useEffect(() => {

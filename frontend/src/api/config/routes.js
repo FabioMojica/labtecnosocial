@@ -5,6 +5,7 @@ export const Routes = {
   GET_ALL_USERS: "/users/getAllUsers",
   GET_USER_BY_EMAIL: "/users/getUserByEmail",
   CREATE_USER: "/users/createUser",
+  UPDATE_USER: "/users/updateUser",
   DELETE_USER: "/users/deleteUser",
    
   GET_SUMMARY_DATA: '/projects/sumaryData',

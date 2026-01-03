@@ -250,7 +250,6 @@ const handleExportExcel = (rows, project) => {
 };
 
 const drawInitialAvatar = (doc, projectName, x, y, size) => {
-  console.log("xxxxxxxxxxx.>", projectName)
   const initial = (projectName?.charAt(0) || '?').toUpperCase();
 
   // Círculo de fondo

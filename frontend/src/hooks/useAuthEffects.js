@@ -4,10 +4,11 @@ import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../contexts";
 import { useNotification } from "../contexts";
 import { authService } from "../services";
+import { authManager } from "../utils/authManager";
 
 
 export const useAuthEffects = () => {
-  const { setAuth } = useAuth(); 
+  const { setAuth } = useAuth();
   const navigate = useNavigate();
   const { notify } = useNotification();
 
@@ -24,7 +25,7 @@ export const useAuthEffects = () => {
     clearTimers();
     const timeLeft = expTime - Date.now();
     const minutesBefore = 10;
-    const WARNING_BEFORE_EXPIRATION = minutesBefore * 60 * 1000; 
+    const WARNING_BEFORE_EXPIRATION = minutesBefore * 60 * 1000;
 
     if (timeLeft > WARNING_BEFORE_EXPIRATION) {
       const warningTime = timeLeft - WARNING_BEFORE_EXPIRATION;
@@ -44,7 +45,7 @@ export const useAuthEffects = () => {
 
   const handleLogin = (token, user) => {
     authService.login(token, user);
-    setAuth(user, true);  
+    setAuth(user, true);
     isActiveRef.current = true;
 
     const decoded = jwtDecode(token);
@@ -52,7 +53,7 @@ export const useAuthEffects = () => {
 
     scheduleTokenWarning(expTime);
     navigate("/inicio", { replace: true });
-    notify("Iniciaste sesión", "info");
+    notify("Sesión iniciada", "info");
   };
 
   const handleLogout = (showExpiredMsg = false) => {
@@ -62,13 +63,21 @@ export const useAuthEffects = () => {
     isActiveRef.current = false;
 
     if (showExpiredMsg) {
-      notify("Tu sesión ha expirado", "info", { persist: true });
+      notify("Tu sesión ha expirado.", "info", { persist: true });
     } else {
-      notify("Cerraste sesión", "info");
+      notify("Sesión cerrada", "info");
     }
 
     navigate("/login", { replace: true });
   };
+
+  useEffect(() => {
+    authManager.setLogoutCallback(handleLogout);
+
+    return () => {
+      authManager.setLogoutCallback(null);
+    };
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -79,7 +88,7 @@ export const useAuthEffects = () => {
         isActiveRef.current = true;
 
         const token = session.token || sessionStorage.getItem("token");
-        
+
         const decoded = jwtDecode(token);
         const expTime = decoded.exp * 1000;
 

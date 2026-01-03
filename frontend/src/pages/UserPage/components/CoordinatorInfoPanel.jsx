@@ -4,6 +4,8 @@ import {
   Box,
   IconButton,
   InputAdornment,
+  Button,
+  useTheme,
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -26,14 +28,21 @@ import {
 import { roleConfig, stateConfig } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
 
-export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
+const API_UPLOADS = import.meta.env.VITE_BASE_URL;
+
+export const CoordinatorInfoPanel = ({ user, panelHeight, onChange }) => {
   const fileInputRef = useRef(null);
+
+  const theme = useTheme();
   const [previewImage, setPreviewImage] = useState(null);
   const [overlayText, setOverlayText] = useState("Subir una imagen");
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const { notify } = useNotification();
-  const { headerHeight } = useHeaderHeight();
+  const { headerHeight } = useHeaderHeight(); 
 
   useEffect(() => {
     setOverlayText(
@@ -46,8 +55,21 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
   }, [previewImage]);
 
   useEffect(() => {
-    setPreviewImage(user?.image_url ?? null);
-  }, [user]);
+          if (!user) {
+              setPreviewImage(null);
+              return;
+          }
+
+          if (user.image_file instanceof File) {
+              setPreviewImage(URL.createObjectURL(user.image_file));
+          }
+
+          else if (user.image_url) {
+              setPreviewImage(`${API_UPLOADS}${encodeURI(user.image_url)}`);
+          } else {
+              setPreviewImage(null);
+          }
+      }, [user]);
 
   const handleOverlayClick = () => fileInputRef.current?.click();
 
@@ -96,11 +118,10 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
       password += all[Math.floor(Math.random() * all.length)];
     }
 
+    setNewPassword(password);
     onChange?.({ password });
-    validateField("password", password);
-    notify("Contraseña segura generada correctamente", "info");
+    notify("Contraseña segura generada", "info");
   };
-
 
   const roleOptions = Object.entries(roleConfig).map(([key, value]) => ({
     value: key,
@@ -141,14 +162,7 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
       default:
         break;
     }
-
-    // setErrors((prev) => ({ ...prev, [field]: error || "" }));
-    setErrors((prev) => {
-      const newErrors = { ...prev, [field]: error || "" };
-      onChange?.({ [`${field}Error`]: newErrors[field] });
-      return newErrors;
-    });
-
+    setErrors((prev) => ({ ...prev, [field]: error || "" }));
     onChange?.({ [field]: cleaned });
   };
 
@@ -175,7 +189,7 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
           previewImage={previewImage ?? undefined}
           onContextMenu={handleContextMenu}
           onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
+          onTouchEnd={handleTouchEnd} 
         />
       </Grid>
 
@@ -183,8 +197,12 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
         container
         spacing={2}
         size={{ xs: 12, md: 7 }}
-
-        sx={{ height: "auto", display: "flex", flexDirection: "column", pb: { xs: 20, sm: 0 } }}
+        sx={{
+          height: "auto",
+          display: "flex",
+          flexDirection: "column",
+          pb: { xs: 20, sm: 0 },
+        }}
       >
         {/* Nombre y Apellido */}
         <Grid container spacing={1}>
@@ -197,7 +215,9 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
               onBlur={(e) => validateField("firstName", e.target.value)}
               maxLength={100}
               error={!!errors.firstName}
-            />
+              labelFontSize="1.1rem"       
+              valueFontSize="1.5rem"   
+            /> 
             {errors.firstName && (
               <Typography color="error" variant="caption">
                 {errors.firstName}
@@ -206,15 +226,47 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
           </Grid>
 
           <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              label="Apellido(s)*"
-              variant="filled"
-              value={user?.lastName ?? ""}
-              onChange={(e) => onChange?.({ lastName: e.target.value })}
-              onBlur={(e) => validateField("lastName", e.target.value)}
-              maxLength={100}
-              error={!!errors.lastName}
-            />
+            <Typography
+                    variant="caption"
+                      sx={{
+                        padding: '4px',
+                        borderRadius: 1,
+                        whiteSpace: 'normal',
+                        wordBreak: 'break-word', 
+                        display: '-webkit-box',
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        WebkitLineClamp: 2,
+                        backgroundColor:
+                                        theme.palette.mode === 'light'
+                                            ? 'rgba(200, 200, 200, 0.3)'
+                                            : 'rgba(100, 100, 100, 0.3)',
+                                    color: theme.palette.text.primary,
+                      }}
+                    >
+                      {user.firstName}
+                    </Typography>
+
+                    <Typography
+                    variant="caption"
+                      sx={{
+                        padding: '4px',
+                        borderRadius: 1,
+                        whiteSpace: 'normal',
+                        wordBreak: 'break-word', 
+                        display: '-webkit-box',
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        WebkitLineClamp: 2,
+                        backgroundColor:
+                                        theme.palette.mode === 'light'
+                                            ? 'rgba(200, 200, 200, 0.3)'
+                                            : 'rgba(100, 100, 100, 0.3)',
+                                    color: theme.palette.text.primary,
+                      }}
+                    >
+                      {user.lastName}
+                    </Typography>
             {errors.lastName && (
               <Typography color="error" variant="caption">
                 {errors.lastName}
@@ -240,7 +292,7 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
                     onClick={() => {
                       if (user?.email) {
                         navigator.clipboard.writeText(user.email);
-                        notify("Correo copiado al portapapeles", "info");
+                        notify("Correo copiado al portapapeles", "success");
                       }
                     }}
                   >
@@ -249,6 +301,8 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
                 </InputAdornment>
               ),
             }}
+            labelFontSize="1.1rem"       
+            valueFontSize="1.5rem"  
           />
           {errors.email && (
             <Typography color="error" variant="caption">
@@ -257,71 +311,9 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
           )}
         </Grid>
 
-        {/* Contraseña */}
-        <Grid size={12}>
-          <TextField
-            label="Contraseña del usuario*"
-            variant="filled"
-            type={showPassword ? "text" : "password"}
-            value={user?.password ?? ""}
-            // onChange={(e) => onChange?.({ password: e.target.value })}
-            // onBlur={(e) => validateField("password", e.target.value)}
-            onChange={(e) => {
-              onChange?.({ password: e.target.value });
-              validateField("password", e.target.value); // VALIDAR MIENTRAS ESCRIBE
-            }}
-            onBlur={(e) => validateField("password", e.target.value)}
-
-            maxLength={8}
-            error={!!errors.password}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  >
-                    {showPassword ? (
-                      <VisibilityOffIcon fontSize="small" />
-                    ) : (
-                      <VisibilityIcon fontSize="small" />
-                    )}
-                  </IconButton>
-
-                  <IconButton
-                    onClick={generateSecurePassword}
-                    title="Generar contraseña segura"
-                  >
-                    <AutorenewIcon fontSize="small" />
-                  </IconButton>
-
-                  <IconButton
-                    onClick={() => {
-                      if (user?.password) {
-                        navigator.clipboard.writeText(user.password);
-                        notify("Contraseña copiada al portapapeles", "info");
-                      } else {
-                        notify("No hay contraseña para copiar", "warning");
-                      }
-                    }}
-                    title="Copiar contraseña"
-                  >
-                    <ContentCopyIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-          {errors.password && (
-            <Typography color="error" variant="caption">
-              {errors.password}
-            </Typography>
-          )}
-        </Grid>
-
         {/* Role y Estado */}
         <Grid size={12}>
-          <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
             <SelectComponent
               options={roleOptions}
               value={user?.role}
@@ -334,9 +326,77 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
               onChange={(newState) => onChange?.({ state: newState })}
               fullWidth
             />
-
           </Box>
         </Grid>
+
+        <Grid size={12}>
+          <Button
+            variant="outlined"
+            onClick={() => setShowChangePassword(!showChangePassword)}
+            
+          >
+            {showChangePassword ? "Cancelar cambio de contraseña" : "Cambiar contraseña"}
+          </Button>
+        </Grid>
+
+        {/* Campos de cambio de contraseña */}
+        {showChangePassword && (
+          <Grid container spacing={2} >
+            <Grid size={12}>
+              <TextField
+                label="Contraseña antigua"
+                variant="filled"
+                type={showPassword ? "text" : "password"}
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                fullWidth
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                labelFontSize="1.1rem"       
+                valueFontSize="1.5rem"  
+              />
+            </Grid>
+
+            <Grid size={12}>
+              <TextField
+                label="Nueva contraseña"
+                variant="filled"
+                type={showPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                fullWidth
+                labelFontSize="1.1rem"       
+                valueFontSize="1.5rem"  
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                      <IconButton onClick={generateSecurePassword}>
+                        <AutorenewIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => {
+                          if (newPassword) navigator.clipboard.writeText(newPassword);
+                        }}
+                      >
+                        <ContentCopyIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+          </Grid>
+        )}
       </Grid>
 
       <input

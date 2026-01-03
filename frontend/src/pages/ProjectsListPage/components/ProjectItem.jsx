@@ -1,70 +1,88 @@
-import { Avatar, Box, Typography, Tooltip } from "@mui/material";
+import { Avatar, Box, Typography, useTheme } from "@mui/material";
 import { Item } from "../../../generalComponents";
-import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import UpdateIcon from "@mui/icons-material/Update";
 import GroupIcon from "@mui/icons-material/Group";
 import LinkIcon from "@mui/icons-material/Link";
+import { formatDate } from "../../../utils/formatDate";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
+// Mini componente para cada estadística a la derecha
+const RightStat = ({ icon, value, label }) => (
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      minWidth: 80,
+      textAlign: "center",
+    }}
+  >
+    {icon}
+    <Typography variant="caption" fontWeight={600}>
+      {value}
+    </Typography>
+    <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
+      {label}
+    </Typography>
+  </Box>
+);
+
 export const ProjectItem = ({ project, onClick }) => {
+  const theme = useTheme();
 
   const imageSrc = project.image_url
     ? `${API_UPLOADS}${project.image_url}`
     : undefined;
 
-
   return (
-    <Item 
+    <Item
       leftComponents={[
-        <Box sx={{display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center', justifyContent: 'center'}}>
-          <Avatar
-          src={imageSrc ?? undefined}
+        <Box
           sx={{
-            width: 56,
-            height: 56,
-            borderRadius: 2,
-            objectFit: "cover",
-            fontWeight: "bold",
+            display: "flex",
+            flexDirection: "row",
+            gap: 1,
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          {project.name[0].toUpperCase()}
-        </Avatar>
-
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
-          {/* Nombre del proyecto: máximo 1 línea con ... si excede */}
-          <Typography
-            fontWeight="bold"
+          <Avatar
+            src={imageSrc ?? undefined}
             sx={{
-              display: "-webkit-box",
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              wordBreak: "break-word",       
-              overflowWrap: "break-word",    
+              width: 56,
+              height: 56,
+              borderRadius: 2,
+              objectFit: "cover",
+              fontWeight: "bold",
+              boxShadow:
+                theme.palette.mode === "light"
+                  ? "0 0 0 1px rgba(0,0,0,0.3)"
+                  : "0 0 0 1px rgba(255,255,255,0.3)",
             }}
           >
-            {project.name}
-          </Typography>
+            {project.name[0].toUpperCase()}
+          </Avatar>
 
-          {/* Descripción: máximo 2 líneas con ... si excede */}
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              wordBreak: "break-word",
-              overflowWrap: "break-word",
-            }}
-          >
-            {project.description}
-          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            {/* Nombre del proyecto */}
+            <Typography
+              fontWeight="bold"
+              sx={{
+                display: "-webkit-box",
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                wordBreak: "break-word",
+                overflowWrap: "break-word",
+              }}
+            >
+              {project.name}
+            </Typography>
 
-          {project.program && (
+            {/* Descripción */}
             <Typography
               variant="caption"
               color="text.secondary"
@@ -74,35 +92,49 @@ export const ProjectItem = ({ project, onClick }) => {
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                wordBreak: "break-word",
+                overflowWrap: "break-word",
               }}
             >
-              {project.program.description} / {project.program.objective?.title ?? ""}
+              {project.description}
             </Typography>
-          )}
-        </Box>
-        </Box>
+          </Box>
+        </Box>,
       ]}
-
       rightComponents={[
-        <Box sx={{ display: 'flex', mt: { xs: 2 }, height: '100%', width: 200, alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-end' }, gap: 3 }}>
-          <Tooltip title="Responsables" arrow>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <GroupIcon fontSize="small" />
-              <Typography variant="caption">
-                {project.projectResponsibles?.length ?? 0}
-              </Typography>
-            </Box>
-          </Tooltip>
-
-          <Tooltip title="Integraciones" arrow>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <LinkIcon fontSize="small" />
-              <Typography variant="caption">
-                {project.integrations?.length ?? 0}
-              </Typography>
-            </Box>
-          </Tooltip>
-        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            mt: { xs: 2, sm: 0 },
+            height: "100%",
+            width: { xs: "100%", sm: 560 },
+            alignItems: "center",
+            justifyContent: { xs: "space-around", sm: "flex-end" },
+            gap: 3,
+            flexWrap: "wrap",
+          }}
+        >
+          <RightStat
+            icon={<GroupIcon fontSize="small" />}
+            value={project.projectResponsibles?.length ?? 0}
+            label="Responsables"
+          />
+          <RightStat
+            icon={<LinkIcon fontSize="small" />}
+            value={project.integrations?.length ?? 0}
+            label="Integraciones"
+          />
+          <RightStat
+            icon={<CalendarMonthIcon fontSize="small" />}
+            value={formatDate(project.created_at)}
+            label="Fecha creación"
+          />
+          <RightStat
+            icon={<UpdateIcon fontSize="small" />}
+            value={formatDate(project.updated_at)}
+            label="Fecha actualización"
+          />
+        </Box>,
       ]}
       onClick={onClick}
     />

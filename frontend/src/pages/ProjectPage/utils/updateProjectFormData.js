@@ -19,8 +19,5 @@ export function updateProjectFormData(projectData) {
     if (Array.isArray(projectData.preAnadidos) && projectData.preAnadidos.length > 0) {
         formData.append("preAnadidos", JSON.stringify(projectData.preAnadidos));
     }
-
-    console.log("FormData para actualizar proyecto:", Array.from(formData.entries()));
-
     return formData;
 }

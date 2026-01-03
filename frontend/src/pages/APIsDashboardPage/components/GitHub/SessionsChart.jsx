@@ -4,6 +4,7 @@ import { Box, Card, CardContent, Typography, useTheme, Divider, Checkbox } from 
 import { Tooltip, ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Line } from "recharts";
 import dayjs from "dayjs";
 import { useMemo } from "react";
+import { NoResultsScreen } from '../../../../generalComponents';
 
 function AreaGradient({ color, id }) {
   return (
@@ -160,9 +161,15 @@ export const SessionsChart = ({
         justifyContent: "center",
         alignItems: "center",
       }}>
-        <Typography variant="h6" style={{ color: "orange", fontWeight: "bold" }}>
-          No hay datos para mostrar
-        </Typography>
+        <NoResultsScreen
+          message='No hay datos para mostrar'
+          sx={{
+            height: '100%',
+            width: '100%'
+          }}
+
+        />
+        
       </Card>
     );
   }

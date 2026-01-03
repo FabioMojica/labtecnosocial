@@ -10,8 +10,6 @@ export const createUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password, role, state } = req.body;
 
-    console.log("datos al back: ", firstName, lastName, email, password, role, state)
-
     if (!firstName || !lastName || !email || !password || !role) {
       return res.status(400).json({ message: 'Faltan datos requeridos' });
     }
@@ -159,19 +157,21 @@ export const getUserByEmail = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { email } = req.params;
+    const { originalEmail } = req.params; 
     const {
       firstName,
       lastName,
       role,
       state,
       email: newEmail,
-      password,
       image_url,
+      newPassword, 
+      password,
+      oldPassword,
     } = req.body;
-
+    
     const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOneBy({ email });
+    const user = await userRepository.findOneBy({ email: originalEmail });
 
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -187,7 +187,7 @@ export const updateUser = async (req, res) => {
 
     // CONTROL DE PERMISOS
     const isAdmin = requester.role === 'admin';
-    const isOwnProfile = requester.email === email;
+    const isOwnProfile = requester.email === user.email;
 
     if (!isAdmin && !isOwnProfile) {
       return res.status(403).json({ message: 'No puedes modificar este perfil' });
@@ -209,10 +209,10 @@ export const updateUser = async (req, res) => {
 
     // SOLO ADMIN PUEDE MODIFICAR ESTOS CAMPOS
     if (isAdmin) {
-      if (newEmail && newEmail !== email) {
+      if (newEmail && newEmail !== user.email) {
         const existingEmailUser = await userRepository.findOneBy({ email: newEmail });
         if (existingEmailUser) {
-          return res.status(400).json({ message: 'El email ya está en uso por otro usuario' });
+          return res.status(400).json({ message: 'El email ya está en uso por otro usuario. Intéta con otro.' });
         }
         user.email = newEmail;
         sessionShouldInvalidate = true;
@@ -226,18 +226,28 @@ export const updateUser = async (req, res) => {
         sessionShouldInvalidate = true;
       }
 
-      if (state && ['habilitado', 'deshabilitado', 'eliminado'].includes(state)) {
+      if (state && ['habilitado', 'deshabilitado'].includes(state)) {
         if (state !== user.state) {
           user.state = state;
           sessionShouldInvalidate = true;
         }
       }
 
-      if (password && password.trim() !== '') {
+      if (newPassword && oldPassword && newPassword.trim() !== '') {
+        if (!oldPassword || oldPassword.trim() === '') {
+          return res.status(400).json({ message: 'Debes enviar la contraseña antigua del usuario.' });
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+          return res.status(400).json({ message: 'La contraseña antigua no coincide. Inténtalo de nuevo.' });
+        }
+
         const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
+        user.password = await bcrypt.hash(newPassword, salt);
         sessionShouldInvalidate = true;
       }
+
     }
 
     if (req.file) {
@@ -261,6 +271,8 @@ export const updateUser = async (req, res) => {
           if (err) console.error('No se pudo eliminar imagen antigua:', err.message, oldPath);
         });
       }
+      user.image_url = null;
+    } else {
       user.image_url = null;
     }
 

@@ -35,60 +35,60 @@ export const CoordinatorLayout = () => {
     const theme = useTheme();
     const logoToShow = theme.palette.mode === 'dark' ? logoDark : logoLight;
     const { user } = useAuth();
-    if ( !user ) return; 
+    if (!user) return;
     const { loading, callEndpoint } = useFetchAndLoad();
     const [data, setData] = useState();
     const [error, setError] = useState(false);
 
     const fetchAllHomeData = async () => {
-            try { 
-                const response = await callEndpoint(getSummaryDataApi(user));
-            
-                setData(response);
-                return response;
-            } catch (err) {
-                setError(true);
-            }
-        };
-    
-        useEffect(() => {
-            const storedData = sessionStorage.getItem("homeData");
-    
-            if (storedData) {
-                setData(JSON.parse(storedData));
-            } else {
-                fetchAllHomeData().then((response) => {
-                    if (response) {
-                        sessionStorage.setItem("homeData", JSON.stringify(response));
-                    }
-                });
-            }
-        }, []);
-    
+        try {
+            const response = await callEndpoint(getSummaryDataApi(user));
 
-      const carouselItems = data?.map((item, index) => (
-            <Box
-                key={index}
-                sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: 'background.paper',
-                    borderRadius: 2,
-                    boxShadow: 2,
-                    p: 2,
-                }}
-            >
-                <Typography variant="subtitle2" color="text.secondary">
-                    {item.clave}
-                </Typography>
-                <Typography variant="h5" sx={{ mt: 0.5 }}>
-                    {item.valor}
-                </Typography>
-            </Box>
-        )) ?? [];
+            setData(response);
+            return response;
+        } catch (err) {
+            setError(true);
+        }
+    };
+
+    useEffect(() => {
+        const storedData = sessionStorage.getItem("homeData");
+
+        if (storedData) {
+            setData(JSON.parse(storedData));
+        } else {
+            fetchAllHomeData().then((response) => {
+                if (response) {
+                    sessionStorage.setItem("homeData", JSON.stringify(response));
+                }
+            });
+        }
+    }, []);
+
+
+    const carouselItems = data?.map((item, index) => (
+        <Box
+            key={index}
+            sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'background.paper',
+                borderRadius: 2,
+                boxShadow: 2,
+                p: 2,
+            }}
+        >
+            <Typography variant="subtitle2" color="text.secondary">
+                {item.clave}
+            </Typography>
+            <Typography variant="h5" sx={{ mt: 0.5 }}>
+                {item.valor}
+            </Typography>
+        </Box>
+    )) ?? [];
 
     if (error) return <ErrorScreen message="Ocurrió un error al iniciar la página de inicio" onButtonClick={() => fetchAllHomeData()} />
     if (loading) return <FullScreenProgress text="Iniciando el sistema" />
@@ -150,38 +150,33 @@ export const CoordinatorLayout = () => {
                     </Grid>
                 </Grid>
             </Grid>
-            <Grid container size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <Grid container size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', with: '100%', gap: 1 }}>
                 <RealTimeClock />
-                {/* <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DemoContainer components={['DateCalendar']}>
-                        <DemoItem>
-                            <DateCalendar shouldDisableDate={() => true} defaultValue={boliviaNow} />
-                        </DemoItem>
-                    </DemoContainer>
-                </LocalizationProvider> */}
-                
-<LocalizationProvider dateAdapter={AdapterDayjs}>
-  <Box
-    sx={{
-      border: 1,              // borde opcional
-      borderColor: 'divider',  // color del borde
-      borderRadius: 2,         // bordes redondeados
-      p: 2,                    // padding interno
-      width: '100%',           // ocupa todo el ancho disponible
-      display: 'flex',
-      justifyContent: 'center'
-    }}
-  >
-    <DateCalendar
-      defaultValue={boliviaNow}
-      shouldDisableDate={() => true}  // deshabilita todas las fechas
-    />
-  </Box>
-</LocalizationProvider>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <Box
+                        sx={{
+                            border: 1,
+                            borderColor: 'divider',
+                            borderRadius: 2,
+                            width: {
+                                xs: '260px',
+                                sm: 'auto'
+                            },
+                            height: 'auto',
+                            display: 'flex',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <DateCalendar
+                            defaultValue={boliviaNow}
+                            shouldDisableDate={() => true}
+                        />
+                    </Box>
+                </LocalizationProvider>
 
                 {data && data.length > 0 && (
                     <Carousel
-                        width="80%"
+                        width={260}
                         height={60}
                         speed={30}
                         items={carouselItems}

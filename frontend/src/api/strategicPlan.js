@@ -34,9 +34,6 @@ export const getStrategicPlanByYearApi = async (year) => {
 export const updateStrategicPlanApi = async (year, updatedData) => {
   const controller = loadAbort();
   try {
-    console.log('Requesting URL:', `${Routes.STRATEGIC_PLAN}/${year}`);
-    console.log('With data:', updatedData);
-    
     const response = await axiosInstance.put(`${Routes.STRATEGIC_PLAN}/${year}`, updatedData);
     
     if (response.status === 200) {

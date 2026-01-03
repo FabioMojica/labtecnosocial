@@ -250,23 +250,11 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
             <Button
               variant="contained"
               disabled={!newReportName.trim()}
-              // onClick={() => {
-              //   console.log('Guardando nuevo reporte:', newReportName, selectedCharts);
-              //   handleCloseNewReport();
-              //   onClose();
-              // }}
               onClick={() => {
                 const uniqueId = dayjs().format("YYYYMMDDHHmmssSSS");
                 const routeName = `/reportes/crear/${encodeURIComponent(newReportName)}/${uniqueId}`;
-
-                console.log("Creando nuevo reporte:", newReportName, routeName);
-
-                // Aquí puedes guardar en backend si deseas antes de redirigir
                 handleCloseNewReport();
                 onClose();
-                // navigate(routeName);
-                
-    // ✅ Mandamos también las gráficas seleccionadas al editor
     navigate(routeName, { state: { charts: selectedCharts } });
               }}
             >
@@ -326,7 +314,6 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
               variant="contained"
               color="primary"
               onClick={() => {
-                console.log('Añadiendo gráficas a reporte:', selectedReport?.title);
                 handleCloseConfirmModal();
                 onClose();
               }}

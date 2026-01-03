@@ -26,4 +26,3 @@ export * from './TextFieldWithErrors';
 export * from './ThemeToggleButton';
 export * from './UserImageDates';
 export * from './UserProfileImage';
-export * from './VolumenToggleButton';

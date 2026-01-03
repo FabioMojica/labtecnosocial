@@ -179,8 +179,6 @@ export const ProjectPreviewPanel = ({
 
                                     const IconComponent = config.icon;
 
-                                    console.log("aaaaaaaaaaaaaa", integration)
-
                                     return (
                                         <Tooltip
                                             key={integration.type}

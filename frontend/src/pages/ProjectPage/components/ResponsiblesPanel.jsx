@@ -31,8 +31,6 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
         state: r.state,
     }));
 
-    console.log("------>", initialResponsibles);
-
     const {
         projectResponsibles,
         preEliminados,
@@ -76,7 +74,6 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
     const fetchAllUsers = async () => {
         try {
             const response = await callEndpoint(getAllUsersApi());
-            console.log("--- - - - - - - -  ->", response);
             setAllUsers(response);
             setUsers(response);
 

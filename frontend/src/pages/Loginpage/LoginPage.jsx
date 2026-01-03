@@ -17,7 +17,6 @@ import {
     Image,
     TextFieldWithError,
     ThemeToggleButton,
-    VolumenToggleButton
 } from "../../generalComponents";
 
 // 5. Servicios / UseCases
@@ -71,7 +70,6 @@ export const LoginPage = () => {
     return (
         <Container className={styles.loginPageContainer}>
             <Box className={styles.fixedTopRightButtons}>
-                <VolumenToggleButton sizeIconButton="large" sizeButton="medium" />
                 <ThemeToggleButton sizeIconButton="large" sizeButton="medium" />
             </Box>
 

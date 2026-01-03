@@ -16,8 +16,6 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
     const [overlayText, setOverlayText] = useState("Subir una imagen");
     const [errors, setErrors] = useState({ name: "", description: "" });
 
-    console.log("------------------->", project)
-
     const { notify } = useNotification();
     const { headerHeight } = useHeaderHeight();
 

@@ -109,13 +109,6 @@ export const ReportEditor = () => {
 
   // 🔹 Guardar (simulado)
   const handleSave = () => {
-    console.log("💾 Guardando reporte...");
-    console.log({
-      id,
-      title: reportTitle,
-      elements,
-    });
-    // Guardamos estado original
     setOriginalState({
       title: reportTitle,
       elements: JSON.parse(JSON.stringify(elements)), // deep copy

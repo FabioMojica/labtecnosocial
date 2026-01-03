@@ -8,6 +8,7 @@ export const ActionBarButtons = ({
   gap = 2,
   buttons,
   sx = {},
+  sxButtons = {}
 }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -33,10 +34,15 @@ export const ActionBarButtons = ({
         display: "flex",
         gap,
         zIndex: 1300,
+        padding: 1.5,
+        borderRadius: 2,
+        backgroundColor: "background.paper",
+        boxShadow: 6,
         ...position,
         ...sx,
       }}
     >
+
       {buttons.map((btn, idx) => (
         <Button
           key={idx}
@@ -45,6 +51,13 @@ export const ActionBarButtons = ({
           startIcon={btn.icon}
           onClick={btn.onClick}
           disabled={btn.disabled ?? false}
+          sx={{
+            fontSize: {
+              xs: '0.7rem',
+              sm: '0.9rem',
+            },
+            ...sxButtons,
+          }}
         >
           {btn.label}
         </Button>

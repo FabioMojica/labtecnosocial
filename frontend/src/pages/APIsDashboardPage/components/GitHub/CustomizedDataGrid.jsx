@@ -29,8 +29,6 @@ export const CustomizedDataGrid = ({
     case "today":
       startDate = today;
       endDate = today.endOf("day");
-      console.log("xxxxxxxx",startDate);
-      console.log("xxxxxxxx", endDate);
       break;
     case "lastWeek":
       startDate = today.subtract(7, "day");

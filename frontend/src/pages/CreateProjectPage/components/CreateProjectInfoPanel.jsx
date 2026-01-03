@@ -1,4 +1,4 @@
-import { Grid, IconButton, Typography } from "@mui/material";
+import { Grid, Typography, useTheme } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import {
@@ -14,11 +14,11 @@ import {
 
 
 const debounce = (func, delay = 100) => {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => func(...args), delay);
-  };
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => func(...args), delay);
+    };
 };
 
 
@@ -30,13 +30,14 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
     const [errors, setErrors] = useState({ name: "", description: "" });
     const [localName, setLocalName] = useState(project?.name ?? "");
     const [localDescription, setLocalDescription] = useState(project?.description ?? "");
-    
-    
+    const theme = useTheme();
+
+
     const { notify } = useNotification();
     const { headerHeight } = useHeaderHeight();
-    
+
     const debouncedChange = useRef(debounce(onChange, 1));
-    
+
     useEffect(() => {
         const isValid =
             !errors.name &&
@@ -153,14 +154,16 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                     overlay
                     overlayText={overlayText}
                     project={project}
-                    sx={{ width: "100%", height: "100%" }}
+                    sx={{
+                        width: "100%",
+                        height: "100%",
+                    }}
                     changeImage
                     onChangeImage={handleOverlayClick}
                     previewImage={previewImage ?? undefined}
                     onContextMenu={handleContextMenu}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
-                    // fallbackLetter={localName.trim().charAt(0)?.toUpperCase()}
                     fallbackLetter={(localName)?.trim().charAt(0)?.toUpperCase()}
                 />
             </Grid>

@@ -289,7 +289,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
 
                     <Grid size={{ xs: 12, md: 6 }}>
                         <CommitsByWeekdayHour
-                            commits={stats?.commits || []}
+                            commitsData={stats?.commits || []}
                             title="Horas con más commits"
                             interval={periodLabel}
                             selectable

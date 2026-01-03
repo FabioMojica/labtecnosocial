@@ -2,11 +2,13 @@ import { Box, Typography, Button, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useHeaderHeight } from "../../contexts";
+import { useAuthEffects } from "../../hooks";
 
 export const NotFoundPage = () => {
   const navigate = useNavigate();
   const { headerHeight } = useHeaderHeight();
   const theme = useTheme();
+  const { handleLogin, handleLogout } = useAuthEffects();
 
   return (
     <Box

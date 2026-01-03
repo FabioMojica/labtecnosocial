@@ -38,7 +38,7 @@ export const MorePanel = ({ user, panelHeight }) => {
                 requesterEmail: loggedInUser.email,
             }));
             navigate('/usuarios');
-            notify("Usuario eliminado correctamente", "success");
+            notify("Usuario eliminado correctamente del sistema", "success");
         } catch (err) {
             notify(err.message, "error");
         }

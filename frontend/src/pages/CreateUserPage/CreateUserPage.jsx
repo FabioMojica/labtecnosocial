@@ -5,8 +5,8 @@ import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
 import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRounded';
 
 // 2. Hooks personalizados
-import { useFetchAndLoad } from "../../hooks";
-import { useNotification } from "../../contexts"; 
+import { useAuthEffects, useFetchAndLoad } from "../../hooks";
+import { useNotification } from "../../contexts";
 
 // 3. Utilidades / helpers
 import { isUserEqual } from "./utils/isUserEqual";
@@ -33,7 +33,7 @@ import { createUserApi } from "../../api";
 // ninguno por ahora
 
 // 8. Tipos
- 
+
 export const CreateUserPage = () => {
     const initialUser = {
         firstName: '',
@@ -56,7 +56,7 @@ export const CreateUserPage = () => {
             notify("Completa los datos del usuario antes de guardar", "info");
             return;
         }
-        try { 
+        try {
             const userToSend = {
                 firstName: user.firstName,
                 lastName: user.lastName,
@@ -65,10 +65,10 @@ export const CreateUserPage = () => {
                 image_file: user.image_file ?? null,
                 role: user.role,
                 state: user.state,
-            }; 
- 
+            };
+            
             const formData = createUserFormData(userToSend);
-            await callEndpoint(createUserApi(formData));  
+            await callEndpoint(createUserApi(formData));
             notify("Usuario creado correctamente", "success");
             navigate("/usuarios");
         } catch (error) {
@@ -101,12 +101,28 @@ export const CreateUserPage = () => {
         notify("Cambios descartados correctamente", "info");
     };
 
+    const isFormValid = () => {
+    return (
+        user.firstName?.trim() &&
+        user.lastName?.trim() &&
+        user.email?.trim() &&
+        user.password?.trim() &&
+        user.role?.trim() &&
+        user.state?.trim() &&
+        !user.firstNameError &&
+        !user.lastNameError &&
+        !user.emailError &&
+        !user.passwordError
+    );
+};
+
+    
     if (loading) return <FullScreenProgress text="Creando el usuario" />
 
     return (
         <>
             <CreateUserInfoPanel onChange={handleUserChange} panelHeight={tabsHeight} user={user} />
-            
+
             <QuestionModal
                 open={questionModalOpen}
                 question="¿Deseas descartar los cambios no guardados?"
@@ -120,18 +136,17 @@ export const CreateUserPage = () => {
                     {
                         label: "Cancelar",
                         variant: "outlined",
-                        color: "secondary",
                         icon: <ModeStandbyRoundedIcon />,
-                        onClick: handleCancelChanges, 
+                        onClick: handleCancelChanges,
                     },
                     {
                         label: "Crear usuario",
-                        variant: "contained",
-                        color: "primary",  
+                        variant: "contained", 
+                        color: "primary",
                         icon: <LibraryAddCheckRoundedIcon />,
                         onClick: handleSave,
                         triggerOnEnter: true,
-                        disabled: !user?.firstName || !user?.lastName,
+                        disabled:!isFormValid(),
                     },
                 ]}
             />

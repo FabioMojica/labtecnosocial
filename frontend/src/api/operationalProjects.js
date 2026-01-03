@@ -17,7 +17,6 @@ export const createOperationalProjectApi = async (projectData) => {
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
-    console.log(error);
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al crear el proyecto");
     throw new Error("Error al intentar crear el proyecto");
@@ -57,7 +56,6 @@ export const deleteProjectByIdApi = async (id) => {
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
-    console.log(error);
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al eliminar el proyecto");
     throw new Error("Error al intentar eliminar el proyecto");
@@ -81,7 +79,6 @@ export const updateProjectApi = async (id, formData) => {
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
-    console.log(error);
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al actualizar proyecto");
     throw new Error("Ocurrió un error al actualizar el proyecto. Inténtalo de nuevo más tarde.");
@@ -147,7 +144,6 @@ export const getOperationalProjectsWithIntegrationsApi = async (email) => {
     if (response.status === 200) return response.data.projects;
     return null;
   } catch (error) {
-    console.log(error);
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al obtener proyectos con integraciones");
     throw new Error("Error al intentar obtener proyectos con integraciones");

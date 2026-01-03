@@ -1,12 +1,11 @@
 // ProjectProfileImage.jsx
-import { Avatar, Box } from "@mui/material";
+import { Avatar, Box, useTheme } from "@mui/material";
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import React, { memo, useEffect } from "react";
 
 
-const ProjectProfileImageComponent = ({ fallbackLetter, src, sx }) => {
+const ProjectProfileImageComponent = ({ fallbackLetter, src, boxShadow= false, sx }) => {
   useEffect(() => {
-          console.log("fallbarck", fallbackLetter)
       },[fallbackLetter]);
   
   return (

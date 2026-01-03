@@ -15,7 +15,7 @@ const lightTheme = createTheme({
       backgroundNavBar: '#1F7D53',
 
       backgroundBox: '#FFFFFF',
-      boxShadowBox: '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05)',
+      boxShadowBox: '0 2px 8px rgba(39, 24, 24, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05)',
 
       buttonsBackgroundMain: '#6200EE',
       buttonsBackgroundSecondary: '',

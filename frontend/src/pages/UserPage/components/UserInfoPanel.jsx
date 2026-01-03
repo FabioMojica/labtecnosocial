@@ -5,12 +5,14 @@ import {
   IconButton,
   InputAdornment,
   Button,
+  useTheme,
+  Stack,
+  Avatar
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
-import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 
@@ -31,7 +33,9 @@ import { validateEmail, validatePassword } from "../../../utils";
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
+  if(!user) return;
   const fileInputRef = useRef(null);
+  const theme = useTheme();
   const [previewImage, setPreviewImage] = useState(null);
   const [overlayText, setOverlayText] = useState("Subir una imagen");
   const [errors, setErrors] = useState({});
@@ -40,7 +44,7 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const { notify } = useNotification();
-  const { headerHeight } = useHeaderHeight(); 
+  const { headerHeight } = useHeaderHeight();
 
   useEffect(() => {
     setOverlayText(
@@ -53,21 +57,21 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
   }, [previewImage]);
 
   useEffect(() => {
-          if (!user) {
-              setPreviewImage(null);
-              return;
-          }
+    if (!user) {
+      setPreviewImage(null);
+      return;
+    }
 
-          if (user.image_file instanceof File) {
-              setPreviewImage(URL.createObjectURL(user.image_file));
-          }
+    if (user.image_file instanceof File) {
+      setPreviewImage(URL.createObjectURL(user.image_file));
+    }
 
-          else if (user.image_url) {
-              setPreviewImage(`${API_UPLOADS}${encodeURI(user.image_url)}`);
-          } else {
-              setPreviewImage(null);
-          }
-      }, [user]);
+    else if (user.image_url) {
+      setPreviewImage(`${API_UPLOADS}${encodeURI(user.image_url)}`);
+    } else {
+      setPreviewImage(null);
+    }
+  }, [user]);
 
   const handleOverlayClick = () => fileInputRef.current?.click();
 
@@ -118,7 +122,7 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
 
     setNewPassword(password);
     onChange?.({ password });
-    notify("Contraseña segura generada", "info");
+    notify("Contraseña segura generada correctamente", "info");
   };
 
   const roleOptions = Object.entries(roleConfig).map(([key, value]) => ({
@@ -177,20 +181,105 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
         p: 1,
       }}
     >
-      <Grid size={{ xs: 12, md: 5 }} sx={{ height: { xs: "50%", sm: "100%" } }}>
-        <UserImageDates
-          overlay
-          overlayText={overlayText}
-          user={user}
-          sx={{ width: "100%", height: "100%" }}
-          changeImage
-          onChangeImage={handleOverlayClick}
-          previewImage={previewImage ?? undefined}
-          onContextMenu={handleContextMenu}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        />
+      <Grid
+        size={{ xs: 12, md: 5 }}
+        sx={{
+          height: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 1
+        }}
+      >
+        <Box sx={{
+          height: '75%',
+          minHeight: '75%',
+          width: '100%'
+        }}>
+          <UserImageDates
+            overlay
+            overlayText={overlayText}
+            user={user}
+            sx={{ width: '100%', height: '100%' }}
+            changeImage
+            onChangeImage={handleOverlayClick}
+            previewImage={previewImage ?? undefined}
+            onContextMenu={handleContextMenu}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          />
+        </Box>
+
+        <Box
+          sx={{
+            width: '100%',
+            height: {xs: '150px', sm: '25%'},
+            m: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+            Proyectos asignados
+            {user.projects?.length > 0 && ` (${user.projects.length})`}
+          </Typography>
+
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              height: 'auto',
+              p: 1,
+              overflowX: 'auto',
+              "&::-webkit-scrollbar": { height: "2px" },
+              "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+              "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+              "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+            }}
+          >
+            {user.projects && user.projects.length > 0 ? (
+              user.projects.map((project) => (
+                <Avatar
+                  key={project.id}
+                  src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                  title={`${project.name}`}
+                  sx={{
+                    width: 66,
+                    height: 66,
+                    borderRadius: 2,
+                    objectFit: "cover",
+                    fontWeight: "bold",
+                    zIndex: 1,
+                    boxShadow:
+                      theme.palette.mode === 'light'
+                        ? '0 0 0 1px rgba(0,0,0,0.3)'
+                        : '0 0 0 1px rgba(255,255,255,0.3)',
+                  }}
+
+                >
+                  {project.name[0].toUpperCase()}
+                </Avatar>
+              ))
+            ) : (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  color: "gray",
+                  fontStyle: "italic",
+                  fontSize: "0.9rem",
+                }}
+              >
+                Este usuario no tiene proyectos asignados
+              </Typography>
+            )}
+          </Stack>
+
+        </Box>
       </Grid>
+
 
       <Grid
         container
@@ -214,9 +303,9 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
               onBlur={(e) => validateField("firstName", e.target.value)}
               maxLength={100}
               error={!!errors.firstName}
-              labelFontSize="1.1rem"       
-              valueFontSize="1.5rem"   
-            /> 
+              labelFontSize="1.1rem"
+              valueFontSize="1.3rem"
+            />
             {errors.firstName && (
               <Typography color="error" variant="caption">
                 {errors.firstName}
@@ -233,8 +322,8 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
               onBlur={(e) => validateField("lastName", e.target.value)}
               maxLength={100}
               error={!!errors.lastName}
-              labelFontSize="1.1rem"       
-              valueFontSize="1.5rem"   
+              labelFontSize="1.1rem"
+              valueFontSize="1.3rem"
             />
             {errors.lastName && (
               <Typography color="error" variant="caption">
@@ -270,8 +359,8 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
                 </InputAdornment>
               ),
             }}
-            labelFontSize="1.1rem"       
-            valueFontSize="1.5rem"  
+            labelFontSize="1.1rem"
+            valueFontSize="1.3rem"
           />
           {errors.email && (
             <Typography color="error" variant="caption">
@@ -302,7 +391,7 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
           <Button
             variant="outlined"
             onClick={() => setShowChangePassword(!showChangePassword)}
-            
+
           >
             {showChangePassword ? "Cancelar cambio de contraseña" : "Cambiar contraseña"}
           </Button>
@@ -328,8 +417,8 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
                     </InputAdornment>
                   ),
                 }}
-                labelFontSize="1.1rem"       
-                valueFontSize="1.5rem"  
+                labelFontSize="1.1rem"
+                valueFontSize="1.5rem"
               />
             </Grid>
 
@@ -341,8 +430,8 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 fullWidth
-                labelFontSize="1.1rem"       
-                valueFontSize="1.5rem"  
+                labelFontSize="1.1rem"
+                valueFontSize="1.5rem"
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -373,7 +462,7 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
         accept="image/*"
         ref={fileInputRef}
         style={{ display: "none" }}
-        onChange={handleFileChange}
+        onChange={handleFileChange} 
       />
     </Grid>
   );

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { authManager } from "../../utils/authManager";
 
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL, 
@@ -9,3 +10,17 @@ axiosInstance.interceptors.request.use(config => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+axiosInstance.interceptors.response.use(
+  response => response,
+  error => { 
+    const message = error.response?.data?.message;
+
+    if (message === 'Sesión expirada por cambios en el perfil. Por favor vuelve a iniciar sesión.') {
+      authManager.logout();
+      return Promise.reject(error);
+    }
+
+    return Promise.reject(error);
+  }
+);

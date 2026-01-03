@@ -65,39 +65,8 @@ useEffect(() => {
     };
 
     useEffect(() => {
-        console.log("ResponsiblesPanel montado");
         fetchAllUsers();
     }, []);
-
-    // const handleToggleResponsible = (email, checked) => {
-    //     setSelectedResponsibles(prev => {
-    //         const newSet = new Set(prev);
-    //         if (checked) newSet.add(email);
-    //         else newSet.delete(email);
-    //         return newSet;
-    //     });
-    // };
-    // const handleToggleResponsible = useCallback((email, checked) => {
-    //     setSelectedResponsibles(prev => {
-    //         const newSet = new Set(prev);
-    //         if (checked) newSet.add(email);
-    //         else newSet.delete(email);
-    //         return newSet;
-    //     });
-    // }, []);
-
-
-
-    // const handleRemoveResponsible = (email) => {
-    //     setSelectedResponsibles(prev => {
-    //         const newSet = new Set(prev);
-    //         newSet.delete(email);
-    //         return newSet;
-    //     });
-    // };
-   
-    // Estado local como antes
-
 
 const handleToggleResponsible = useCallback((email, checked) => {
     setSelectedResponsibles(prev => {

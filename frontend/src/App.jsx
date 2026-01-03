@@ -1,7 +1,7 @@
 import { Box, CssBaseline, Toolbar, useTheme } from '@mui/material';
 import { SnackbarProvider } from "notistack";
 
-import { AuthProvider, CustomThemeProvider, HeaderHeightProvider, SoundProvider, useAuth } from './contexts';
+import { AuthProvider, CustomThemeProvider, HeaderHeightProvider, useAuth } from './contexts';
 import { useAuthEffects } from './hooks';
 
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
@@ -47,8 +47,8 @@ export const PublicRoute = ({ element }) => {
 
 
 const AppContent = () => {
+  const { handleLogin, handleLogout } = useAuthEffects();
   const { isAuthenticated, loading } = useAuth();
-  useAuthEffects();
 
   if (loading) return <FullScreenProgress />;
 
@@ -78,42 +78,41 @@ const AppContent = () => {
 };
 
 
+
 function App() {
   const theme = useTheme();
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <CustomThemeProvider>
-      <SoundProvider>
         <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
           <BrowserRouter>
             <AuthProvider>
-              <HeaderHeightProvider>
-                <ConfirmProvider>
-                  <ReportProvider>
-                    <CssBaseline />
-                    <Box sx={{
-                      flexGrow: 1,
-                      padding: 1,
-                      minHeight: '100vh',
-                      pl: {
-                        xs: getDrawerClosedWidth(theme, 'xs'),
-                        sm: getDrawerClosedWidth(theme, 'sm'),
-                      },
-                      maxWidth: 1600,
-                    }}>
-                       {/* BURBUJA DEL REPORTE */}
-                      <ReportBubble onClick={() => setModalOpen(true)} />
-                      <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
-                      <AppContent />
-                    </Box>
-                  </ReportProvider>
-                </ConfirmProvider>
-              </HeaderHeightProvider>
+                <HeaderHeightProvider>
+                  <ConfirmProvider>
+                    <ReportProvider>
+                      <CssBaseline />
+                      <Box sx={{
+                        flexGrow: 1,
+                        padding: 1,
+                        minHeight: '100vh',
+                        pl: {
+                          xs: getDrawerClosedWidth(theme, 'xs'),
+                          sm: getDrawerClosedWidth(theme, 'sm'),
+                        },
+                        maxWidth: 1600,
+                      }}>
+                        {/* BURBUJA DEL REPORTE */}
+                        <ReportBubble onClick={() => setModalOpen(true)} />
+                        <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
+                        <AppContent />
+                      </Box>
+                    </ReportProvider>
+                  </ConfirmProvider>
+                </HeaderHeightProvider>
             </AuthProvider>
           </BrowserRouter>
         </SnackbarProvider>
-      </SoundProvider>
     </CustomThemeProvider>
   );
 }

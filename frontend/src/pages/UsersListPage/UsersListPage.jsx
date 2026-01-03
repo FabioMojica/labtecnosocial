@@ -2,7 +2,7 @@ import { useTheme } from '@mui/material/styles';
 import { Box, CssBaseline, IconButton, Stack, Toolbar, Typography, useMediaQuery } from "@mui/material";
 import MuiDrawer from '@mui/material/Drawer';
 import { useEffect, useState } from "react";
-import { useFetchAndLoad } from '../../hooks';
+import { useAuthEffects, useFetchAndLoad } from '../../hooks';
 import { useHeaderHeight, useNotification } from '../../contexts';
 import {
     SearchBar,
@@ -31,21 +31,20 @@ export function UsersListPage() {
     const [selectedUser, setSelectedUser] = useState(null);
     const navigate = useNavigate();
     const [error, setError] = useState(false);
-    const { headerHeight } = useHeaderHeight();
+    const { handleLogout } = useAuthEffects();
 
     const handleUserClick = (user) => {
         setSelectedUser(user);
         if (isLaptop) {
             handleDrawerOpen();
-        } else {
-            navigate('/inicio');
+        } else { 
+            navigate(`/usuario/${encodeURIComponent(user.email)}`)
         }
     };
 
     const fetchAllUsers = async () => {
         try {
             const response = await callEndpoint(getAllUsersApi());
-            
             setUsers(response);
             setFilteredUsers(response);
             setError(false);
@@ -84,7 +83,7 @@ export function UsersListPage() {
     }
 
     if (!loading && users.length === 0) {
-        return (
+        return ( 
             <NoResultsScreen
                 message='Aún no tienes usuarios registrados'
                 buttonText="Crear uno"

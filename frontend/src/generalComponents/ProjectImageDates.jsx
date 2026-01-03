@@ -1,4 +1,4 @@
-import { Box, Divider, Paper, Typography } from "@mui/material";
+import { Box, Divider, Paper, Typography, useTheme } from "@mui/material";
 import { ProjectProfileImage } from "./ProjectProfileImage";
 import { useHeaderHeight } from "../contexts";
 import React, { memo, useEffect, useState } from "react";
@@ -19,6 +19,7 @@ export const ProjectImageDatesComponent = ({
     if (!project) return;
     const { headerHeight } = useHeaderHeight();
     const [previewSrc, setPreviewSrc] = useState();
+    const theme = useTheme();
 
     useEffect(() => {
     if (project.image_file) {
@@ -37,7 +38,6 @@ export const ProjectImageDatesComponent = ({
         : undefined;
 
     useEffect(() => {
-        console.log("hola")
     },[project, fallbackLetter]);
 
     return (
@@ -49,12 +49,12 @@ export const ProjectImageDatesComponent = ({
                 width: "100%",
                 height: "100%",
                 maxHeight: `calc(100vh - ${headerHeight}px)`,
-                borderTopLeftRadius: 2,
-                borderTopRightRadius: 2,
                 cursor: "pointer",
                 "&:hover .overlay": {
                     opacity: 1,
                 },
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.mode === "light" ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}`,
                 ...sx
             }}
         >

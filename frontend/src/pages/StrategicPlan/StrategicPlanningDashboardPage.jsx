@@ -25,9 +25,11 @@ import { SelectYear } from "./components/SelectYear";
 import { NoResultsScreen } from "../../generalComponents/NoResultsScreen";
 import { FullScreenProgress } from "../../generalComponents/FullScreenProgress.jsx";
 import { ErrorScreen } from "../../generalComponents/ErrorScreen.jsx";
+import { useAuthEffects } from "../../hooks/useAuthEffects.js";
 
 const StrategicPlanningDashboardPage = () => {
   const { year } = useParams();
+  const { handleLogin, handleLogout } = useAuthEffects();
   const [selectedYear, setSelectedYear] = useState(null);
   const { user } = useAuth();
   const { loading, callEndpoint } = useFetchAndLoad();

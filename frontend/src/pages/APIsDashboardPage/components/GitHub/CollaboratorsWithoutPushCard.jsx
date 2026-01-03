@@ -127,7 +127,6 @@ export default function CollaboratorsWithoutPushCard({
                     }}>
                         {collaboratorsWithoutPush.map((user, i) => (
                             <>
-                                {console.log(user)}
                                 <Stack key={i} direction="row" alignItems="center" spacing={1}>
                                     <Avatar src={user.avatar} alt={user.login} sx={{ width: 28, height: 28 }} />
                                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>

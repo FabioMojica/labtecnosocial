@@ -1,5 +1,5 @@
 import React, { use } from "react";
-import { Avatar, Box, Typography } from "@mui/material";
+import { Avatar, Box, Typography, useTheme } from "@mui/material";
 import { Item } from "../../../generalComponents"; 
 import { roleConfig, stateConfig } from "../../../utils";
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
@@ -7,6 +7,8 @@ import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const UserItem = ({ user, onClick }) => {
+    const theme = useTheme();
+    
     const roleData = roleConfig[user.role] ?? {
         icon: QuestionMarkRoundedIcon,
         role: user.role,
@@ -33,6 +35,10 @@ export const UserItem = ({ user, onClick }) => {
                             borderRadius: 2,
                             objectFit: 'cover',
                             fontWeight: 'bold',
+                            boxShadow:
+      theme.palette.mode === 'light'
+        ? '0 0 0 1px rgba(0,0,0,0.3)'   
+        : '0 0 0 1px rgba(255,255,255,0.3)',
                         }}
                     >
                         {user.firstName[0].toUpperCase()}{user.lastName[0].toUpperCase()}

@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useNotification } from "../../contexts";
 import { ActionBarButtons } from "../../generalComponents";
 
-import { useFetchAndLoad } from "../../hooks";
+import { useAuthEffects, useFetchAndLoad } from "../../hooks";
 import {
     ErrorScreen,
     FullScreenProgress,
@@ -40,6 +40,7 @@ export const ProjectPage = () => {
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
     const { id } = useParams();
+    const { handleLogin, handleLogout } = useAuthEffects();
 
     const navigate = useNavigate();
     if (!id) return <ErrorScreen message="Proyecto no encontrado" buttonText="Volver a proyectos" onButtonClick={() => navigate('/proyectos')} />;
@@ -56,7 +57,6 @@ export const ProjectPage = () => {
     const fetchProjectById = async () => {
         try {
             const resp = await callEndpoint(getProjectByIdApi(projectId));
-            console.log("proyecto llegfando>>>>>>>>>>>>>>>>>>>>>>>", resp);
             setProject(resp);
             originalProjectRef.current = structuredClone({
                 ...resp,
@@ -109,7 +109,6 @@ export const ProjectPage = () => {
         if (!project) return;
 
         try {
-            console.log("project antes del form data", project);
             const formData = updateProjectFormData(project);
 
             const resp = await callEndpoint(updateProjectApi(project.id, formData));

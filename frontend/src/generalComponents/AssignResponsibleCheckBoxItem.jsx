@@ -2,9 +2,6 @@ import React from "react";
 import { Avatar, Box, Typography, Checkbox, Tooltip, useTheme } from "@mui/material";
 import { Item } from "./Item";
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
-import { useSound } from "../contexts";
-import { useAssignSounds } from "../hooks";
-import { useNavigate } from "react-router-dom";
 import { roleConfig, stateConfig } from "../utils";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;

@@ -7,7 +7,7 @@ import {
 } from '@mui/material'
 import { SelectProjectModal } from '../../generalComponents/SelectProjectModal';
 import { useEffect, useState } from 'react';
-import { useFetchAndLoad } from '../../hooks';
+import { useAuthEffects, useFetchAndLoad } from '../../hooks';
 import { useAuth, useNotification } from '../../contexts';
 import { ErrorScreen, FullScreenProgress, NoResultsScreen } from '../../generalComponents';
 import { getOperationalProjectsWithIntegrationsApi } from '../../api';
@@ -35,7 +35,6 @@ export const APIsDashboardPage = () => {
         try {
             const res = await callEndpoint(getOperationalProjectsWithIntegrationsApi(user.email));
             setProjects(res);
-            console.log(res);
             setError(false);
         } catch (error) {
             setError(true);

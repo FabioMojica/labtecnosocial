@@ -6,7 +6,7 @@ import { useTheme } from "@emotion/react";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
-export const ViewProjectDrawer = ({ project }) => { 
+export const ViewProjectDrawer = ({ project }) => {
     if (!project) return null;
     const navigate = useNavigate();
     const theme = useTheme();
@@ -18,13 +18,27 @@ export const ViewProjectDrawer = ({ project }) => {
                 width: '100%',
                 height: '100%',
                 p: 1,
-                overflowY: 'auto', 
+                overflowY: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
 
             }}>
+                <Typography
+                    variant="h7"
+                    fontWeight="bold"
+                    sx={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                    }}
+                >
+                    {project.name}
+                </Typography>
+
                 <Box
                     sx={{
                         width: "100%",
@@ -35,7 +49,7 @@ export const ViewProjectDrawer = ({ project }) => {
                         justifyContent: 'center',
                     }}
                     onClick={() => navigate(`/proyecto/${project.id}`)}
-                > 
+                >
                     <Box
                         sx={{
                             position: "relative",
@@ -49,47 +63,41 @@ export const ViewProjectDrawer = ({ project }) => {
                             },
                         }}
                     >
-                        <ProjectImageDates 
-                            overlay={true} 
-                            overlayText="Ir al proyecto" 
-                            project={project} 
+                        <ProjectImageDates
+                            overlay={true}
+                            overlayText="Ir al proyecto"
+                            project={project}
                             fallbackLetter={project?.name?.trim().charAt(0)?.toUpperCase()}
                         />
                     </Box>
 
                 </Box>
-
-                <Box sx={{ width: "100%", height: '10%', textAlign: "center", mt: 0.5, mb: 0.5, px: 2 }}>
+                
+                <Box sx={{width: '100%', display: 'flex', justifyContent: 'center'}}>
                     <Typography
-                        variant="h7"
-                        fontWeight="bold"
-                        sx={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 1,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                        }}
-                    >
-                        {project.name}
-                    </Typography>
-
-                    <Typography
-                        sx={{
-                            fontSize: "0.7rem",
-                            color: "text.secondary",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                        }}
-                    >
-                        {project.description}
-                    </Typography>
+                    sx={{
+                        fontSize: "0.7rem",
+                        color: "text.secondary",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        m: 0.5
+                    }}
+                >
+                    {project.description}
+                </Typography>
                 </Box>
+                
 
-                <Box sx={{ width: "100%", height: '10%', mb: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+
+                <Paper sx={{
+                    width: "100%", height: '15%', mb: 1, p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow:
+                        theme.palette.mode === 'dark'
+                            ? '0 4px 12px rgba(0,0,0,0.8)'
+                            : 3,
+                }}>
                     <Typography variant="subtitle1" fontWeight="bold">
                         Integraciones del proyecto
                     </Typography>
@@ -118,12 +126,12 @@ export const ViewProjectDrawer = ({ project }) => {
                                         key={integration.id}
                                         title={`${config.label}: ${integration.name}`}
                                         PopperProps={{
-                                            disablePortal: true, 
+                                            disablePortal: true,
                                             modifiers: [
                                                 {
                                                     name: 'preventOverflow',
                                                     options: {
-                                                        boundary: 'clippingParents', 
+                                                        boundary: 'clippingParents',
                                                     },
                                                 },
                                             ],
@@ -146,9 +154,14 @@ export const ViewProjectDrawer = ({ project }) => {
                             })}
                         </Box>
                     )}
-                </Box>
+                </Paper>
 
-                <Paper sx={{ width: '100%', height: '40%', p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: 1 }}>
+                <Paper sx={{
+                    width: '100%', height: '40%', p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: 1, boxShadow:
+                        theme.palette.mode === 'dark'
+                            ? '0 4px 12px rgba(0,0,0,0.8)'
+                            : 3,
+                }}>
                     {project.projectResponsibles?.length === 0 ? (
                         <NoResultsScreen message="Sin responsables asignados" iconSX={{ fontSize: 50 }} />
                     ) : (
@@ -210,7 +223,7 @@ export const ViewProjectDrawer = ({ project }) => {
                                                     borderRadius: 0,
                                                     fontWeight: 'bold',
                                                 }}
-                                            > 
+                                            >
                                                 {`${responsible.firstName[0]}${responsible.lastName[0]}`}
                                             </Avatar>
 

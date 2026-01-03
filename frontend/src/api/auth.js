@@ -19,7 +19,6 @@ export const loginUserApi = async (userData) => {
     }
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-      console.log("Petición cancelada");
       return null;
     }
 
@@ -51,7 +50,6 @@ export const logoutUserApi = async () => {
     }
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-      console.log("Petición cancelada");
       return null;
     }
 
@@ -76,7 +74,6 @@ export const meApi = async () => {
     return null;
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-      console.log("Petición cancelada");
       return null;
     }
 
@@ -102,7 +99,6 @@ export const refreshApi = async () => {
     return null;
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-      console.log("Petición cancelada");
       return null;
     }
 
@@ -132,7 +128,6 @@ export const getSummaryDataApi = async (user) => {
     }
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-      console.log("Petición cancelada");
       return null;
     }
 

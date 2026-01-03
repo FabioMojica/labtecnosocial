@@ -315,9 +315,6 @@ export const getProjectById = async (req, res) => {
 export const deleteProjectById = async (req, res) => {
   const { id } = req.params;
 
-  console.log(typeof id)
-
-
   try {
     const projectRepo = AppDataSource.getRepository(OperationalProject);
 
@@ -342,8 +339,6 @@ export const updateOperationalProject = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, program_id, preEliminados, preAnadidos } = req.body;
-
-    console.log("📩 req update op project:", req.body);
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -373,9 +368,6 @@ export const updateOperationalProject = async (req, res) => {
         return res.status(404).json({ message: "Programa no encontrado" });
       }
     }
-
-    // Manejo de imagen
-    console.log("📂 Archivo recibido:", req.file);
 
     if (req.file) {
       if (project.image_url) {
@@ -418,9 +410,7 @@ export const updateOperationalProject = async (req, res) => {
       console.error("❌ Error al parsear preAnadidos o preEliminados:", e.message);
     }
 
-    // 🗑️ Eliminar responsables
     if (Array.isArray(parsedPreEliminados) && parsedPreEliminados.length > 0) {
-      console.log("🗑️ Eliminando responsables:", parsedPreEliminados.map(r => r.id));
       for (const r of parsedPreEliminados) {
         await responsibleRepository.delete({
           user: { id: r.id },
@@ -429,9 +419,7 @@ export const updateOperationalProject = async (req, res) => {
       }
     }
 
-    // ➕ Agregar responsables
     if (Array.isArray(parsedPreAnadidos) && parsedPreAnadidos.length > 0) {
-      console.log("➕ Añadiendo responsables:", parsedPreAnadidos.map(r => r.id));
       for (const r of parsedPreAnadidos) {
         const user = await userRepository.findOneBy({ id: r.id });
         if (!user) continue;
@@ -446,7 +434,6 @@ export const updateOperationalProject = async (req, res) => {
 
     await queryRunner.commitTransaction();
 
-    console.log("✅ Proyecto actualizado correctamente:", updatedProject.id);
     return getProjectById(req, res);
 
   } catch (error) {

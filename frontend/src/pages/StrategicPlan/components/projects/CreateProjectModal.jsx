@@ -109,7 +109,6 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
               label="Proyecto Operativo"
               displayEmpty
               renderValue={(selected) => {
-                console.log(selected)
                 if (!selected) {
                   return <Typography color="text.disabled">Seleccione un proyecto</Typography>;
                 }
@@ -137,7 +136,6 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
               labelId="select-project-label"
               value={selectedProjectId}
               onChange={(e) => {
-                console.log(e.target.value)
                 setSelectedProjectId(Number(e.target.value))
               }}
               disabled={loading}

@@ -153,17 +153,13 @@ export const exportStrategicPlanPDF = async (data, year) => {
                             const projName = proj.name || "Proyecto sin nombre";
 
                             const imagePath = proj.image_url || proj.imageUrl;
-                            console.log(imagePath)
-                            console.log("base url", baseUrl)
                             if (imagePath) {
                                 try {
 
                                     const fullImageUrl = imagePath.startsWith("http")
                                         ? imagePath
                                         : `${baseUrl}${imagePath}`;
-
-                                    console.log("image url fll ", fullImageUrl)
-
+                                        
                                     const img = await getBase64FromUrl(fullImageUrl);
                                     checkPageSpace(80);
                                     doc.addImage(img, "JPEG", margin + 60, y, 30, 30);

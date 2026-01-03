@@ -7,7 +7,7 @@ import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import { ErrorScreen, FullScreenProgress, NoResultsScreen } from "../../generalComponents";
 import { SelectProjectModal } from "../../generalComponents/SelectProjectModal";
 import { deleteOperationalPlanningApi, getAllOperationalProjectsApi } from "../../api";
-import { useFetchAndLoad } from "../../hooks";
+import { useAuthEffects, useFetchAndLoad } from "../../hooks";
 import { useNotification } from "../../contexts";
 import DeleteOperationalPlanningTableDialog from "./components/DeleteOperationalPlanningTableDialog";
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -16,6 +16,7 @@ const VIEW_MODE_KEY = "operationalPlanningViewMode";
 
 const OperationalPlanningDashboardPage = () => {
   const { id } = useParams();
+  const { handleLogin, handleLogout } = useAuthEffects();
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState(() => {
     const parsed = Number(id);

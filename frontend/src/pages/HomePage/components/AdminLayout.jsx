@@ -100,7 +100,24 @@ export const AdminLayout = () => {
             }}>
             <Grid size={{ xs: 12, md: 8 }} sx={{ height: { md: '100%', xs: 'auto' }, display: 'flex', gap: 2, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
 
-                <Typography align="center" variant="h3">Hola! {user?.firstName} {user?.lastName}</Typography>
+                <Typography
+                    textAlign="center"
+                    fontWeight="bold"
+                    sx={{
+                        fontSize: { xs: 35, sm: 45 },
+                        display: "-webkit-box",
+                        WebkitLineClamp: { xs: 2, sm: 1 },
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        wordBreak: "break-word",
+                        overflowWrap: "break-word",
+                    }}
+                >
+                    Hola! {user?.firstName} {user?.lastName}
+                </Typography>
+
+
                 <Image src={logoToShow} alt="Lab Tecno Social Logo" width={230} height={100} />
 
                 <Grid justifyContent="center" container columns={12} spacing={1.5} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -173,7 +190,7 @@ export const AdminLayout = () => {
                     >
                         <DateCalendar
                             defaultValue={boliviaNow}
-                            shouldDisableDate={() => true}  
+                            shouldDisableDate={() => true}
                         />
                     </Box>
                 </LocalizationProvider>

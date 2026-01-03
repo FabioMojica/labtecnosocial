@@ -1,3 +1,4 @@
+import { updateUserFormData } from "../pages/UserPage/utils/updateUserFormData";
 import { loadAbort } from "../utils";
 import { axiosInstance } from "./config";
 import { Routes } from "./config";
@@ -5,9 +6,8 @@ import { Routes } from "./config";
 // Obtener todos los usuarios
 export const getAllUsersApi = async () => {
   const controller = loadAbort();
-  try { 
+  try {
     const response = await axiosInstance.get(Routes.GET_ALL_USERS, { signal: controller.signal });
-    console.log(response);
     if (response.status === 200) return response.data.users;
     return null;
   } catch (error) {
@@ -45,17 +45,19 @@ export const getUserByEmailApi = async (email) => {
   }
 };
 
-// Actualizar usuario
-export const updateUserApi = async (email, data) => {
+export const updateUserApi = async (originalEmail, userData) => {
   const controller = loadAbort();
+  const formData = updateUserFormData(userData);
+
   try {
-    const response = await axiosInstance.patch(`${Routes.UPDATE_USER}/${encodeURIComponent(email)}`, data, { signal: controller.signal });
+    const response = await axiosInstance.patch(`${Routes.UPDATE_USER}/${encodeURIComponent(originalEmail)}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al actualizar el usuario");
-    throw new Error("Error al intentar actualizar el usuario");
+    throw error;
   }
 };
 
@@ -64,7 +66,7 @@ export const deleteUserApi = async ({ email, password, requesterEmail }) => {
   try {
     const response = await axiosInstance.delete(`${Routes.DELETE_USER}/${encodeURIComponent(email)}`, {
       data: { password, requesterEmail },
-      signal: controller.signal, 
+      signal: controller.signal,
     });
     if (response.status === 200) return response.data;
     return null;
@@ -82,14 +84,13 @@ export const createUserApi = async (userData) => {
       Routes.CREATE_USER,
       userData,
       {
-        signal: controller.signal, 
+        signal: controller.signal,
       }
     );
 
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
-    console.log(error);
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al crear el usuario");
     throw new Error("Error al intentar crear el usuario");

@@ -23,7 +23,6 @@ async function main() {
         password: await hash('fabio1A@'),
         role: 'admin',
         state: 'habilitado',
-        image_url: 'https://i.pravatar.cc/150?img=12',
       },
       {
         firstName: 'Pedro',

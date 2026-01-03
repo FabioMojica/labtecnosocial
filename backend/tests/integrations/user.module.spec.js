@@ -600,7 +600,6 @@ describe('Módulo Usuarios - Eliminación de usuarios', () => {
       .set('Authorization', `Bearer ${validNewAdmin3Token}`)
       .send({ password: `${admin4.password}`, requesterEmail: admin3.email });
 
-      console.log(res)
     expect(res.statusCode).toBe(403);
     expect(res.body.message).toMatch(/No puedes eliminar otro administrador/);
   });

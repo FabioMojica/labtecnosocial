@@ -12,6 +12,7 @@ export const NoResultsScreen = ({
   buttonText,
   triggerOnEnter = false,
   onButtonClick,
+  buttonSx,
 }) => {
   const { headerHeight } = useHeaderHeight();
   return (
@@ -39,7 +40,7 @@ export const NoResultsScreen = ({
       </Typography>
 
       {buttonText && onButtonClick && (
-        <ButtonWithLoader sx={{minWidth: '200px'}} onClick={onButtonClick} triggerOnEnter={triggerOnEnter}>
+        <ButtonWithLoader sx={{minWidth: '200px', ...buttonSx}} onClick={onButtonClick} triggerOnEnter={triggerOnEnter}>
           {buttonText}
         </ButtonWithLoader>
       )}
