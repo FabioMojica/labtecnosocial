@@ -1,5 +1,5 @@
 import { Box, Grid, Typography, Button, Avatar, Stack, useTheme, Tooltip, IconButton } from "@mui/material";
-import { ProjectImageDates } from "../../../generalComponents";
+import { ActionBarButtons, ProjectImageDates } from "../../../generalComponents";
 import { useHeaderHeight } from "../../../contexts";
 import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRounded';
 import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
@@ -81,7 +81,7 @@ export const ProjectPreviewPanel = ({
                         variant="h7"
                         fontWeight="bold"
                     >
-                        {project.name && isProjectValid
+                        {project.name
                             ? project.name
                             : "No ingresó un nombre válido para el proyecto"}
                     </Typography>
@@ -104,7 +104,7 @@ export const ProjectPreviewPanel = ({
                         }}
                         variant="body1"
                     >
-                        {project.description && isProjectValid
+                        {project.description
                             ? project.description
                             : "No ingresó una descripción válida para el proyecto"}
                     </Typography>
@@ -171,7 +171,7 @@ export const ProjectPreviewPanel = ({
                     </Box>
                     <Box>
                         <Typography variant='h6' sx={{ fontWeight: 'bold' }}>Integraciones con APIs:</Typography>
-                        <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" justifyContent="center" alignItems="center">
+                        <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" justifyContent="left" alignItems="center">
                             {project.integrations && project.integrations.length > 0 ? (
                                 project.integrations.map((integration) => {
                                     const config = integrationsConfig[integration.type];
@@ -228,34 +228,24 @@ export const ProjectPreviewPanel = ({
                     </Box>
                 </Box>
 
-                {/* Botones de acción */}
-                <Box display="flex" gap={2} sx={{
-
-                    justifyContent: 'end',
-                    mt: {
-                        xs: 2,
-                        sm: 0
-                    }
-                }}>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<LibraryAddCheckRoundedIcon />}
-                        onClick={onSave}
-                        disabled={!project.name || !project.description || !isProjectValid}
-                    >
-                        Guardar Proyecto
-                    </Button>
-
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        startIcon={<ModeStandbyRoundedIcon />}
-                        onClick={onCancel}
-                    >
-                        Cancelar
-                    </Button>
-                </Box>
+                <ActionBarButtons
+                    buttons={[
+                        {
+                            label: "Cancelar",
+                            variant: "outlined",
+                            icon: <ModeStandbyRoundedIcon />,
+                            onClick: onCancel,
+                        },
+                        {
+                            label: "Crear proyecto",
+                            variant: "contained",
+                            color: "primary",
+                            icon: <LibraryAddCheckRoundedIcon />,
+                            onClick: onSave,
+                            triggerOnEnter: true,
+                            disabled: !project.name || !project.description || !isProjectValid
+                        }]}
+                        />
             </Grid>
         </Grid>
     );

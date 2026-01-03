@@ -210,7 +210,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                         maxLength={300}
                         error={!!errors.description}
                     />
-
+ 
                     {errors.description && (
                         <Typography color="error" variant="caption" textAlign={'right'} sx={{ width: '100%' }}>
                             {errors.description}

@@ -131,7 +131,7 @@ export const CreateUserPage = () => {
             />
 
             <ActionBarButtons
-                visible={isDirty}
+                visible={isDirty} 
                 buttons={[
                     {
                         label: "Cancelar",

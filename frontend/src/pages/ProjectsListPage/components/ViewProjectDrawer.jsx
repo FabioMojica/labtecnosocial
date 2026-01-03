@@ -34,6 +34,7 @@ export const ViewProjectDrawer = ({ project }) => {
                         WebkitBoxOrient: "vertical",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
+                        mb: 0.5
                     }}
                 >
                     {project.name}

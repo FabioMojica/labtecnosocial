@@ -233,7 +233,7 @@ export function ProjectsListPage() {
                     <SearchBar
                         data={projects}
                         fields={["name"]}
-                        placeholder="Buscar proyectos..."
+                        placeholder="Buscar proyectos por nombre..."
                         onResults={setFilteredProjects}
                     />
                     <FormControl sx={{ minWidth: 200 }}>

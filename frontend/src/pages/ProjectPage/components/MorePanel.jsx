@@ -75,11 +75,14 @@ export const MorePanel = ({ project, panelHeight }) => {
                                     primary={
                                         <>
                                             * El proyecto se encuentra asignado al programa "{project?.program?.description}" de la{' '}
-                                            <Link
+                                            <MuiLink
+                                            component={RouterLink}
                                                 to={`/planificacion/estrategica/${project?.program?.objective?.strategicPlan?.year}`}
+                                                
+                                                sx={{ color: 'orange', fontWeight: 'bold', textDecoration: 'none' }}
                                             >
                                                 planificación estratégica del año {project?.program?.objective?.strategicPlan?.year}
-                                            </Link>.
+                                            </MuiLink>.
                                         </>
                                     }
                                 />

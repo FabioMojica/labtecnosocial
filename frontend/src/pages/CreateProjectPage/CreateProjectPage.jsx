@@ -89,7 +89,7 @@ export const CreateProjectPage = () => {
             const formData = createProjectFormData(projectToSend);
             await callEndpoint(createOperationalProjectApi(formData));
             notify("Proyecto creado correctamente", "success");
-            navigate("/proyectos");
+            navigate('/proyectos', { replace: true });
         } catch (error) {
             notify(error?.message || "Error al crear el proyecto", "error");
         }

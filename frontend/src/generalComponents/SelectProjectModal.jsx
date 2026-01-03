@@ -152,7 +152,7 @@ export const SelectProjectModal = ({
 
               <TextField
                 fullWidth
-                placeholder="Buscar proyecto..."
+                placeholder="Buscar proyectos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 sx={{ mb: 2 }}
