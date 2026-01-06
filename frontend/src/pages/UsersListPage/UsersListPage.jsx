@@ -1,9 +1,8 @@
 import { useTheme } from '@mui/material/styles';
-import { Box, CssBaseline, IconButton, Stack, Toolbar, Typography, useMediaQuery } from "@mui/material";
-import MuiDrawer from '@mui/material/Drawer';
+import { Box, CssBaseline, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Toolbar, Typography, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useAuthEffects, useFetchAndLoad } from '../../hooks';
-import { useHeaderHeight, useNotification } from '../../contexts';
+import { useFetchAndLoad } from '../../hooks';
+import { useNotification } from '../../contexts';
 import {
     SearchBar,
     ButtonWithLoader,
@@ -15,10 +14,21 @@ import {
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import { useNavigate } from 'react-router-dom';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
-import { UserItem } from './components/UserItem';
 import { UsersDrawer } from './components/UsersDrawer';
 import { ViewUserDrawer } from './components/ViewUserDrawer';
 import { getAllUsersApi } from '../../api';
+import { UserItem } from './components/UserItem';
+
+
+const sortOptions = [
+    { label: "Nombre A → Z", value: "name_asc" },
+    { label: "Nombre Z → A", value: "name_desc" },
+    { label: "Más proyectos asignados", value: "projects_desc" },
+    { label: "Menos proyectos asignados", value: "projects_asc" },
+    { label: "Más antiguos", value: "created_asc" },
+    { label: "Menos antiguos", value: "created_desc" },
+];
+
 
 export function UsersListPage() {
     const theme = useTheme();
@@ -31,13 +41,22 @@ export function UsersListPage() {
     const [selectedUser, setSelectedUser] = useState(null);
     const navigate = useNavigate();
     const [error, setError] = useState(false);
-    const { handleLogout } = useAuthEffects();
+    const [sortBy, setSortBy] = useState("name_asc");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [roleFilter, setRoleFilter] = useState("all");
+    const [searchedUsers, setSearchedUsers] = useState([]);
+
+    useEffect(() => {
+        setSearchedUsers(users);
+    }, [users]);
+
+
 
     const handleUserClick = (user) => {
         setSelectedUser(user);
         if (isLaptop) {
             handleDrawerOpen();
-        } else { 
+        } else {
             navigate(`/usuario/${encodeURIComponent(user.email)}`)
         }
     };
@@ -73,7 +92,7 @@ export function UsersListPage() {
             <ErrorScreen
                 message={"Ocurrió un problema al obtener los usuarios"}
                 buttonText="Reintentar"
-                onButtonClick={() => { fetchAllUsers }}
+                onButtonClick={() => fetchAllUsers()}
             />
         );
     }
@@ -83,7 +102,7 @@ export function UsersListPage() {
     }
 
     if (!loading && users.length === 0) {
-        return ( 
+        return (
             <NoResultsScreen
                 message='Aún no tienes usuarios registrados'
                 buttonText="Crear uno"
@@ -93,42 +112,218 @@ export function UsersListPage() {
         );
     }
 
-    return ( 
-        <Box sx={{display: 'flex'}}>
+    const filterUsers = (usersArray) => {
+        return usersArray.filter((user) => {
+            const statusOk =
+                statusFilter === "all" || user.state === statusFilter;
+
+            const roleOk =
+                roleFilter === "all" || user.role === roleFilter;
+
+            return statusOk && roleOk;
+        });
+    };
+
+    const sortUsers = (usersArray) => {
+        const sorted = [...usersArray];
+
+        switch (sortBy) {
+            // 1️⃣ Alfabético
+            case "name_asc":
+                sorted.sort((a, b) =>
+                    `${a.firstName} ${a.lastName}`.localeCompare(
+                        `${b.firstName} ${b.lastName}`
+                    )
+                );
+                break;
+
+            case "name_desc":
+                sorted.sort((a, b) =>
+                    `${b.firstName} ${b.lastName}`.localeCompare(
+                        `${a.firstName} ${a.lastName}`
+                    )
+                );
+                break;
+
+            // 2️⃣ Más / menos proyectos
+            case "projects_desc":
+                sorted.sort(
+                    (a, b) => (b.projectCount ?? 0) - (a.projectCount ?? 0)
+                );
+                break;
+
+            case "projects_asc":
+                sorted.sort(
+                    (a, b) => (a.projectCount ?? 0) - (b.projectCount ?? 0)
+                );
+                break;
+
+            // 3️⃣ Más antiguos / menos antiguos
+            case "created_asc":
+                sorted.sort(
+                    (a, b) => new Date(a.created_at) - new Date(b.created_at)
+                );
+                break;
+
+            case "created_desc":
+                sorted.sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                );
+                break;
+
+            default:
+                break;
+        }
+
+        return sorted;
+    };
+
+    const displayedUsers = sortUsers(
+        filterUsers(searchedUsers)
+    );
+
+
+
+    return (
+
+        <Box sx={{ display: 'flex', p: 1, pr: { xs: 1, lg: 3 } }}>
             <CssBaseline />
-            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%', mt: { xs: 1, sm: 0} }}>
+
+            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
                 <Box sx={{
-                    display: 'flex', gap: 1, flexDirection: {
-                        xs: 'column-reverse',
-                        sm: 'row'
-                    }
+                    display: 'flex',
+                    gap: 1,
+                    flexDirection: 'column',
+                    width: '100%',
+                    mb: 1.5
                 }}>
-                    <SearchBar
-                        data={users}
-                        fields={["firstName", "lastName", "email"]}
-                        placeholder="Buscar usuarios..."
-                        onResults={setFilteredUsers}
+                    <Box display={'flex'} flexDirection={{ xs: 'column', sm: 'row' }} justifyContent={'space-between'} gap={1}>
+                        <Typography
+                            variant="h4"
+                            fontWeight="bold"
+                            sx={{
+                                fontSize: {
+                                    xs: '1.5rem',
+                                    sm: '2rem'
+                                },
+                                width: { xs: '100%', sm: 'auto' },
+                                textAlign: 'center',
+                            }}
+                        >
+                            Lista de usuarios{" "}
+                            <Typography
+                                component="span"
+                                color="text.secondary"
+                                fontWeight="normal"
+                            >
+                                ({users.length})
+                            </Typography>
+                        </Typography>
+
+
+
+
+                        <ButtonWithLoader onClick={handleCreateUser} sx={{
+                            gap: 1,
+                            flexDirection: "row",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            width: {
+                                xs: "100%",
+                                sm: 250,
+                            },
+                            minHeight: 40,
+                            backgroundColor: "primary.main",
+                            color: "primary.contrastText",
+                            "&:hover": {
+                                backgroundColor: "primary.dark",
+                            },
+                            "&.Mui-disabled": {
+                                backgroundColor: "action.disabledBackground",
+                                color: "action.disabled",
+                            },
+                        }}>
+                            <Typography>Crear Usuario</Typography>
+                            <AddCircleOutlineRoundedIcon fontSize='small' />
+                        </ButtonWithLoader>
+
+                    </Box>
+
+                    <Divider
+                        sx={{
+                            my: 1,
+                        }}
                     />
-                    <ButtonWithLoader onClick={handleCreateUser} sx={{
-                        gap: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
-                        width: {
-                            xs: '100%',
-                            sm: 200
-                        },
-                        minHeight: 40
-                    }}>
-                        <Typography>Crear Usuario</Typography>
-                        <AddCircleOutlineRoundedIcon fontSize='small' />
-                    </ButtonWithLoader>
+
+                    <Box display={'flex'} flexDirection={{ xs: 'column-reverse', sm: 'row' }} gap={{ xs: 2 }}>
+                        <SearchBar
+                            data={users}
+                            fields={["firstName", "lastName", "email"]}
+                            placeholder="Buscar usuarios..."
+                            onResults={setSearchedUsers}
+                        />
+                        <FormControl sx={{ minWidth: 200 }}>
+                            <InputLabel>Ordenar usuarios por</InputLabel>
+                            <Select
+                                value={sortBy}
+                                label="Ordenar usuarios por"
+                                onChange={(e) => setSortBy(e.target.value)}
+                                size="small"
+                            >
+                                {sortOptions.map((opt) => (
+                                    <MenuItem key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl size="small" sx={{ minWidth: 180 }}>
+                            <InputLabel>Estado</InputLabel>
+                            <Select
+                                value={statusFilter}
+                                label="Estado"
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <MenuItem value="all">Todos</MenuItem>
+                                <MenuItem value="habilitado">Solo habilitados</MenuItem>
+                                <MenuItem value="deshabilitado">Solo deshabilitados</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        <FormControl size="small" sx={{ minWidth: 180 }}>
+                            <InputLabel>Rol</InputLabel>
+                            <Select
+                                value={roleFilter}
+                                label="Rol"
+                                onChange={(e) => setRoleFilter(e.target.value)}
+                            >
+                                <MenuItem value="all">Todos</MenuItem>
+                                <MenuItem value="admin">Administradores</MenuItem>
+                                <MenuItem value="coordinator">Coordinadores</MenuItem>
+                            </Select>
+                        </FormControl>
+
+
+                    </Box>
+
+                    <Divider sx={{ mt: 1 }} />
                 </Box>
-                <Stack spacing={1}>
-                    {filteredUsers.length > 0 ? (
-                        filteredUsers.map(user => (
+
+
+
+
+                <Stack spacing={1.5}>
+                    {displayedUsers.length > 0 ? (
+                        displayedUsers.map(user => (
                             <UserItem key={user.id} user={user} onClick={() => handleUserClick(user)} />
-                        )) 
+                        ))
                     ) : (
-                        <Box sx={{ width: '100%', height: '50vh' }}>
-                            <NoResultsScreen message="Búsqueda de usuarios sin resultados" />
+                        <Box sx={{ width: '100%' }}>
+                            <NoResultsScreen
+                                sx={{ height: '50vh' }}
+                                message="Búsqueda de usuarios sin resultados"
+                            />
                         </Box>
                     )}
                 </Stack>

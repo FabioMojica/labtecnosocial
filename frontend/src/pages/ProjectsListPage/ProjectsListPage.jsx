@@ -235,58 +235,77 @@ export function ProjectsListPage() {
 
 
     return (
-        <Box sx={{ display: 'flex', p: 1 }}>
-            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%'}}>
+        <Box sx={{ display: 'flex', p: 1, pr: { xs: 1, lg: 3 } }}>
+            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
                 <Box sx={{
-                    display: 'flex', 
-                    gap: 2, 
+                    display: 'flex',
+                    gap: 1,
                     flexDirection: 'column',
                     width: '100%',
                     mb: 1.5
                 }}>
-                    <Box display={'flex'} justifyContent={'space-between'}>
-                        <Typography variant="h4" fontWeight={'bold'} sx={{
-                            fontSize: {
-                                xs: '1.5rem',
-                                sm: '2rem'
-                            },
-                            width: {xs: '100%', sm: 'auto'},
-                            textAlign: 'center',
-                        }}>{displayedTitle()}</Typography>
-
-                        { user.role === 'admin' && (
-                            <ButtonWithLoader
-                            onClick={handleCreateProject}
+                    <Box display={'flex'} flexDirection={{ xs: 'column', sm: 'row' }} justifyContent={'space-between'} gap={1}>
+                        <Typography
+                            variant="h4"
+                            fontWeight="bold"
                             sx={{
-                                gap: 1,
-                                flexDirection: "row",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                width: {
-                                    xs: "100%",
-                                    sm: 250,
+                                fontSize: {
+                                    xs: '1.5rem',
+                                    sm: '2rem'
                                 },
-                                minHeight: 40,
-                                backgroundColor: "primary.main",
-                                color: "primary.contrastText",
-                                "&:hover": {
-                                    backgroundColor: "primary.dark",
-                                },
-                                "&.Mui-disabled": {
-                                    backgroundColor: "action.disabledBackground",
-                                    color: "action.disabled",
-                                },
+                                width: { xs: '100%', sm: 'auto' },
+                                textAlign: 'center',
                             }}
                         >
+                            {displayedTitle()}{" "}
+                            <Typography
+                                component="span"
+                                color="text.secondary"
+                                fontWeight="normal"
+                            >
+                                ({projects.length})
+                            </Typography>
+                        </Typography>
 
-                            <Typography>Crear Proyecto</Typography>
-                            <AddCircleOutlineRoundedIcon fontSize='small' />
-                        </ButtonWithLoader>
-                        )
-                        }
+
+                        {user.role === 'admin' && (
+                            <ButtonWithLoader
+                                onClick={handleCreateProject}
+                                sx={{
+                                    gap: 1,
+                                    flexDirection: "row",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    width: {
+                                        xs: "100%",
+                                        sm: 250,
+                                    },
+                                    minHeight: 40,
+                                    backgroundColor: "primary.main",
+                                    color: "primary.contrastText",
+                                    "&:hover": {
+                                        backgroundColor: "primary.dark",
+                                    },
+                                    "&.Mui-disabled": {
+                                        backgroundColor: "action.disabledBackground",
+                                        color: "action.disabled",
+                                    },
+                                }}
+                            >
+
+                                <Typography>Crear Proyecto</Typography>
+                                <AddCircleOutlineRoundedIcon fontSize='small' />
+                            </ButtonWithLoader>
+                        )}
                     </Box>
 
-                    <Box display={'flex'} flexDirection={{ xs: 'column', sm: 'row'}} gap={{ xs: 2}}>
+                    <Divider
+                        sx={{
+                            my: 1,
+                        }}
+                    />
+
+                    <Box display={'flex'} flexDirection={{ xs: 'column-reverse', sm: 'row' }} gap={{ xs: 2 }}>
                         <SearchBar
                             data={projects}
                             fields={["name"]}
@@ -310,7 +329,7 @@ export function ProjectsListPage() {
                         </FormControl>
                     </Box>
 
-                    <Divider />
+                    <Divider sx={{ mt: 1 }} />
                 </Box>
 
                 <Stack spacing={1.5}>

@@ -268,7 +268,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
   return (
     <>
-      <Box sx={{ p: 2, borderTop: '1px solid #ccc', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+      <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
         {isDirty && (
           <Button
             variant="outlined"

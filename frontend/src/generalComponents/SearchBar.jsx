@@ -1,16 +1,17 @@
-import { TextField, InputAdornment } from "@mui/material";
+import { TextField, InputAdornment, IconButton } from "@mui/material";
 import React, { useState, useEffect } from "react";
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
 
 export function SearchBar({
   data,
   fields,
   placeholder = "Buscar...",
   onResults,
-})  {
+}) {
   const [query, setQuery] = useState("");
 
-  // Debounce: solo filtra 300ms después de que el usuario deja de escribir
+  // Debounce
   useEffect(() => {
     const handler = setTimeout(() => {
       if (!query.trim()) {
@@ -28,8 +29,13 @@ export function SearchBar({
       onResults(filtered, query);
     }, 300);
 
-    return () => clearTimeout(handler); 
+    return () => clearTimeout(handler);
   }, [query, data, fields, onResults]);
+
+  const handleClear = () => {
+    setQuery("");
+    onResults(data, "");
+  };
 
   return (
     <TextField
@@ -43,7 +49,17 @@ export function SearchBar({
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
-            <SearchRoundedIcon />
+            {query ? (
+              <IconButton
+                size="small"
+                onClick={handleClear}
+                edge="start"
+              >
+                <ClearRoundedIcon />
+              </IconButton>
+            ) : (
+              <SearchRoundedIcon />
+            )}
           </InputAdornment>
         ),
       }}

@@ -54,7 +54,7 @@ export const Item = ({
             }}
           >
             {leftComponents.map((component, index) => (
-              <Box key={index}>{component}</Box>
+              <Box key={index} sx={{width: '100%', display: 'flex', justifyContent: 'flex-start', }}>{component}</Box>
             ))}
           </Box>
 

@@ -1,4 +1,4 @@
-import { Avatar, Box, Typography, useTheme } from "@mui/material";
+import { Avatar, Box, Divider, Typography, useTheme } from "@mui/material";
 import { Item } from "../../../generalComponents";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import UpdateIcon from "@mui/icons-material/Update";
@@ -39,13 +39,14 @@ export const ProjectItem = ({ project, onClick }) => {
   return (
     <Item
       leftComponents={[
-        <Box
+        <Box sx={{ display: 'flex', flexDirection: 'column', width : '100%', height: '100%'}}>
+          <Box
           sx={{
             display: "flex",
             flexDirection: "row",
             gap: 1,
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: "start",
           }}
         >
           <Avatar
@@ -99,7 +100,18 @@ export const ProjectItem = ({ project, onClick }) => {
               {project.description}
             </Typography>
           </Box>
-        </Box>,
+        </Box>
+          <Divider
+          sx={{
+            display: {
+              xs: "block",
+              sm: "none",
+            },
+            my: 1,
+          }}
+        />
+
+        </Box>
       ]}
       rightComponents={[
         <Box

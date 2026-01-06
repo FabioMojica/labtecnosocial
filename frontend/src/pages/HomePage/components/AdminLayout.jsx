@@ -134,7 +134,7 @@ export const AdminLayout = () => {
                             title="Planificación Operativa"
                             description="Crea y edita planes operativos para tus proyectos"
                             icon={<TableChartRoundedIcon fontSize="large" />}
-                            link="/planificación/operativa"
+                            link="/planificacion/operativa"
                         />
                     </Grid>
                     <Grid size={{ xs: 6, md: 4 }}>

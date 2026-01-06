@@ -228,10 +228,10 @@ const StrategicPlanningDashboardPage = () => {
         </Box>
       </Box>
 
+      <Divider />
+
       {(!showColumnsView && !loadingPlan && !planData) && (
         <>
-        <Divider />
-
         <NoResultsScreen
           message="Año sin plan estratégico registrado"
           buttonText={
