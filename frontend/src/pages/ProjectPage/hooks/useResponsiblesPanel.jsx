@@ -28,7 +28,6 @@ export const useResponsiblesPanel = (
     setProjectResponsibles(updatedProjectResponsibles);
     setPreEliminados(updatedPreEliminados);
     notifyParent(updatedProjectResponsibles, updatedPreEliminados, preAnadidos);
-    // notify(`${user.firstName} ${user.lastName} se movió a pre eliminados`, "info");
   };
 
   const restoreResponsible = (user) => {
@@ -39,8 +38,6 @@ export const useResponsiblesPanel = (
     setProjectResponsibles(updatedProjectResponsibles);
 
     notifyParent(updatedProjectResponsibles, updatedPreEliminados, preAnadidos);
-
-    //notify(`${user.firstName} ${user.lastName} se movió a responsables del proyecto`, "success");
   };
 
   const removePreResponsible = (user) => {
@@ -51,8 +48,6 @@ export const useResponsiblesPanel = (
 
       return updatedPreAnadidos;
     });
-
-    //notify(`${user.firstName} ${user.lastName} se removió de pre añadidos`, "info");
   };
 
   const addPreResponsible = (user) => {

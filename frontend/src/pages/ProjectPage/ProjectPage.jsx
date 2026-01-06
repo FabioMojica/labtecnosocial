@@ -66,7 +66,7 @@ export const ProjectPage = () => {
             projectUpdatedRef.current = resp;
             setError(false);
         } catch (err) {
-            notify(err?.message, "error");
+            notify("Ocurrió un error inesperado al obtener el proyecto. Inténtalo de nuevo más tarde.", "error");
             setError(true);
         }
     }
@@ -124,7 +124,8 @@ export const ProjectPage = () => {
             setIsDirty(false);
             notify("Proyecto actualizado exitosamente", "success");
         } catch (err) {
-            notify(err?.message, "error");
+            notify("Ocurrió un error inesperado al actualizar el proyecto. Inténtalo de nuevo más tarde.", "error");
+
         }
     };
 

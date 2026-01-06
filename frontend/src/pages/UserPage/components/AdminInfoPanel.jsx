@@ -83,7 +83,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
 
     } catch (error) {
       setError(true);
-      notify(err?.message, "error");
+      notify("Ocurrió un error inesperado al obtener el usuario. Inténtalo de nuevo más tarde.", "error");
     }
   }
 
@@ -303,7 +303,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
       if (err?.response?.data?.message) {
         notify(err?.response?.data?.message, "error");
       } else {
-        notify("Ocurrió un error al guardar los cambios. Inténtalo de nuevo más tarde.", "error");
+        notify("Ocurrió un error inesperado al actualizar el usuario. Inténtalo de nuevo más tarde.", "error");
       }
     } finally {
       setLoadingUpdateUser(false);
@@ -733,7 +733,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
                     if (err?.response?.data?.message) {
                       notify(err?.response?.data?.message, "error");
                     } else {
-                      notify("Ocurrió un error al cambiar de contraseña al usuario. Inténtalo de nuevo más tarde.", "error");
+                      notify("Ocurrió un error inesperado al cambiar de contraseña al usuario. Inténtalo de nuevo más tarde.", "error");
                     }
                   } finally {
                     setLoadingChangePassword(false);

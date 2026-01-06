@@ -17,6 +17,7 @@ import XRouter from './routes/apis/X.routes.js';
 import cookieParser from 'cookie-parser';
 import operationalPlanRoutes from './routes/operationalPlan.routes.js';
 
+import multer from 'multer';
 
 dotenv.config();
 
@@ -49,7 +50,6 @@ if (process.env.NODE_ENV !== 'test') {
 
 
 app.use('/api/uploads', express.static(path.join(process.cwd(), 'uploads')));
-
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', operationalProjectRoutes); 
@@ -60,5 +60,28 @@ app.use('/api/apis/facebook', facebookRouter);
 app.use('/api/apis/instagram', instagramRouter);
 app.use('/api/apis/X', XRouter);
 app.use('/api/apis/project-integration', projectIntegrationRouter);
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({
+        message: 'La imagen es demasiado pesada. Máximo permitido: 2MB'
+      });
+    }
+
+    return res.status(400).json({
+      message: `Error al subir archivo: ${err.message}`
+    });
+  }
+
+  if (err) {
+    return res.status(500).json({
+      message: err.message || 'Error interno del servidor'
+    });
+  }
+
+  next();
+});
+
 
 export default app;

@@ -83,7 +83,7 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHa
                 setInitialRows(cloneDeep(transformedRows));
                 setHasLoadError(false);
             } catch (error) {
-                notify('Error al cargar el plan operativo. Inténtalo de nuevo más tarde', 'error');
+                notify("Ocurrió un error inesperado al obtener el plan operativo. Inténtalo de nuevo más tarde.", 'error');
                 setHasLoadError(true);
             } finally {
                 setLoadingProjectDetails(false);
@@ -510,7 +510,7 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHa
 
             notify('Plan operativo guardado correctamente.', 'success');
         } catch (error) {
-            notify('Ocurrió un error al guardar el plan opertivo. Inténtalo de nuevo más tarde', 'error');
+            notify("Ocurrió un error inesperado al guardar el plan operativo. Inténtalo de nuevo más tarde.", 'error');
         } finally {
             setSaving(false);
         }
@@ -618,8 +618,6 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHa
                                                     backgroundColor: hoveredRow === index ? theme.palette.mode === 'light'
                                                         ? 'rgba(0, 0, 0, 0.05)'
                                                         : 'rgba(255, 255, 255, 0.08)' : 'transparent',
-
-                                                    transition: 'background-color 0.2s ease',
                                                     borderRadius: 1,
                                                     padding: 0.5,
                                                     transition: 'background-color 0.2s',

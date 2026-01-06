@@ -262,7 +262,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
     } catch (error) {
       console.error('Error guardando plan:', error);
-      notify('Error al guardar el plan estratégico. Intenta de nuevo.', 'error');
+      notify("Ocurrió un error inesperado al guardar el plan estratégico. Inténtalo de nuevo más tarde.", 'error');
     }
   };
 

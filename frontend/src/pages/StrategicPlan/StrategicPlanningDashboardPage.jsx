@@ -84,7 +84,7 @@ const StrategicPlanningDashboardPage = () => {
       setAllPlans(res);
     } catch (error) {
       setErrorPlans(true);
-      notify("Error obteniendo planes estratégicos. Inténtalo de nuevo más tarde.", "error");
+      notify("Ocurrió un error inesperado al obtener los planes estratégicos. Inténtalo de nuevo más tarde.", "error");
     }
   };
 
@@ -110,7 +110,7 @@ const StrategicPlanningDashboardPage = () => {
         setShowColumnsView(false);
       } else {
         setErrorPlan(true);
-        notify(`Error obteniendo el plan estratégico del año ${yearToFetch}. Inténtalo de nuevo más tarde.`, "error");
+        notify(`Ocurrió un error inesperado obteniendo el plan estratégico del año ${yearToFetch}. Inténtalo de nuevo más tarde.`, "error");
       }
     } finally {
       setLoadingPlan(false);

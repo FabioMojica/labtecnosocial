@@ -30,7 +30,7 @@ export const MorePanel = ({ project, panelHeight }) => {
             navigate('/proyectos');
             notify("Proyecto eliminado correctamente", "success");
         } catch (err) {
-            notify(err.message, "error");
+            notify("Ocurrió un error inesperado al eliminar el proyecto. Inténtalo de nuevo más tarde.", "error");
         }
     };
 

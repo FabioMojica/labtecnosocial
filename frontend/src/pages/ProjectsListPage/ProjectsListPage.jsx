@@ -112,7 +112,8 @@ export function ProjectsListPage() {
             setFilteredProjects(response);
             setError(false);
         } catch (err) { 
-            notify(err?.message, "error");
+            notify("Ocurrió un error inesperado al obtener los proyectos. Inténtalo de nuevo más tarde.", "error");
+
             setError(true);
         }
     }

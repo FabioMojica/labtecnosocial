@@ -54,7 +54,6 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                 <Typography
                     sx={{
                         padding: '4px',
-                        backgroundColor: '#f5f5f5',
                         borderRadius: 1,
                         whiteSpace: 'normal',
                         wordBreak: 'break-word',

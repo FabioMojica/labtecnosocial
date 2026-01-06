@@ -52,7 +52,7 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
       onClose();
       notify(`Plan estratégico del año ${year} eliminado correctamente.`, 'success');
     } catch (err) {
-      notify(`Error eliminando el plan estratégico del año ${year}. Inténtalo de nuevo más tarde.`, 'error');
+      notify(`Ocurrio un error inesperado al eliminar el plan estratégico del año ${year}. Inténtalo de nuevo más tarde.`, 'error');
     }
   };
 

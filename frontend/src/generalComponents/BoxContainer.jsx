@@ -23,11 +23,9 @@ export const BoxContainer = ({
     borderRadius: borderRadius || "8px",
     padding: padding || "16px",
     backgroundColor: backgroundColor || resolvedBackgroundColor,
-    boxShadow: boxShadow || resolvedBoxShadowColor,
     boxShadow:
       theme.palette.mode === 'dark'
         ? '0 4px 12px rgba(0,0,0,1)' : 3,
-
     display: "flex",
     flexDirection: "column",
   };

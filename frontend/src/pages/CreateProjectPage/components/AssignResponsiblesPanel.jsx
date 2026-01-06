@@ -59,7 +59,7 @@ useEffect(() => {
 
             setError(false);
         } catch (err) {
-            notify("Error al obtener los usuarios. Inténtalo de nuevo más tarde.", "error");
+            notify("Ocurrió un error inesperado al obtener los usuarios. Inténtalo de nuevo más tarde.", "error");
             setError(true);
         }
     };
@@ -158,8 +158,6 @@ const handleRemoveResponsible = useCallback((email) => {
                                     backgroundColor: theme.palette.primary.main,
                                 },
                                 p: 1,
-                                display: "grid",
-                                gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
                                 display: assignedUsers.length > 0 ? "grid" : "flex",
                                 gridTemplateColumns: assignedUsers.length > 0 ? "repeat(auto-fill, minmax(100px, 1fr))" : undefined,
                                 gap: 1,
@@ -180,7 +178,6 @@ const handleRemoveResponsible = useCallback((email) => {
                                             gap: 1,
                                             p: 1,
                                             borderRadius: 2,
-                                            boxShadow: 1,
                                             backgroundColor: theme.palette.background.paper,
                                             width: 100,
                                             height: 110,
@@ -317,12 +314,7 @@ const handleRemoveResponsible = useCallback((email) => {
                             >
                                 {filteredUsers.length > 0 ? (
                                     filteredUsers.map((user) => (
-                                        // <AssignResponsibleCheckBoxItem
-                                        //     key={user.email}
-                                        //     responsible={user}
-                                        //     checked={selectedResponsibles.has(user.email)}
-                                        //     onChange={(checked) => handleToggleResponsible(user.email, checked)}
-                                        // />
+                                    
                                         <MemoizedCheckBoxItem
                                             key={user.email}
                                             responsible={user}

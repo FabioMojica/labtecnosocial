@@ -66,13 +66,25 @@ export const CreateUserPage = () => {
                 role: user.role,
                 state: user.state,
             };
-            
+
             const formData = createUserFormData(userToSend);
             await callEndpoint(createUserApi(formData));
             notify("Usuario creado correctamente", "success");
             navigate("/usuarios");
         } catch (error) {
-            notify(error?.message || "Error al crear el usuario. Inténtalo de nuevo más tarde.", "error");
+            console.log("ERROR CREATE USER:", error);
+
+            if (error?.response?.status === 413) {
+                notify(error.response.data.message || "La imagen supera el tamaño máximo permitido (2MB)", "error");
+                return;
+            }
+
+            notify(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Ocurrió un error inesperado al crear el usuario. Inténtalo de nuevo más tarde.",
+                "error"
+            );
         }
     };
 
@@ -102,21 +114,21 @@ export const CreateUserPage = () => {
     };
 
     const isFormValid = () => {
-    return (
-        user.firstName?.trim() &&
-        user.lastName?.trim() &&
-        user.email?.trim() &&
-        user.password?.trim() &&
-        user.role?.trim() &&
-        user.state?.trim() &&
-        !user.firstNameError &&
-        !user.lastNameError &&
-        !user.emailError &&
-        !user.passwordError
-    );
-};
+        return (
+            user.firstName?.trim() &&
+            user.lastName?.trim() &&
+            user.email?.trim() &&
+            user.password?.trim() &&
+            user.role?.trim() &&
+            user.state?.trim() &&
+            !user.firstNameError &&
+            !user.lastNameError &&
+            !user.emailError &&
+            !user.passwordError
+        );
+    };
 
-    
+
     if (loading) return <FullScreenProgress text="Creando el usuario" />
 
     return (
@@ -131,7 +143,7 @@ export const CreateUserPage = () => {
             />
 
             <ActionBarButtons
-                visible={isDirty} 
+                visible={isDirty}
                 buttons={[
                     {
                         label: "Cancelar",
@@ -141,12 +153,12 @@ export const CreateUserPage = () => {
                     },
                     {
                         label: "Crear usuario",
-                        variant: "contained", 
+                        variant: "contained",
                         color: "primary",
                         icon: <LibraryAddCheckRoundedIcon />,
                         onClick: handleSave,
                         triggerOnEnter: true,
-                        disabled:!isFormValid(),
+                        disabled: !isFormValid(),
                     },
                 ]}
             />

@@ -38,7 +38,7 @@ export const APIsDashboardPage = () => {
             setError(false);
         } catch (error) {
             setError(true);
-            notify('Error al cargar lista de proyectos. Inténtalo de nuevo más tarde.', 'error');
+            notify('Ocurrió un error inesperado al cargar lista de proyectos. Inténtalo de nuevo más tarde.', 'error');
         }
     };
 

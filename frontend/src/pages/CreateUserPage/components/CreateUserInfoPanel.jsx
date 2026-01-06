@@ -26,6 +26,8 @@ import {
 import { roleConfig, stateConfig } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
 
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
 export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
@@ -142,7 +144,6 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
         break;
     }
 
-    // setErrors((prev) => ({ ...prev, [field]: error || "" }));
     setErrors((prev) => {
       const newErrors = { ...prev, [field]: error || "" };
       onChange?.({ [`${field}Error`]: newErrors[field] });
@@ -264,14 +265,11 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
             variant="filled"
             type={showPassword ? "text" : "password"}
             value={user?.password ?? ""}
-            // onChange={(e) => onChange?.({ password: e.target.value })}
-            // onBlur={(e) => validateField("password", e.target.value)}
             onChange={(e) => {
               onChange?.({ password: e.target.value });
-              validateField("password", e.target.value); // VALIDAR MIENTRAS ESCRIBE
+              validateField("password", e.target.value);
             }}
             onBlur={(e) => validateField("password", e.target.value)}
-
             maxLength={8}
             error={!!errors.password}
             InputProps={{

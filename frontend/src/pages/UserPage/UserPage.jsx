@@ -40,7 +40,7 @@ export const UserPage = () => {
             projectUpdatedRef.current = resp;
             setError(false);
         } catch (err) {
-            notify(err?.message, "error");
+            notify("Ocurrió un error inesperado al obtener el usuario. Inténtalo de nuevo más tarde.", "error");
             setError(true);
         }
     }

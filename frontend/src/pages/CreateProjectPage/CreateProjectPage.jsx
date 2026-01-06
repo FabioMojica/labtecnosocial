@@ -91,7 +91,7 @@ export const CreateProjectPage = () => {
             notify("Proyecto creado correctamente", "success");
             navigate('/proyectos', { replace: true });
         } catch (error) {
-            notify(error?.message || "Error al crear el proyecto", "error");
+            notify(error?.message || "Ocurrió un error inesperado al crear el proyecto. Inténtalo de nuevo más tarde.", "error");
         }
     };
 

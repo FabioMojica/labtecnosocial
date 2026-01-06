@@ -446,7 +446,7 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
         setHasLoadError(false);
       } catch (error) {
         setHasLoadError(true);
-        notify('Error al obtener la planificacíon operativa del proyecto. Inténtalo de nuevo más tarde.', 'error');
+        notify("Ocurrió un error inesperado al obtener la planificación operativa del proyecto. Inténtalo de nuevo más tarde.", 'error');
       } finally {
         setLoadingRows(false);
       }

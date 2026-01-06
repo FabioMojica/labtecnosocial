@@ -47,7 +47,7 @@ const OperationalPlanningDashboardPage = () => {
       setError(false);
     } catch (error) {
       setError(true);
-      notify('Error al cargar lista de proyectos. Inténtalo de nuevo más tarde.', 'error');
+      notify("Ocurrió un error inesperado al obtener la lista de proyectos. Inténtalo de nuevo más tarde.", 'error');
     }
   };
 
@@ -98,7 +98,7 @@ const OperationalPlanningDashboardPage = () => {
       notify('Planificación operativa del proyecto eliminada correctamente.', 'success');
       setHasPlan(false);
     } catch (err) {
-      notify('Error al eliminar la planificación operativa del proyecto. Inténtalo de nuevo más tarde.', 'error');
+      notify("Ocurrió un error inesperado al eliminar la planificación operativa del proyecto. Inténtalo de nuevo más tarde.", 'error');
     } finally {
       setDeleteDialogOpen(false);
     }

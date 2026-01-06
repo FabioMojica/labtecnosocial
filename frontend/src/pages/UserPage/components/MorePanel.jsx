@@ -40,7 +40,7 @@ export const MorePanel = ({ user, panelHeight }) => {
             navigate('/usuarios');
             notify("Usuario eliminado correctamente del sistema", "success");
         } catch (err) {
-            notify(err.message, "error");
+            notify("Ocurrió un error inesperado al eliminar el usuario. Inténtalo de nuevo más tarde.", "error");
         }
     };
 

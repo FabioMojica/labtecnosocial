@@ -136,7 +136,7 @@ const EditViewTeamModal = ({ open, onClose, teamMembers, onSave, maxLength= 100 
             {members.map((member, index) => (
 
               <Box key={index} sx={{
-                width: '10%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, width: '100%', mb: 1
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, width: '100%', mb: 1
               }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, marginBottom: 0.8 }}>
                   {index + 1}.

@@ -27,7 +27,7 @@ const EditProjectModal = ({ open, onClose, project, onSave }) => {
       
       setProjects(data);
     } catch (error) {
-      notify('Error al cargar los proyectos operativos. Inténtalo de nuevo más tarde.', 'error');
+      notify('Ocurrió un error inesperado al obtener los proyectos. Inténtalo de nuevo más tarde.', 'error');
     } finally {
       setLoading(false);
     }
