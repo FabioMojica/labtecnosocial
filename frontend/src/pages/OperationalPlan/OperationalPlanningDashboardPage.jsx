@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Tooltip, IconButton } from "@mui/material";
+import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Tooltip, IconButton, Divider } from "@mui/material";
 import OperationalPlanningTable from "./OperationalPlannigTable";
 import OperationalPlanningReadOnlyTable from "./OperationalPlanningReadOnlyTable";
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
@@ -30,14 +30,14 @@ const OperationalPlanningDashboardPage = () => {
 
   const navigate = useNavigate();
 
-  const [hasPlan, setHasPlan] = useState(true); 
+  const [hasPlan, setHasPlan] = useState(true);
 
   useEffect(() => {
     if (selectedProjectId) {
       setHasPlan(true);
-    } 
+    }
   }, [selectedProjectId]);
-  
+
 
   const fetchProjects = async () => {
     try {
@@ -92,7 +92,7 @@ const OperationalPlanningDashboardPage = () => {
   };
 
   const handleDeleteOperationalPlanningTable = async () => {
-    if (!selectedProjectId) return; 
+    if (!selectedProjectId) return;
     try {
       await deleteOperationalPlanningApi(selectedProjectId);
       notify('Planificación operativa del proyecto eliminada correctamente.', 'success');
@@ -130,11 +130,12 @@ const OperationalPlanningDashboardPage = () => {
           mb: 1,
         }}
       >
-        <Typography variant="h4" sx={{
+        <Typography variant="h4" fontWeight={'bold'} sx={{
           fontSize: {
             xs: '1.5rem',
             sm: '2rem'
-          }
+          },
+          textAlign: 'center',
         }}>Planificación Operativa</Typography>
 
         <Box sx={{
@@ -144,7 +145,7 @@ const OperationalPlanningDashboardPage = () => {
             sm: 'row'
           },
           alignItems: 'center',
-          gap: {xs: 0.5, sm: 2}
+          gap: { xs: 0.5, sm: 2 }
         }}>
           <SelectProjectModal
             projects={projects}
@@ -181,7 +182,6 @@ const OperationalPlanningDashboardPage = () => {
                 <MenuItem value="readonly">Solo lectura</MenuItem>
               </Select>
             </FormControl>
-
           )}
 
           {selectedProjectId && hasPlan && (
@@ -192,11 +192,17 @@ const OperationalPlanningDashboardPage = () => {
                 justifyContent: 'center',
               }}
             >
-              <Tooltip title="Eliminar plan operativo">
+              <Tooltip title="Eliminar el plan operativo">
+
                 <IconButton
-                  color="error"
                   onClick={() => setDeleteDialogOpen(true)}
-                  sx={{ ml: 1 }}
+                  color="error"
+                  sx={{
+                    boxShadow: 3,
+                    width: 40,
+                    height: 40,
+                    ml: 1,
+                  }}
                   disabled={isEditing}
                 >
                   <DeleteOutlineIcon />
@@ -206,6 +212,8 @@ const OperationalPlanningDashboardPage = () => {
           )}
         </Box>
       </Box>
+
+      <Divider />
 
       <DeleteOperationalPlanningTableDialog
         open={deleteDialogOpen}
@@ -225,7 +233,7 @@ const OperationalPlanningDashboardPage = () => {
             hasPlan={hasPlan}
           />
         ) : (
-          <OperationalPlanningReadOnlyTable 
+          <OperationalPlanningReadOnlyTable
             projectId={selectedProjectId}
             onProjectIdChange={setSelectedProjectId}
             project={selectedProject}
@@ -240,7 +248,7 @@ const OperationalPlanningDashboardPage = () => {
           message="Seleccione un proyecto para visualizar la planificación operativa"
           icon={<TouchAppRoundedIcon sx={{ fontSize: 90, color: 'text.secondary' }} />}
           sx={{
-            height: '50vh',
+            height: '60vh',
             justifyContent: 'center',
           }}
         />

@@ -529,7 +529,7 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHa
 
     return (
         <>
-            <Box sx={{ p: 1, borderTop: '1px solid #ccc' }}>
+            <Box sx={{ p: 1 }} >
                 <Box sx={{ display: 'flex', flex: 'row', justifyContent: 'flex-end', gap: 2, marginBottom: 2 }}>
 
                     {hasChanges() && (

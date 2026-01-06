@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import {
   Box, Typography, CircularProgress, FormControl, TextField, Autocomplete, IconButton, Tooltip,
-  useTheme
+  useTheme,
+  Divider
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
@@ -140,39 +141,73 @@ const defaultColumns = [
       );
     }
   },
+  // {
+  //   field: 'period',
+  //   headerName: 'Periodo',
+  //   flex: 1,
+  //   minWidth: 150,
+  //   sortable: false,
+  //   renderCell: (params) => {
+  //     const { start = '', end = '' } = params.value || {};
+
+  //     if (!start && !end) return null;
+
+  //     return (
+  //       <div style={{
+  //         whiteSpace: 'normal',
+  //         wordBreak: 'break-word',
+  //         lineHeight: 1.4,
+  //         width: '100%',
+  //         display: 'flex',
+  //         flexDirection: 'column',
+  //         gap: '4px'
+  //       }}>
+  //         <div>
+  //           <strong>Inicio:</strong>
+  //           <div>{formatDate(start)}</div>
+  //         </div>
+  //         <div>
+  //           <strong>Fin:</strong>
+  //           <div>{formatDate(end)}</div>
+  //         </div>
+  //       </div>
+  //     );
+  //   },
+  // }
   {
-    field: 'period',
-    headerName: 'Periodo',
-    flex: 1,
-    minWidth: 150,
-    sortable: false,
-    renderCell: (params) => {
-      const { start = '', end = '' } = params.value || {};
+  field: 'period',
+  headerName: 'Periodo',
+  flex: 1,
+  minWidth: 150,
+  sortable: false,
+  renderCell: (params) => {
+    const { start = '', end = '' } = params.value || {};
 
-      if (!start && !end) return null;
+    if (!start && !end) return null;
 
-      return (
-        <div style={{
-          whiteSpace: 'normal',
-          wordBreak: 'break-word',
-          lineHeight: 1.4,
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '4px'
-        }}>
-          <div>
-            <strong>Inicio:</strong>
-            <div>{formatDate(start)}</div>
-          </div>
-          <div>
-            <strong>Fin:</strong>
-            <div>{formatDate(end)}</div>
-          </div>
+    return (
+      <div style={{
+        whiteSpace: 'normal',
+        wordBreak: 'break-word',
+        lineHeight: 1.4,
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px'
+      }}>
+        <div>
+          <strong>Inicio:</strong>
+          <div>{start ? formatDate(start) : '-'}</div> {/* ✅ solo formatea si hay fecha */}
         </div>
-      );
-    },
-  }
+        <div>
+          <strong>Fin:</strong>
+          <div>{end ? formatDate(end) : '-'}</div> {/* ✅ solo formatea si hay fecha */}
+        </div>
+      </div>
+    );
+  },
+}
+
 
 ];
 
@@ -219,8 +254,10 @@ const handleExportExcel = (rows, project) => {
         row.resources[i] || '',
         i === 0 ? row.budget.amount : '',
         i === 0 ? row.budget.description : '',
-        i === 0 ? row.period.start : '',
-        i === 0 ? row.period.end : ''
+        // i === 0 ? row.period.start : '',
+        // i === 0 ? row.period.end : ''
+        i === 0 ? (row.period.start ? formatDate(row.period.start) : '-') : '', // ✅ aquí
+  i === 0 ? (row.period.end ? formatDate(row.period.end) : '-') : ''      // ✅ aquí
       ]);
     }
     ws_data.push([]);

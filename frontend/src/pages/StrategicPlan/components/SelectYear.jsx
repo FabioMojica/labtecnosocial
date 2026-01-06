@@ -52,7 +52,7 @@ export const SelectYear = ({ disabled, selectedYear, onChange }) => {
             transform: "translate(-50%, -50%)",
             width: { xs: "90%", sm: 400 },
             bgcolor: "background.paper",
-            boxShadow: 24,
+            boxShadow: 24, 
             p: 3,
           }}
         >

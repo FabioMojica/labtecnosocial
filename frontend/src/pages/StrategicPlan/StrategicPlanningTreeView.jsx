@@ -230,6 +230,7 @@ const StrategicPlanningTreeView = ({ data, year }) => {
           boxShadow: 4,
           borderRadius: 3,
           minWidth: { xs: 700, sm: 'auto' },
+          width: '100%',
           display: 'inline-block',
         }}
       >

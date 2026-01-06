@@ -2,7 +2,8 @@ import { styled, useTheme } from '@mui/material/styles';
 import MuiDrawer from '@mui/material/Drawer';
 import {
     Box, IconButton, Stack, Toolbar, Typography, useMediaQuery,
-    Select, MenuItem, FormControl, InputLabel
+    Select, MenuItem, FormControl, InputLabel,
+    Divider
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useAuthEffects, useFetchAndLoad } from '../../hooks';
@@ -70,14 +71,14 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 const sortOptions = [
     { label: "Nombre A → Z", value: "name_asc" },
     { label: "Nombre Z → A", value: "name_desc" },
-    { label: "Responsables ↑", value: "responsibles_asc" },
-    { label: "Responsables ↓", value: "responsibles_desc" },
-    { label: "Integraciones ↑", value: "integrations_asc" },
-    { label: "Integraciones ↓", value: "integrations_desc" },
-    { label: "Fecha creación ↑", value: "created_asc" },
-    { label: "Fecha creación ↓", value: "created_desc" },
-    { label: "Fecha actualización ↑", value: "updated_asc" },
-    { label: "Fecha actualización ↓", value: "updated_desc" },
+    { label: "Menos responsables", value: "responsibles_asc" },
+    { label: "Más responsables", value: "responsibles_desc" },
+    { label: "Menos integraciones", value: "integrations_asc" },
+    { label: "Más integraciones", value: "integrations_desc" },
+    { label: "Más antiguos", value: "created_asc" },
+    { label: "Menos antiguos", value: "created_desc" },
+    { label: "Menos actualizados", value: "updated_asc" },
+    { label: "Más actualizados", value: "updated_desc" },
 ];
 
 export function ProjectsListPage() {
@@ -94,6 +95,16 @@ export function ProjectsListPage() {
     const [error, setError] = useState(false);
     const { handleLogout } = useAuthEffects();
     const [sortBy, setSortBy] = useState("name_asc");
+    const displayedTitle = () => {
+        if (user.role === 'admin') {
+            return "Lista de proyectos"
+        } else if (user.role === 'coordinator') {
+            return "Proyectos asignados"
+        } else {
+            notify("Rol no encontrado, se cerrará la sesión", "error");
+            handleLogout();
+        }
+    }
 
     const handleProjectClick = (project) => {
         setSelectedProject(project);
@@ -111,7 +122,7 @@ export function ProjectsListPage() {
             setProjects(response);
             setFilteredProjects(response);
             setError(false);
-        } catch (err) { 
+        } catch (err) {
             notify("Ocurrió un error inesperado al obtener los proyectos. Inténtalo de nuevo más tarde.", "error");
 
             setError(true);
@@ -186,14 +197,14 @@ export function ProjectsListPage() {
                     onButtonClick={() => navigate("/proyectos/crear")}
                     buttonSx={{
                         backgroundColor: "primary.main",
-                            color: "primary.contrastText",
-                            "&:hover": {
-                                backgroundColor: "primary.dark",
-                            },
-                            "&.Mui-disabled": {
-                                backgroundColor: "action.disabledBackground",
-                                color: "action.disabled",
-                            },
+                        color: "primary.contrastText",
+                        "&:hover": {
+                            backgroundColor: "primary.dark",
+                        },
+                        "&.Mui-disabled": {
+                            backgroundColor: "action.disabledBackground",
+                            color: "action.disabled",
+                        },
                     }}
                 />;
             case "coordinator":
@@ -222,66 +233,87 @@ export function ProjectsListPage() {
 
     const displayedProjects = sortProjects(filteredProjects, sortBy);
 
+
     return (
-        <Box sx={{ display: 'flex' }}>
-            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%', mt: { xs: 1, sm: 0.5 } }}>
+        <Box sx={{ display: 'flex', p: 1 }}>
+            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%'}}>
                 <Box sx={{
-                    display: 'flex', gap: 1.5, flexDirection: {
-                        xs: 'column-reverse',
-                        sm: 'row'
-                    }
+                    display: 'flex', 
+                    gap: 2, 
+                    flexDirection: 'column',
+                    width: '100%',
+                    mb: 1.5
                 }}>
-                    <SearchBar
-                        data={projects}
-                        fields={["name"]}
-                        placeholder="Buscar proyectos por nombre..."
-                        onResults={setFilteredProjects}
-                    />
-                    <FormControl sx={{ minWidth: 200 }}>
-                        <InputLabel>Ordenar por</InputLabel>
-                        <Select
-                            value={sortBy}
-                            label="Ordenar por"
-                            onChange={(e) => setSortBy(e.target.value)}
-                            size="small"
+                    <Box display={'flex'} justifyContent={'space-between'}>
+                        <Typography variant="h4" fontWeight={'bold'} sx={{
+                            fontSize: {
+                                xs: '1.5rem',
+                                sm: '2rem'
+                            },
+                            width: {xs: '100%', sm: 'auto'},
+                            textAlign: 'center',
+                        }}>{displayedTitle()}</Typography>
+
+                        { user.role === 'admin' && (
+                            <ButtonWithLoader
+                            onClick={handleCreateProject}
+                            sx={{
+                                gap: 1,
+                                flexDirection: "row",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                width: {
+                                    xs: "100%",
+                                    sm: 250,
+                                },
+                                minHeight: 40,
+                                backgroundColor: "primary.main",
+                                color: "primary.contrastText",
+                                "&:hover": {
+                                    backgroundColor: "primary.dark",
+                                },
+                                "&.Mui-disabled": {
+                                    backgroundColor: "action.disabledBackground",
+                                    color: "action.disabled",
+                                },
+                            }}
                         >
-                            {sortOptions.map((opt) => (
-                                <MenuItem key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
 
-                    <ButtonWithLoader
-                        onClick={handleCreateProject}
-                        sx={{
-                            gap: 1,
-                            flexDirection: "row",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            width: {
-                                xs: "100%",
-                                sm: 300,
-                            },
-                            minHeight: 40,
-                            backgroundColor: "primary.main",
-                            color: "primary.contrastText",
-                            "&:hover": {
-                                backgroundColor: "primary.dark",
-                            },
-                            "&.Mui-disabled": {
-                                backgroundColor: "action.disabledBackground",
-                                color: "action.disabled",
-                            },
-                        }}
-                    >
+                            <Typography>Crear Proyecto</Typography>
+                            <AddCircleOutlineRoundedIcon fontSize='small' />
+                        </ButtonWithLoader>
+                        )
+                        }
+                    </Box>
 
-                        <Typography>Crear Proyecto</Typography>
-                        <AddCircleOutlineRoundedIcon fontSize='small' />
-                    </ButtonWithLoader>
+                    <Box display={'flex'} flexDirection={{ xs: 'column', sm: 'row'}} gap={{ xs: 2}}>
+                        <SearchBar
+                            data={projects}
+                            fields={["name"]}
+                            placeholder="Buscar proyectos por nombre..."
+                            onResults={setFilteredProjects}
+                        />
+                        <FormControl sx={{ minWidth: 200 }}>
+                            <InputLabel>Ordenar proyectos por</InputLabel>
+                            <Select
+                                value={sortBy}
+                                label="Ordenar proyectos por"
+                                onChange={(e) => setSortBy(e.target.value)}
+                                size="small"
+                            >
+                                {sortOptions.map((opt) => (
+                                    <MenuItem key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
+
+                    <Divider />
                 </Box>
-                <Stack spacing={1}>
+
+                <Stack spacing={1.5}>
                     {displayedProjects.length > 0 ? (
                         displayedProjects.map(project => (
                             <ProjectItem
@@ -293,7 +325,7 @@ export function ProjectsListPage() {
                     ) : (
                         <Box sx={{ width: '100%' }}>
                             <NoResultsScreen
-                                sx={{height: '50vh'}}
+                                sx={{ height: '50vh' }}
                                 message="Búsqueda de proyectos sin resultados"
                             />
                         </Box>

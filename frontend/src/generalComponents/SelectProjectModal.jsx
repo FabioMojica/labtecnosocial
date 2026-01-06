@@ -12,9 +12,11 @@ import {
   Avatar,
   ListItemText,
   useTheme,
+  IconButton,
 } from "@mui/material";
 import { NoResultsScreen } from ".";
 import { useNavigate } from "react-router-dom";
+import CloseIcon from '@mui/icons-material/Close';
 
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
@@ -54,10 +56,9 @@ export const SelectProjectModal = ({
         disabled={disabled}
         sx={{
           width: {
-            xs: '100px',
+            xs: '200px',
             sm: '200px'
           },
-          height: '60px',
           fontSize: "1rem",
           textTransform: "none",
           display: 'flex',
@@ -113,24 +114,36 @@ export const SelectProjectModal = ({
       <Modal open={open} onClose={() => setOpen(false)}>
         <Box
           sx={{
-            position: "absolute",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: { xs: "95%", sm: 400 },
+            height: '80vh',
             maxHeight: "80vh",
             bgcolor: "background.paper",
             boxShadow: 24,
             borderRadius: 2,
-            p: 3,
+            px: 3,
+            pt: 2,
+            position: 'relative',
           }}
         >
+          <IconButton
+            onClick={() => setOpen(false)}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              color: theme.palette.text.primary,
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
           {loading ? (
             <Box display="flex" justifyContent="center" py={3}>
               <CircularProgress size={30} />
             </Box>
           ) : projects.length === 0 ? (
-            // 🟡 Caso 1: No hay proyectos en el sistema
             <NoResultsScreen
               message="No tienes ningún proyecto registrado en el sistema"
               buttonText="Registrar un proyecto"
@@ -141,11 +154,18 @@ export const SelectProjectModal = ({
               }}
             />
           ) : (
-            // ✅ Siempre mostrar el buscador
             <>
               <Typography
                 variant="h6"
-                sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}
+                sx={{ 
+                  mb: 2, 
+                  textAlign: "center", 
+                  fontWeight: "bold",
+                  fontSize: {
+                    xs: '1rem',
+                    sm: '1.4rem'
+                  } 
+                }}
               >
                 Selecciona un proyecto
               </Typography>
@@ -160,25 +180,26 @@ export const SelectProjectModal = ({
               />
 
               {filteredProjects.length === 0 ? (
-
                 <Box
                   textAlign="center"
                   py={4}
                   sx={{
                     maxWidth: "100%",
+                    height: '70%',
                     wordBreak: "break-word",
                     overflowWrap: "break-word",
                     px: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   <Typography variant="body1" color="textSecondary" sx={{
-
                     color: 'gray',
                     fontStyle: 'italic',
                     textAlign: 'center',
                     fontSize: '0.9rem',
                   }}>
-
                     No se encontraron resultados para “{searchTerm}”
                   </Typography>
                 </Box>
@@ -200,6 +221,7 @@ export const SelectProjectModal = ({
                       backgroundColor: theme.palette.primary.dark,
                     },
                   }}
+                  
                 >
                   {filteredProjects.map((project) => (
                     <ListItemButton

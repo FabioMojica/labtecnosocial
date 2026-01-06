@@ -9,6 +9,7 @@ import {
   Container,
   Tooltip,
   IconButton,
+  Divider,
 } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import DeleteStrategicPlanDialog from "./components/DeleteStrategicPlanDialog";
@@ -161,24 +162,24 @@ const StrategicPlanningDashboardPage = () => {
           },
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 1,
+          gap: 2,
           width: '100%',
           mb: 1
         }}
       >
-        <Typography variant="h4" sx={{
+        <Typography variant="h4" fontWeight={'bold'} sx={{
           fontSize: {
             xs: '1.5rem',
             sm: '2rem'
-          }
+          },
+          textAlign: 'center'
         }}>Planificación Estratégica</Typography>
 
         <Box sx={{
           display: 'flex',
-
           gap: 2,
         }}>
-          <SelectYear
+          <SelectYear 
             selectedYear={selectedYear}
             disabled={isChildDirty}
             onChange={(newYear) => {
@@ -228,6 +229,9 @@ const StrategicPlanningDashboardPage = () => {
       </Box>
 
       {(!showColumnsView && !loadingPlan && !planData) && (
+        <>
+        <Divider />
+
         <NoResultsScreen
           message="Año sin plan estratégico registrado"
           buttonText={
@@ -242,6 +246,7 @@ const StrategicPlanningDashboardPage = () => {
           }
           sx={{ height: "60vh" }}
         />
+        </>
       )}
 
       {showColumnsView && selectedView && (
