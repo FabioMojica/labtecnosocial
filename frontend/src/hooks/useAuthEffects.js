@@ -5,7 +5,7 @@ import { useAuth } from "../contexts";
 import { useNotification } from "../contexts";
 import { authService } from "../services";
 import { authManager } from "../utils/authManager";
-
+import { AUTH_CONFIG } from "../api/config/authConfig";
 
 export const useAuthEffects = () => {
   const { setAuth } = useAuth();
@@ -24,14 +24,14 @@ export const useAuthEffects = () => {
   const scheduleTokenWarning = (expTime) => {
     clearTimers();
     const timeLeft = expTime - Date.now();
-    const minutesBefore = 10;
-    const WARNING_BEFORE_EXPIRATION = minutesBefore * 60 * 1000;
+    const WARNING_BEFORE_EXPIRATION =
+    AUTH_CONFIG.TOKEN_WARNING_MINUTES * 60 * 1000;
 
     if (timeLeft > WARNING_BEFORE_EXPIRATION) {
       const warningTime = timeLeft - WARNING_BEFORE_EXPIRATION;
       warningTimeoutRef.current = window.setTimeout(() => {
         if (isActiveRef.current) {
-          notify(`Tu sesión expirará en ${minutesBefore} minutos`, "warning", { persist: true });
+          notify(`Tu sesión expirará en ${AUTH_CONFIG.TOKEN_WARNING_MINUTES} minutos`, "warning", { persist: true });
         }
       }, warningTime);
     }
@@ -71,7 +71,7 @@ export const useAuthEffects = () => {
     navigate("/login", { replace: true });
   };
 
-  useEffect(() => {
+  useEffect(() => { 
     authManager.setLogoutCallback(handleLogout);
 
     return () => {

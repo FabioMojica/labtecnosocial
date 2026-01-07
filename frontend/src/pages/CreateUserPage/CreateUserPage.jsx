@@ -73,8 +73,6 @@ export const CreateUserPage = () => {
             notify("Usuario creado correctamente", "success");
             navigate("/usuarios");
         } catch (error) {
-            console.log("ERROR CREATE USER:", error);
-
             if (error?.response?.status === 413) {
                 notify(error.response.data.message || "La imagen supera el tamaño máximo permitido (2MB)", "error");
                 return;

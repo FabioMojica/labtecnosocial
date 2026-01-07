@@ -66,8 +66,6 @@ export const ProjectPage = () => {
             projectUpdatedRef.current = resp;
             setError(false);
         } catch (err) {
-            console.log("..............>", err);
-            
             const errorMessage =
             err?.message ||
             err?.response?.data?.message ||

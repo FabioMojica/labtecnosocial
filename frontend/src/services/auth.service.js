@@ -8,15 +8,22 @@ export const authService = {
   async validateSession() {
     const token = sessionStorage.getItem("token");
     if (!token) {
-      const refreshed = await refreshApi();
-      if (refreshed?.token) {
-        saveSession(refreshed.token, refreshed.user);
-        return refreshed;
+      try {
+        const refreshed = await refreshApi();
+        if (refreshed?.token) {
+          saveSession(refreshed.token, refreshed.user);
+          return refreshed;
+        }
+        console.log("1 logout")
+        clearSession();
+        return null;
+      } catch (error) {
+        console.log("2 logout")
+        clearSession();
+        return null;
       }
-      clearSession();
-      return null;
     }
-    const decoded = jwtDecode(token); 
+    const decoded = jwtDecode(token);
     if (decoded.exp * 1000 < Date.now()) {
 
       const refreshed = await refreshApi();
@@ -25,6 +32,7 @@ export const authService = {
         saveSession(refreshed.token, refreshed.user);
         return refreshed;
       }
+      console.log("3 logout")
       clearSession();
       return null;
     }
@@ -40,18 +48,22 @@ export const authService = {
 
       if (stored) return { user: JSON.parse(stored) };
       return null;
-    } catch {
+    } catch (error) {
+      console.log("xxx", error)
+      console.log("4 logout")
       clearSession();
       return null;
     }
   },
 
   login(token, user) {
+    console.log(token, user)
     saveSession(token, user);
     return { token, user };
   },
 
   logout() {
+    console.log("5 logout")
     clearSession();
   },
 };

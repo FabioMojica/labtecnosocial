@@ -32,8 +32,6 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
   const isMyProfile = userSession?.email === userEmail;
   const navigate = useNavigate();
 
-  console.log('ViewUserInfoPanel ---------', user)
-
   const theme = useTheme();
   const [previewImage, setPreviewImage] = useState(null);
   const [overlayText, setOverlayText] = useState("Subir una imagen");
@@ -366,17 +364,11 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
                     }}
 
                     onClick={() => {
-                      console.log("CLICK");
-                      console.log("role:", userSession?.role);
-                      console.log("isMyProfile:", isMyProfile);
-                      console.log("canNavigate:", canNavigateToProject());
 
                       if (!canNavigateToProject()) return;
 
                       navigate(`/proyecto/${project.id}?tab=Información del proyecto`);
                     }}
-
-
 
                     title={project.name}
                   >

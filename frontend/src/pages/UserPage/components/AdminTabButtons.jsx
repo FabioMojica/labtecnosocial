@@ -10,7 +10,8 @@ import { MorePanel } from "../components/MorePanel";
 import { AdminInfoPanel } from "./AdminInfoPanel";
 
 export const AdminTabButtons = ({
-    user
+    user,
+    onUserChange
 }) => {
     const [tabsHeight, setTabsHeight] = useState(0);
     const { email } = useParams();
@@ -31,6 +32,7 @@ export const AdminTabButtons = ({
                 <AdminInfoPanel
                     panelHeight={tabsHeight}
                     userEmail={userEmail}
+                    onUserChange={onUserChange}
                 />
 
                 <MorePanel 

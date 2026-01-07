@@ -41,9 +41,8 @@ import { useNavigate } from "react-router-dom";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
-export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
+export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
   if (!userEmail) return;
-  const { handleLogout } = useAuthEffects();
   const fileInputRef = useRef(null);
   const { user: userSession, updateUserInContext } = useAuth();
   const [error, setError] = useState(false);
@@ -283,6 +282,10 @@ export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
         isMyProfile &&
         (oldEmail !== newUser.email || oldRole !== newUser.role || oldState !== newUser.state);
 
+      if (onUserChange) {
+        onUserChange(newUser, sensitiveChanged);
+      }
+
       originalUserRef.current = structuredClone({
         ...newUser,
         originalEmail: newUser.email
@@ -291,12 +294,11 @@ export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
       setIsDirty(false);
 
       if (sensitiveChanged) {
-        handleLogout();
         return;
       }
 
+      navigate(`/usuario/${encodeURIComponent(newUser?.email)}`);
       notify("Usuario actualizado correctamente", "success");
-      navigate(`/usuario/${encodeURIComponent(newUser.email)}`);
     } catch (err) {
       if (err?.response?.data?.message) {
         notify(err?.response?.data?.message, "error");
@@ -520,7 +522,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
                   "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark }
                 }}
               >
-                {user.projects.map((project, index) => (
+                {user?.projects?.map((project, index) => (
                   <Avatar
                     key={`${project.name}-${index}`}
                     src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
@@ -528,18 +530,15 @@ export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
                       width: 64,
                       height: 64,
                       borderRadius: 2,
+                      cursor: canNavigateToProject() ? 'pointer' : 'default',
                       transition: "transform .2s",
                       "&:hover": {
-                        transform: "scale(1.05)",
+                        transform: "scale(1.01)",
                       },
                       objectFit: 'cover',
                     }}
                     title={project.name}
                     onClick={() => {
-                      console.log("CLICK");
-                      console.log("role:", userSession?.role);
-                      console.log("isMyProfile:", isMyProfile);
-                      console.log("canNavigate:", canNavigateToProject());
 
                       if (!canNavigateToProject()) return;
 
@@ -708,9 +707,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
               <ButtonWithLoader
                 loading={loadingChangePassword}
                 disabled={!(oldPassword.length > 0 && !validatePassword(newPassword))}
-                sx={{
-                  minWidth: '170px'
-                }}
+                sx={{ minWidth: '170px' }}
                 onClick={async () => {
                   try {
                     setLoadingChangePassword(true);
@@ -720,19 +717,26 @@ export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
                       newPassword: newPassword,
                     });
 
+                    // Actualizamos el usuario localmente
                     setUser(prev => ({ ...prev }));
-
                     originalUserRef.current = structuredClone({ ...user });
+
                     notify("Contraseña cambiada correctamente", "success");
                     handleClosePasswordModal();
-                    if (isMyProfile) {
-                      handleLogout();
+
+                    // Si es el propio perfil, avisamos al padre para que cierre sesión
+                    if (isMyProfile && onUserChange) {
+                      onUserChange({ ...user }, true); // sensitiveChanged = true
                     }
+
                   } catch (err) {
                     if (err?.response?.data?.message) {
                       notify(err?.response?.data?.message, "error");
                     } else {
-                      notify("Ocurrió un error inesperado al cambiar de contraseña al usuario. Inténtalo de nuevo más tarde.", "error");
+                      notify(
+                        "Ocurrió un error inesperado al cambiar la contraseña. Inténtalo de nuevo más tarde.",
+                        "error"
+                      );
                     }
                   } finally {
                     setLoadingChangePassword(false);
@@ -741,6 +745,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
               >
                 Cambiar Contraseña
               </ButtonWithLoader>
+
 
             </Box>
           </Stack>

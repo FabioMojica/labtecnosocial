@@ -22,7 +22,7 @@ export const createOperationalProjectApi = async (projectData) => {
     throw new Error("Error al intentar crear el proyecto");
   }
 };
-
+ 
 export const getAllOperationalProjectsApi = async () => {
   const controller = loadAbort();
   try {
@@ -30,6 +30,7 @@ export const getAllOperationalProjectsApi = async () => {
     if (response.status === 200) return response.data.projects;
     return null;
   } catch (error) {
+    console.log("errorrr", error);
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al obtener los proyectos");
     throw new Error("Error al intentar obtener los proyectos");

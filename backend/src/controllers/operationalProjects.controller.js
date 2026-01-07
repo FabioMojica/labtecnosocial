@@ -209,8 +209,7 @@ export const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
     const { id: userId, role } = req.user;
-    console.log("aaaaaaaaaaa", req.user);
-
+    
     const projectRepository = AppDataSource.getRepository(OperationalProject);
     const userRepository = AppDataSource.getRepository(User);
 

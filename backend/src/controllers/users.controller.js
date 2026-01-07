@@ -157,7 +157,7 @@ export const getUserByEmail = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { originalEmail } = req.params; 
+    const { originalEmail } = req.params;
     const {
       firstName,
       lastName,
@@ -165,11 +165,11 @@ export const updateUser = async (req, res) => {
       state,
       email: newEmail,
       image_url,
-      newPassword, 
+      newPassword,
       password,
       oldPassword,
     } = req.body;
-    
+
     const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOneBy({ email: originalEmail });
 
@@ -279,9 +279,28 @@ export const updateUser = async (req, res) => {
     if (sessionShouldInvalidate) user.session_version += 1;
 
     const updatedUser = await userRepository.save(user);
-    const { password: _, ...userWithoutPassword } = updatedUser;
 
-    return res.json(userWithoutPassword);
+    // 🔹 Buscar de nuevo incluyendo proyectos
+    const userWithProjects = await userRepository.findOne({
+      where: { id: updatedUser.id },
+      relations: {
+        projectResponsibles: {
+          operationalProject: true
+        }
+      }
+    });
+
+    // 🔹 Mapear los proyectos asignados
+    const assignedProjects = userWithProjects.projectResponsibles.map(pr => pr.operationalProject);
+
+    // 🔹 Devolver usuario sin password y con proyectos
+    const { password: _, projectResponsibles, ...userWithoutPassword } = userWithProjects;
+
+    return res.json({
+      ...userWithoutPassword,
+      projects: assignedProjects
+    });
+
 
   } catch (error) {
     console.error('Error actualizando usuario:', error);

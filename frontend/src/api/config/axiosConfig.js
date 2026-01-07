@@ -8,7 +8,7 @@ export const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(config => {
   const token = sessionStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+  return config; 
 });
 
 axiosInstance.interceptors.response.use(
@@ -17,10 +17,11 @@ axiosInstance.interceptors.response.use(
     const message = error.response?.data?.message;
 
     if (message === 'Sesión expirada por cambios en el perfil. Por favor vuelve a iniciar sesión.') {
-      authManager.logout();
+      authManager.logout(true, 'profileChanged');
+
       return Promise.reject(error);
     }
 
     return Promise.reject(error);
   }
-);
+); 

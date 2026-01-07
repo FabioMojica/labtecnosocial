@@ -9,6 +9,7 @@ export const saveSession = (token, user) => {
 };
 
 export const clearSession = () => {
+  console.log("clear")
   sessionStorage.removeItem("token");
   sessionStorage.removeItem("user");
   sessionStorage.removeItem("token_expiration");

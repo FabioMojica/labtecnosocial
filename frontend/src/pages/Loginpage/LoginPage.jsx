@@ -60,6 +60,7 @@ export const LoginPage = () => {
             const response = await callEndpoint(loginUserApi({ email, password }));
             handleLogin(response.accessToken, response.user);
         } catch (err) {
+            console.log(err)
             notify(err?.message, "error");
         }
     };
@@ -73,7 +74,10 @@ export const LoginPage = () => {
                 <ThemeToggleButton sizeIconButton="large" sizeButton="medium" />
             </Box>
 
-            <BoxContainer className={styles.loginBoxContainer}>
+            <BoxContainer 
+                component="form"
+                className={styles.loginBoxContainer}
+            >
 
                 <Box className={styles.headerBoxContainer}>
                     <Typography variant="h4"> 
@@ -107,6 +111,7 @@ export const LoginPage = () => {
                 </Box>
 
                 <ButtonWithLoader
+                    type="submit"
                     triggerOnEnter
                     onClick={handleClickLogin}
                     loading={loading}

@@ -5,7 +5,6 @@ import { comparePassword } from '../utils/passwordUtils.js';
  
 const SECRET_KEY = 'tu_secreto_super_seguro';
 
-
 export const me = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -22,7 +21,7 @@ export const me = async (req, res) => {
 
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
 
-    return res.json({ user });
+    return res.json({ user }); 
   } catch (err) {
     return res.status(401).json({ message: "Token inválido o expirado" });
   }
@@ -66,8 +65,8 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Usuario no encontrado' });
     }
 
-    if (user.state === 'eliminado' && user.role !== 'admin') {
-      return res.status(403).json({ message: 'Este usuario ha sido eliminado y no puede iniciar sesión.' });
+    if (user.state === 'deshabilitado' && user.role !== 'admin') {
+      return res.status(403).json({ message: 'Este usuario ha sido deshabilitado y no puede iniciar sesión.' });
     }
     
     const passwordMatch = await comparePassword(password, user.password);

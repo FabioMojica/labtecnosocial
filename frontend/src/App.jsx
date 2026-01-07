@@ -50,7 +50,7 @@ const AppContent = () => {
   const { handleLogin, handleLogout } = useAuthEffects();
   const { isAuthenticated, loading } = useAuth();
 
-  if (loading) return <FullScreenProgress />;
+  if (loading) return <FullScreenProgress text={'Iniciando el sistema'}/>;
 
   return (
     <>

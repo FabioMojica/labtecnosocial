@@ -26,11 +26,13 @@ export const UserPage = () => {
     const originalUserRef = useRef(null);
     const projectUpdatedRef = useRef(null);
     const [error, setError] = useState(false);
+    const { handleLogout } = useAuthEffects();
+    const [loggingOut, setLoggingOut] = useState(false);
+
 
     const fetchUserByEmail = async () => {
         try {
             const resp = await callEndpoint(getUserByEmailApi(userEmail));
-            console.log("userrrrrrrr", resp)
             setUser(resp);
             originalUserRef.current = structuredClone({
                 ...resp,
@@ -65,17 +67,34 @@ export const UserPage = () => {
     const isAdmin = userSession?.role === 'admin';
     const isCoordinator = userSession?.role === 'coordinator';
 
-
-    // Lógica de qué mostrar
     let content = null;
+
+    const handleUserChange = (updatedUser, sensitiveChanged) => {
+        setUser(updatedUser);
+
+        if (sensitiveChanged) {
+            notify(
+                'Se cerrará la sesión porque hiciste cambios en información sensible del perfil',
+                'warning'
+            );
+            setLoggingOut(true); 
+            setTimeout(() => {
+                handleLogout();
+            }, 3000);
+        }
+    };
+
+    if (loggingOut) return <FullScreenProgress text="Cerrando la sesión..." />;
+
+
+
 
     if (isAdmin) {
         if (isOwnProfile) {
-            content = <AdminTabButtons user={user} />;
+            content = <AdminTabButtons user={user} onUserChange={handleUserChange} />;
         } else if (user?.role === 'coordinator') {
             content = <AdminTabButtons />;
         } else if (user?.role === 'admin') {
-            // Admin viendo otro admin
             content = <ViewUserInfoPanel user={user} isEditable={false} />;
         }
     } else if (isCoordinator) {
@@ -83,6 +102,5 @@ export const UserPage = () => {
     }
 
     return <>{content}</>;
-
 }
 

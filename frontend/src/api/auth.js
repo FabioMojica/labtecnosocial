@@ -12,12 +12,13 @@ export const loginUserApi = async (userData) => {
       { signal: controller.signal } 
     );
 
-    if (response.status === 200) {
+    if (response.status === 200) { 
       return response.data;
     } else {
       return null;
     }
   } catch (error) {
+    console.log(error)
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
       return null;
     }
@@ -62,7 +63,10 @@ export const logoutUserApi = async () => {
 };
 
 export const meApi = async () => {
-  const controller = loadAbort();
+  const controller = loadAbort(); 
+ 
+  
+    console.log("me api")
 
   try {
     const response = await axiosInstance.get(Routes.ME, {
@@ -73,6 +77,7 @@ export const meApi = async () => {
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
+    console.log("error de me api", error)
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
       return null;
     }

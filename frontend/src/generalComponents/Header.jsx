@@ -129,9 +129,24 @@ export const Header = () => {
                                     aria-controls="menu-appbar"
                                     aria-haspopup="true"
                                     onClick={handleMenu}
-                                    sx={{ color: theme.palette.primary.principal }}
+                                    sx={{
+                                        color: theme.palette.primary.principal,
+                                    }}
                                 >
-                                    <UserProfileImage user={user} sx={{ width: 40, height: 40, borderRadius: 2 }} boxSx={{ fontSize: '1rem' }} />
+                                    <UserProfileImage
+                                        user={user}
+                                        sx={{
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: 2,
+                                            boxShadow:
+                                                theme.palette.mode === "light"
+                                                    ? "0 0 0 1px rgba(0,0,0,0.3)"
+                                                    : "0 0 0 1px rgba(255,255,255,0.3)",
+                                        }}
+                                        boxSx={{ fontSize: '1rem' }}
+                                    />
+
                                 </IconButton>
 
 

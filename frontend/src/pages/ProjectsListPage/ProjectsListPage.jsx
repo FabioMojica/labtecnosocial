@@ -95,6 +95,7 @@ export function ProjectsListPage() {
     const [error, setError] = useState(false);
     const { handleLogout } = useAuthEffects();
     const [sortBy, setSortBy] = useState("name_asc");
+    
     const displayedTitle = () => {
         if (user.role === 'admin') {
             return "Lista de proyectos"
@@ -124,7 +125,6 @@ export function ProjectsListPage() {
             setError(false);
         } catch (err) {
             notify("Ocurrió un error inesperado al obtener los proyectos. Inténtalo de nuevo más tarde.", "error");
-
             setError(true);
         }
     }

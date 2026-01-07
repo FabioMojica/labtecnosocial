@@ -13,7 +13,6 @@ export const UserImageDates = ({
   ...rest
 }) => {
   if (!user) return null;
-  console.log("user image dates", user)
   const { headerHeight } = useHeaderHeight();
 
   return (
