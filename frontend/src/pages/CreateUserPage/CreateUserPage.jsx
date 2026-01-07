@@ -24,6 +24,7 @@ import { CreateUserInfoPanel } from "./components/CreateUserInfoPanel";
 
 // 5. Servicios / UseCases
 import { createUserApi } from "../../api";
+import { Box, Divider, Typography } from "@mui/material";
 
 
 // 6. Assets (imágenes, íconos)
@@ -79,6 +80,15 @@ export const CreateUserPage = () => {
                 return;
             }
 
+           if (
+  error?.message ===
+  "El correo que ingresaste ya pertenece a otro usuario. Prueba con uno diferente."
+) {
+  notify(error.message, "info");
+  return;
+}
+
+
             notify(
                 error?.response?.data?.message ||
                 error?.message ||
@@ -132,7 +142,22 @@ export const CreateUserPage = () => {
     if (loading) return <FullScreenProgress text="Creando el usuario" />
 
     return (
-        <>
+        <Box sx={{p: 1}}>
+            <Typography
+                variant="h4"
+                fontWeight="bold"
+                sx={{
+                    fontSize: {
+                        xs: '1.5rem',
+                        sm: '2rem'
+                    },
+                    width: { xs: '100%', sm: 'auto' },
+                    textAlign: 'left',
+                }}
+            >
+                Registrar Nuevo Usuario
+            </Typography>
+            <Divider sx={{mb: 1}}/>
             <CreateUserInfoPanel onChange={handleUserChange} panelHeight={tabsHeight} user={user} />
 
             <QuestionModal
@@ -162,6 +187,6 @@ export const CreateUserPage = () => {
                     },
                 ]}
             />
-        </>
+        </Box>
     );
 }; 

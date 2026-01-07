@@ -162,7 +162,6 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
         minHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
         height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
         maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-        p: 1,
       }}
     >
       <Grid size={{ xs: 12, md: 5 }} sx={{ height: { xs: "50%", sm: "100%" } }}>
@@ -198,6 +197,10 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
               onBlur={(e) => validateField("firstName", e.target.value)}
               maxLength={100}
               error={!!errors.firstName}
+              valueFontSize={{
+                xs: '1rem',
+                sm: '1.5rem'
+              }}
             />
             {errors.firstName && (
               <Typography color="error" variant="caption">
@@ -215,6 +218,10 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
               onBlur={(e) => validateField("lastName", e.target.value)}
               maxLength={100}
               error={!!errors.lastName}
+              valueFontSize={{
+                xs: '1rem',
+                sm: '1.5rem'
+              }}
             />
             {errors.lastName && (
               <Typography color="error" variant="caption">
@@ -234,6 +241,10 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
             onBlur={(e) => validateField("email", e.target.value)}
             maxLength={100}
             error={!!errors.email}
+            valueFontSize={{
+                xs: '1rem',
+                sm: '1.5rem'
+              }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -272,6 +283,10 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
             onBlur={(e) => validateField("password", e.target.value)}
             maxLength={8}
             error={!!errors.password}
+            valueFontSize={{
+                xs: '1rem',
+                sm: '1.5rem'
+              }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">

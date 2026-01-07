@@ -186,7 +186,7 @@ export function UsersListPage() {
 
     return (
 
-        <Box sx={{ display: 'flex', p: 1, pr: { xs: 1, lg: 3 } }}>
+        <Box sx={{ display: 'flex', p: 1, pr: 2 }}>
             <CssBaseline />
 
             <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
@@ -255,7 +255,7 @@ export function UsersListPage() {
                         }}
                     />
 
-                    <Box display={'flex'} flexDirection={{ xs: 'column-reverse', sm: 'row' }} gap={{ xs: 2 }}>
+                    <Box display={'flex'} flexDirection={{ xs: 'column-reverse', lg: 'row' }} gap={{ xs: 2 }}>
                         <SearchBar
                             data={users}
                             fields={["firstName", "lastName", "email"]}
@@ -303,8 +303,6 @@ export function UsersListPage() {
                                 <MenuItem value="coordinator">Coordinadores</MenuItem>
                             </Select>
                         </FormControl>
-
-
                     </Box>
 
                     <Divider sx={{ mt: 1 }} />

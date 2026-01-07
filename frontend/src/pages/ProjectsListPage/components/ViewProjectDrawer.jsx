@@ -199,7 +199,11 @@ export const ViewProjectDrawer = ({ project }) => {
 
                                             },
                                         }}
-                                        onClick={() => navigate(`/usuario/${encodeURIComponent(responsible.email)}`)}
+                                        onClick={() => 
+                                            navigate(`/usuario/${encodeURIComponent(responsible.email)}`)
+                                        }
+                                        
+
                                     >
                                         <Box
                                             sx={{

@@ -11,15 +11,14 @@ import {
 } from "../../generalComponents";
 
 import { getUserByEmailApi } from "../../api";
-import { CoordinatorInfoPanel } from "./components/CoordinatorInfoPanel";
+import { ViewUserInfoPanel } from "./components/ViewUserInfoPanel";
 import { AdminTabButtons } from "./components/AdminTabButtons";
 
 export const UserPage = () => {
     const { loading, callEndpoint } = useFetchAndLoad();
-    const { handleLogin, handleLogout } = useAuthEffects();
     const { notify } = useNotification();
     const { email } = useParams();
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
     if (!email) return <ErrorScreen message="Usuario no encontrado" buttonText="Volver a usuarios" onButtonClick={() => navigate('/usuarios')} />;
     const userEmail = email;
     const { user: userSession } = useAuth();
@@ -31,6 +30,7 @@ export const UserPage = () => {
     const fetchUserByEmail = async () => {
         try {
             const resp = await callEndpoint(getUserByEmailApi(userEmail));
+            console.log("userrrrrrrr", resp)
             setUser(resp);
             originalUserRef.current = structuredClone({
                 ...resp,
@@ -56,19 +56,32 @@ export const UserPage = () => {
         }
     }, [userEmail, navigate]);
 
+    if (!user) return <FullScreenProgress text="Obteniendo el usuario" />;
     if (loading) return <FullScreenProgress text="Obteniendo el usuario" />;
     if (error) return <ErrorScreen message="Ocurrió un error inesperado al obtener el usuario" buttonText="Intentar de nuevo" onButtonClick={() => fetchUserByEmail()} />
 
-    return (
-        <>
-            {
-                userSession.role === 'admin' ? (
-                    <AdminTabButtons />
-                ) : userSession.role === 'coordinator' ? (
-                    <CoordinatorInfoPanel />
-                ) : null
-            }
-        </>
-    );
+    const isOwnProfile = userSession?.email === user?.email;
+    const isAdmin = userSession?.role === 'admin';
+    const isCoordinator = userSession?.role === 'coordinator';
+
+
+    // Lógica de qué mostrar
+    let content = null;
+
+    if (isAdmin) {
+        if (isOwnProfile) {
+            content = <AdminTabButtons user={user}/>;
+        } else if (user?.role === 'coordinator') {
+            content = <AdminTabButtons />;
+        } else if (user?.role === 'admin') {
+            // Admin viendo otro admin
+            content = <ViewUserInfoPanel user={user} isEditable={false} />;
+        }
+    } else if (isCoordinator) {
+        content = <ViewUserInfoPanel user={user} isEditable={isOwnProfile} />;
+    }
+
+    return <>{content}</>;
+
 }
 

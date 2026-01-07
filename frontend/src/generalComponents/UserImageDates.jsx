@@ -13,6 +13,7 @@ export const UserImageDates = ({
   ...rest
 }) => {
   if (!user) return null;
+  console.log("user image dates", user)
   const { headerHeight } = useHeaderHeight();
 
   return (
@@ -59,7 +60,7 @@ export const UserImageDates = ({
         />
 
         {/* Overlay solo sobre la imagen */}
-        {overlay && ( 
+        {overlay && changeImage && ( 
           <Box
             sx={{
               position: "absolute",
@@ -82,7 +83,7 @@ export const UserImageDates = ({
           >
             <Typography align="center" sx={{
               fontWeight: "bold",
-              fontSize: "1.2rem",
+              fontSize: "1.1rem",
             }}>{overlayText}</Typography>
           </Box>
         )}

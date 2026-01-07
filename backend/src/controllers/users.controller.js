@@ -140,7 +140,7 @@ export const getUserByEmail = async (req, res) => {
     const { password, id, projectResponsibles, ...userData } = user;
 
     const assignedProjects = projectResponsibles.map(pr => {
-      const { id, ...projectData } = pr.operationalProject;
+      const { ...projectData } = pr.operationalProject;
       return projectData;
     });
 

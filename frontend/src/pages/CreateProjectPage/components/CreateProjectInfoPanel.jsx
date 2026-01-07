@@ -30,7 +30,6 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
     const [errors, setErrors] = useState({ name: "", description: "" });
     const [localName, setLocalName] = useState(project?.name ?? "");
     const [localDescription, setLocalDescription] = useState(project?.description ?? "");
-    const theme = useTheme();
 
 
     const { notify } = useNotification();

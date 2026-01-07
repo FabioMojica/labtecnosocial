@@ -235,7 +235,7 @@ export function ProjectsListPage() {
 
 
     return (
-        <Box sx={{ display: 'flex', p: 1, pr: { xs: 1, lg: 3 } }}>
+        <Box sx={{ display: 'flex', p: 1, pr: 2 }}>
             <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
                 <Box sx={{
                     display: 'flex',

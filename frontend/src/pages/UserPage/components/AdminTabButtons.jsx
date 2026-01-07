@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useNotification } from "../../../contexts";
 
 import {
     ErrorScreen,
@@ -10,14 +9,11 @@ import {
 import { MorePanel } from "../components/MorePanel";
 import { AdminInfoPanel } from "./AdminInfoPanel";
 
-export const AdminTabButtons = () => {
+export const AdminTabButtons = ({
+    user
+}) => {
     const [tabsHeight, setTabsHeight] = useState(0);
     const { email } = useParams();
-    const [user, setUser] = useState(null);
-
-    const handleUserChange = (updatedUser) => {
-        setUser(updatedUser);
-    };
 
     const navigate = useNavigate();
     if (!email) return <ErrorScreen message="Usuario no encontrado" buttonText="Volver a usuarios" onButtonClick={() => navigate('/usuarios')} />;
@@ -35,7 +31,6 @@ export const AdminTabButtons = () => {
                 <AdminInfoPanel
                     panelHeight={tabsHeight}
                     userEmail={userEmail}
-                    onUserChange={handleUserChange}
                 />
 
                 <MorePanel 

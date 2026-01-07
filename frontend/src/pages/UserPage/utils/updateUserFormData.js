@@ -10,6 +10,7 @@ export function updateUserFormData(userData) {
   if (userData.state) formData.append("state", userData.state);
 
   if (userData.image_file instanceof File) {
+    console.log("holaaaaaaaaaaa")
     formData.append("file", userData.image_file);
   }
 

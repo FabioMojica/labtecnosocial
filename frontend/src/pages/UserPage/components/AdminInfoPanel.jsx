@@ -41,7 +41,7 @@ import { useNavigate } from "react-router-dom";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
-export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
+export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
   if (!userEmail) return;
   const { handleLogout } = useAuthEffects();
   const fileInputRef = useRef(null);
@@ -78,8 +78,6 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         ...resp,
         originalEmail: resp.email
       });
-
-      onUserChange?.(resp);
 
     } catch (error) {
       setError(true);
@@ -353,104 +351,19 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         p: 1,
       }}
     >
-      <Grid
-        size={{ xs: 12, md: 5 }}
-        sx={{
-          height: '100%',
-          display: 'flex',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 1
-        }}
-      >
-        <Box sx={{
-          height: '75%',
-          minHeight: '75%',
-          width: '100%'
-        }}>
-          <UserImageDates
-            overlay
-            overlayText={overlayText}
-            user={user}
-            sx={{ width: '100%', height: '100%' }}
-            changeImage
-            onChangeImage={handleOverlayClick}
-            previewImage={previewImage ?? undefined}
-            onContextMenu={handleContextMenu}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          />
-        </Box>
-
-        <Box
-          sx={{
-            width: '100%',
-            height: { xs: '150px', sm: '25%' },
-            m: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
-          <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-            Proyectos asignados
-            {user && user.projects && user.projects.length > 0 && ` (${user.projects.length})`}
-          </Typography>
-
-
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{
-              height: 'auto',
-              p: 1,
-              overflowX: 'auto',
-              "&::-webkit-scrollbar": { height: "2px" },
-              "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
-              "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
-              "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
-            }}
-          >
-            {user?.projects && user?.projects.length > 0 ? (
-              user?.projects.map((project) => (
-                <Avatar
-                  key={project.id}
-                  src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
-                  title={`${project.name}`}
-                  sx={{
-                    width: 66,
-                    height: 66,
-                    borderRadius: 2,
-                    objectFit: "cover",
-                    fontWeight: "bold",
-                    zIndex: 1,
-                    boxShadow:
-                      theme.palette.mode === 'light'
-                        ? '0 0 0 1px rgba(0,0,0,0.3)'
-                        : '0 0 0 1px rgba(255,255,255,0.3)',
-                  }}
-
-                >
-                  {project.name[0].toUpperCase()}
-                </Avatar>
-              ))
-            ) : (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  color: "gray",
-                  fontStyle: "italic",
-                  fontSize: "0.9rem",
-                }}
-              >
-                Este usuario no tiene proyectos asignados
-              </Typography>
-            )}
-          </Stack>
-
-        </Box>
+      <Grid size={{ xs: 12, md: 5 }} sx={{ width: '100%', height: { xs: '50%', lg: '100%' }, maxHeight: '1000px', display: 'flex', flexDirection: 'column' }}>
+        <UserImageDates
+          overlay
+          overlayText={overlayText}
+          user={user}
+          sx={{ width: '100%', height: '100%' }}
+          changeImage
+          onChangeImage={handleOverlayClick}
+          previewImage={previewImage ?? undefined}
+          onContextMenu={handleContextMenu}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        />
       </Grid>
 
 
@@ -566,6 +479,78 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
             Cambiar contraseña
           </Button>
         </Grid>
+
+        <Box sx={{
+          width: '100%',
+          flex: 1,
+        }}>
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">
+              Proyectos asignados
+              <Typography component="span" color="text.secondary">
+                {" "}({user?.projects?.length})
+              </Typography>
+            </Typography>
+
+            {user?.projects?.length > 0 ? (
+              <Box
+                display={'flex'}
+                flexWrap={'wrap'}
+                gap={1}
+                sx={{
+                  overflowY: "auto",
+                  maxHeight: {
+                    sm: '120px',
+                  },
+                  width: '100%',
+                  "&::-webkit-scrollbar": { width: "2px" },
+                  "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "8px" },
+                  "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "8px" },
+                  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark }
+                }}
+              >
+                {user.projects.map((project, index) => (
+                  <Avatar
+                    key={`${project.name}-${index}`}
+                    src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 2,
+                      transition: "transform .2s",
+                      "&:hover": {
+                        transform: "scale(1.05)",
+                      },
+                      objectFit: 'cover',
+                    }}
+                    title={project.name}
+                  >
+                    {project.name[0]}
+                  </Avatar>
+                ))}
+              </Box>
+            ) : (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  color: "gray",
+                  fontStyle: "italic",
+                  fontSize: "0.9rem",
+                }}
+              >
+                Este usuario no tiene proyectos asignados
+              </Typography>
+            )}
+          </Box>
+        </Box>
       </Grid>
 
       <input

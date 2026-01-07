@@ -33,7 +33,9 @@ import { validateEmail, validatePassword } from "../../../utils";
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
-  if(!user) return;
+
+  console.log("user info panel .----> ", user)
+  if (!user) return;
   const fileInputRef = useRef(null);
   const theme = useTheme();
   const [previewImage, setPreviewImage] = useState(null);
@@ -214,7 +216,7 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
         <Box
           sx={{
             width: '100%',
-            height: {xs: '150px', sm: '25%'},
+            height: { xs: '150px', sm: '25%' },
             m: 0,
             display: 'flex',
             flexDirection: 'column',
@@ -223,8 +225,15 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
         >
           <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
             Proyectos asignados
-            {user.projects?.length > 0 && ` (${user.projects.length})`}
+            <Typography
+              component="span"
+              color="text.secondary"
+              fontWeight="normal"
+            >
+              {user && user.projects && user.projects.length > 0 && ` (${user.projects.length})`}
+            </Typography>
           </Typography>
+
 
           <Stack
             direction="row"
@@ -239,8 +248,8 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
               "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
             }}
           >
-            {user.projects && user.projects.length > 0 ? (
-              user.projects.map((project) => (
+            {user?.projects && user?.projects.length > 0 ? (
+              user?.projects.map((project) => (
                 <Avatar
                   key={project.id}
                   src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
@@ -262,6 +271,7 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
                   {project.name[0].toUpperCase()}
                 </Avatar>
               ))
+              
             ) : (
               <Typography
                 variant="body2"
@@ -462,7 +472,7 @@ export const UserInfoPanel = ({ user, panelHeight, onChange }) => {
         accept="image/*"
         ref={fileInputRef}
         style={{ display: "none" }}
-        onChange={handleFileChange} 
+        onChange={handleFileChange}
       />
     </Grid>
   );
