@@ -57,7 +57,6 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
   };
 
   return (
-
     <Dialog
       open={open}
       onClose={onClose}
@@ -69,10 +68,14 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
         },
       }}
     >
-      <Box>
+      <Box sx={{
+        width: '100%',
+        height: '100%',
+        bgcolor: theme.palette.background.paper,
+      }}>
         <DialogTitle sx={{ color:
         theme.palette.mode === 'dark'
-          ? theme.palette.error.light
+          ? theme.palette.error.main
           : theme.palette.error.main, fontWeight: 'bold' }}>
           ⚠️ Eliminar Plan Estratégico
         </DialogTitle>
@@ -80,7 +83,7 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
           <Typography gutterBottom sx={{ mb: 2 }}>
             Esta acción eliminará <strong style={{ color:
         theme.palette.mode === 'dark'
-          ? theme.palette.error.light
+          ? theme.palette.error.main
           : theme.palette.error.main, }}>TODO</strong> el plan estratégico del año <strong>{year}</strong>, y desvinculará todos los proyectos operativos asociados a cada programa. Esta operación es <strong>IRREVERSIBLE</strong>.
           </Typography>
 
@@ -113,13 +116,19 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
             ))}
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} disabled={loading}>
+        <DialogActions sx={{
+          p: 1
+        }}>
+          <Button 
+            variant="contained"
+            onClick={onClose} 
+            disabled={loading}
+          >
             Cancelar
           </Button>
 
           <ButtonWithLoader
-            loading={loading}
+            loading={loading} 
             onClick={handleDelete}
             disabled={!isConfirmed || loading}
             variant="contained"
@@ -127,6 +136,7 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
             sx={{
               width: '100px',
               color: "white",
+              minHeight: '100%',
               "&:hover": {
                 backgroundColor: theme => theme.palette.error.dark,
               },
