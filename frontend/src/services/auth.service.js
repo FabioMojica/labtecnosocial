@@ -5,6 +5,7 @@ import { saveSession, clearSession } from "../utils";
 import { meApi, refreshApi } from "../api";
 
 export const authService = {
+  
   async validateSession() {
     const token = sessionStorage.getItem("token");
     if (!token) {

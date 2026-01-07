@@ -5,7 +5,7 @@ import { Box, Container, Typography, useTheme } from "@mui/material";
 // 2. Hooks personalizados
 import { useFetchAndLoad } from "../../hooks/useFetchAndLoad";
 import { useAuthEffects } from "../../hooks";
-import { useNotification } from "../../contexts";
+import { useAuth, useNotification } from "../../contexts";
 
 // 3. Utilidades / helpers
 import { validateEmail } from "../../utils";
@@ -33,12 +33,10 @@ import styles from './styles/LoginPage.module.css'
 
 export const LoginPage = () => {
     const theme = useTheme();
-    const { handleLogin } = useAuthEffects();
+    const { login, loading } = useAuth();
     const { notify } = useNotification();
 
     const logoToShow = theme.palette.mode === 'dark' ? logoDark : logoLight;
-
-    const { loading, callEndpoint } = useFetchAndLoad();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -57,8 +55,7 @@ export const LoginPage = () => {
         setErrors({ email: "" });
 
         try {
-            const response = await callEndpoint(loginUserApi({ email, password }));
-            handleLogin(response.accessToken, response.user);
+            const resp = await login(email, password);
         } catch (err) {
             console.log(err)
             notify(err?.message, "error");

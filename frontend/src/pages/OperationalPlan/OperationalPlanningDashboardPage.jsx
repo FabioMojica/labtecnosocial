@@ -16,7 +16,6 @@ const VIEW_MODE_KEY = "operationalPlanningViewMode";
 
 const OperationalPlanningDashboardPage = () => {
   const { id } = useParams();
-  const { handleLogin, handleLogout } = useAuthEffects();
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState(() => {
     const parsed = Number(id);
@@ -42,11 +41,11 @@ const OperationalPlanningDashboardPage = () => {
   const fetchProjects = async () => {
     try {
       const res = await callEndpoint(getAllOperationalProjectsApi());
-
       setProjects(res);
       setError(false);
     } catch (error) {
       setError(true);
+      
       notify("Ocurrió un error inesperado al obtener la lista de proyectos. Inténtalo de nuevo más tarde.", 'error');
     }
   };

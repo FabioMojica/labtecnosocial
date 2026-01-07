@@ -7,5 +7,6 @@ export const useAuthorization = (allowedRoles) => {
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
     return { status: "unauthorized" };
   }
+  
   return { status: "authorized" };
 };

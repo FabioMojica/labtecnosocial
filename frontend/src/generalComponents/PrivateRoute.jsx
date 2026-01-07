@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 
 export const PrivateRoute = ({ element, allowedRoles = [] }) => {
   const auth = useAuthorization(allowedRoles);
-
+ 
   if (auth.status === "loading") {
     return <CircularProgress />;
   }

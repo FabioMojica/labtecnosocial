@@ -26,11 +26,9 @@ import { SelectYear } from "./components/SelectYear";
 import { NoResultsScreen } from "../../generalComponents/NoResultsScreen";
 import { FullScreenProgress } from "../../generalComponents/FullScreenProgress.jsx";
 import { ErrorScreen } from "../../generalComponents/ErrorScreen.jsx";
-import { useAuthEffects } from "../../hooks/useAuthEffects.js";
 
 const StrategicPlanningDashboardPage = () => {
   const { year } = useParams();
-  const { handleLogin, handleLogout } = useAuthEffects();
   const [selectedYear, setSelectedYear] = useState(null);
   const { user } = useAuth();
   const { loading, callEndpoint } = useFetchAndLoad();
@@ -85,7 +83,6 @@ const StrategicPlanningDashboardPage = () => {
       setAllPlans(res);
     } catch (error) {
       setErrorPlans(true);
-      notify("Ocurrió un error inesperado al obtener los planes estratégicos. Inténtalo de nuevo más tarde.", "error");
     }
   };
 
@@ -100,18 +97,16 @@ const StrategicPlanningDashboardPage = () => {
       setLoadingPlan(true);
       setShowColumnsView(false);
       setPlanData(null);
-      
+
       const res = await callEndpoint(getStrategicPlanByYearApi(yearToFetch));
       setPlanData(normalizePlanData(res));
       setShowColumnsView(true);
     } catch (error) {
       if (error.message?.includes("No se encontró plan estratégico")) {
-        notify(`No existe un plan estratégico para el año ${yearToFetch}`, "info");
         setPlanData(null);
         setShowColumnsView(false);
       } else {
         setErrorPlan(true);
-        notify(`Ocurrió un error inesperado obteniendo el plan estratégico del año ${yearToFetch}. Inténtalo de nuevo más tarde.`, "error");
       }
     } finally {
       setLoadingPlan(false);
@@ -144,11 +139,11 @@ const StrategicPlanningDashboardPage = () => {
   }
 
   if (errorPlan) {
-    return <ErrorScreen message="Ocurrió un error al obtener el plan estratégico" buttonText="Intentar de nuevo" onButtonClick={() => fetchPlan()}/>
+    return <ErrorScreen message={`Ocurrió un error al obtener el plan estratégico del año ${year ? parseInt(year) : currentYear}`} buttonText="Intentar de nuevo" onButtonClick={() => fetchPlan()} />
   }
 
   if (errorPlans) {
-    return <ErrorScreen message="Ocurrió un error al obtener los planes estratégicos" buttonText="Intentar de nuevo" onButtonClick={() => fetchAllPlans()}/>
+    return <ErrorScreen message="Ocurrió un error al obtener los planes estratégicos" buttonText="Intentar de nuevo" onButtonClick={() => fetchAllPlans()} />
   }
 
   return (
@@ -167,21 +162,37 @@ const StrategicPlanningDashboardPage = () => {
           mb: 1
         }}
       >
-        <Typography variant="h4" fontWeight={'bold'} sx={{
-          fontSize: {
-            xs: '1.5rem',
-            sm: '2rem'
-          },
-          textAlign: 'center'
-        }}>Planificación Estratégica</Typography>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          sx={{
+            fontSize: {
+              xs: '1.5rem',
+              sm: '2rem'
+            },
+            width: { xs: '100%', sm: 'auto' },
+            textAlign: 'center',
+          }}
+        >
+          Planes Estratégicos{" "}
+          <Typography
+            component="span"
+            color="text.secondary"
+            fontWeight="normal"
+          >
+            ({allPlans?.length})
+          </Typography>
+        </Typography>
+
 
         <Box sx={{
           display: 'flex',
           gap: 2,
         }}>
-          <SelectYear 
+          <SelectYear
             selectedYear={selectedYear}
             disabled={isChildDirty}
+            availableYears={allPlans.map(p => p.year)}
             onChange={(newYear) => {
               setIsChildDirty(false);
               setSelectedYear(newYear);
@@ -232,20 +243,20 @@ const StrategicPlanningDashboardPage = () => {
 
       {(!showColumnsView && !loadingPlan && !planData) && (
         <>
-        <NoResultsScreen
-          message="Año sin plan estratégico registrado"
-          buttonText={
-            user?.role === "admin" && selectedView === "Columna"
-              ? "Crear Plan Estratégico"
-              : null
-          }
-          onButtonClick={
-            user?.role === "admin" && selectedView === "Columna"
-              ? onChangeToColumnsView
-              : undefined
-          }
-          sx={{ height: "60vh" }}
-        />
+          <NoResultsScreen
+            message="Año sin plan estratégico registrado"
+            buttonText={
+              user?.role === "admin" && selectedView === "Columna"
+                ? "Crear Plan Estratégico"
+                : null
+            }
+            onButtonClick={
+              user?.role === "admin" && selectedView === "Columna"
+                ? onChangeToColumnsView
+                : undefined
+            }
+            sx={{ height: "60vh" }}
+          />
         </>
       )}
 
@@ -272,13 +283,13 @@ const StrategicPlanningDashboardPage = () => {
           )}
         </Box>
       )}
- 
+
       <DeleteStrategicPlanDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         year={selectedYear}
         onDeleted={() => {
-          setPlanData(null); 
+          setPlanData(null);
           setShowColumnsView(false);
           setAllPlans((prev) => prev.filter((p) => p.year !== parseInt(year || currentYear, 10)));
         }}

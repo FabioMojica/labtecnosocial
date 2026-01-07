@@ -24,20 +24,15 @@ import logoDark from "../assets/labTecnoSocialLogoDark.png";
 import { DrawerNavBar } from './DrawerNavBar';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { UserProfileImage } from './UserProfileImage';
-import { logoutUserApi } from '../api';
-
 
 export const Header = () => {
-    const { user } = useAuth();
+    const { user, logout, loading } = useAuth();
     const { notify } = useNotification();
     const [anchorEl, setAnchorEl] = useState(null);
-    const { handleLogout } = useAuthEffects();
-    const { loading, callEndpoint } = useFetchAndLoad();
     const theme = useTheme();
     const toolbarRef = useRef(null);
     const { setHeaderHeight } = useHeaderHeight();
     const logoToShow = theme.palette.mode === 'dark' ? logoDark : logoLight;
-    //const logoutUseCase = new LogoutUser(new ApiSessionRepository());
     const [open, setIsOpen] = React.useState(false);
     const toggleNav = () => setIsOpen(!open);
     const navigate = useNavigate();
@@ -68,12 +63,11 @@ export const Header = () => {
 
     const handleClickLogout = async () => {
         try {
-            await callEndpoint(logoutUserApi());
-            handleLogout();
+            const resp = await logout();
             setAnchorEl(null);
+            notify("Cerraste sesión.", "info");
         } catch (err) {
-            handleLogout();
-            notify("Sesión cerrada de emergencia por error", "error");
+            notify("Sesión cerrada de emergencia por error en la red.", "error");
         }
     };
 
@@ -83,9 +77,7 @@ export const Header = () => {
         navigate(`/usuario/${encodeURIComponent(user.email)}`);
     };
 
-    const cacheBustedUrl = user.photo
-        ? `${user.photo}?v=${user.updatedAt || Date.now()}`
-        : null;
+
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -111,7 +103,7 @@ export const Header = () => {
                                     to="/inicio"
                                 >
                                     <Image
-                                        src={logoToShow || cacheBustedUrl}
+                                        src={logoToShow}
                                         alt="Lab Tecno Social Logo"
                                         width={100}
                                         height={43}

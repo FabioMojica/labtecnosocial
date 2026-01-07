@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Grid } from '@mui/material';
+import { Box, Button, Divider, Grid, Typography } from '@mui/material';
 import MisionColumn from './components/mision/MisionColumn';
 import CreateMisionItemModal from './components/mision/CreateMisionItemModal';
 import ObjectivesColumn from './components/objetives/ObjectiveColumn';
@@ -52,7 +52,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
   useEffect(() => {
     if (onDirtyChange) {
-      onDirtyChange(isDirty); 
+      onDirtyChange(isDirty);
     }
   }, [isDirty, onDirtyChange]);
 
@@ -268,31 +268,51 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
   return (
     <>
-      <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-        {isDirty && (
-          <Button
-            variant="outlined"
-            color="error"
-            sx={{ width: '170px' }}
-            onClick={() => {
-              setMission(originalDataRef.current.mission || '');
-              setObjectives(cloneDeep(originalDataRef.current.objectives || []));
-              setIsDirty(false);
-            }}
-          >
-            Descartar cambios
-          </Button>
-        )}
-        <ButtonWithLoader
-          loading={loading}
-          onClick={handleSavePlan}
-          disabled={!isDirty}
-          variant="contained"
-          sx={{ color: 'white', px: 2, width: '150px' }}
+      <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm: 'row'}, justifyContent: 'space-between', alignItems: 'center', width: '100%', height: '100%', p:2, gap: 2}}>
+        <Typography
+          variant="caption"
+          fontWeight={'bold'}
+          fontSize={{
+            xs: '1rem'
+          }}
+          textAlign={'center'}
         >
-          Guardar Plan
-        </ButtonWithLoader>
+          {`Plan Estratégico ${year}`}
+        </Typography>
+
+        <Divider sx={{
+          width: '100%',
+          display: {xs: 'block', sm: 'none'},
+        }}/>
+
+        <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: {xs: 'column', sm: 'row'}, justifyContent: {xs: 'center', sm: 'flex-end'}, alignItems: 'center',gap: 1 }}>
+          {isDirty && (
+            <Button
+              variant="outlined"
+              color="error"
+              sx={{ width: {xs: '100%', sm:'170px'}, height: '100%' }}
+              onClick={() => {
+                setMission(originalDataRef.current.mission || '');
+                setObjectives(cloneDeep(originalDataRef.current.objectives || []));
+                setIsDirty(false);
+              }}
+            >
+              Descartar cambios
+            </Button>
+          )}
+          <ButtonWithLoader
+            loading={loading}
+            onClick={handleSavePlan}
+            disabled={!isDirty}
+            variant="contained"
+            sx={{ color: 'white', px: 2,  width: {xs: '100%', sm:'170px'} }}
+          >
+            Guardar Plan
+          </ButtonWithLoader>
+        </Box>
       </Box>
+
+
       <Grid
         container
         ref={containerRef}

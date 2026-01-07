@@ -8,7 +8,7 @@ import { authManager } from "../utils/authManager";
 import { AUTH_CONFIG } from "../api/config/authConfig";
 
 export const useAuthEffects = () => {
-  const { setAuth } = useAuth();
+  const { setAuth, logout } = useAuth();
   const navigate = useNavigate();
   const { notify } = useNotification();
 
@@ -58,6 +58,7 @@ export const useAuthEffects = () => {
 
   const handleLogout = (showExpiredMsg = false) => {
     authService.logout();
+    logout();
     clearTimers();
     setAuth(null, false);
     isActiveRef.current = false;
@@ -107,6 +108,4 @@ export const useAuthEffects = () => {
       isActiveRef.current = false;
     };
   }, []);
-
-  return { handleLogin, handleLogout };
 };

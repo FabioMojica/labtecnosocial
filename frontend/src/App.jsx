@@ -36,9 +36,7 @@ export const ROLES = {
 };
 
 export const PublicRoute = ({ element }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) return <FullScreenProgress />;
+  const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) return <Navigate to="/inicio" replace />;
 
@@ -47,11 +45,9 @@ export const PublicRoute = ({ element }) => {
 
 
 const AppContent = () => {
-  const { handleLogin, handleLogout } = useAuthEffects();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  if (loading) return <FullScreenProgress text={'Iniciando el sistema'}/>;
-
+  
   return (
     <>
       {isAuthenticated && <Header />}

@@ -6,7 +6,7 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 const years = Array.from({ length: 3000 - 2000 + 1 }, (_, i) => 2000 + i);
 const YEARS_PER_PAGE = 16;
 
-export const SelectYear = ({ disabled, selectedYear, onChange }) => {
+export const SelectYear = ({ disabled, selectedYear, onChange, availableYears = [] }) => {
 
   const [open, setOpen] = useState(false);
 
@@ -42,7 +42,7 @@ export const SelectYear = ({ disabled, selectedYear, onChange }) => {
       <Button variant="outlined" onClick={() => setOpen(true)} disabled={disabled} sx={{ width: 'auto', fontSize: '1rem' }}>
         {selectedYear}
       </Button>
- 
+
       <Modal open={open} onClose={() => setOpen(false)}>
         <Box
           sx={{
@@ -52,7 +52,7 @@ export const SelectYear = ({ disabled, selectedYear, onChange }) => {
             transform: "translate(-50%, -50%)",
             width: { xs: "90%", sm: 400 },
             bgcolor: "background.paper",
-            boxShadow: 24, 
+            boxShadow: 24,
             p: 3,
           }}
         >
@@ -77,17 +77,20 @@ export const SelectYear = ({ disabled, selectedYear, onChange }) => {
           </Box>
 
           <Grid container spacing={1}>
-            {currentYears.map((year) => (
-              <Grid size={3} key={year}>
-                <Button
-                  fullWidth
-                  variant={year === selectedYear ? "contained" : "outlined"}
-                  onClick={() => handleSelect(year)}
-                >
-                  {year}
-                </Button>
-              </Grid>
-            ))}
+            {currentYears.map((year) => {
+              const hasPlan = availableYears.includes(year);
+              return (
+                <Grid size={3} key={year}>
+                  <Button
+                    fullWidth
+                    variant={year === selectedYear ? "contained" : "outlined"}
+                    color={year === selectedYear ? "primary" : hasPlan ? "success" : "inherit"}
+                    onClick={() => handleSelect(year)}
+                  >
+                    {year}
+                  </Button>
+                </Grid>);
+            })}
           </Grid>
         </Box>
       </Modal>

@@ -21,12 +21,11 @@ export const UserPage = () => {
     const navigate = useNavigate();
     if (!email) return <ErrorScreen message="Usuario no encontrado" buttonText="Volver a usuarios" onButtonClick={() => navigate('/usuarios')} />;
     const userEmail = email;
-    const { user: userSession } = useAuth();
+    const { user: userSession, logout } = useAuth();
     const [user, setUser] = useState(null);
     const originalUserRef = useRef(null);
     const projectUpdatedRef = useRef(null);
     const [error, setError] = useState(false);
-    const { handleLogout } = useAuthEffects();
     const [loggingOut, setLoggingOut] = useState(false);
 
 
@@ -79,7 +78,7 @@ export const UserPage = () => {
             );
             setLoggingOut(true); 
             setTimeout(() => {
-                handleLogout();
+                logout();
             }, 3000);
         }
     };

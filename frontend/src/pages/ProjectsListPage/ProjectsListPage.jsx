@@ -91,9 +91,8 @@ export function ProjectsListPage() {
     const [selectedProject, setSelectedProject] = useState(null);
     const isLaptop = useMediaQuery(theme.breakpoints.up('md'));
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [error, setError] = useState(false);
-    const { handleLogout } = useAuthEffects();
     const [sortBy, setSortBy] = useState("name_asc");
     
     const displayedTitle = () => {
@@ -103,7 +102,7 @@ export function ProjectsListPage() {
             return "Proyectos asignados"
         } else {
             notify("Rol no encontrado, se cerrará la sesión", "error");
-            handleLogout();
+            logout();
         }
     }
 
@@ -215,7 +214,7 @@ export function ProjectsListPage() {
                 />;
             default:
                 notify("Rol no encontrado, se cerrará la sesión", "error");
-                handleLogout();
+                logout();
         }
     }
 
