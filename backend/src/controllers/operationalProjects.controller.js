@@ -10,6 +10,7 @@ import { StrategicPlan } from '../entities/StrategicPlan.js';
 import { OperationalRow } from '../entities/OperationalRow.js';
 import fs from 'fs';
 import path from 'path';
+import { canAccessProject } from '../utils/canAccessProject.js';
 
 export const createOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
@@ -23,7 +24,7 @@ export const createOperationalProject = async (req, res) => {
 
     const responsibles = typeof responsiblesRaw === "string" ? JSON.parse(responsiblesRaw) : responsiblesRaw || [];
     const integrations = typeof integrationsRaw === "string" ? JSON.parse(integrationsRaw) : integrationsRaw || [];
-    
+
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -75,7 +76,7 @@ export const createOperationalProject = async (req, res) => {
 export const getAllOperationalProjects = async (req, res) => {
   try {
     const { role, id: userId } = req.user;
-    
+
     const projectRepository = AppDataSource.getRepository(OperationalProject);
 
     let projects;
@@ -114,7 +115,7 @@ export const getAllOperationalProjects = async (req, res) => {
         .setParameter('userId', userId)
         .orderBy('project.created_at', 'DESC')
         .getMany();
-    }  
+    }
 
     const formattedProjects = projects.map((project) => {
       const base = {
@@ -207,6 +208,8 @@ export const assignProjectResponsibles = async (req, res) => {
 export const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
+    const { id: userId, role } = req.user;
+    console.log("aaaaaaaaaaa", req.user);
 
     const projectRepository = AppDataSource.getRepository(OperationalProject);
     const userRepository = AppDataSource.getRepository(User);
@@ -230,6 +233,18 @@ export const getProjectById = async (req, res) => {
     if (!project) {
       return res.status(404).json({ message: "Proyecto no encontrado" });
     }
+    
+    const hasAccess = await canAccessProject({
+      projectId: project.id,
+      userId,
+      role,
+    });
+
+    if (!hasAccess) {
+      return res.status(403).json({
+        message: "No tienes permisos para acceder a este proyecto",
+      });
+    }
 
     // 🧩 2️⃣ Para cada responsable, obtener sus proyectos asignados
     const responsiblesWithCount = [];
@@ -241,7 +256,7 @@ export const getProjectById = async (req, res) => {
         .select([
           "user.id",
           "user.firstName",
-          "user.lastName", 
+          "user.lastName",
           "user.email",
           "user.image_url",
           "user.state",
@@ -279,23 +294,23 @@ export const getProjectById = async (req, res) => {
       projectResponsibles: responsiblesWithCount,
       program: project.program
         ? {
-            id: project.program.id,
-            description: project.program.description,
-            objective: project.program.objective
-              ? {
-                  id: project.program.objective.id,
-                  title: project.program.objective.title,
-                  strategicPlan: project.program.objective.strategicPlan
-                    ? {
-                        id: project.program.objective.strategicPlan.id,
-                        year: project.program.objective.strategicPlan.year,
-                        mission:
-                          project.program.objective.strategicPlan.mission,
-                      }
-                    : null,
+          id: project.program.id,
+          description: project.program.description,
+          objective: project.program.objective
+            ? {
+              id: project.program.objective.id,
+              title: project.program.objective.title,
+              strategicPlan: project.program.objective.strategicPlan
+                ? {
+                  id: project.program.objective.strategicPlan.id,
+                  year: project.program.objective.strategicPlan.year,
+                  mission:
+                    project.program.objective.strategicPlan.mission,
                 }
-              : null,
-          }
+                : null,
+            }
+            : null,
+        }
         : null,
       integrations: project.integrations.map((i) => ({
         id: i.id,

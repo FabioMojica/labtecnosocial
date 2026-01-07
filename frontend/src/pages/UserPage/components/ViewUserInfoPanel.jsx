@@ -194,6 +194,10 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
 
   if (loadingUpdateUser) return <FullScreenProgress text={'Guardando cambios en el usuario...'} />
 
+  const canNavigateToProject = () => {
+    return userSession?.role === "admin" || (userSession?.role === "coordinator" && isMyProfile);
+  };
+
 
   return (
     <Grid
@@ -220,8 +224,8 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
           changeImage={isEditable}
           onChangeImage={isEditable ? handleOverlayClick : undefined}
           previewImage={previewImage ?? undefined}
-          onContextMenu={isEditable ? handleContextMenu : undefined} 
-          onTouchStart={isEditable ? handleTouchStart : undefined}  
+          onContextMenu={isEditable ? handleContextMenu : undefined}
+          onTouchStart={isEditable ? handleTouchStart : undefined}
           onTouchEnd={isEditable ? handleTouchEnd : undefined}
         />
 
@@ -354,12 +358,26 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
                       width: 64,
                       height: 64,
                       borderRadius: 2,
-                      cursor: "pointer",
+                      cursor: canNavigateToProject() ? 'pointer' : 'default',
                       transition: "transform .2s",
                       "&:hover": {
-                        transform: "scale(1.05)",
+                        transform: "scale(1.01)",
                       },
                     }}
+
+                    onClick={() => {
+                      console.log("CLICK");
+                      console.log("role:", userSession?.role);
+                      console.log("isMyProfile:", isMyProfile);
+                      console.log("canNavigate:", canNavigateToProject());
+
+                      if (!canNavigateToProject()) return;
+
+                      navigate(`/proyecto/${project.id}?tab=Información del proyecto`);
+                    }}
+
+
+
                     title={project.name}
                   >
                     {project.name[0]}

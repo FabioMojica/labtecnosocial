@@ -47,7 +47,8 @@ export const UserPage = () => {
 
     useEffect(() => {
         fetchUserByEmail();
-    }, []);
+    }, [userEmail]);
+
 
     useEffect(() => {
         const urlTab = new URLSearchParams(window.location.search).get("tab");
@@ -70,7 +71,7 @@ export const UserPage = () => {
 
     if (isAdmin) {
         if (isOwnProfile) {
-            content = <AdminTabButtons user={user}/>;
+            content = <AdminTabButtons user={user} />;
         } else if (user?.role === 'coordinator') {
             content = <AdminTabButtons />;
         } else if (user?.role === 'admin') {

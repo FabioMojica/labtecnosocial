@@ -66,9 +66,30 @@ export const ProjectPage = () => {
             projectUpdatedRef.current = resp;
             setError(false);
         } catch (err) {
-            notify("Ocurrió un error inesperado al obtener el proyecto. Inténtalo de nuevo más tarde.", "error");
+            console.log("..............>", err);
+            
+            const errorMessage =
+            err?.message ||
+            err?.response?.data?.message ||
+            "";
+            if (errorMessage.includes("No tienes permisos para acceder a este proyecto")) {
+                navigate("/404", { replace: true });
+                return;
+            }
+            
+            if (errorMessage.includes("Proyecto no encontrado")) {
+                navigate("/404", { replace: true });
+                return;
+            }
+            
             setError(true);
+            
+            notify(
+                "Ocurrió un error inesperado al obtener el proyecto. Inténtalo de nuevo más tarde.",
+                "error"
+            );
         }
+
     }
 
     useEffect(() => {
@@ -148,7 +169,9 @@ export const ProjectPage = () => {
 
     return (
         <>
-            <TabButtons
+        { project && 
+        <>
+        <TabButtons
                 labels={["Información del proyecto", "Responsables", "Integraciones con apis", "Plan operativo", "Más"]}
                 paramsLabels={["Información del proyecto", "Responsables", "Integraciones con apis", "Plan operativo", "Más"]}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
@@ -209,7 +232,8 @@ export const ProjectPage = () => {
                         },
                     ]}
                 />
-            )}
+            )}</>
+        }
         </>
     );
 }

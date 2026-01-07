@@ -339,6 +339,10 @@ export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
     },
   ];
 
+  const canNavigateToProject = () => {
+    return userSession?.role === "admin" || (userSession?.role === "coordinator" && isMyProfile);
+  };
+
   return (
     <Grid
       container
@@ -531,6 +535,16 @@ export const AdminInfoPanel = ({ userEmail, panelHeight }) => {
                       objectFit: 'cover',
                     }}
                     title={project.name}
+                    onClick={() => {
+                      console.log("CLICK");
+                      console.log("role:", userSession?.role);
+                      console.log("isMyProfile:", isMyProfile);
+                      console.log("canNavigate:", canNavigateToProject());
+
+                      if (!canNavigateToProject()) return;
+
+                      navigate(`/proyecto/${project.id}?tab=Información del proyecto`);
+                    }}
                   >
                     {project.name[0]}
                   </Avatar>
