@@ -14,11 +14,33 @@ body {
 }
 
 .flash-highlight {
-  animation: flash 1s ease-in-out;
+  animation: flash 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes flash {
-  0% { background-color: rgba(255, 255, 0, 0.5); }
-  50% { background-color: transparent; }
-  100% { background-color: transparent; }
+  0% {
+    background-color: rgba(31, 125, 83, 0.06); /* verde inicial suave */
+    box-shadow: 
+      0 0 0 0 rgba(31, 125, 83, 0.25),  /* glow sutil inicial */
+      inset 0 0 0 1px rgba(31, 125, 83, 0.12);
+  }
+
+  30% {
+    background-color: rgba(31, 125, 83, 0.15);
+    box-shadow: 
+      0 0 0 8px rgba(31, 125, 83, 0.18),
+      inset 0 0 0 1px rgba(31, 125, 83, 0.25);
+  }
+
+  60% {
+    background-color: rgba(31, 125, 83, 0.1);
+    box-shadow: 
+      0 0 0 4px rgba(31, 125, 83, 0.12),
+      inset 0 0 0 1px rgba(31, 125, 83, 0.2);
+  }
+
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
 }

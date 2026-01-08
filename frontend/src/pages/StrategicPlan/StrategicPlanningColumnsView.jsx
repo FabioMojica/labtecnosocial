@@ -30,8 +30,6 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import { useElementSize } from '../../hooks/useElementSize.js';
 
-
-
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
   const confirm = useConfirm();
   const theme = useTheme();
@@ -118,35 +116,86 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   }, [isFullscreen, isDirty]);
 
 
+  // useEffect(() => {
+  //   const container = isFullscreen ? containerRef.current : window;
+
+  //   const handleScroll = () => {
+  //     let scrollTop, scrollHeight, clientHeight;
+
+  //     if (isFullscreen && container) {
+  //       scrollTop = container.scrollTop;
+  //       clientHeight = container.clientHeight;
+  //       scrollHeight = container.scrollHeight;
+  //     } else {
+  //       scrollTop = window.scrollY;
+  //       clientHeight = window.innerHeight;
+  //       scrollHeight = document.documentElement.scrollHeight;
+  //     }
+
+  //     // Si estamos al final
+  //     if (scrollTop + clientHeight >= scrollHeight - 5) {
+  //       setScrollDirection('up');
+  //     } else {
+  //       setScrollDirection('down');
+  //     }
+  //   };
+
+  //   container.addEventListener('scroll', handleScroll);
+  //   handleScroll();
+
+  //   return () => container.removeEventListener('scroll', handleScroll);
+  // }, [isFullscreen]);
+  const checkScrollPosition = () => {
+    const container = isFullscreen ? containerRef.current : document.documentElement;
+
+    if (!container) return;
+
+    const scrollTop = isFullscreen ? container.scrollTop : window.scrollY;
+    const clientHeight = isFullscreen ? container.clientHeight : window.innerHeight;
+    const scrollHeight = isFullscreen
+      ? container.scrollHeight
+      : document.documentElement.scrollHeight;
+
+    // Si NO hay scroll → flecha abajo desactivada
+    if (scrollHeight <= clientHeight + 2) {
+      setScrollDirection('down');
+      return;
+    }
+
+    // Si estamos al fondo → flecha arriba
+    if (scrollTop + clientHeight >= scrollHeight - 5) {
+      setScrollDirection('up');
+    } else {
+      setScrollDirection('down');
+    }
+  };
+
   useEffect(() => {
     const container = isFullscreen ? containerRef.current : window;
+    if (!container) return;
 
-    const handleScroll = () => {
-      let scrollTop, scrollHeight, clientHeight;
+    container.addEventListener('scroll', checkScrollPosition);
 
-      if (isFullscreen && container) {
-        scrollTop = container.scrollTop;
-        clientHeight = container.clientHeight;
-        scrollHeight = container.scrollHeight;
-      } else {
-        scrollTop = window.scrollY;
-        clientHeight = window.innerHeight;
-        scrollHeight = document.documentElement.scrollHeight;
-      }
+    // 👇 chequeo inicial
+    checkScrollPosition();
 
-      // Si estamos al final
-      if (scrollTop + clientHeight >= scrollHeight - 5) {
-        setScrollDirection('up');
-      } else {
-        setScrollDirection('down');
-      }
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    handleScroll();
-
-    return () => container.removeEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', checkScrollPosition);
   }, [isFullscreen]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver(() => {
+      checkScrollPosition(); // 👈 recalcula aunque no haya scroll
+    });
+
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, [isFullscreen]);
+
+
 
 
   const handleScrollAction = () => {
@@ -501,30 +550,31 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
                 {`Plan Estratégico ${year}`}
               </Typography>
 
+              <Tooltip title={scrollDirection === 'up' ? 'Ir arriba' : 'Ir abajo'}>
+                <IconButton
+                  size="small"
+                  onClick={handleScrollAction}
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    opacity: 1,
+                    transform: scrollDirection === 'up'
+                      ? 'rotate(180deg)'
+                      : 'rotate(0deg)',
 
-              <IconButton
-                size="small"
-                onClick={handleScrollAction}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  opacity: 1,
-                  transform: scrollDirection === 'up'
-                    ? 'rotate(180deg)'
-                    : 'rotate(0deg)',
-
-                  transition: `
+                    transition: `
         transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
         background-color 0.2s ease
       `,
 
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  },
-                }}
-              >
-                <KeyboardArrowDownIcon />
-              </IconButton>
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                >
+                  <KeyboardArrowDownIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
 
 

@@ -53,7 +53,9 @@ const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
         borderRadius: 1,
         marginBottom: 1,
         cursor: 'pointer',
-        border: '1px solid #e0e0e0',
+        border: theme.palette.mode === "light"
+          ? `1px solid #b9c0b3ff`
+          : "1px solid #e0e0e0",
         boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
         position: 'relative'
       }}
@@ -72,9 +74,9 @@ const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
               objectFit: "cover",
               fontWeight: "bold",
               boxShadow:
-      theme.palette.mode === 'light'
-        ? '0 0 0 1px rgba(0,0,0,0.3)'   
-        : '0 0 0 1px rgba(255,255,255,0.3)',
+                theme.palette.mode === 'light'
+                  ? '0 0 0 1px rgba(0,0,0,0.3)'
+                  : '0 0 0 1px rgba(255,255,255,0.3)',
             }}
           >
             {project.name[0].toUpperCase()}

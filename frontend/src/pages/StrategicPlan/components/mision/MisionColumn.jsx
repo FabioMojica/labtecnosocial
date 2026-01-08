@@ -6,6 +6,9 @@ import { useTheme } from '@emotion/react';
 
 const MisionColumn = ({ missionRef, mission, onEdit, onDelete, onCreate, isSelected, onSelect, highlightedItem, isFullscreen, headerHeight }) => {
   const theme = useTheme();
+
+  console.log('highy', highlightedItem);
+
   return (
     <Box
       sx={{
@@ -21,23 +24,22 @@ const MisionColumn = ({ missionRef, mission, onEdit, onDelete, onCreate, isSelec
           theme.palette.mode === 'dark'
             ? '0 4px 12px rgba(0,0,0,1)' : 3,
       }}
-    > 
+    >
       <Box sx={{
         display: 'flex',
         flexDirection: 'column',
         gap: 1,
         position: 'sticky',
         top: isFullscreen ? 0 : 80 + headerHeight,
-        overflow: 'hidden', 
+        overflow: 'hidden',
         borderRadius: 2,
-        zIndex: 998, 
+        zIndex: 998,
         px: 2,
         pl: 2,
         pr: 2,
         pt: 2,
         backgroundColor:
           theme.palette.background.paper,
-       
       }}>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
@@ -55,15 +57,17 @@ const MisionColumn = ({ missionRef, mission, onEdit, onDelete, onCreate, isSelec
         </Box>
       </Box>
 
-      <Box sx={{
-        px: 2,
-        width: '100%',
-        height: '100%', 
-      }}>
+      <Box
+        sx={{
+          px: 2,
+          width: '100%',
+          height: '100%',
+        }}>
         {mission ? (
-          <Box
+          <Box 
             ref={(el) => (missionRef.current = el)}
             className={highlightedItem === 'mission' ? 'flash-highlight' : ''}
+            
           >
             <MisionItem
               text={mission}
@@ -76,23 +80,23 @@ const MisionColumn = ({ missionRef, mission, onEdit, onDelete, onCreate, isSelec
           </Box>
         ) : (
           <Box sx={{
-                      width: '100%',
-                      height: '100%',
-                      p: 5
-                    }}>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            align="center"
-            sx={{
-              padding: '4px',
-              color: 'gray',
-              fontStyle: 'italic',
-              textAlign: 'center',
-              fontSize: '0.75rem',
-            }}>
-            No se ha definido una misión.
-          </Typography>
+            width: '100%',
+            height: '100%',
+            p: 5
+          }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              align="center"
+              sx={{
+                padding: '4px',
+                color: 'gray',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                fontSize: '0.75rem',
+              }}>
+              No se ha definido una misión.
+            </Typography>
           </Box>
         )}
       </Box>

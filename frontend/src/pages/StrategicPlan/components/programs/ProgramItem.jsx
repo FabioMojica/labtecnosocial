@@ -45,7 +45,9 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
                             : 'rgba(255, 255, 255, 0.1)',
                     transition: 'background-color 0.2s ease',
                 },
-        border: isSelected ? '2px solid #90caf9' : '1px solid #e0e0e0', 
+        border: isSelected ? '2px solid #4b9ce9ff' : theme.palette.mode === "light"
+  ? `1px solid #b9c0b3ff`
+  : "1px solid #e0e0e0", 
         borderRadius: 1,
         marginBottom: 1,
         cursor: 'pointer',

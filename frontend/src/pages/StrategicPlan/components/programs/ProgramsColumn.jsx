@@ -163,7 +163,9 @@ const ProgramsColumn = ({
                             cursor: 'pointer',
                             borderRadius: 1,
                             marginBottom: 3,
-                            border: '1px solid #e0e0e0',
+                            border: theme.palette.mode === "light"
+  ? `1px solid #b9c0b3ff`
+  : "1px solid #e0e0e0",
                             boxShadow: ((objective.id === selectedObjectiveId))
                                 ? '0 6px 15px rgba(25, 118, 210, 0.5)'
                                 : '0px 2px 5px rgba(0, 0, 0, 0.1)',

@@ -42,14 +42,15 @@ const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect, isFullscreen
                     borderRadius: 1,
                     marginBottom: 1,
                     cursor: 'pointer',
-                    border: '1px solid #e0e0e0',
+                   border: theme.palette.mode === "light"
+  ? `1px solid #b9c0b3ff`
+  : "1px solid #e0e0e0",
                     boxShadow: text
                         ? '0 6px 15px rgba(25, 118, 210, 0.5)'
                         : '0px 2px 5px rgba(0, 0, 0, 0.1)',
                     transition: 'box-shadow 0.3s ease',
                     maxHeight: '300px',
-                    backgroundColor:
-                        theme.palette.background.paper
+                    
                 }}
             >
                 <Typography

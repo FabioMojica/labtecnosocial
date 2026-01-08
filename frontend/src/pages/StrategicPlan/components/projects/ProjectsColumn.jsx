@@ -171,7 +171,9 @@ const ProjectsColumn = ({
               cursor: 'pointer',
               borderRadius: 1,
               marginBottom: 3,
-              border: '1px solid #e0e0e0',
+              border: theme.palette.mode === "light"
+  ? `1px solid #b9c0b3ff`
+  : "1px solid #e0e0e0",
             }}
 
           >
