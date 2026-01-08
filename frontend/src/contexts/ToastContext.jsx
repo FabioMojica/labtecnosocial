@@ -22,7 +22,7 @@ export const useNotification = () => {
       autoHideDuration: options?.persist ? undefined : options?.duration ?? 2000,
       persist: options?.persist,
       action,
-    });
+    }); 
   };
 
   return { notify };

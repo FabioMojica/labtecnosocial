@@ -10,11 +10,11 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
     const [showViewObjective, setShowViewObjective] = useState(false);
 
     const handleViewObjective = () => {
-        setShowViewObjective(true); 
+        setShowViewObjective(true);
     };
 
     const handleCloseViewObjective = () => {
-        setShowViewObjective(false);
+        setShowViewObjective(false); 
     };
 
     const handleSaveChanges = (editedObjective) => {
@@ -39,7 +39,7 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                 borderRadius: 1,
                 marginBottom: 1,
                 cursor: 'pointer',
-                border: '1px solid #e0e0e0',
+                border: '1px solid #e0e0e0', 
                 boxShadow: isSelected
                     ? '0 6px 15px rgba(25, 118, 210, 0.5)'
                     : '0px 2px 5px rgba(0, 0, 0, 0.1)',
@@ -69,7 +69,7 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                         color: theme.palette.text.primary,
                     }}
                     variant="caption"
-                > 
+                >
                     {objective?.objectiveTitle}
                 </Typography>
             </Box>
@@ -83,11 +83,11 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                 sx={{
                     maxHeight: '200px',
                     overflowY: 'auto',
-                        "&::-webkit-scrollbar": { width: "2px" },
-                        "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
-                        "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
-                        "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
-                }} 
+                    "&::-webkit-scrollbar": { width: "2px" },
+                    "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+                    "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+                    "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+                }}
             >
                 {objective.indicators?.length > 0 ? (
                     <List dense>
@@ -123,7 +123,7 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                                             variant="caption"
                                         >
                                             {indicator.amount}
-                                        </Typography> 
+                                        </Typography>
                                     </Box>
                                     <Box sx={{ width: '60%' }}>
                                         <Typography variant="body2" sx={{ fontWeight: 'bold', fontSize: '0.55rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -173,7 +173,20 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 1 }}>
-                <Tooltip title="Ver o editar objetivo">
+                <Tooltip title="Ver o editar objetivo"
+                    PopperProps={{
+                            modifiers: [
+                                { 
+                                    name: 'zIndex',
+                                    enabled: true, 
+                                    options: {
+                                        zIndex: 997, 
+                                    },
+                                },
+                            ],
+                            style: { zIndex: 997 }, 
+                        }}
+                >
                     <IconButton
                         size="small"
                         onClick={(e) => { e.stopPropagation(); handleViewObjective(); }}
@@ -181,7 +194,20 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                         <VisibilityIcon fontSize="small" />
                     </IconButton>
                 </Tooltip>
-                <Tooltip title="Eliminar objetivo">
+                <Tooltip title="Eliminar objetivo"
+                    PopperProps={{
+                            modifiers: [
+                                {
+                                    name: 'zIndex',
+                                    enabled: true,
+                                    options: {
+                                        zIndex: 997, 
+                                    },
+                                },
+                            ],
+                            style: { zIndex: 997 }, 
+                        }}
+                >
                     <IconButton
                         size="small"
                         onClick={(e) => { e.stopPropagation(); onDelete(); }}

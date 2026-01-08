@@ -32,6 +32,11 @@ const lightTheme = createTheme({
       paper: '#E5E5E5'
     },
   },
+  zIndex: {
+    modal: 70000,        
+    tooltip: 60000,       
+     
+  },
   components: {
     MuiButton: {
       styleOverrides: {
@@ -70,6 +75,11 @@ const darkTheme = createTheme({
     },
     secondary: { main: '#020202ff' },
     background: { default: '#121212', paper: '#2D2D2D' },
+  },
+  zIndex: {
+    modal: 70000,        
+    tooltip: 60000,       
+    
   },
   components: {
     MuiButton: {

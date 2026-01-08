@@ -7,33 +7,66 @@ import { useTheme } from '@emotion/react';
 const ObjectivesColumn = ({
   objectives = [],
   selectedObjectiveId,
+  objectiveRefs,
   onSelectObjective,
   onEditObjective,
   onDeleteObjective,
   onCreateObjective,
-  mission
+  mission,
+  highlightedItem,
+  isFullscreen,
+  headerHeight
 }) => {
-  const theme = useTheme();
+  const theme = useTheme(); 
+  console.log("fullscreen", isFullscreen)
 
   const isAddDisabled = !mission;
 
   return (
     <Box
       sx={{
-        width: 300,
+        width: '100%',
         minWidth: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        padding: 2,
+        maxHeight: '100%',
+        backgroundColor:
+          theme.palette.background.paper,
         borderRadius: 2,
         boxShadow:
           theme.palette.mode === 'dark'
             ? '0 4px 12px rgba(0,0,0,1)' : 3,
       }}
-    >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+    > 
+      <Box sx={{ 
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1,
+        position: 'sticky', 
+        top: isFullscreen ? 0 : 80 + headerHeight,
+        overflow: 'hidden', 
+        borderRadius: 2, 
+        zIndex: isFullscreen ? 3000 : 998, 
+        px: 2,
+        pl: 2,
+        pr: 2,
+        pt: 2,
+        backgroundColor:
+          theme.palette.background.paper,
+      }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">{`Objetivos (${objectives.length})`}</Typography>
+          <Typography
+            variant="h6"
+          >
+            Objetivos{" "}
+            <Typography
+              component="span"
+              color="text.secondary"
+              fontWeight="normal"
+            >
+              ({objectives?.length})
+            </Typography>
+          </Typography>
           <Tooltip
             size="small"
             title={
@@ -79,34 +112,51 @@ const ObjectivesColumn = ({
       </Box>
 
 
-      {objectives.length === 0 ? (
-
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          align="center"
-          sx={{
-            mt: 5,
-            padding: '4px',
-            color: 'gray',
-            fontStyle: 'italic',
-            textAlign: 'center',
-            fontSize: '0.75rem',
+      <Box sx={{
+        px: 2,
+        width: '100%',
+        height: '100%'
+      }}>
+        {objectives.length === 0 ? (
+          <Box sx={{
+            width: '100%',
+            height: '100%',
+            p: 5
           }}>
-          No hay objetivos creados.
-        </Typography>
-      ) : (
-        objectives.map((obj) => (
-          <ObjectiveItem
-            key={obj.id}
-            objective={obj}
-            isSelected={selectedObjectiveId === obj.id}
-            onClick={() => onSelectObjective(obj.id)}
-            onEdit={(edited) => onEditObjective(obj.id, edited)}
-            onDelete={() => onDeleteObjective(obj.id)}
-          />
-        ))
-      )}
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              align="center"
+              sx={{
+                padding: '4px',
+                color: 'gray',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                fontSize: '0.75rem',
+              }}> 
+              No hay objetivos creados.
+            </Typography>
+          </Box>
+        ) : (
+          objectives.map((obj) => (
+            <Box
+              key={obj.id}
+              ref={(el) => (objectiveRefs.current[obj.id] = { current: el })}
+              className={highlightedItem === obj.id ? 'flash-highlight' : ''}
+            >
+              <ObjectiveItem
+                key={obj.id}
+                objective={obj}
+                isSelected={selectedObjectiveId === obj.id}
+                onClick={() => onSelectObjective(obj.id)}
+                onEdit={(edited) => onEditObjective(obj.id, edited)}
+                onDelete={() => onDeleteObjective(obj.id)}
+                isFullscreen={isFullscreen}
+              />
+            </Box>
+          ))
+        )}
+      </Box>
     </Box>
   );
 };

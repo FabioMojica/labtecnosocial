@@ -4,3 +4,21 @@ input:-webkit-autofill {
   -webkit-text-fill-color: black; /* color del texto */
   transition: background-color 5000s ease-in-out; /* evita el parpadeo */
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  scroll-behavior: smooth;
+}
+
+.flash-highlight {
+  animation: flash 1s ease-in-out;
+}
+
+@keyframes flash {
+  0% { background-color: rgba(255, 255, 0, 0.5); }
+  50% { background-color: transparent; }
+  100% { background-color: transparent; }
+}

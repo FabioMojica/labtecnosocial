@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Divider, Grid, Typography } from '@mui/material';
+import { Box, Button, Divider, Grid, Typography, useTheme } from '@mui/material';
 import MisionColumn from './components/mision/MisionColumn';
 import CreateMisionItemModal from './components/mision/CreateMisionItemModal';
 import ObjectivesColumn from './components/objetives/ObjectiveColumn';
@@ -23,9 +23,18 @@ import { ButtonWithLoader } from "../../generalComponents/ButtonWithLoader.jsx";
 import isEqual from "lodash.isequal";
 import cloneDeep from "lodash/cloneDeep";
 
- 
+import CropSquareIcon from '@mui/icons-material/CropSquare';
+import FilterNoneIcon from '@mui/icons-material/FilterNone';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import { useElementSize } from '../../hooks/useElementSize.js';
+
+
+
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
   const confirm = useConfirm();
+  const theme = useTheme();
   const originalDataRef = useRef(cloneDeep(data));
   const [mission, setMission] = useState(data?.mission || '');
   const [selectedItem, setSelectedItem] = useState('mision');
@@ -45,12 +54,124 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const selectedProgram = selectedObjective?.programs?.find(p => p.id === selectedProgramId) || null;
 
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const { loading, callEndpoint } = useFetchAndLoad();
 
   const { notify } = useNotification();
 
   const containerRef = useRef(null);
+
+  const [scrollDirection, setScrollDirection] = useState('down');
+
+  const missionRef = useRef(null);
+  const objectiveRefs = useRef({});
+  const programRefs = useRef({});
+  const projectsRef = useRef(null);
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const [highlightedItem, setHighlightedItem] = useState(null);
+
+  const headerRef = useRef(null);
+  const { height: headerHeight } = useElementSize(headerRef);
+
+  const scrollToRef = (ref) => {
+    ref?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  };
+
+  const flashElement = (ref, id) => {
+    console.log("holaaaaaaaa", ref)
+    if (!ref?.current) return;
+    setHighlightedItem(id);
+    setTimeout(() => setHighlightedItem(null), 1000);
+    scrollToRef(ref.current);
+  };
+
+  const goToMission = () => {
+    flashElement(missionRef, 'mission');
+  };
+
+  const goToSelectedObjective = () => {
+    if (!selectedObjectiveId) return;
+    flashElement(objectiveRefs.current[selectedObjectiveId], selectedObjectiveId);
+  };
+
+  const goToSelectedProgram = () => {
+    if (!selectedProgramId) return;
+    flashElement(programRefs.current[selectedProgramId], selectedProgramId);
+  };
+
+  const goToProjects = () => {
+    if (!selectedProgramId) return;
+    flashElement(projectsRef, 'projects');
+  };
+
+  useEffect(() => {
+    if (headerRef.current) {
+      const height = headerRef.current.getBoundingClientRect().height;
+      console.log('Altura del header:', height);
+    }
+  }, [isFullscreen, isDirty]);
+
+
+  useEffect(() => {
+    const container = isFullscreen ? containerRef.current : window;
+
+    const handleScroll = () => {
+      let scrollTop, scrollHeight, clientHeight;
+
+      if (isFullscreen && container) {
+        scrollTop = container.scrollTop;
+        clientHeight = container.clientHeight;
+        scrollHeight = container.scrollHeight;
+      } else {
+        scrollTop = window.scrollY;
+        clientHeight = window.innerHeight;
+        scrollHeight = document.documentElement.scrollHeight;
+      }
+
+      // Si estamos al final
+      if (scrollTop + clientHeight >= scrollHeight - 5) {
+        setScrollDirection('up');
+      } else {
+        setScrollDirection('down');
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    handleScroll();
+
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [isFullscreen]);
+
+
+  const handleScrollAction = () => {
+    const container = isFullscreen ? containerRef.current : window;
+
+    if (scrollDirection === 'up') {
+      // Scroll al inicio
+      if (isFullscreen) {
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      // Scroll al final
+      if (isFullscreen) {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+      } else {
+        const scrollHeight = Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight
+        );
+        window.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+      }
+    }
+  };
 
   useEffect(() => {
     if (onDirtyChange) {
@@ -106,7 +227,6 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     setSelectedProgramId(null);
     setSelectedObjectiveId(id);
     setSelectedItem('objetivo');
-    containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleEditObjective = (id, editedObj) => {
@@ -143,7 +263,10 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     setObjectives((prev) => prev.filter((o) => o.id !== id));
     setIsDirty(true);
     setObjectiveToDelete(null);
-    if (selectedObjectiveId === id) setSelectedObjectiveId(null);
+    if (selectedObjectiveId === id) {
+      setSelectedObjectiveId(null);
+      setSelectedProgramId(null);
+    }
   };
 
   const handleSelectProgram = (id) => {
@@ -277,7 +400,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     })
       .then((result) => {
         if (result.confirmed === true) {
-          console.log("aaaa",originalDataRef.current.mission);
+          console.log("aaaa", originalDataRef.current.mission);
           console.log("eee", originalDataRef.current.objectives);
 
           setMission(originalDataRef.current.mission || '');
@@ -291,154 +414,315 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
   return (
     <>
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center', width: '100%', height: '100%', p: 2, gap: 2 }}>
-        <Typography
-          variant="caption"
-          fontWeight={'bold'}
-          fontSize={{
-            xs: '1rem'
-          }}
-          textAlign={'center'}
-        >
-          {`Plan Estratégico ${year}`}
-        </Typography>
-
-        <Divider sx={{
-          width: '100%',
-          display: { xs: 'block', sm: 'none' },
-        }} />
-
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: { xs: 'center', sm: 'flex-end' }, alignItems: 'center', gap: 1 }}>
-          {isDirty && (
-            <Button
-              variant="outlined"
-              color="error"
-              sx={{ width: { xs: '100%', sm: '170px' }, height: '100%' }}
-              // onClick={() => {
-              //   setMission(originalDataRef.current.mission || '');
-              //   setObjectives(cloneDeep(originalDataRef.current.objectives || []));
-              //   setIsDirty(false);
-              // }}
-              onClick={() => handleDiscardChanges()}
-            >
-              Descartar cambios
-            </Button>
-          )}
-          <ButtonWithLoader
-            loading={loading}
-            onClick={handleSavePlan}
-            disabled={!isDirty}
-            variant="contained"
-            sx={{ color: 'white', px: 2, width: { xs: '100%', sm: '170px' } }}
-          >
-            Guardar Plan
-          </ButtonWithLoader>
-        </Box>
-      </Box>
-
-
-      <Grid
-        container
-        ref={containerRef}
-        spacing={2}
+      <Box
         sx={{
-          p: 0,
-          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 2,
+          position: isFullscreen ? 'fixed' : 'relative',
+          top: isFullscreen ? 0 : 'auto',
+          left: isFullscreen ? 0 : 'auto',
+          width: isFullscreen ? '100vw' : '100%',
+          height: isFullscreen ? '100vh' : 'auto',
+          bgcolor: (theme) => theme.palette.background.default,
+          zIndex: isFullscreen ? 1500 : 'auto',
+          overflow: isFullscreen ? 'auto' : 'visible',
+          gap: 1
         }}
-        justifyContent="center"
       >
-
-        <Grid size={{
-          xs: 12,
-          sm: 6,
-          md: 6,
-          lg: 3
-        }}
+        <Box
+          ref={headerRef}
+          sx={{
+            position: isFullscreen ? 'relative' : 'sticky',
+            top: isFullscreen ? 0 : 64,
+            zIndex: isFullscreen ? 1600 : 999,
+            bgcolor: 'background.paper',
+            borderTopLeftRadius: 2,
+            borderTopRightRadius: 2,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            p: 1,
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            flexDirection: {
+              xs: 'column',
+              md: 'row',
+            },
+            gap: 1
+          }}
         >
-          <MisionColumn
-            mission={mission}
-            onEdit={handleEditMission}
-            onDelete={handleDeleteMission}
-            onCreate={handleCreateMission}
-            isSelected={selectedItem === 'mision'}
-            onSelect={handleSelectMission}
-          />
-        </Grid>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: {
+              xs: 'column',
+              sm: 'row',
+              md: 'row',
+              lg: 'row'
+            },
+            gap: 1
+          }}>
+            <Box sx={{
+              display: 'flex',
+              gap: 1
+            }}>
+              <Tooltip
+                title={isFullscreen ? "Minimizar" : "Maximizar"}
+                open={tooltipOpen}
+                onOpen={() => setTooltipOpen(true)}
+                onClose={() => setTooltipOpen(false)}
+              >
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setIsFullscreen(!isFullscreen);
+                    setTooltipOpen(false); // cerramos el tooltip al hacer click
+                  }}
+                  sx={{
+                    transition: 'transform 0.3s ease',
+                    transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                >
+                  {isFullscreen ? <FilterNoneIcon fontSize="small" /> : <CropSquareIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
 
-        <Grid size={{
-          xs: 12,
-          sm: 6,
-          md: 6,
-          lg: 3
-        }}
-        >
-          <ObjectivesColumn
-            objectives={objectives}
-            selectedObjectiveId={selectedObjectiveId}
-            onSelectObjective={handleSelectObjective}
-            onEditObjective={handleEditObjective}
-            onDeleteObjective={handleDeleteObjective}
-            onCreateObjective={handleCreateObjective}
-            mission={mission}
-          />
-        </Grid>
+              <Typography
+                variant="h6"
+                fontWeight={'bold'}
+                textAlign={'center'}
+              >
+                {`Plan Estratégico ${year}`}
+              </Typography>
 
-        <Grid size={{
-          xs: 12,
-          sm: 6,
-          md: 6,
-          lg: 3
-        }}
-        >
-          <ProgramsColumn
-            objectives={objectives} 
-            selectedProgramId={selectedProgramId}
-            selectedObjectiveId={selectedObjectiveId}
-            onSelectProgram={handleSelectProgram}
-            handleSelectObjective={handleSelectObjective}
-            onEditProgram={handleEditProgram}
-            onDeleteProgram={handleDeleteProgram}
-            onViewProgram={() => { }}
-            onCreateProgram={() => setIsCreateProgramModalOpen(true)}
-            selectedObjective={selectedObjective}
-          />
-        </Grid>
 
-        <Grid size={{
-          xs: 12,
-          sm: 6,
-          md: 6,
-          lg: 3
-        }}
+              <IconButton
+                size="small"
+                onClick={handleScrollAction}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  opacity: 1,
+                  transform: scrollDirection === 'up'
+                    ? 'rotate(180deg)'
+                    : 'rotate(0deg)',
+
+                  transition: `
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 0.2s ease
+      `,
+
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
+                <KeyboardArrowDownIcon />
+              </IconButton>
+            </Box>
+
+
+
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
+              <Tooltip title="Ir a misión">
+                <IconButton size="small" onClick={goToMission} disabled={!mission}>
+                  🧭
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Ir al objetivo seleccionado">
+                <IconButton
+                  size="small"
+                  disabled={!selectedObjectiveId}
+                  onClick={goToSelectedObjective}
+                >
+                  🎯
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Ir al programa seleccionado">
+                <IconButton
+                  size="small"
+                  disabled={!selectedProgramId}
+                  onClick={goToSelectedProgram}
+                >
+                  📦
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Ver los proyectos">
+                <IconButton
+                  size="small"
+                  disabled={!selectedProgramId}
+                  onClick={goToProjects}
+                >
+                  📑
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Box>
+
+
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1,
+            flexDirection: {
+              xs: 'row',
+            }
+          }}>
+            {isDirty && (
+              <Button
+                variant="contained"
+                color="error"
+                sx={{ width: { xs: '170px', sm: '170px' } }}
+                onClick={() => handleDiscardChanges()}
+              >
+                Descartar cambios
+              </Button>
+            )}
+            <ButtonWithLoader
+              loading={loading}
+              onClick={handleSavePlan}
+              disabled={!isDirty}
+              variant="contained"
+              sx={{ color: 'white', px: 2, width: { xs: '170px' } }}
+            >
+              Guardar Plan
+            </ButtonWithLoader>
+          </Box>
+        </Box>
+
+
+        <Grid
+          container
+          ref={containerRef}
+          spacing={2}
+          sx={{
+            width: '100%',
+            px: 1,
+            pb: 1,
+            flex: isFullscreen ? 1 : 'unset',
+            overflowY: isFullscreen ? 'auto' : 'visible',
+          }}
+          justifyContent="center"
         >
-          <ProjectsColumn
-            objectives={objectives}
-            selectedProgramId={selectedProgramId}
-            onEditProgram={handleEditProgram}
-            onUnlinkProject={(programId, projectId) => {
-              setObjectives((prev) =>
-                prev.map((obj) => ({
-                  ...obj,
-                  programs: obj.programs.map((prog) =>
-                    prog.id === programId
-                      ? {
-                        ...prog,
-                        operationalProjects: (prog.operationalProjects || []).filter(
-                          (proj) => proj.id !== projectId
-                        ),
-                      }
-                      : prog
-                  ),
-                }))
-              );
-              setIsDirty(true);
-            }}
-            onViewProject={(id) => window.open(`/proyectos/${id}`, '_blank')}
-            onAddProject={() => setIsCreateProjectModalOpen(true)}
-            selectedProgram={selectedProgram}
-          />
+          <Grid size={{
+            xs: 12,
+            sm: 6,
+            md: 6,
+            lg: 3
+          }}
+          >
+            <MisionColumn
+              missionRef={missionRef}
+              mission={mission}
+              onEdit={handleEditMission}
+              onDelete={handleDeleteMission}
+              onCreate={handleCreateMission}
+              isSelected={selectedItem === 'mision'}
+              onSelect={handleSelectMission}
+              highlightedItem={highlightedItem}
+              isFullscreen={isFullscreen}
+              headerHeight={headerHeight}
+            />
+          </Grid>
+
+          <Grid size={{
+            xs: 12,
+            sm: 6,
+            md: 6,
+            lg: 3,
+          }}
+
+          >
+            <ObjectivesColumn
+              objectives={objectives}
+              selectedObjectiveId={selectedObjectiveId}
+              objectiveRefs={objectiveRefs}
+              onSelectObjective={handleSelectObjective}
+              onEditObjective={handleEditObjective}
+              onDeleteObjective={handleDeleteObjective}
+              onCreateObjective={handleCreateObjective}
+              mission={mission}
+              highlightedItem={highlightedItem}
+              isFullscreen={isFullscreen}
+              headerHeight={headerHeight}
+            />
+          </Grid>
+
+          <Grid size={{
+            xs: 12,
+            sm: 6,
+            md: 6,
+            lg: 3
+          }}
+          >
+            <ProgramsColumn
+              objectives={objectives}
+              selectedProgramId={selectedProgramId}
+              selectedObjectiveId={selectedObjectiveId}
+              programRefs={programRefs}
+              onSelectProgram={handleSelectProgram}
+              handleSelectObjective={handleSelectObjective}
+              onEditProgram={handleEditProgram}
+              onDeleteProgram={handleDeleteProgram}
+              onViewProgram={() => { }}
+              onCreateProgram={() => setIsCreateProgramModalOpen(true)}
+              selectedObjective={selectedObjective}
+              highlightedItem={highlightedItem}
+              isFullscreen={isFullscreen}
+              headerHeight={headerHeight}
+            />
+          </Grid>
+
+          <Grid size={{
+            xs: 12,
+            sm: 6,
+            md: 6,
+            lg: 3
+          }}
+          >
+            <ProjectsColumn
+              projectsRef={projectsRef}
+              objectives={objectives}
+              selectedProgramId={selectedProgramId}
+              onEditProgram={handleEditProgram}
+              onUnlinkProject={(programId, projectId) => {
+                setObjectives((prev) =>
+                  prev.map((obj) => ({
+                    ...obj,
+                    programs: obj.programs.map((prog) =>
+                      prog.id === programId
+                        ? {
+                          ...prog,
+                          operationalProjects: (prog.operationalProjects || []).filter(
+                            (proj) => proj.id !== projectId
+                          ),
+                        }
+                        : prog
+                    ),
+                  }))
+                );
+                setIsDirty(true);
+              }}
+              onViewProject={(id) => window.open(`/proyectos/${id}`, '_blank')}
+              onAddProject={() => setIsCreateProjectModalOpen(true)}
+              selectedProgram={selectedProgram}
+              highlightedItem={highlightedItem}
+              isFullscreen={isFullscreen}
+              headerHeight={headerHeight}
+            />
+          </Grid>
         </Grid>
-      </Grid>
+      </Box>
 
       <CreateMisionItemModal
         open={isCreateModalOpen}

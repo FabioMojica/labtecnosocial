@@ -79,7 +79,21 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-        <Tooltip title='Ver o editar programa'>
+        <Tooltip title='Ver o editar programa'
+        
+        PopperProps={{
+                            modifiers: [
+                                { 
+                                    name: 'zIndex',
+                                    enabled: true, 
+                                    options: {
+                                        zIndex: 997, 
+                                    },
+                                },
+                            ],
+                            style: { zIndex: 997 }, 
+                        }}
+              >
           <IconButton
             size="small"
             onClick={(e) => {
@@ -91,7 +105,20 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
           </IconButton>
         </Tooltip>
 
-        <Tooltip title='Eliminar programa'>
+        <Tooltip title='Eliminar programa'
+        PopperProps={{
+                            modifiers: [
+                                { 
+                                    name: 'zIndex',
+                                    enabled: true, 
+                                    options: {
+                                        zIndex: 997, 
+                                    },
+                                },
+                            ],
+                            style: { zIndex: 997 }, 
+                        }}
+        >
           <IconButton
             size="small"
             onClick={(e) => {

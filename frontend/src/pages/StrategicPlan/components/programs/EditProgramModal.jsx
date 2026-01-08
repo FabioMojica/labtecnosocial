@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Modal, Box, Typography, TextField, Button, IconButton } from '@mui/material';
+import { Modal, Box, Typography, TextField, Button, IconButton, useTheme } from '@mui/material';
 import useKeyboardShortcuts from '../../../../hooks/useKeyboardShortcuts.js';
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -11,6 +11,7 @@ const EditProgramModal = ({ open, onClose, program, onSave }) => {
   const [text, setText] = useState('');
   const [charsLeft, setCharsLeft] = useState(MAX_PROGRAM_LENGTH);
   const originalText = useRef('');
+  const theme = useTheme();
 
   useEffect(() => {
     if (program && open) {
@@ -68,7 +69,8 @@ const EditProgramModal = ({ open, onClose, program, onSave }) => {
         width: 400, 
         bgcolor: 'background.paper',
         borderRadius: 2, 
-        boxShadow: 24, p: 4
+        boxShadow: 24, 
+        p: 4
       }}>
          <IconButton
                   onClick={onClose}
@@ -86,18 +88,38 @@ const EditProgramModal = ({ open, onClose, program, onSave }) => {
           fullWidth
           multiline
           rows={4}
-          label="Texto del Programa"
+          label="Texto del Programa" 
           value={text}
           onChange={handleTextChange}
           variant="outlined"
-          inputProps={{ maxLength: MAX_PROGRAM_LENGTH }}
+          inputProps={{ 
+            maxLength: MAX_PROGRAM_LENGTH 
+          }}
+          sx={{
+            "& .MuiInputBase-input": {
+              overflowY: "auto",
+              maxHeight: "200px",
+              "&::-webkit-scrollbar": { width: "2px" },
+              "&::-webkit-scrollbar-track": {
+                backgroundColor: theme.palette.background.default,
+                borderRadius: "2px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: theme.palette.primary.main,
+                borderRadius: "2px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                backgroundColor: theme.palette.primary.dark,
+              },
+            },
+          }}
         />
 
         <Typography
           variant="caption"
           sx={{
             color: charsLeft === 0 ? 'error.main' : 'text.secondary',
-            display: 'block',
+            display: 'block', 
             textAlign: 'right',
             mt: 0.5
           }}
@@ -106,7 +128,14 @@ const EditProgramModal = ({ open, onClose, program, onSave }) => {
         </Typography>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-          <Button onClick={handleCancel} color="secondary">Cancelar</Button>
+          <Button 
+            onClick={handleCancel} 
+            color="error"
+            variant="contained"
+            >
+
+              Cancelar
+          </Button>
           <Button onClick={handleSave} disabled={!isValid} variant="contained">
             Guardar Cambios
           </Button>

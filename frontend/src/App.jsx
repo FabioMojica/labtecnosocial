@@ -29,6 +29,7 @@ import { ReportBubble } from './generalComponents/ReportBubble';
 import { ReportModal } from './generalComponents/ReportModal';
 import { useState } from 'react';
 import { ReportEditor } from './pages/Reports/ReportEditor';
+import { useSnackbarStyles } from './pages/StrategicPlan/hooks/useSnackBarStyles';
 
 export const ROLES = {
   ADMIN: "admin",
@@ -47,7 +48,7 @@ export const PublicRoute = ({ element }) => {
 const AppContent = () => {
   const { isAuthenticated } = useAuth();
 
-  
+
   return (
     <>
       {isAuthenticated && <Header />}
@@ -77,38 +78,46 @@ const AppContent = () => {
 
 function App() {
   const theme = useTheme();
+  const snackbarClasses = useSnackbarStyles();
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <CustomThemeProvider>
-        <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
-          <BrowserRouter>
-            <AuthProvider>
-                <HeaderHeightProvider>
-                  <ConfirmProvider>
-                    <ReportProvider>
-                      <CssBaseline />
-                      <Box sx={{
-                        flexGrow: 1,
-                        padding: 1,
-                        minHeight: '100vh',
-                        pl: {
-                          xs: getDrawerClosedWidth(theme, 'xs'),
-                          sm: getDrawerClosedWidth(theme, 'sm'),
-                        },
-                        maxWidth: 1600,
-                      }}>
-                        {/* BURBUJA DEL REPORTE */}
-                        <ReportBubble onClick={() => setModalOpen(true)} />
-                        <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
-                        <AppContent />
-                      </Box>
-                    </ReportProvider>
-                  </ConfirmProvider>
-                </HeaderHeightProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </SnackbarProvider>
+      <SnackbarProvider
+        maxSnack={3}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        classes={{
+          containerRoot: snackbarClasses.containerRoot,
+          containerAnchorOriginTopCenter: snackbarClasses.containerAnchorOriginTopCenter,
+        }}
+      >
+        <BrowserRouter>
+          <AuthProvider>
+            <HeaderHeightProvider>
+              <ConfirmProvider>
+                <ReportProvider>
+                  <CssBaseline />
+                  <Box sx={{
+                    flexGrow: 1,
+                    padding: 1,
+                    minHeight: '100vh',
+                    pl: {
+                      xs: getDrawerClosedWidth(theme, 'xs'),
+                      sm: getDrawerClosedWidth(theme, 'sm'),
+                    },
+                    maxWidth: 1600,
+                  }}>
+                    {/* BURBUJA DEL REPORTE */}
+                    <ReportBubble onClick={() => setModalOpen(true)} />
+                    <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
+                    <AppContent />
+                  </Box>
+                </ReportProvider>
+              </ConfirmProvider>
+            </HeaderHeightProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </SnackbarProvider>
     </CustomThemeProvider>
   );
 }

@@ -146,7 +146,7 @@ const StrategicPlanningDashboardPage = () => {
   }
 
   return (
-    <Box maxWidth sx={{ p: 1 }}>
+    <Box maxWidth sx={{ py: 1 }}>
       <Box
         sx={{
           display: "flex",
@@ -158,7 +158,8 @@ const StrategicPlanningDashboardPage = () => {
           justifyContent: "space-between",
           gap: 2,
           width: '100%',
-          mb: 1
+          mb: 1,
+          px: 1
         }}
       >
         <Typography
@@ -238,10 +239,9 @@ const StrategicPlanningDashboardPage = () => {
         </Box>
       </Box>
 
-      <Divider />
-
       {(!showColumnsView && !loadingPlan && !planData) && (
         <>
+        <Divider />
           <NoResultsScreen
             message="Año sin plan estratégico registrado"
             buttonText={

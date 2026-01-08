@@ -5,7 +5,7 @@ import EditMisionItemModal from './EditMisionItemModal.jsx';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useTheme } from '@emotion/react';
 
-const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect }) => {
+const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect, isFullscreen }) => {
     const theme = useTheme();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -48,6 +48,8 @@ const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect }) => {
                         : '0px 2px 5px rgba(0, 0, 0, 0.1)',
                     transition: 'box-shadow 0.3s ease',
                     maxHeight: '300px',
+                    backgroundColor:
+                        theme.palette.background.paper
                 }}
             >
                 <Typography
@@ -78,7 +80,20 @@ const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect }) => {
                 </Typography>
 
                 <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <Tooltip title="Ver o editar misión">
+                    <Tooltip title="Ver o editar misión"
+                        PopperProps={{
+                            modifiers: [
+                                {
+                                    name: 'zIndex',
+                                    enabled: true,
+                                    options: {
+                                        zIndex: isFullscreen ? 1600 : 997, 
+                                    },
+                                },
+                            ],
+                            style: { zIndex: isFullscreen ? 1600 : 997 }, 
+                        }}
+                    >
                         <IconButton
                             size="small"
                             onClick={(e) => { handleOpenEditModal(); }}
