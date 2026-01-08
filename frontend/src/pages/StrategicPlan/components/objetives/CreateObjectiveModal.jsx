@@ -250,7 +250,7 @@ const CreateObjectiveModal = ({ open, onClose, onSave }) => {
 
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-          <Button onClick={handleClose} sx={{ mr: 2 }}>
+          <Button variant="contained" color="error" onClick={handleClose} sx={{ mr: 2 }}>
             Cancelar
           </Button>
           <Button

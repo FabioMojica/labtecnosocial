@@ -13,7 +13,7 @@ import { useTheme } from '@emotion/react';
 const ProgramsColumn = ({
     objectives,
     selectedProgramId,
-    selectedObjectiveId,
+    selectedObjectiveId, 
     onSelectProgram,
     handleSelectObjective,
     onEditProgram,
@@ -23,6 +23,7 @@ const ProgramsColumn = ({
     selectedObjective,
 }) => {
     const theme = useTheme();
+    console.log("selecyed obj", selectedObjective, selectedObjectiveId)
 
     const totalPrograms = objectives.reduce(
         (acc, obj) => acc + (obj.programs?.length || 0),
@@ -48,11 +49,11 @@ const ProgramsColumn = ({
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6">
                         {`Programas (${totalPrograms})`}
-                    </Typography>
-                    <Tooltip title="Agregar objetivo">
-                        <IconButton
+                    </Typography> 
+                    <Tooltip title="Agregar programa">
+                        <IconButton 
                             onClick={onCreateProgram}
-                            disabled={!selectedObjectiveId}
+                            disabled={(!selectedObjectiveId && !selectedObjective)}
                             size="small"
                             color="primary"
                         >

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Modal, Box, Typography, TextField, Button } from '@mui/material';
+import { Modal, Box, Typography, TextField, Button, IconButton } from '@mui/material';
 import useKeyboardShortcuts from '../../../../hooks/useKeyboardShortcuts.js';
+import CloseIcon from "@mui/icons-material/Close";
 
 import { sanitizeText, isValidSanitizedText } from "../../../../utils/textSanitizer.js";
 
@@ -64,9 +65,19 @@ const EditProgramModal = ({ open, onClose, program, onSave }) => {
       <Box sx={{
         position: 'absolute', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: 400, bgcolor: 'background.paper',
-        borderRadius: 2, boxShadow: 24, p: 4
+        width: 400, 
+        bgcolor: 'background.paper',
+        borderRadius: 2, 
+        boxShadow: 24, p: 4
       }}>
+         <IconButton
+                  onClick={onClose}
+                  sx={{ position: "absolute", top: 8, right: 8, color: "grey.600" }}
+                  aria-label="Cerrar"
+                >
+                  <CloseIcon />
+                </IconButton>
+
         <Typography variant="h6" gutterBottom>
           Editar Programa
         </Typography>

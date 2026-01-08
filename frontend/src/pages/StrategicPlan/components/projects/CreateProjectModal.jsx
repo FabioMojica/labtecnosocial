@@ -250,7 +250,12 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>Cancelar</Button>
+        <Button 
+          variant="contained"
+          color="error"
+          onClick={handleClose} 
+          disabled={loading}
+        >Cancelar</Button>
         <Button onClick={handleSave} disabled={!selectedProjectId || loading} variant="contained">
           Seleccionar Proyecto
         </Button>

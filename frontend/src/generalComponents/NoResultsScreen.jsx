@@ -4,6 +4,7 @@ import { ButtonWithLoader } from './ButtonWithLoader';
 import { useHeaderHeight } from '../contexts';
 
 export const NoResultsScreen = ({ 
+  variant,
   message = "No se encontraron resultados", 
   sx,
   iconSX,

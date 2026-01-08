@@ -111,12 +111,11 @@ const CreateMisionItemModal = ({ open, onClose, onSave, maxLength = 3000 }) => {
           Caracteres: {misionText.length} / {maxLength}
         </Typography>
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-          <Button onClick={onClose} sx={{ mr: 1 }}>
+          <Button color="error" variant="contained" onClick={onClose} sx={{ mr: 1 }}>
             Cancelar
           </Button>
           <Button
             variant="contained"
-            color="primary"
             onClick={handleSave}
             disabled={!isValid}
           >

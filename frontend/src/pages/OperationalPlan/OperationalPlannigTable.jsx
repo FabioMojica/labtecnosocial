@@ -18,11 +18,11 @@ import { getOperationalPlanOfProjectApi, saveOperationalRowsApi } from '../../ap
 
 import { isRowEmpty, toNullableNumber } from './utils/rowsFuncions';
 import { useNotification } from '../../contexts';
-import { ButtonWithLoader, FullScreenProgress, NoResultsScreen } from '../../generalComponents';
+import { ButtonWithLoader, ErrorScreen, FullScreenProgress, NoResultsScreen } from '../../generalComponents';
 import { useFetchAndLoad } from '../../hooks';
 
 
-const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHasPlan, onEditingChange, hasPlan }) => {
+const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHasPlan, onEditingChange, hasPlan, onLoadError }) => {
     const confirm = useConfirm();
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
@@ -43,17 +43,9 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHa
     }
 }, [projectId, hasPlan]);
 
-
-    useEffect(() => {
-        if (!projectId) {
-            setRows([]);
-            setInitialRows([]);
-            return;
-        }
-
-        const fetchProjectDetails = async () => {
+const fetchProjectDetails = async () => {
             setLoadingProjectDetails(true);
-            try {
+            try {  
                 const res = await getOperationalPlanOfProjectApi(projectId);
 
                 if (Array.isArray(res) && res.length === 0) {
@@ -82,13 +74,22 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHa
                 setRows(transformedRows);
                 setInitialRows(cloneDeep(transformedRows));
                 setHasLoadError(false);
+                if (onLoadError) onLoadError(false);
             } catch (error) {
-                notify("Ocurrió un error inesperado al obtener el plan operativo. Inténtalo de nuevo más tarde.", 'error');
                 setHasLoadError(true);
+                if (onLoadError) onLoadError(true);
             } finally {
                 setLoadingProjectDetails(false);
             }
         };
+
+    useEffect(() => {
+        if (!projectId) {
+            setRows([]);
+            setInitialRows([]);
+            return;
+        }
+
         fetchProjectDetails();
     }, [projectId]);
 
@@ -524,7 +525,9 @@ const OperationalPlanningTable = ({ projectId, onProjectWithoutPlan, onProjectHa
     }
 
     if (hasLoadError) {
-        return null;
+        return <ErrorScreen sx={{
+            height: '60vh'
+        }} message="Ocurrió un error al obtener el plan operativo del proyecto" buttonText="Intentar de nuevo" onButtonClick={() => fetchProjectDetails()} />
     }
 
     return (

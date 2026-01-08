@@ -21,7 +21,15 @@ const DeleteObjectiveModal = ({ open, onClose, objective, onDelete }) => {
     };
 
     return (
-        <Dialog open={showModal} onClose={handleClose}>
+        <Dialog  
+            open={showModal} 
+            onClose={handleClose}
+        >
+            <Box
+            sx={{
+                backgroundColor: theme.palette.background.paper,
+            }}
+            >
             <DialogTitle sx={{ fontWeight: 'bold' }}>Eliminar Objetivo</DialogTitle>
             <Typography
                 sx={{
@@ -112,7 +120,18 @@ const DeleteObjectiveModal = ({ open, onClose, objective, onDelete }) => {
                             ))}
                         </Box>
                     ) : (
-                        <Typography variant="body2" sx={{ color: 'gray' }}>No tiene indicadores registrados</Typography>
+                        <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    padding: '4px',
+                                                    color: 'gray',
+                                                    fontStyle: 'italic',
+                                                    textAlign: 'left',
+                                                    fontSize: '0.75rem',
+                                                }}
+                                            >
+                            No tiene indicadores registrados
+                        </Typography>
                     )}
                 </Box>
 
@@ -164,14 +183,29 @@ const DeleteObjectiveModal = ({ open, onClose, objective, onDelete }) => {
                             ))}
                         </Box>
                     ) : (
-                        <Typography variant="body2" sx={{ color: 'gray' }}>No tiene programas registrados</Typography>
+                        <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    padding: '4px',
+                                                    color: 'gray',
+                                                    fontStyle: 'italic',
+                                                    textAlign: 'left',
+                                                    fontSize: '0.75rem',
+                                                }}
+                                            >
+                            No tiene programas registrados
+                        </Typography>
                     )}
                 </Box>
             </DialogContent>
             <DialogActions sx={{ padding: 2 }}>
-                <Button onClick={handleClose}>Cancelar</Button>
+                <Button onClick={handleClose} 
+                variant='contained'
+                >Cancelar
+                </Button>
                 <Button onClick={handleDelete} color="error" variant="contained">Eliminar</Button>
             </DialogActions>
+            </Box>
         </Dialog>
     );
 };

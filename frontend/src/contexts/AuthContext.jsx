@@ -62,7 +62,7 @@
 //   return ctx;
 // };
 
-import { useContext, createContext, useState } from "react";
+import { useContext, createContext, useState, useEffect } from "react";
 import { authService } from "../services";
 import { useFetchAndLoad } from "../hooks";
 import { loginUserApi, logoutUserApi } from "../api";
@@ -73,6 +73,24 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loadingContext, setLoadingContext] = useState(true);
   const { loading, callEndpoint } = useFetchAndLoad();
+
+  useEffect(() => {
+    const validate = async () => {
+      setLoadingContext(true);
+      try {
+        const session = await authService.validateSession();
+        if (session?.user) {
+          setAuth(session.user, true);
+        } else {
+          setAuth(null, false);
+        }
+      } catch (err) {
+        setAuth(null, false);
+      }
+    };
+
+    validate();
+  }, []);
 
 
   const setAuth = (user, authenticated) => {

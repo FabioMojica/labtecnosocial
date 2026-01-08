@@ -34,15 +34,15 @@ const ObjectivesColumn = ({
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">{`Objetivos (${objectives.length})`}</Typography>
-          <Tooltip 
+          <Tooltip
             size="small"
-            title={ 
+            title={
               isAddDisabled
                 ? "Debes crear o seleccionar una misión antes de agregar objetivos"
                 : "Agregar objetivo"
             }>
             <IconButton onClick={onCreateObjective} size="small" color="primary" disabled={isAddDisabled}>
-              <AddIcon fontSize="small"/>
+              <AddIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </Box>
@@ -58,6 +58,14 @@ const ObjectivesColumn = ({
           whiteSpace: 'normal',
           wordBreak: 'break-word',
           WebkitLineClamp: 2,
+          ...(mission
+            ? {}
+            : {
+              color: 'gray',
+              fontStyle: 'italic',
+              textAlign: 'center',
+              fontSize: '0.75rem',
+            }),
         }}>
           {mission ? (
             <>

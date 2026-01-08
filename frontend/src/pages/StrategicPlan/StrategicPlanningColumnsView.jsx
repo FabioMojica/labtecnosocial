@@ -10,6 +10,7 @@ import CreateProgramModal from './components/programs/CreateProgramModal';
 import DeleteProgramModal from './components/programs/DeleteProgramModal';
 import ProjectsColumn from './components/projects/ProjectsColumn';
 import CreateProjectModal from './components/projects/CreateProjectModal';
+import { useConfirm } from 'material-ui-confirm';
 
 import { useNotification } from '../../contexts/ToastContext.jsx';
 import { updateStrategicPlanApi } from '../../api/strategicPlan.js';
@@ -24,6 +25,7 @@ import cloneDeep from "lodash/cloneDeep";
 
 
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
+  const confirm = useConfirm();
   const originalDataRef = useRef(cloneDeep(data));
   const [mission, setMission] = useState(data?.mission || '');
   const [selectedItem, setSelectedItem] = useState('mision');
@@ -266,9 +268,28 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     }
   };
 
+  const handleDiscardChanges = () => {
+    confirm({
+      title: "Descartar cambios",
+      description: "¿Deseas descartar todos los cambios no guardados?",
+      confirmationText: "Sí, descartar",
+      cancellationText: "Cancelar",
+    })
+      .then((result) => {
+        if (result.confirmed === true) {
+
+          setMission(originalDataRef.current.mission || '');
+          setObjectives(cloneDeep(originalDataRef.current.objectives || []));
+          setIsDirty(false);
+          notify("Cambios descartados correctamente.", "info");
+        }
+      })
+      .catch(() => { });
+  };
+
   return (
     <>
-      <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm: 'row'}, justifyContent: 'space-between', alignItems: 'center', width: '100%', height: '100%', p:2, gap: 2}}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center', width: '100%', height: '100%', p: 2, gap: 2 }}>
         <Typography
           variant="caption"
           fontWeight={'bold'}
@@ -282,20 +303,21 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
         <Divider sx={{
           width: '100%',
-          display: {xs: 'block', sm: 'none'},
-        }}/>
+          display: { xs: 'block', sm: 'none' },
+        }} />
 
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: {xs: 'column', sm: 'row'}, justifyContent: {xs: 'center', sm: 'flex-end'}, alignItems: 'center',gap: 1 }}>
+        <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: { xs: 'center', sm: 'flex-end' }, alignItems: 'center', gap: 1 }}>
           {isDirty && (
             <Button
               variant="outlined"
               color="error"
-              sx={{ width: {xs: '100%', sm:'170px'}, height: '100%' }}
-              onClick={() => {
-                setMission(originalDataRef.current.mission || '');
-                setObjectives(cloneDeep(originalDataRef.current.objectives || []));
-                setIsDirty(false);
-              }}
+              sx={{ width: { xs: '100%', sm: '170px' }, height: '100%' }}
+              // onClick={() => {
+              //   setMission(originalDataRef.current.mission || '');
+              //   setObjectives(cloneDeep(originalDataRef.current.objectives || []));
+              //   setIsDirty(false);
+              // }}
+              onClick={() => handleDiscardChanges()}
             >
               Descartar cambios
             </Button>
@@ -305,7 +327,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             onClick={handleSavePlan}
             disabled={!isDirty}
             variant="contained"
-            sx={{ color: 'white', px: 2,  width: {xs: '100%', sm:'170px'} }}
+            sx={{ color: 'white', px: 2, width: { xs: '100%', sm: '170px' } }}
           >
             Guardar Plan
           </ButtonWithLoader>
@@ -367,7 +389,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
         }}
         >
           <ProgramsColumn
-            objectives={objectives}
+            objectives={objectives} 
             selectedProgramId={selectedProgramId}
             selectedObjectiveId={selectedObjectiveId}
             onSelectProgram={handleSelectProgram}

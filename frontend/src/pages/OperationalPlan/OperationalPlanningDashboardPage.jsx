@@ -26,6 +26,14 @@ const OperationalPlanningDashboardPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [error, setError] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [planLoadError, setPlanLoadError] = useState(false);
+  const [loadingRows, setLoadingRows] = useState(false);
+
+
+  const handlePlanLoadError = (hasError) => {
+    setPlanLoadError(hasError);
+  };
+
 
   const navigate = useNavigate();
 
@@ -45,8 +53,6 @@ const OperationalPlanningDashboardPage = () => {
       setError(false);
     } catch (error) {
       setError(true);
-      
-      notify("Ocurrió un error inesperado al obtener la lista de proyectos. Inténtalo de nuevo más tarde.", 'error');
     }
   };
 
@@ -134,29 +140,40 @@ const OperationalPlanningDashboardPage = () => {
             xs: '1.5rem',
             sm: '2rem'
           },
-          textAlign: 'center',
+          width: 'auto'
         }}>Planificación Operativa</Typography>
 
         <Box sx={{
           display: 'flex',
           flexDirection: {
-            xs: 'row',
+            xs: 'column',
             sm: 'row'
           },
           alignItems: 'center',
-          gap: { xs: 0.5, sm: 2 }
+          gap: 2,
+          justifyContent: 'flex-end',
         }}>
           <SelectProjectModal
             projects={projects}
             selectedProjectId={selectedProjectId}
             onChange={handleProjectChange}
             loading={loading}
+            sx={{
+              width: {
+                xs: '100%',
+                sm: 200
+              }
+            }}
           />
 
-          {selectedProjectId && (
+          {(selectedProjectId && !planLoadError) && (
             <FormControl
               sx={{
                 minWidth: { xs: 100, sm: 150 },
+                width: {
+                xs: '100%',
+                sm: 200
+              }
               }}
               size="small"
               disabled={!selectedProjectId || isEditing}
@@ -183,7 +200,7 @@ const OperationalPlanningDashboardPage = () => {
             </FormControl>
           )}
 
-          {selectedProjectId && hasPlan && (
+          {(selectedProjectId && hasPlan && !planLoadError && !loadingRows) && (
             <Box
               sx={{
                 display: 'flex',
@@ -221,7 +238,7 @@ const OperationalPlanningDashboardPage = () => {
         onDeletePlan={handleDeleteOperationalPlanningTable}
       />
 
-      {
+      { selectedProjectId && (
         viewMode === 'editable' ? (
           <OperationalPlanningTable
             projectId={selectedProjectId}
@@ -230,6 +247,7 @@ const OperationalPlanningDashboardPage = () => {
             onProjectHasPlan={() => setHasPlan(true)}
             onEditingChange={setIsEditing}
             hasPlan={hasPlan}
+            onLoadError={handlePlanLoadError}
           />
         ) : (
           <OperationalPlanningReadOnlyTable
@@ -238,8 +256,10 @@ const OperationalPlanningDashboardPage = () => {
             project={selectedProject}
             onProjectWithoutPlan={handleProjectWithoutPlan}
             hasPlan={hasPlan}
+            onLoadError={handlePlanLoadError}
+            onLoadingRowsChange={setLoadingRows}
           />
-        )
+        ))
       }
 
       {!selectedProjectId && (

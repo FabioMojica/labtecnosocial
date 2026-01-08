@@ -18,6 +18,8 @@ import { getAllOperationalProjectsApi, getOperationalPlanOfProjectApi } from "..
 import { NoResultsScreen } from "../../generalComponents/NoResultsScreen.jsx";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { FullScreenProgress } from "../../generalComponents/FullScreenProgress.jsx";
+import { ErrorScreen } from "../../generalComponents/ErrorScreen.jsx";
 
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -141,72 +143,39 @@ const defaultColumns = [
       );
     }
   },
-  // {
-  //   field: 'period',
-  //   headerName: 'Periodo',
-  //   flex: 1,
-  //   minWidth: 150,
-  //   sortable: false,
-  //   renderCell: (params) => {
-  //     const { start = '', end = '' } = params.value || {};
-
-  //     if (!start && !end) return null;
-
-  //     return (
-  //       <div style={{
-  //         whiteSpace: 'normal',
-  //         wordBreak: 'break-word',
-  //         lineHeight: 1.4,
-  //         width: '100%',
-  //         display: 'flex',
-  //         flexDirection: 'column',
-  //         gap: '4px'
-  //       }}>
-  //         <div>
-  //           <strong>Inicio:</strong>
-  //           <div>{formatDate(start)}</div>
-  //         </div>
-  //         <div>
-  //           <strong>Fin:</strong>
-  //           <div>{formatDate(end)}</div>
-  //         </div>
-  //       </div>
-  //     );
-  //   },
-  // }
   {
-  field: 'period',
-  headerName: 'Periodo',
-  flex: 1,
-  minWidth: 150,
-  sortable: false,
-  renderCell: (params) => {
-    const { start = '', end = '' } = params.value || {};
+    field: 'period',
+    headerName: 'Periodo',
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    renderCell: (params) => {
+      const { start = '', end = '' } = params.value || {};
 
-    if (!start && !end) return null;
+      if (!start && !end) return null;
 
-    return (
-      <div style={{
-        whiteSpace: 'normal',
-        wordBreak: 'break-word',
-        lineHeight: 1.4,
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '4px'
-      }}>
-        <div>
-          <strong>Inicio:</strong>
-          <div>{start ? formatDate(start) : '-'}</div> {/* ✅ solo formatea si hay fecha */}
+      return (
+        <div style={{
+          whiteSpace: 'normal',
+          wordBreak: 'break-word',
+          lineHeight: 1.4,
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px'
+        }}>
+          <div>
+            <strong>Inicio:</strong>
+            <div>{start ? formatDate(start) : '-'}</div> {/* ✅ solo formatea si hay fecha */}
+          </div>
+          <div>
+            <strong>Fin:</strong>
+            <div>{end ? formatDate(end) : '-'}</div> {/* ✅ solo formatea si hay fecha */}
+          </div>
         </div>
-        <div>
-          <strong>Fin:</strong>
-          <div>{end ? formatDate(end) : '-'}</div> {/* ✅ solo formatea si hay fecha */}
-        </div>
-      </div>
-    );
-  },
-}
+      );
+    },
+  }
 
 
 ];
@@ -257,7 +226,7 @@ const handleExportExcel = (rows, project) => {
         // i === 0 ? row.period.start : '',
         // i === 0 ? row.period.end : ''
         i === 0 ? (row.period.start ? formatDate(row.period.start) : '-') : '', // ✅ aquí
-  i === 0 ? (row.period.end ? formatDate(row.period.end) : '-') : ''      // ✅ aquí
+        i === 0 ? (row.period.end ? formatDate(row.period.end) : '-') : ''      // ✅ aquí
       ]);
     }
     ws_data.push([]);
@@ -428,66 +397,66 @@ const handleExportPDF = async (rows, project) => {
 };
 
 
-
-
-
-const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithoutPlan, hasPlan }) => {
+const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithoutPlan, hasPlan, onLoadError, onLoadingRowsChange }) => {
   const theme = useTheme();
   const [rows, setRows] = useState([]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [gridKey, setGridKey] = useState(0);
   const [hasLoadError, setHasLoadError] = useState(false);
-  const notify = useNotification();
 
   useEffect(() => {
-      if (!projectId || !hasPlan) {
-          setRows([]);
-      }
+    if (!projectId || !hasPlan) {
+      setRows([]);
+    }
   }, [projectId, hasPlan]);
+
+
+  const loadRows = async () => {
+    setLoadingRows(true);
+    if (onLoadingRowsChange) onLoadingRowsChange(true);
+    try {
+      const res = await getOperationalPlanOfProjectApi(projectId);
+
+      if (Array.isArray(res) && res.length === 0) {
+        if (onProjectWithoutPlan) onProjectWithoutPlan(projectId);
+      }
+
+      const transformedRows = res.map(row => ({
+        id: row.id,
+        objective: row.objective ?? '',
+        indicator: {
+          quantity: row.indicator_amount ?? '',
+          concept: row.indicator_concept ?? ''
+        },
+        team: Array.isArray(row.team) ? row.team : [],
+        resources: Array.isArray(row.resources) ? row.resources : [],
+        budget: {
+          amount: row.budget_amount ?? '',
+          description: row.budget_description ?? ''
+        },
+        period: {
+          start: row.period_start ?? '',
+          end: row.period_end ?? ''
+        },
+      }));
+
+      setRows(transformedRows);
+      setHasLoadError(false);
+      if (onLoadError) onLoadError(false);
+    } catch (error) {
+      setHasLoadError(true);
+      if (onLoadError) onLoadError(true);
+    } finally {
+      setLoadingRows(false);
+      if (onLoadingRowsChange) onLoadingRowsChange(false);
+    }
+  };
 
   useEffect(() => {
     if (!projectId) {
       setRows([]);
       return;
     }
-
-    const loadRows = async () => {
-      setLoadingRows(true);
-      try {
-        const res = await getOperationalPlanOfProjectApi(projectId);
-
-        if (Array.isArray(res) && res.length === 0) {
-          if (onProjectWithoutPlan) onProjectWithoutPlan(projectId);
-        }
-
-        const transformedRows = res.map(row => ({
-          id: row.id,
-          objective: row.objective ?? '',
-          indicator: {
-            quantity: row.indicator_amount ?? '',
-            concept: row.indicator_concept ?? ''
-          },
-          team: Array.isArray(row.team) ? row.team : [],
-          resources: Array.isArray(row.resources) ? row.resources : [],
-          budget: {
-            amount: row.budget_amount ?? '',
-            description: row.budget_description ?? ''
-          },
-          period: {
-            start: row.period_start ?? '',
-            end: row.period_end ?? ''
-          },
-        }));
-
-        setRows(transformedRows);
-        setHasLoadError(false);
-      } catch (error) {
-        setHasLoadError(true);
-        notify("Ocurrió un error inesperado al obtener la planificación operativa del proyecto. Inténtalo de nuevo más tarde.", 'error');
-      } finally {
-        setLoadingRows(false);
-      }
-    };
 
     loadRows();
   }, [projectId]);
@@ -496,8 +465,18 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
     setGridKey(prev => prev + 1);
   };
 
+  if (loadingRows) {
+    return (
+      <FullScreenProgress text={"Obteniendo el plan operativo"} />
+    );
+  }
+
   if (hasLoadError) {
-    return null;
+    return (
+      <ErrorScreen sx={{
+        height: '60vh'
+      }} message="Ocurrió un error al obtener el plan operativo del proyecto" buttonText="Intentar de nuevo" onButtonClick={() => loadRows()} />
+    )
   }
 
   return (
@@ -522,9 +501,7 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
 
 
       {loadingRows ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
-          <CircularProgress />
-        </Box>
+        <FullScreenProgress text={'Obteniendo el plan operativo'} />
       ) : !rows.length ? (
         <>
           <NoResultsScreen

@@ -1,13 +1,14 @@
 import { CircularProgress } from "@mui/material";
 import { useAuthorization } from "../hooks";
 import { Navigate } from "react-router-dom";
+import { FullScreenProgress } from "./FullScreenProgress";
 
 
 export const PrivateRoute = ({ element, allowedRoles = [] }) => {
   const auth = useAuthorization(allowedRoles);
- 
+
   if (auth.status === "loading") {
-    return <CircularProgress />;
+    return <FullScreenProgress text={"Recargando..."}/>;
   }
 
   if (auth.status === "unauthenticated") {

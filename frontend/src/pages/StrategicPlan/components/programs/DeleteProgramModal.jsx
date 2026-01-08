@@ -27,6 +27,11 @@ const DeleteProgramModal = ({ open, onClose, program, onDelete }) => {
 
     return ( 
         <Dialog open={showModal} onClose={handleClose}>
+            <Box
+                        sx={{
+                            backgroundColor: theme.palette.background.paper,
+                        }}
+                        >
             <DialogTitle sx={{ fontWeight: 'bold' }}>Eliminar Programa</DialogTitle>
             <Typography
                 sx={{
@@ -105,14 +110,29 @@ const DeleteProgramModal = ({ open, onClose, program, onDelete }) => {
                             ))}
                         </Box>
                     ) : (
-                        <Typography variant="body2" sx={{ color: 'gray' }}>No tiene proyectos operativos vinculados</Typography>
+                       <Typography
+                                                                       variant="body2"
+                                                                       sx={{
+                                                                           padding: '4px',
+                                                                           color: 'gray',
+                                                                           fontStyle: 'italic',
+                                                                           textAlign: 'left',
+                                                                           fontSize: '0.75rem',
+                                                                       }}
+                                                                   >
+                            No tiene proyectos operativos vinculados
+                        </Typography>
                     )}
                 </Box>
             </DialogContent>
             <DialogActions sx={{ padding: 2 }}>
-                <Button onClick={handleClose}>Cancelar</Button>
+                <Button 
+                variant='contained'
+                onClick={handleClose}>
+                    Cancelar</Button>
                 <Button onClick={handleDelete} color="error" variant="contained">Eliminar</Button>
             </DialogActions>
+            </Box>
         </Dialog>
     );
 };

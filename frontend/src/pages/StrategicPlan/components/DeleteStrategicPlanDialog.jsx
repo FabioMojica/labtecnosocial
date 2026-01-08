@@ -107,7 +107,6 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
                   width: 50,
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
-
                     borderColor: 'error.main',
                   },
                 }}

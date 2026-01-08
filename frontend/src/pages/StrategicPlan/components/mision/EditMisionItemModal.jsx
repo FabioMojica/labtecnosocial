@@ -127,7 +127,7 @@ const EditMisionItemModal = ({ open, onClose, onSave, initialText = "", maxLengt
         </Typography>
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-          <Button onClick={handleSave} color="primary" disabled={isSaveDisabled()}>
+          <Button variant="contained" onClick={handleSave} disabled={isSaveDisabled()}>
             Guardar
           </Button>
         </Box>

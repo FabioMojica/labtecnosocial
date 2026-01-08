@@ -83,8 +83,6 @@ const CreateProgramModal = ({ open, onClose, onSave }) => {
           Crear Nuevo Programa
         </Typography>
 
-        <Divider />
-
         <TextField
           fullWidth
           multiline
@@ -127,7 +125,7 @@ const CreateProgramModal = ({ open, onClose, onSave }) => {
         </Typography>
 
         <Stack direction="row" justifyContent="flex-end" spacing={2} mt={2}>
-          <Button onClick={handleClose}>
+          <Button variant="contained" color="error" onClick={handleClose}>
             Cancelar
           </Button>
           <Button onClick={handleSave} disabled={!isValid} variant="contained">

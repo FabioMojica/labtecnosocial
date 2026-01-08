@@ -6,7 +6,7 @@ export const ButtonWithLoader = ({
   loaderSize = 24,
   loaderColor = "inherit",
   backgroundButton,
-  children, 
+  children,
   disabled,
   className = "",
   triggerOnEnter = false,
@@ -41,11 +41,11 @@ export const ButtonWithLoader = ({
       {...props}
       sx={{
         position: "relative",
-        backgroundColor: resolvedBackgroundButtonColor,
         minHeight: 48,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        backgroundColor: resolvedBackgroundButtonColor,
         ...sx,
       }}
     >

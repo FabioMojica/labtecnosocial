@@ -22,6 +22,7 @@ import CloseIcon from '@mui/icons-material/Close';
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const SelectProjectModal = ({
+  sx,
   projects = [],
   selectedProjectId,
   onChange,
@@ -65,7 +66,8 @@ export const SelectProjectModal = ({
           alignItems: 'center',
           gap: 1,
           p: 1,
-          overflow: 'hidden'
+          overflow: 'hidden',
+          ...sx
         }}
       >
         {loading ? (
@@ -149,7 +151,7 @@ export const SelectProjectModal = ({
               buttonText="Registrar un proyecto"
               onButtonClick={() => navigate('/proyectos/crear')}
               sx={{
-                height: 'auto',
+                height: '100%',
                 width: '100%',
               }}
             />

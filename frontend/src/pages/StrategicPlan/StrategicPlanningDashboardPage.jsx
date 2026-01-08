@@ -135,7 +135,7 @@ const StrategicPlanningDashboardPage = () => {
   };
 
   if (loading) {
-    return <FullScreenProgress text="Obteniendo el plan estratégico" />;
+    return <FullScreenProgress text={ `Obteniendo el plan estratégico del año ${year ? parseInt(year) : currentYear}`} />;
   }
 
   if (errorPlan) {
