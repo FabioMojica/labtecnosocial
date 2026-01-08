@@ -23,7 +23,7 @@ import { ButtonWithLoader } from "../../generalComponents/ButtonWithLoader.jsx";
 import isEqual from "lodash.isequal";
 import cloneDeep from "lodash/cloneDeep";
 
-
+ 
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
   const confirm = useConfirm();
   const originalDataRef = useRef(cloneDeep(data));
@@ -257,7 +257,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
       const updated = await callEndpoint(updateStrategicPlanApi(year, payload));
       if (onPlanSaved) onPlanSaved(normalizePlanData(updated));
-      originalDataRef.current = cloneDeep(updated);
+      originalDataRef.current = cloneDeep(normalizePlanData(updated));
       setIsDirty(false);
 
       notify('Plan estratégico guardado correctamente.', 'success');
@@ -277,6 +277,8 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     })
       .then((result) => {
         if (result.confirmed === true) {
+          console.log("aaaa",originalDataRef.current.mission);
+          console.log("eee", originalDataRef.current.objectives);
 
           setMission(originalDataRef.current.mission || '');
           setObjectives(cloneDeep(originalDataRef.current.objectives || []));

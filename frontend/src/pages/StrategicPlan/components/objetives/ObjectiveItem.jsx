@@ -70,7 +70,7 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                     }}
                     variant="caption"
                 > 
-                    {objective.objectiveTitle}
+                    {objective?.objectiveTitle}
                 </Typography>
             </Box>
 
@@ -87,11 +87,11 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                         "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
                         "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
                         "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
-                }}
+                }} 
             >
                 {objective.indicators?.length > 0 ? (
                     <List dense>
-                        {objective.indicators.map((indicator, index) => (
+                        {objective?.indicators?.map((indicator, index) => (
                             <ListItem key={index} sx={{ mb: '2px', display: 'flex', justifyContent: 'space-between' }}>
                                 <Box sx={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
                                     <Box sx={{ width: '5%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginRight: 1 }}>

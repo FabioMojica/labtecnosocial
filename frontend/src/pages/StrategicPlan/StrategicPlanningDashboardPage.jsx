@@ -32,7 +32,6 @@ const StrategicPlanningDashboardPage = () => {
   const [selectedYear, setSelectedYear] = useState(null);
   const { user } = useAuth();
   const { loading, callEndpoint } = useFetchAndLoad();
-  const { notify } = useNotification();
   const [selectedView, setSelectedView] = useState("Columna");
   const [allPlans, setAllPlans] = useState([]);
   const [showColumnsView, setShowColumnsView] = useState(false);
@@ -99,7 +98,7 @@ const StrategicPlanningDashboardPage = () => {
       setPlanData(null);
 
       const res = await callEndpoint(getStrategicPlanByYearApi(yearToFetch));
-      setPlanData(normalizePlanData(res));
+      setPlanData(normalizePlanData(res)); 
       setShowColumnsView(true);
     } catch (error) {
       if (error.message?.includes("No se encontró plan estratégico")) {

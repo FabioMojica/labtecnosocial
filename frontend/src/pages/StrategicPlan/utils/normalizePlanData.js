@@ -9,13 +9,13 @@ export const normalizePlanData = (data) => {
       ...obj,
       objectiveTitle: obj.title || '',  
       indicators: obj.indicators?.map(ind => ({
-        ...ind,
+        ...ind, 
         id: ind.id,
         amount: ind.amount || null,
         concept: ind.concept || null,
       })) || [],
       programs: obj.programs?.map(prog => ({
-        id: prog.id,
+        id: prog.id, 
         programDescription: prog.description || '',
         operationalProjects: prog.operationalProjects?.map(project => ({
           id: project.id,

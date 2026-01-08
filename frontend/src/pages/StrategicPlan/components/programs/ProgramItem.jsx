@@ -74,7 +74,7 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
                         color: theme.palette.text.primary,
           }}
         >
-          {program.programDescription}
+          {program?.programDescription}
         </Typography>
       </Box>
 
