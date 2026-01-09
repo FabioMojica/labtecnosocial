@@ -5,7 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import ViewEditObjective from './ViewEditObjective';
 import { useTheme } from '@emotion/react';
 
-const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => {
+const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected, highlightedItem }) => {
     const theme = useTheme();
     const [showViewObjective, setShowViewObjective] = useState(false);
 
@@ -14,7 +14,7 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
     };
 
     const handleCloseViewObjective = () => {
-        setShowViewObjective(false); 
+        setShowViewObjective(false);
     };
 
     const handleSaveChanges = (editedObjective) => {
@@ -39,15 +39,16 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                 borderRadius: 1,
                 marginBottom: 1,
                 cursor: 'pointer',
-                 border: theme.palette.mode === "light"
-  ? `1px solid #b9c0b3ff`
-  : "1px solid #e0e0e0",
+                border: theme.palette.mode === "light"
+                    ? `1px solid #b9c0b3ff`
+                    : "1px solid #e0e0e0",
                 boxShadow: isSelected
                     ? '0 6px 15px rgba(25, 118, 210, 0.5)'
                     : '0px 2px 5px rgba(0, 0, 0, 0.1)',
                 maxHeight: '300px',
             }}
             onClick={onClick}
+            className={highlightedItem === objective.id ? 'flash-highlight' : ''}
         >
             <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                 <Typography variant="body2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -177,17 +178,17 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 1 }}>
                 <Tooltip title="Ver o editar objetivo"
                     PopperProps={{
-                            modifiers: [
-                                { 
-                                    name: 'zIndex',
-                                    enabled: true, 
-                                    options: {
-                                        zIndex: 997, 
-                                    },
+                        modifiers: [
+                            {
+                                name: 'zIndex',
+                                enabled: true,
+                                options: {
+                                    zIndex: 1600,
                                 },
-                            ],
-                            style: { zIndex: 997 }, 
-                        }}
+                            },
+                        ],
+                        style: { zIndex: 1600 },
+                    }}
                 >
                     <IconButton
                         size="small"
@@ -198,17 +199,17 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected }) => 
                 </Tooltip>
                 <Tooltip title="Eliminar objetivo"
                     PopperProps={{
-                            modifiers: [
-                                {
-                                    name: 'zIndex',
-                                    enabled: true,
-                                    options: {
-                                        zIndex: 997, 
-                                    },
+                        modifiers: [
+                            {
+                                name: 'zIndex',
+                                enabled: true,
+                                options: {
+                                    zIndex: 1600,
                                 },
-                            ],
-                            style: { zIndex: 997 }, 
-                        }}
+                            },
+                        ],
+                        style: { zIndex: 1600 },
+                    }}
                 >
                     <IconButton
                         size="small"

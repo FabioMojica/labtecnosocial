@@ -10,37 +10,35 @@ html {
 }
 
 body {
-  scroll-behavior: smooth;
+  scroll-behavior: smooth; 
 }
 
 .flash-highlight {
-  animation: flash 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: flash 0.8s ease-in-out 0s 3;
 }
 
 @keyframes flash {
   0% {
-    background-color: rgba(31, 125, 83, 0.06); /* verde inicial suave */
-    box-shadow: 
-      0 0 0 0 rgba(31, 125, 83, 0.25),  /* glow sutil inicial */
-      inset 0 0 0 1px rgba(31, 125, 83, 0.12);
+    background-color: rgba(31, 125, 83, 0.08);
+    box-shadow: 0 0 6px rgba(31, 125, 83, 0.3);
+  } 
+  25% {
+    background-color: rgba(31, 125, 83, 0.18);
+    box-shadow: 0 0 12px rgba(31, 125, 83, 0.5);
   }
-
-  30% {
-    background-color: rgba(31, 125, 83, 0.15);
-    box-shadow: 
-      0 0 0 8px rgba(31, 125, 83, 0.18),
-      inset 0 0 0 1px rgba(31, 125, 83, 0.25);
+  50% {
+    background-color: rgba(31, 125, 83, 0.08);
+    box-shadow: 0 0 6px rgba(31, 125, 83, 0.3);
   }
-
-  60% {
-    background-color: rgba(31, 125, 83, 0.1);
-    box-shadow: 
-      0 0 0 4px rgba(31, 125, 83, 0.12),
-      inset 0 0 0 1px rgba(31, 125, 83, 0.2);
+  75% {
+    background-color: rgba(31, 125, 83, 0.18);
+    box-shadow: 0 0 12px rgba(31, 125, 83, 0.5);
   }
-
   100% {
     background-color: transparent;
     box-shadow: none;
   }
 }
+
+
+

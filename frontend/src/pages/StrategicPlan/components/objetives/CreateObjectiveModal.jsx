@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal,
   Box,
@@ -23,6 +23,8 @@ const CreateObjectiveModal = ({ open, onClose, onSave }) => {
   const [objectiveCharsLeft, setObjectiveCharsLeft] = useState(MAX_OBJECTIVE_LENGTH);
   const [indicators, setIndicators] = useState([]);
   const theme = useTheme();
+  const indicatorsRefs = useRef({});
+  const [flashIndicatorId, setFlashIndicatorId] = useState(null);
 
   useEffect(() => {
     if (!open) {
@@ -61,12 +63,52 @@ const CreateObjectiveModal = ({ open, onClose, onSave }) => {
     );
   };
 
+  // const handleAddIndicator = () => {
+  //   setIndicators((prev) => [
+  //     ...prev,
+  //     { id: prev.length > 0 ? prev[prev.length - 1].id + 1 : 1, amount: '', concept: '' },
+  //   ]);
+
+  //   // Guardamos el id para el parpadeo
+  //   setFlashIndicatorId(newId);
+
+  //   // Usamos un timeout para asegurar que el DOM se actualice antes de hacer scroll
+  //   setTimeout(() => {
+  //     const element = indicatorsRefs.current[newId];
+  //     if (element) {
+  //       element.scrollIntoView({ behavior: "smooth", block: "center" });
+  //     }
+  //   }, 50);
+  // };
   const handleAddIndicator = () => {
+    const newId = indicators.length > 0 ? indicators[indicators.length - 1].id + 1 : 1;
+
     setIndicators((prev) => [
       ...prev,
-      { id: prev.length > 0 ? prev[prev.length - 1].id + 1 : 1, amount: '', concept: '' },
+      { id: newId, amount: '', concept: '' },
     ]);
+
+    setFlashIndicatorId(newId);
+
+    setTimeout(() => {
+      const element = indicatorsRefs.current[newId];
+      if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
   };
+
+  useEffect(() => {
+    if (!flashIndicatorId) return;
+
+    const element = indicatorsRefs.current[flashIndicatorId];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    const timer = setTimeout(() => setFlashIndicatorId(null), 2400);
+    return () => clearTimeout(timer);
+  }, [flashIndicatorId, indicators]);
+
+
 
   const handleDeleteIndicator = (id) => {
     setIndicators((prev) => prev.filter((ind) => ind.id !== id));
@@ -74,10 +116,27 @@ const CreateObjectiveModal = ({ open, onClose, onSave }) => {
 
   const isObjectiveValid = isValidSanitizedText(objectiveText, MAX_OBJECTIVE_LENGTH);
 
+
   const isSaveDisabled = () => {
+    // 1️⃣ Validamos título
     if (!isObjectiveValid) return true;
+
+    const allIndicatorsValid =
+      indicators.length === 0
+        ? true // no hay indicadores, ok
+        : indicators.every(({ amount, concept }) => {
+          if (!amount.trim() || amount === "0") return false;
+          const cleanedConcept = sanitizeText(concept);
+          if (!isValidSanitizedText(cleanedConcept, MAX_CONCEPT_LENGTH)) return false;
+          return true;
+        });
+
+    if (!allIndicatorsValid) return true;
+
+    // 3️⃣ todo bien
     return false;
   };
+
 
   const handleSave = () => {
     if (isSaveDisabled()) return;
@@ -173,31 +232,51 @@ const CreateObjectiveModal = ({ open, onClose, onSave }) => {
         <Box
           sx={{
             maxHeight: '200px',
-             overflow: 'auto',
+            overflow: 'auto',
             "&::-webkit-scrollbar": { width: "2px", height: '2px' },
             "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
             "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
             "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
-            
+
             mb: 2,
             py: 1
           }}
         >
           {indicators.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 1 }}>
-              No se han creado indicadores
+
+            <Typography
+              variant="body2"
+              sx={{
+                padding: '4px',
+                color: 'gray',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                fontSize: '0.75rem',
+              }}
+            >
+              No se han creado indicadores.
             </Typography>
           ) : (
             indicators.map((indicator, index) => (
-              <Box key={indicator.id} sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+              <Box
+                key={indicator.id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center', mb: 1.5
+                }}
+                ref={(el) => {
+                  if (el) indicatorsRefs.current[indicator.id] = el
+                }}
+              >
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mr: 1 }}>
                   {index + 1}.
                 </Typography>
-                <Grid container spacing={{ sm: 2, xs: 1}} alignItems="center">
+                <Grid container spacing={{ sm: 2, xs: 1 }} alignItems="center">
                   <Grid size={5}>
                     <TextField
                       label="Cantidad"
                       variant="outlined"
+                      className={indicator.id === flashIndicatorId ? 'flash-highlight' : ''}
                       fullWidth
                       value={indicator.amount}
                       onChange={(e) => {
@@ -216,6 +295,7 @@ const CreateObjectiveModal = ({ open, onClose, onSave }) => {
                   <Grid size={5}>
                     <Box sx={{ position: 'relative' }}>
                       <TextField
+                        className={indicator.id === flashIndicatorId ? 'flash-highlight' : ''}
                         label="Concepto"
                         variant="outlined"
                         fullWidth

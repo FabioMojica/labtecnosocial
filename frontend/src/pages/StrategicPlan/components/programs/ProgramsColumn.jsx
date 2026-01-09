@@ -208,10 +208,10 @@ const ProgramsColumn = ({
                                 <Box
                                     key={program.id}
                                     ref={(el) => (programRefs.current[program.id] = { current: el })}
-                                    className={highlightedItem === program.id ? 'flash-highlight' : ''}
                                 >
                                     <ProgramItem
                                         key={program.id}
+                                        highlightedItem={highlightedItem}
                                         program={program}
                                         index={index + 1}
                                         onClick={(e) => {

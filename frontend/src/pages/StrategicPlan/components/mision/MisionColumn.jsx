@@ -31,7 +31,7 @@ const MisionColumn = ({ missionRef, mission, onEdit, onDelete, onCreate, isSelec
         gap: 1,
         position: 'sticky',
         top: isFullscreen ? 0 : 80 + headerHeight,
-        overflow: 'hidden',
+        overflow: 'hidden', 
         borderRadius: 2,
         zIndex: 998,
         px: 2,
@@ -66,10 +66,9 @@ const MisionColumn = ({ missionRef, mission, onEdit, onDelete, onCreate, isSelec
         {mission ? (
           <Box 
             ref={(el) => (missionRef.current = el)}
-            className={highlightedItem === 'mission' ? 'flash-highlight' : ''}
-            
           >
-            <MisionItem
+            <MisionItem 
+              highlightedItem={highlightedItem}
               text={mission}
               onEdit={onEdit}
               onDelete={onDelete}

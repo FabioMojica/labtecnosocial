@@ -5,7 +5,7 @@ import EditMisionItemModal from './EditMisionItemModal.jsx';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useTheme } from '@emotion/react';
 
-const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect, isFullscreen }) => {
+const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect, isFullscreen, highlightedItem }) => {
     const theme = useTheme();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -15,7 +15,7 @@ const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect, isFullscreen
 
     const handleCloseEditModal = () => {
         setIsEditModalOpen(false);
-    };
+    }; 
 
     const handleSaveEdit = (newText) => {
         onEdit(newText);
@@ -50,8 +50,8 @@ const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect, isFullscreen
                         : '0px 2px 5px rgba(0, 0, 0, 0.1)',
                     transition: 'box-shadow 0.3s ease',
                     maxHeight: '300px',
-                    
                 }}
+                className={highlightedItem === 'mission' ? 'flash-highlight' : ''}
             >
                 <Typography
                     sx={{
@@ -85,14 +85,14 @@ const MisionItem = ({ text, onEdit, onDelete, isSelected, onSelect, isFullscreen
                         PopperProps={{
                             modifiers: [
                                 {
-                                    name: 'zIndex',
+                                    name: 'zIndex', 
                                     enabled: true,
-                                    options: {
-                                        zIndex: isFullscreen ? 1600 : 997, 
+                                    options: { 
+                                        zIndex: 1600, 
                                     },
-                                },
-                            ],
-                            style: { zIndex: isFullscreen ? 1600 : 997 }, 
+                                },  
+                            ], 
+                            style: { zIndex: 1600 }, 
                         }}
                     >
                         <IconButton

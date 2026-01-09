@@ -143,12 +143,16 @@ const ProjectsColumn = ({
             </Typography>
           </Box>
         ) : !selectedProgram ? (
+          <Box sx={{
+            p: 5,
+            width: '100%',
+            height: '100%'
+          }}>
           <Typography
             variant="body2"
             color="text.secondary"
-            align="center"
+            align="center" 
             sx={{
-              mt: 5,
               padding: '4px',
               color: 'gray',
               fontStyle: 'italic',
@@ -156,8 +160,9 @@ const ProjectsColumn = ({
               fontSize: '0.75rem',
             }}
           >
-            Selecciona un programa para ver sus proyectos.
+            Seleccione un programa para ver sus proyectos.
           </Typography>
+          </Box>
         ) : selectedProgram.operationalProjects?.length > 0 ? (
           <Box
             key={selectedProgram.id}

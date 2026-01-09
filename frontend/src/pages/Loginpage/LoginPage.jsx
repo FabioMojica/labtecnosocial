@@ -74,7 +74,7 @@ export const LoginPage = () => {
             <BoxContainer 
                 component="form"
                 className={styles.loginBoxContainer}
-            >
+            > 
 
                 <Box className={styles.headerBoxContainer}>
                     <Typography variant="h4"> 

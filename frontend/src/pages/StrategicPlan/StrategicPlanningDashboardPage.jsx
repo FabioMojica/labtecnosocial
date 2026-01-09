@@ -17,7 +17,6 @@ import DeleteStrategicPlanDialog from "./components/DeleteStrategicPlanDialog";
 import StrategicPlanningColumnsView from "./StrategicPlanningColumnsView";
 import StrategicPlanningTreeView from "./StrategicPlanningTreeView";
 import { getAllStrategicPlansApi, getStrategicPlanByYearApi } from "../../api/strategicPlan";
-import { useNotification } from "../../contexts";
 import { useAuth } from "../../contexts";
 import { normalizePlanData } from "./utils/normalizePlanData";
 import { useNavigate, useParams } from "react-router-dom";
@@ -42,6 +41,11 @@ const StrategicPlanningDashboardPage = () => {
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [errorPlan, setErrorPlan] = useState(false);
   const [errorPlans, setErrorPlans] = useState(false);
+  const [isCreatingNewPlan, setIsCreatingNewPlan] = useState(false);
+  const [isFetchingPlan, setIsFetchingPlan] = useState(true);
+  const [hasFetchedPlan, setHasFetchedPlan] = useState(false);
+
+
 
   const navigate = useNavigate();
 
@@ -75,10 +79,16 @@ const StrategicPlanningDashboardPage = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    setIsCreatingNewPlan(false);
+  }, [year]);
+
+
   const fetchAllPlans = async () => {
     try {
       setErrorPlans(false);
       const res = await callEndpoint(getAllStrategicPlansApi());
+      console.log("---------------------------------", res)
       setAllPlans(res);
     } catch (error) {
       setErrorPlans(true);
@@ -94,11 +104,13 @@ const StrategicPlanningDashboardPage = () => {
     try {
       setErrorPlan(false);
       setLoadingPlan(true);
+      setIsFetchingPlan(true);
       setShowColumnsView(false);
-      setPlanData(null);
+      setHasFetchedPlan(false);
+      
 
       const res = await callEndpoint(getStrategicPlanByYearApi(yearToFetch));
-      setPlanData(normalizePlanData(res)); 
+      setPlanData(normalizePlanData(res));
       setShowColumnsView(true);
     } catch (error) {
       if (error.message?.includes("No se encontró plan estratégico")) {
@@ -109,14 +121,21 @@ const StrategicPlanningDashboardPage = () => {
       }
     } finally {
       setLoadingPlan(false);
+      setIsFetchingPlan(false);
+      setHasFetchedPlan(true);
     }
   };
 
+  const isLoadingPlan = isFetchingPlan || loading;
+
   useEffect(() => {
-    fetchPlan();
+    if (!isCreatingNewPlan) {
+      fetchPlan();
+    }
   }, [year, selectedView]);
 
   const onChangeToColumnsView = () => {
+    setIsCreatingNewPlan(true);
     const emptyPlan = {
       mission: "",
       objectives: [],
@@ -128,13 +147,12 @@ const StrategicPlanningDashboardPage = () => {
 
   const handleViewChange = (event) => {
     if (user?.role !== "admin") return;
-
     setIsChildDirty(false);
     setSelectedView(event.target.value);
   };
 
-  if (loading) {
-    return <FullScreenProgress text={ `Obteniendo el plan estratégico del año ${year ? parseInt(year) : currentYear}`} />;
+  if (isLoadingPlan) {
+    return <FullScreenProgress text={`Obteniendo el plan estratégico del año ${year ? parseInt(year) : currentYear}`} />;
   }
 
   if (errorPlan) {
@@ -194,6 +212,7 @@ const StrategicPlanningDashboardPage = () => {
             disabled={isChildDirty}
             availableYears={allPlans.map(p => p.year)}
             onChange={(newYear) => {
+              setIsCreatingNewPlan(false);
               setIsChildDirty(false);
               setSelectedYear(newYear);
               setPlanData(null);
@@ -239,18 +258,18 @@ const StrategicPlanningDashboardPage = () => {
         </Box>
       </Box>
 
-      {(!showColumnsView && !loadingPlan && !planData) && (
+      {!planData && hasFetchedPlan && (
         <>
-        <Divider />
+          <Divider />
           <NoResultsScreen
             message="Año sin plan estratégico registrado"
             buttonText={
-              user?.role === "admin" && selectedView === "Columna"
+              user?.role === "admin"
                 ? "Crear Plan Estratégico"
                 : null
             }
             onButtonClick={
-              user?.role === "admin" && selectedView === "Columna"
+              user?.role === "admin"
                 ? onChangeToColumnsView
                 : undefined
             }
@@ -267,6 +286,7 @@ const StrategicPlanningDashboardPage = () => {
               year={selectedYear}
               onDirtyChange={setIsChildDirty}
               onPlanSaved={(newPlan) => {
+                setIsCreatingNewPlan(false);
                 if (!newPlan) {
                   setPlanData(null);
                   setShowColumnsView(false);
@@ -274,6 +294,11 @@ const StrategicPlanningDashboardPage = () => {
                   return;
                 }
                 setPlanData(newPlan);
+                setAllPlans((prev) => {
+                  const exists = prev.some(p => p.year === newPlan.year);
+                  if (exists) return prev;
+                  return [...prev, { year: newPlan.year }];
+                });
               }}
             />
           )}

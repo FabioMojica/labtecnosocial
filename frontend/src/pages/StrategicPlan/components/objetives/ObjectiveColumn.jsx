@@ -46,7 +46,7 @@ const ObjectivesColumn = ({
         top: isFullscreen ? 0 : 80 + headerHeight,
         overflow: 'hidden', 
         borderRadius: 2, 
-        zIndex: isFullscreen ? 3000 : 998, 
+        zIndex: 998, 
         px: 2,
         pl: 2,
         pr: 2,
@@ -142,9 +142,9 @@ const ObjectivesColumn = ({
             <Box
               key={obj.id}
               ref={(el) => (objectiveRefs.current[obj.id] = { current: el })}
-              className={highlightedItem === obj.id ? 'flash-highlight' : ''}
             >
               <ObjectiveItem
+                highlightedItem={highlightedItem}
                 key={obj.id}
                 objective={obj}
                 isSelected={selectedObjectiveId === obj.id}

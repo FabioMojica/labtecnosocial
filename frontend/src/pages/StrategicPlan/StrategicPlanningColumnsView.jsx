@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Divider, Grid, Typography, useTheme } from '@mui/material';
+import { Box, Button, Tooltip, Grid, Typography, useMediaQuery, useTheme } from '@mui/material';
 import MisionColumn from './components/mision/MisionColumn';
 import CreateMisionItemModal from './components/mision/CreateMisionItemModal';
 import ObjectivesColumn from './components/objetives/ObjectiveColumn';
@@ -11,6 +11,9 @@ import DeleteProgramModal from './components/programs/DeleteProgramModal';
 import ProjectsColumn from './components/projects/ProjectsColumn';
 import CreateProjectModal from './components/projects/CreateProjectModal';
 import { useConfirm } from 'material-ui-confirm';
+
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 
 import { useNotification } from '../../contexts/ToastContext.jsx';
 import { updateStrategicPlanApi } from '../../api/strategicPlan.js';
@@ -27,7 +30,6 @@ import CropSquareIcon from '@mui/icons-material/CropSquare';
 import FilterNoneIcon from '@mui/icons-material/FilterNone';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
 import { useElementSize } from '../../hooks/useElementSize.js';
 
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
@@ -74,15 +76,44 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const headerRef = useRef(null);
   const { height: headerHeight } = useElementSize(headerRef);
 
+  const isXs = useMediaQuery(theme.breakpoints.down('sm')); // <600px
+  const isSm = useMediaQuery(theme.breakpoints.between('sm', 'md')); // 600-900px
+  const isMdUp = useMediaQuery(theme.breakpoints.up('md')); // >900px
+
+  const [canScroll, setCanScroll] = useState(false);
+
   const scrollToRef = (ref) => {
-    ref?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    });
+    if (!ref) return;
+
+    const element = ref instanceof HTMLElement ? ref : ref.current;
+    if (!element) return;
+
+    const container = isFullscreen ? containerRef.current : window;
+    if (!container) return;
+
+    let extraOffset = 50;
+    if (isXs) extraOffset = isFullscreen ? -200 : -150;
+    else if (isSm) extraOffset = 40;
+    else if (isMdUp) extraOffset = isFullscreen ? 0 : 0;
+
+    // sumamos headerHeight
+    const totalOffset = extraOffset + (headerHeight || 0);
+
+    const elementTop = element.getBoundingClientRect().top +
+      (isFullscreen ? container.scrollTop : window.scrollY);
+
+    const scrollPosition = elementTop -
+      (isFullscreen ? container.clientHeight : window.innerHeight) / 2 +
+      totalOffset;
+
+    if (isFullscreen) {
+      container.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+    }
   };
 
   const flashElement = (ref, id) => {
-    console.log("holaaaaaaaa", ref)
     if (!ref?.current) return;
     setHighlightedItem(id);
     setTimeout(() => setHighlightedItem(null), 1000);
@@ -116,59 +147,60 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   }, [isFullscreen, isDirty]);
 
 
-  // useEffect(() => {
-  //   const container = isFullscreen ? containerRef.current : window;
 
-  //   const handleScroll = () => {
-  //     let scrollTop, scrollHeight, clientHeight;
+  // const checkScrollPosition = () => {
+  //   const container = isFullscreen ? containerRef.current : document.documentElement;
 
-  //     if (isFullscreen && container) {
-  //       scrollTop = container.scrollTop;
-  //       clientHeight = container.clientHeight;
-  //       scrollHeight = container.scrollHeight;
-  //     } else {
-  //       scrollTop = window.scrollY;
-  //       clientHeight = window.innerHeight;
-  //       scrollHeight = document.documentElement.scrollHeight;
-  //     }
+  //   if (!container) return;
 
-  //     // Si estamos al final
-  //     if (scrollTop + clientHeight >= scrollHeight - 5) {
-  //       setScrollDirection('up');
-  //     } else {
-  //       setScrollDirection('down');
-  //     }
-  //   };
+  //   const scrollTop = isFullscreen ? container.scrollTop : window.scrollY;
+  //   const clientHeight = isFullscreen ? container.clientHeight : window.innerHeight;
+  //   const scrollHeight = isFullscreen
+  //     ? container.scrollHeight
+  //     : document.documentElement.scrollHeight;
 
-  //   container.addEventListener('scroll', handleScroll);
-  //   handleScroll();
+  //   // Si NO hay scroll → flecha abajo desactivada
+  //   if (scrollHeight <= clientHeight + 2) {
+  //     setScrollDirection('down');
+  //     return;
+  //   }
 
-  //   return () => container.removeEventListener('scroll', handleScroll);
-  // }, [isFullscreen]);
+  //   // Si estamos al fondo → flecha arriba
+  //   if (scrollTop + clientHeight >= scrollHeight - 5) {
+  //     setScrollDirection('up');
+  //   } else {
+  //     setScrollDirection('down');
+  //   }
+  // };
+
   const checkScrollPosition = () => {
-    const container = isFullscreen ? containerRef.current : document.documentElement;
+  const container = isFullscreen ? containerRef.current : document.documentElement;
 
-    if (!container) return;
+  if (!container) return;
 
-    const scrollTop = isFullscreen ? container.scrollTop : window.scrollY;
-    const clientHeight = isFullscreen ? container.clientHeight : window.innerHeight;
-    const scrollHeight = isFullscreen
-      ? container.scrollHeight
-      : document.documentElement.scrollHeight;
+  const scrollTop = isFullscreen ? container.scrollTop : window.scrollY;
+  const clientHeight = isFullscreen ? container.clientHeight : window.innerHeight;
+  const scrollHeight = isFullscreen
+    ? container.scrollHeight
+    : document.documentElement.scrollHeight;
 
-    // Si NO hay scroll → flecha abajo desactivada
-    if (scrollHeight <= clientHeight + 2) {
-      setScrollDirection('down');
-      return;
-    }
+  // Determinamos si hay scroll
+  if (scrollHeight <= clientHeight + 2) {
+    setCanScroll(false); // No se puede scrollear
+    setScrollDirection('down'); // default
+    return;
+  } else {
+    setCanScroll(true);
+  }
 
-    // Si estamos al fondo → flecha arriba
-    if (scrollTop + clientHeight >= scrollHeight - 5) {
-      setScrollDirection('up');
-    } else {
-      setScrollDirection('down');
-    }
-  };
+  // Si estamos al fondo → flecha arriba
+  if (scrollTop + clientHeight >= scrollHeight - 5) {
+    setScrollDirection('up');
+  } else {
+    setScrollDirection('down');
+  }
+};
+
 
   useEffect(() => {
     const container = isFullscreen ? containerRef.current : window;
@@ -544,7 +576,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
                     transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
                   }}
                 >
-                  {isFullscreen ? <FilterNoneIcon fontSize="small" /> : <CropSquareIcon fontSize="small" />}
+                  {isFullscreen ? <CloseFullscreenIcon fontSize="small" /> : <FullscreenIcon fontSize="medium" />}
                 </IconButton>
               </Tooltip>
 
@@ -566,6 +598,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
                 <IconButton
                   size="small"
                   onClick={handleScrollAction}
+                  disabled={!canScroll}
                   sx={{
                     border: '1px solid',
                     borderColor: 'divider',

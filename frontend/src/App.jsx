@@ -18,7 +18,7 @@ import {
 } from './pages';
 
 
-import { FullScreenProgress, Header, PrivateRoute } from './generalComponents';
+import { Header, PrivateRoute } from './generalComponents';
 import { getDrawerClosedWidth } from './utils';
 import StrategicPlanningDashboardPage from './pages/StrategicPlan/StrategicPlanningDashboardPage';
 import OperationalPlanningDashboardPage from './pages/OperationalPlan/OperationalPlanningDashboardPage';
@@ -30,6 +30,7 @@ import { ReportModal } from './generalComponents/ReportModal';
 import { useState } from 'react';
 import { ReportEditor } from './pages/Reports/ReportEditor';
 import { useSnackbarStyles } from './pages/StrategicPlan/hooks/useSnackBarStyles';
+import { useCloseTooltipsOnScroll } from './pages/StrategicPlan/hooks/useCloseTooltipsOnScroll';
 
 export const ROLES = {
   ADMIN: "admin",
@@ -80,6 +81,7 @@ function App() {
   const theme = useTheme();
   const snackbarClasses = useSnackbarStyles();
   const [modalOpen, setModalOpen] = useState(false);
+  useCloseTooltipsOnScroll();
 
   return (
     <CustomThemeProvider>

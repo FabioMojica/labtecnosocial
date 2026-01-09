@@ -27,6 +27,8 @@ const MAX_CONCEPT_LENGTH = 500;
 const ViewEditObjective = ({ open, onClose, objective, onSave }) => {
   const initialObjectiveRef = useRef(null);
   const theme = useTheme();
+  const [flashIndicatorId, setFlashIndicatorId] = useState(null);
+
 
   const [editedObjective, setEditedObjective] = useState({
     objectiveTitle: "",
@@ -36,6 +38,8 @@ const ViewEditObjective = ({ open, onClose, objective, onSave }) => {
   const [objectiveCharsLeft, setObjectiveCharsLeft] = useState(MAX_OBJECTIVE_LENGTH);
 
   const nextIdRef = useRef(1);
+
+  const indicatorsRefs = useRef({});
 
   useEffect(() => {
     if (objective && open) {
@@ -123,7 +127,29 @@ const ViewEditObjective = ({ open, onClose, objective, onSave }) => {
       ...prev,
       indicators: [...prev.indicators, { id: newId, amount: "", concept: "" }],
     }));
+
+    // Guardamos el id para el parpadeo
+  setFlashIndicatorId(newId);
+
+  // Usamos un timeout para asegurar que el DOM se actualice antes de hacer scroll
+  setTimeout(() => {
+    const element = indicatorsRefs.current[newId];
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, 50);
   };
+
+  useEffect(() => {
+  if (!flashIndicatorId) return;
+
+  const timer = setTimeout(() => {
+    setFlashIndicatorId(null);
+  }, 2400); // 0.8s * 3 repeticiones = 2.4s
+
+  return () => clearTimeout(timer);
+}, [flashIndicatorId]);
+
 
   const handleDeleteIndicator = (id) => {
     setEditedObjective((prev) => ({
@@ -298,18 +324,34 @@ const ViewEditObjective = ({ open, onClose, objective, onSave }) => {
             "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
             "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
             "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
-            
+
             mb: 2,
             py: 1
           }}
         >
           {editedObjective.indicators.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" textAlign="center" mb={1}>
-              No se han creado indicadores
+
+            <Typography
+              variant="body2"
+              sx={{
+                padding: '4px',
+                color: 'gray',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                fontSize: '0.75rem',
+              }}
+            >
+              No se han creado indicadores.
             </Typography>
           ) : (
             editedObjective.indicators.map((indicator, index) => (
-              <Box key={indicator.id} sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+              <Box 
+                key={indicator.id}
+                sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}
+                ref={(el) => {
+      if (el) indicatorsRefs.current[indicator.id] = el;
+    }}
+              >
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mr: 1 }}>
                   {index + 1}.
                 </Typography>
@@ -317,6 +359,7 @@ const ViewEditObjective = ({ open, onClose, objective, onSave }) => {
                   <Grid size={5}>
                     <TextField
                       label="Cantidad"
+                      className={indicator.id === flashIndicatorId ? 'flash-highlight' : ''}
                       variant="outlined"
                       fullWidth
                       value={indicator.amount}
@@ -333,10 +376,11 @@ const ViewEditObjective = ({ open, onClose, objective, onSave }) => {
                       }}
                     />
                   </Grid>
-                  <Grid size={5}>
+                  <Grid size={5}> 
                     <Box sx={{ position: 'relative' }}>
                       <TextField
                         label="Concepto"
+                        className={indicator.id === flashIndicatorId ? 'flash-highlight' : ''}
                         variant="outlined"
                         fullWidth
                         value={indicator.concept}

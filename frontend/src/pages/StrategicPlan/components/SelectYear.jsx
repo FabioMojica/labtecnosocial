@@ -79,6 +79,7 @@ export const SelectYear = ({ disabled, selectedYear, onChange, availableYears = 
           <Grid container spacing={1}>
             {currentYears.map((year) => {
               const hasPlan = availableYears.includes(year);
+              console.log("aaaaaaaaaa", hasPlan, availableYears);
               return (
                 <Grid size={3} key={year}>
                   <Button

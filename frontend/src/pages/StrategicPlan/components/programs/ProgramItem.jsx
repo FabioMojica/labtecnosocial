@@ -6,7 +6,7 @@ import EditProgramModal from './EditProgramModal';
 import DeleteProgramModal from './DeleteProgramModal';
 import { useTheme } from '@emotion/react';
 
-const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSelected }) => {
+const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSelected, highlightedItem }) => {
   if (!program) return null; 
   const [showViewProgram, setShowViewProgram] = useState(false);
   const [showDeleteProgram, setShowDeleteProgram] = useState(false);
@@ -15,7 +15,7 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
 
   const handleViewProgram = () => {
     setShowViewProgram(true);
-    onView?.();
+    onView?.(); 
   };
   
   const handleViewDeleteProgram = () => {
@@ -54,6 +54,7 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
         boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
       }}
       onClick={onClick}
+      className={highlightedItem === program.id ? 'flash-highlight' : ''}
     >
 
       <Box sx={{ marginBottom: 1 }}>
@@ -89,11 +90,11 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
                                     name: 'zIndex',
                                     enabled: true, 
                                     options: {
-                                        zIndex: 997, 
+                                        zIndex: 1600, 
                                     },
                                 },
                             ],
-                            style: { zIndex: 997 }, 
+                            style: { zIndex: 1600 }, 
                         }}
               >
           <IconButton
@@ -114,11 +115,11 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
                                     name: 'zIndex',
                                     enabled: true, 
                                     options: {
-                                        zIndex: 997, 
+                                        zIndex: 1600, 
                                     },
                                 },
                             ],
-                            style: { zIndex: 997 }, 
+                            style: { zIndex: 1600 }, 
                         }}
         >
           <IconButton
