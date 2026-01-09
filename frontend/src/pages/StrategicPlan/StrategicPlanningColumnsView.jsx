@@ -519,7 +519,13 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
           }}>
             <Box sx={{
               display: 'flex',
-              gap: 1
+              gap: 1,
+              justifyContent: {
+                xs: 'space-between',
+                sm: 'left'
+              },
+              width: '100%',
+              alignItems: 'center'
             }}>
               <Tooltip
                 title={isFullscreen ? "Minimizar" : "Maximizar"}
@@ -546,6 +552,12 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
                 variant="h6"
                 fontWeight={'bold'}
                 textAlign={'center'}
+                sx={{
+                  fontSize: {
+                    xs: '1rem',
+                    sm: '1.3rem'
+                  }
+                }}
               >
                 {`Plan Estratégico ${year}`}
               </Typography>

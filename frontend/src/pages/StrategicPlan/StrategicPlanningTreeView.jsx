@@ -242,7 +242,11 @@ const StrategicPlanningTreeView = ({ data, year }) => {
             mb: 2,
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+          <Typography 
+            variant="h5" 
+            sx={{ fontWeight: 'bold' }}
+            
+          >
             Plan Estratégico del año {year && `(${year})`}
           </Typography>
 
