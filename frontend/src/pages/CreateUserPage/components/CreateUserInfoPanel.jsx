@@ -29,6 +29,7 @@ import { validateEmail, validatePassword } from "../../../utils";
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
+  console.log("userrrrrrrrrr", user);
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [overlayText, setOverlayText] = useState("Subir una imagen");
@@ -154,211 +155,213 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
   };
 
   return (
-    <Grid
-      container
-      spacing={2}
-      sx={{
-        width: "100%",
-        minHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-        height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-        maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-      }}
-    >
-      <Grid size={{ xs: 12, md: 5 }} sx={{ height: { xs: "50%", sm: "100%" } }}>
-        <UserImageDates
-          overlay
-          overlayText={overlayText}
-          user={user}
-          sx={{ width: "100%", height: "100%" }}
-          changeImage
-          onChangeImage={handleOverlayClick}
-          previewImage={previewImage ?? undefined}
-          onContextMenu={handleContextMenu}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        />
-      </Grid>
-
       <Grid
         container
-        spacing={2}
-        size={{ xs: 12, md: 7 }}
-
-        sx={{ height: "auto", display: "flex", flexDirection: "column", pb: { xs: 20, sm: 0 } }}
+        spacing={2} 
+        sx={{
+          width: "100%",
+          minHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+          height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+          maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+        }}
+        
       >
-        {/* Nombre y Apellido */}
-        <Grid container spacing={1}>
-          <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 5 }} sx={{ height: { xs: "50%", sm: "100%" } }}>
+          <UserImageDates
+            overlay
+            overlayText={overlayText}
+            user={user}
+            sx={{ width: "100%", height: "100%" }}
+            changeImage
+            onChangeImage={handleOverlayClick}
+            previewImage={previewImage ?? undefined}
+            onContextMenu={handleContextMenu}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          />
+        </Grid>
+
+        <Grid
+          container
+          spacing={2}
+          size={{ xs: 12, md: 7 }}
+          sx={{ height: "auto", display: "flex", flexDirection: "column", pb: { xs: 20, lg: 0 }}}
+        >
+          {/* Nombre y Apellido */}
+          <Grid container spacing={1}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                label="Nombre(s)*"
+                variant="filled"
+                value={user?.firstName ?? ""}
+                onChange={(e) => onChange?.({ firstName: e.target.value })}
+                onBlur={(e) => validateField("firstName", e.target.value)}
+                maxLength={100}
+                error={!!errors.firstName}
+                valueFontSize={{
+                  xs: '1rem',
+                  sm: '1.5rem'
+                }}
+              />
+              {errors.firstName && (
+                <Typography color="error" variant="caption">
+                  {errors.firstName}
+                </Typography>
+              )}
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                label="Apellido(s)*"
+                variant="filled"
+                value={user?.lastName ?? ""}
+                onChange={(e) => onChange?.({ lastName: e.target.value })}
+                onBlur={(e) => validateField("lastName", e.target.value)}
+                maxLength={100}
+                error={!!errors.lastName}
+                valueFontSize={{
+                  xs: '1rem',
+                  sm: '1.5rem'
+                }}
+              />
+              {errors.lastName && (
+                <Typography color="error" variant="caption">
+                  {errors.lastName}
+                </Typography>
+              )}
+            </Grid>
+          </Grid>
+
+          {/* Email */}
+          <Grid size={12}>
             <TextField
-              label="Nombre(s)*"
+              autoComplete="new-email"
+              label="Email del usuario*"
               variant="filled"
-              value={user?.firstName ?? ""}
-              onChange={(e) => onChange?.({ firstName: e.target.value })}
-              onBlur={(e) => validateField("firstName", e.target.value)}
+              value={user?.email ?? ""}
+              onChange={(e) => onChange?.({ email: e.target.value })}
+              onBlur={(e) => validateField("email", e.target.value)}
               maxLength={100}
-              error={!!errors.firstName}
+              error={!!errors.email}
               valueFontSize={{
                 xs: '1rem',
                 sm: '1.5rem'
               }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => {
+                        if (user?.email) {
+                          navigator.clipboard.writeText(user.email);
+                          notify("Correo copiado al portapapeles", "info");
+                        }
+                      }}
+                    >
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
-            {errors.firstName && (
+            {errors.email && (
               <Typography color="error" variant="caption">
-                {errors.firstName}
+                {errors.email}
               </Typography>
             )}
           </Grid>
 
-          <Grid size={{ xs: 12, md: 6 }}>
+          {/* Contraseña */}
+          <Grid size={12}>
             <TextField
-              label="Apellido(s)*"
+              autoComplete="new-password"
+              label="Contraseña del usuario*"
               variant="filled"
-              value={user?.lastName ?? ""}
-              onChange={(e) => onChange?.({ lastName: e.target.value })}
-              onBlur={(e) => validateField("lastName", e.target.value)}
-              maxLength={100}
-              error={!!errors.lastName}
+              type={showPassword ? "text" : "password"}
+              value={user?.password ?? ""}
+              onChange={(e) => {
+                onChange?.({ password: e.target.value });
+                validateField("password", e.target.value);
+              }}
+              onBlur={(e) => validateField("password", e.target.value)}
+              maxLength={8}
+              error={!!errors.password}
               valueFontSize={{
                 xs: '1rem',
                 sm: '1.5rem'
               }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showPassword ? (
+                        <VisibilityOffIcon fontSize="small" />
+                      ) : (
+                        <VisibilityIcon fontSize="small" />
+                      )}
+                    </IconButton>
+
+                    <IconButton
+                      onClick={generateSecurePassword}
+                      title="Generar contraseña segura"
+                    >
+                      <AutorenewIcon fontSize="small" />
+                    </IconButton>
+
+                    <IconButton
+                      onClick={() => {
+                        if (user?.password) {
+                          navigator.clipboard.writeText(user.password);
+                          notify("Contraseña copiada al portapapeles", "info");
+                        } else {
+                          notify("No hay contraseña para copiar", "warning");
+                        }
+                      }}
+                      title="Copiar contraseña"
+                    >
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
-            {errors.lastName && (
+            {errors.password && (
               <Typography color="error" variant="caption">
-                {errors.lastName}
+                {errors.password}
               </Typography>
             )}
           </Grid>
+
+          {/* Role y Estado */}
+          <Grid size={12}>
+            <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+              <SelectComponent
+                options={roleOptions}
+                value={user?.role}
+                onChange={(newRole) => onChange?.({ role: newRole })}
+                fullWidth
+              />
+              <SelectComponent
+                options={stateOptions}
+                value={user?.state}
+                onChange={(newState) => onChange?.({ state: newState })}
+                fullWidth
+              />
+
+            </Box>
+          </Grid>
         </Grid>
 
-        {/* Email */}
-        <Grid size={12}>
-          <TextField
-            label="Email del usuario*"
-            variant="filled"
-            value={user?.email ?? ""}
-            onChange={(e) => onChange?.({ email: e.target.value })}
-            onBlur={(e) => validateField("email", e.target.value)}
-            maxLength={100}
-            error={!!errors.email}
-            valueFontSize={{
-                xs: '1rem',
-                sm: '1.5rem'
-              }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => {
-                      if (user?.email) {
-                        navigator.clipboard.writeText(user.email);
-                        notify("Correo copiado al portapapeles", "info");
-                      }
-                    }}
-                  >
-                    <ContentCopyIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-          {errors.email && (
-            <Typography color="error" variant="caption">
-              {errors.email}
-            </Typography>
-          )}
-        </Grid>
-
-        {/* Contraseña */}
-        <Grid size={12}>
-          <TextField
-            label="Contraseña del usuario*"
-            variant="filled"
-            type={showPassword ? "text" : "password"}
-            value={user?.password ?? ""}
-            onChange={(e) => {
-              onChange?.({ password: e.target.value });
-              validateField("password", e.target.value);
-            }}
-            onBlur={(e) => validateField("password", e.target.value)}
-            maxLength={8}
-            error={!!errors.password}
-            valueFontSize={{
-                xs: '1rem',
-                sm: '1.5rem'
-              }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  >
-                    {showPassword ? (
-                      <VisibilityOffIcon fontSize="small" />
-                    ) : (
-                      <VisibilityIcon fontSize="small" />
-                    )}
-                  </IconButton>
-
-                  <IconButton
-                    onClick={generateSecurePassword}
-                    title="Generar contraseña segura"
-                  >
-                    <AutorenewIcon fontSize="small" />
-                  </IconButton>
-
-                  <IconButton
-                    onClick={() => {
-                      if (user?.password) {
-                        navigator.clipboard.writeText(user.password);
-                        notify("Contraseña copiada al portapapeles", "info");
-                      } else {
-                        notify("No hay contraseña para copiar", "warning");
-                      }
-                    }}
-                    title="Copiar contraseña"
-                  >
-                    <ContentCopyIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-          {errors.password && (
-            <Typography color="error" variant="caption">
-              {errors.password}
-            </Typography>
-          )}
-        </Grid>
-
-        {/* Role y Estado */}
-        <Grid size={12}>
-          <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
-            <SelectComponent
-              options={roleOptions}
-              value={user?.role}
-              onChange={(newRole) => onChange?.({ role: newRole })}
-              fullWidth
-            />
-            <SelectComponent
-              options={stateOptions}
-              value={user?.state}
-              onChange={(newState) => onChange?.({ state: newState })}
-              fullWidth
-            />
-
-          </Box>
-        </Grid>
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
       </Grid>
-
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        style={{ display: "none" }}
-        onChange={handleFileChange}
-      />
-    </Grid>
   );
 };

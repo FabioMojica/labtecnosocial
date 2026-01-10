@@ -217,7 +217,9 @@ const StrategicPlanningTreeView = ({ data, year }) => {
 
   return (
     <Box sx={{
-      padding: { xs: 0, sm: 3 }, overflowX: 'auto',
+      py: 0,
+      px: { xs: 0, sm: 3 },
+      overflowX: 'auto',
       "&::-webkit-scrollbar": { height: "2px" },
       "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
       "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },

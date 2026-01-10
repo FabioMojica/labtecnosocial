@@ -1,15 +1,26 @@
-/* Aplica a todos los inputs con autofill */
-input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0px 1000px red inset; /* reemplaza 'white' por el color de fondo de tu input */
-  -webkit-text-fill-color: black; /* color del texto */
-  transition: background-color 5000s ease-in-out; /* evita el parpadeo */
+/* Autofill para todos los inputs y botones, sin importar el tema */
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill,
+button:-webkit-autofill,
+input:-webkit-autofill:hover,
+textarea:-webkit-autofill:hover,
+select:-webkit-autofill:hover,
+button:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill:focus,
+button:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset !important; /* fondo transparente */
+  -webkit-text-fill-color: inherit !important; /* texto mantiene color normal */
+  transition: background-color 5000s ease-in-out, color 5000s ease-in-out;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-body {
+body { 
   scroll-behavior: smooth; 
 }
 

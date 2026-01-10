@@ -103,7 +103,7 @@ const StrategicPlanningDashboardPage = () => {
       setIsFetchingPlan(true);
       setShowColumnsView(false);
       setHasFetchedPlan(false);
-      
+
 
       const res = await callEndpoint(getStrategicPlanByYearApi(yearToFetch));
       setPlanData(normalizePlanData(res));
@@ -158,101 +158,106 @@ const StrategicPlanningDashboardPage = () => {
   if (errorPlans) {
     return <ErrorScreen message="Ocurrió un error al obtener los planes estratégicos" buttonText="Intentar de nuevo" onButtonClick={() => fetchAllPlans()} />
   }
-  
+
 
   return (
     <Box maxWidth sx={{ py: 1 }}>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: {
-            sm: 'row',
-            xs: 'column'
-          },
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 2,
-          width: '100%',
-          mb: 1,
-          px: 1
-        }}
-      >
-        <Typography
-          variant="h4"
-          fontWeight="bold"
+      <Box sx={{ display: 'flex', flexDirection: 'column', }}>
+        <Box
           sx={{
-            fontSize: {
-              xs: '1.5rem',
-              sm: '2rem'
+            display: "flex",
+            flexDirection: {
+              sm: 'row',
+              xs: 'column'
             },
-            width: { xs: '100%', sm: 'auto' },
-            textAlign: 'center',
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 2,
+            width: '100%',
+            mb: 1,
+            px: 1
           }}
         >
-          Planes Estratégicos{" "}
           <Typography
-            component="span"
-            color="text.secondary"
-            fontWeight="normal"
-          >
-            ({allPlans?.length})
-          </Typography>
-        </Typography>
-
-
-        <Box sx={{
-          display: 'flex',
-          gap: 2,
-        }}>
-          <SelectYear
-            selectedYear={selectedYear}
-            disabled={isChildDirty}
-            availableYears={allPlans.map(p => p.year)}
-            onChange={(newYear) => {
-              setIsCreatingNewPlan(false);
-              setIsChildDirty(false);
-              setSelectedYear(newYear);
-              setPlanData(null);
-              setShowColumnsView(false);
-              navigate(`/planificacion-estrategica/${newYear}`, { replace: true });
+            variant="h4"
+            fontWeight="bold"
+            sx={{
+              fontSize: {
+                xs: '1.5rem',
+                sm: '2rem'
+              },
+              width: { xs: '100%', sm: 'auto' },
+              textAlign: 'center',
             }}
-          />
-
-          {user?.role === "admin" && planData?.id && (
-            <FormControl sx={{ minWidth: 150 }} variant="outlined" size="small">
-              <InputLabel>Seleccionar Vista</InputLabel>
-              <Select value={selectedView} onChange={handleViewChange} label="Seleccionar Vista" disabled={isChildDirty}>
-                <MenuItem value="Columna">Columna</MenuItem>
-                <MenuItem value="Documento">Documento</MenuItem>
-              </Select>
-            </FormControl>
-          )}
-
-          {planData?.id && selectedView === "Columna" && user.role === "admin" && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+          >
+            Planes Estratégicos{" "}
+            <Typography
+              component="span"
+              color="text.secondary"
+              fontWeight="normal"
             >
-              <Tooltip title={`Eliminar el plan estratégico del año ${selectedYear}`}>
-                <IconButton
-                  onClick={() => setDeleteDialogOpen(true)}
-                  color="error"
-                  disabled={isChildDirty}
-                  sx={{
-                    boxShadow: 3,
-                    width: 40,
-                    height: 40,
-                  }}
-                >
-                  <DeleteOutlineIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          )}
+              ({allPlans?.length})
+            </Typography>
+          </Typography>
+
+
+          <Box sx={{
+            display: 'flex',
+            gap: 2,
+          }}>
+            <SelectYear
+              selectedYear={selectedYear}
+              disabled={isChildDirty}
+              availableYears={allPlans.map(p => p.year)}
+              onChange={(newYear) => {
+                setIsCreatingNewPlan(false);
+                setIsChildDirty(false);
+                setSelectedYear(newYear);
+                setPlanData(null);
+                setShowColumnsView(false);
+                navigate(`/planificacion-estrategica/${newYear}`, { replace: true });
+              }}
+            />
+
+            {user?.role === "admin" && planData?.id && (
+              <FormControl sx={{ minWidth: 150 }} variant="outlined" size="small">
+                <InputLabel>Seleccionar Vista</InputLabel>
+                <Select value={selectedView} onChange={handleViewChange} label="Seleccionar Vista" disabled={isChildDirty}>
+                  <MenuItem value="Columna">Columna</MenuItem>
+                  <MenuItem value="Documento">Documento</MenuItem>
+                </Select>
+              </FormControl>
+            )}
+
+            {planData?.id && selectedView === "Columna" && user.role === "admin" && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Tooltip title={`Eliminar el plan estratégico del año ${selectedYear}`}>
+                  <IconButton
+                    onClick={() => setDeleteDialogOpen(true)}
+                    color="error"
+                    disabled={isChildDirty}
+                    sx={{
+                      boxShadow: 3,
+                      width: 40,
+                      height: 40,
+                    }}
+                  >
+                    <DeleteOutlineIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
+          </Box>
         </Box>
+
+
+        <Divider sx={{ width: '100%', mb: 1 }}></Divider>
       </Box>
 
       {!planData && hasFetchedPlan && (

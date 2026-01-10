@@ -1,11 +1,11 @@
 // 1. Librerías externas
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
 import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRounded';
 
 // 2. Hooks personalizados
-import { useAuthEffects, useFetchAndLoad } from "../../hooks";
+import { useFetchAndLoad } from "../../hooks";
 import { useNotification } from "../../contexts";
 
 // 3. Utilidades / helpers
@@ -51,6 +51,24 @@ export const CreateUserPage = () => {
     const [questionModalOpen, setQuestionModalOpen] = useState(false);
     const { loading, callEndpoint } = useFetchAndLoad();
     const navigate = useNavigate();
+    const boxRef = useRef(null);
+
+    console.log("user antes de pasar", user);
+
+    useEffect(() => {
+        if (!boxRef.current) return;
+
+        const observer = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                setTabsHeight(entry.contentRect.height);
+            }
+        });
+
+        observer.observe(boxRef.current);
+
+        return () => observer.disconnect();
+    }, []);
+
 
     const handleCreateUser = async () => {
         if (!user) {
@@ -78,13 +96,13 @@ export const CreateUserPage = () => {
                 return;
             }
 
-           if (
-  error?.message ===
-  "El correo que ingresaste ya pertenece a otro usuario. Prueba con uno diferente."
-) {
-  notify(error.message, "info");
-  return;
-}
+            if (
+                error?.message ===
+                "El correo que ingresaste ya pertenece a otro usuario. Prueba con uno diferente."
+            ) {
+                notify(error.message, "info");
+                return;
+            }
 
 
             notify(
@@ -118,7 +136,7 @@ export const CreateUserPage = () => {
         setUser({ ...initialUser });
         setIsDirty(false);
         setQuestionModalOpen(false);
-        notify("Cambios descartados correctamente", "info");
+        notify("Cambios descartados correctamente.", "info");
     };
 
     const isFormValid = () => {
@@ -133,30 +151,34 @@ export const CreateUserPage = () => {
             !user.lastNameError &&
             !user.emailError &&
             !user.passwordError
-        );
+        ); 
     };
 
 
     if (loading) return <FullScreenProgress text="Creando el usuario" />
 
     return (
-        <Box sx={{p: 1}}>
-            <Typography
-                variant="h4"
-                fontWeight="bold"
-                sx={{
-                    fontSize: {
-                        xs: '1.5rem',
-                        sm: '2rem'
-                    },
-                    width: { xs: '100%', sm: 'auto' },
-                    textAlign: 'left',
-                }}
-            >
-                Registrar Nuevo Usuario
-            </Typography>
-            <Divider sx={{mb: 1}}/>
+        <Box sx={{ p: 1 }}>
+            <Box ref={boxRef}>
+                <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                    sx={{
+                        fontSize: {
+                            xs: '1.5rem',
+                            sm: '2rem'
+                        },
+                        width: { xs: '100%', sm: 'auto' },
+                        textAlign: 'left',
+                    }}
+                >
+                    Registrar Nuevo Usuario
+                </Typography>
+                <Divider sx={{ mb: 1 }} />
+            </Box>
+
             <CreateUserInfoPanel onChange={handleUserChange} panelHeight={tabsHeight} user={user} />
+
 
             <QuestionModal
                 open={questionModalOpen}
@@ -167,13 +189,13 @@ export const CreateUserPage = () => {
 
             <ActionBarButtons
                 visible={isDirty}
-                buttons={[
+                buttons={[ 
                     {
                         label: "Cancelar",
                         variant: "outlined",
                         icon: <ModeStandbyRoundedIcon />,
                         onClick: handleCancelChanges,
-                    },
+                    }, 
                     {
                         label: "Crear usuario",
                         variant: "contained",

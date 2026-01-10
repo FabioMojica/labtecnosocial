@@ -518,7 +518,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
           bgcolor: (theme) => theme.palette.background.default,
           zIndex: isFullscreen ? 1500 : 'auto',
           overflow: isFullscreen ? 'auto' : 'visible',
-          gap: 1
+          gap: 1,
         }}
       >
         <Box

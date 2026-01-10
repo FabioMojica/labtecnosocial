@@ -123,7 +123,6 @@ export function ProjectsListPage() {
             setFilteredProjects(response);
             setError(false);
         } catch (err) {
-            notify("Ocurrió un error inesperado al obtener los proyectos. Inténtalo de nuevo más tarde.", "error");
             setError(true);
         }
     }
@@ -186,7 +185,7 @@ export function ProjectsListPage() {
     };
 
 
-    if (!loading && projects.length === 0) {
+    if (!loading && projects.length === 0 && !error) {
         switch (user?.role) {
             case "admin":
                 return <NoResultsScreen
@@ -300,7 +299,7 @@ export function ProjectsListPage() {
 
                     <Divider
                         sx={{
-                            my: 1,
+                            my: 0.5,
                         }}
                     />
 
@@ -328,7 +327,7 @@ export function ProjectsListPage() {
                         </FormControl>
                     </Box>
 
-                    <Divider sx={{ mt: 1 }} />
+                    <Divider sx={{ mt: 0.5 }} />
                 </Box>
 
                 <Stack spacing={1.5}>

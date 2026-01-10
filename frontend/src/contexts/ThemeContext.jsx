@@ -92,27 +92,7 @@ const darkTheme = createTheme({
         },
       },
     },
-    MuiInputLabel: {
-      styleOverrides: {
-        root: {
-          color: '#FFFFFF',
-          '&.Mui-focused': {
-            color: '#B5B5B5',
-          },
-        },
-      },
-    },
-    MuiOutlinedInput: {
-      styleOverrides: {
-        root: {
-          '& input:-webkit-autofill': {
-            WebkitBoxShadow: `0 0 0 1000px inset`,
-            WebkitTextFillColor: 'currentColor',
-          },
-        },
-      },
-    }
-  }
+  } 
 
 });
 

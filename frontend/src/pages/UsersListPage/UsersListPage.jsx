@@ -50,8 +50,6 @@ export function UsersListPage() {
         setSearchedUsers(users);
     }, [users]);
 
-
-
     const handleUserClick = (user) => {
         setSelectedUser(user);
         if (isLaptop) {
@@ -68,7 +66,6 @@ export function UsersListPage() {
             setFilteredUsers(response);
             setError(false);
         } catch (err) {
-            notify("Ocurrió un error inesperado al obtener los usuarios. Inténtalo de nuevo más tarde.", "error");
             setError(true);
         }
     }
@@ -90,8 +87,8 @@ export function UsersListPage() {
     if (error) {
         return (
             <ErrorScreen
-                message={"Ocurrió un problema al obtener los usuarios"}
-                buttonText="Reintentar"
+                message={"Ocurrió un error al obtener los usuarios"}
+                buttonText="Volver a intentar"
                 onButtonClick={() => fetchAllUsers()}
             />
         );
@@ -251,7 +248,7 @@ export function UsersListPage() {
 
                     <Divider
                         sx={{
-                            my: 1,
+                            my: 0.5,
                         }}
                     />
 
@@ -305,7 +302,7 @@ export function UsersListPage() {
                         </FormControl>
                     </Box>
 
-                    <Divider sx={{ mt: 1 }} />
+                    <Divider sx={{ mt: 0.5 }} />
                 </Box>
 
 

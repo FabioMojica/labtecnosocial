@@ -1,5 +1,3 @@
-// TextField.tsx
-import React from "react";
 import { TextField as MUITextField } from "@mui/material";
 
 
@@ -11,6 +9,7 @@ export const TextField = ({
   maxLength = 1,
   InputProps,
   InputLabelProps, 
+  autoComplete = "new-field",
   ...props
 }) => {
   const defaultSx = {
@@ -29,8 +28,8 @@ export const TextField = ({
       fullWidth
       variant={variant}
       inputProps={{
-                ...props.inputProps,
-                autoComplete: "off",
+                ...props.inputProps, 
+                autoComplete: autoComplete,
                 spellCheck: false,
                 ...(maxLength ? { maxLength } : {}),
             }}
