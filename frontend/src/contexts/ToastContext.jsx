@@ -17,7 +17,7 @@ export const useNotification = () => {
       </IconButton>
     ));
 
-    enqueueSnackbar(message, {
+    return enqueueSnackbar(message, {
       variant: severity,
       autoHideDuration: options?.persist ? undefined : options?.duration ?? 2000,
       persist: options?.persist,
@@ -25,5 +25,5 @@ export const useNotification = () => {
     }); 
   };
 
-  return { notify };
+  return { notify, closeSnackbar };
 };

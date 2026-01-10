@@ -6,9 +6,7 @@ import { useTheme } from '@emotion/react';
 
 const MisionColumn = ({ missionRef, mission, onEdit, onDelete, onCreate, isSelected, onSelect, highlightedItem, isFullscreen, headerHeight }) => {
   const theme = useTheme();
-
-  console.log('highy', highlightedItem);
-
+  
   return (
     <Box
       sx={{

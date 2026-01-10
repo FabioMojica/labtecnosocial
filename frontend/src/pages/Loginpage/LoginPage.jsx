@@ -57,7 +57,6 @@ export const LoginPage = () => {
         try {
             const resp = await login(email, password);
         } catch (err) {
-            console.log(err)
             notify(err?.message, "error");
         }
     };

@@ -18,7 +18,7 @@ import {
 } from './pages';
 
 
-import { Header, PrivateRoute } from './generalComponents';
+import { Header, PrivateRoute, SessionExpirationModal } from './generalComponents';
 import { getDrawerClosedWidth } from './utils';
 import StrategicPlanningDashboardPage from './pages/StrategicPlan/StrategicPlanningDashboardPage';
 import OperationalPlanningDashboardPage from './pages/OperationalPlan/OperationalPlanningDashboardPage';
@@ -31,6 +31,7 @@ import { useState } from 'react';
 import { ReportEditor } from './pages/Reports/ReportEditor';
 import { useSnackbarStyles } from './pages/StrategicPlan/hooks/useSnackBarStyles';
 import { useCloseTooltipsOnScroll } from './pages/StrategicPlan/hooks/useCloseTooltipsOnScroll';
+import { DirtyProvider } from './contexts/DirtyContext';
 
 export const ROLES = {
   ADMIN: "admin",
@@ -75,8 +76,6 @@ const AppContent = () => {
   );
 };
 
-
-
 function App() {
   const theme = useTheme();
   const snackbarClasses = useSnackbarStyles();
@@ -94,30 +93,35 @@ function App() {
         }}
       >
         <BrowserRouter>
-          <AuthProvider>
-            <HeaderHeightProvider>
+          <DirtyProvider>
+            <AuthProvider>
               <ConfirmProvider>
-                <ReportProvider>
-                  <CssBaseline />
-                  <Box sx={{
-                    flexGrow: 1,
-                    padding: 1,
-                    minHeight: '100vh',
-                    pl: {
-                      xs: getDrawerClosedWidth(theme, 'xs'),
-                      sm: getDrawerClosedWidth(theme, 'sm'),
-                    },
-                    maxWidth: 1600,
-                  }}>
-                    {/* BURBUJA DEL REPORTE */}
-                    <ReportBubble onClick={() => setModalOpen(true)} />
-                    <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
-                    <AppContent />
-                  </Box>
-                </ReportProvider>
+                <HeaderHeightProvider>
+                  <ConfirmProvider>
+                    <ReportProvider>
+                      <CssBaseline />
+                      <SessionExpirationModal />
+                      <Box sx={{
+                        flexGrow: 1,
+                        padding: 1,
+                        minHeight: '100vh',
+                        pl: {
+                          xs: getDrawerClosedWidth(theme, 'xs'),
+                          sm: getDrawerClosedWidth(theme, 'sm'),
+                        },
+                        maxWidth: 1600,
+                      }}>
+                        {/* BURBUJA DEL REPORTE */}
+                        <ReportBubble onClick={() => setModalOpen(true)} />
+                        <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
+                        <AppContent />
+                      </Box>
+                    </ReportProvider>
+                  </ConfirmProvider>
+                </HeaderHeightProvider>
               </ConfirmProvider>
-            </HeaderHeightProvider>
-          </AuthProvider>
+            </AuthProvider>
+          </DirtyProvider>
         </BrowserRouter>
       </SnackbarProvider>
     </CustomThemeProvider>

@@ -16,7 +16,5 @@ export function useElementSize(ref) {
     return () => observer.disconnect();
   }, [ref]);
 
-  console.log(size.width, size.height)
-
   return size;
 }

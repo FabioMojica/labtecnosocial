@@ -37,7 +37,6 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
       const data = await getAllOperationalProjectsApi();
       setProjects(data);
     } catch (error) {
-      console.log(error)
       notify('Ocurrió un error inesperado al obtener los proyectos. Inténtalo de nuevo más tarde.', 'error');
       setErrorLoading(true);
     } finally {

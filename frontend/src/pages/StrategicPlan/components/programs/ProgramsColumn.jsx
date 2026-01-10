@@ -80,14 +80,16 @@ const ProgramsColumn = ({
                         </Typography>
                     </Typography>
                     <Tooltip title="Agregar programa">
-                        <IconButton
-                            onClick={onCreateProgram}
-                            disabled={(!selectedObjectiveId && !selectedObjective)}
-                            size="small"
-                            color="primary"
-                        >
-                            <AddIcon fontSize="small" />
-                        </IconButton>
+                        <span>
+                            <IconButton
+                                onClick={onCreateProgram}
+                                disabled={(!selectedObjectiveId && !selectedObjective)}
+                                size="small"
+                                color="primary"
+                            >
+                                <AddIcon fontSize="small" />
+                            </IconButton>
+                        </span>
                     </Tooltip>
                 </Box>
                 <Divider />
@@ -118,9 +120,9 @@ const ProgramsColumn = ({
 
 
             <Box sx={{
-                 px: 2,
-        width: '100%',
-        height: '100%'
+                px: 2,
+                width: '100%',
+                height: '100%'
             }}>
                 {objectives.length === 0 && (
                     <Box sx={{
@@ -164,8 +166,8 @@ const ProgramsColumn = ({
                             borderRadius: 1,
                             marginBottom: 3,
                             border: theme.palette.mode === "light"
-  ? `1px solid #b9c0b3ff`
-  : "1px solid #e0e0e0",
+                                ? `1px solid #b9c0b3ff`
+                                : "1px solid #e0e0e0",
                             boxShadow: ((objective.id === selectedObjectiveId))
                                 ? '0 6px 15px rgba(25, 118, 210, 0.5)'
                                 : '0px 2px 5px rgba(0, 0, 0, 0.1)',

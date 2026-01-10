@@ -16,7 +16,6 @@ import { ThemeToggleButton } from './ThemeToggleButton';
 import { useAuth, useHeaderHeight, useNotification } from '../contexts';
 
 import { Divider, Link, useTheme } from '@mui/material';
-import { useAuthEffects, useFetchAndLoad } from '../hooks';
 import { ButtonWithLoader } from './ButtonWithLoader';
 
 import logoLight from "../assets/labTecnoSocialLogoLight.png";
@@ -24,6 +23,8 @@ import logoDark from "../assets/labTecnoSocialLogoDark.png";
 import { DrawerNavBar } from './DrawerNavBar';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { UserProfileImage } from './UserProfileImage';
+import { useNavigationGuard } from '../hooks/useBlockNavigation';
+import { useDirty } from '../contexts/DirtyContext';
 
 export const Header = () => {
     const { user, logout, loading } = useAuth();
@@ -36,6 +37,8 @@ export const Header = () => {
     const [open, setIsOpen] = React.useState(false);
     const toggleNav = () => setIsOpen(!open);
     const navigate = useNavigate();
+    const { handleNavigate } = useNavigationGuard();
+    const { isDirty } = useDirty();
 
     useEffect(() => {
         const updateHeight = () => {
@@ -63,10 +66,10 @@ export const Header = () => {
 
     const handleClickLogout = async () => {
         try {
-            const resp = await logout();
+            const resp = await logout(false, true);
             setAnchorEl(null);
-            notify("Cerraste sesión.", "info");
         } catch (err) {
+            console.log(err);
             notify("Sesión cerrada de emergencia por error en la red.", "error");
         }
     };
@@ -74,10 +77,8 @@ export const Header = () => {
     const handleClickProfile = async () => {
         handleClose();
         handleCloseDrawer();
-        navigate(`/usuario/${encodeURIComponent(user.email)}`);
+        handleNavigate(`/usuario/${encodeURIComponent(user.email)}`);
     };
-
-
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -98,9 +99,9 @@ export const Header = () => {
                                         : <ChevronRightIcon fontSize="large" />
                                     }
                                 </IconButton>
-                                <Link
-                                    component={RouterLink}
-                                    to="/inicio"
+                                <Box
+                                sx={{ cursor: 'pointer', display: 'inline-block' }}
+                                    onClick={() => handleNavigate(`/inicio`)}
                                 >
                                     <Image
                                         src={logoToShow}
@@ -108,7 +109,7 @@ export const Header = () => {
                                         width={100}
                                         height={43}
                                     />
-                                </Link>
+                                </Box>
                             </Box>
 
 

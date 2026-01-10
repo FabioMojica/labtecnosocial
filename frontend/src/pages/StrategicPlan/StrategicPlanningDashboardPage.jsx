@@ -44,9 +44,6 @@ const StrategicPlanningDashboardPage = () => {
   const [isCreatingNewPlan, setIsCreatingNewPlan] = useState(false);
   const [isFetchingPlan, setIsFetchingPlan] = useState(true);
   const [hasFetchedPlan, setHasFetchedPlan] = useState(false);
-
-
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -88,7 +85,6 @@ const StrategicPlanningDashboardPage = () => {
     try {
       setErrorPlans(false);
       const res = await callEndpoint(getAllStrategicPlansApi());
-      console.log("---------------------------------", res)
       setAllPlans(res);
     } catch (error) {
       setErrorPlans(true);
@@ -162,6 +158,7 @@ const StrategicPlanningDashboardPage = () => {
   if (errorPlans) {
     return <ErrorScreen message="Ocurrió un error al obtener los planes estratégicos" buttonText="Intentar de nuevo" onButtonClick={() => fetchAllPlans()} />
   }
+  
 
   return (
     <Box maxWidth sx={{ py: 1 }}>

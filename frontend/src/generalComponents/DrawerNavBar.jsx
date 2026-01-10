@@ -12,6 +12,7 @@ import { useAuth } from '../contexts';
 import { navBarOptionsConfig } from '../utils/generalConfig';
 import { useNavigate } from 'react-router-dom';
 import { Tooltip } from '@mui/material';
+import { useNavigationGuard } from '../hooks/useBlockNavigation';
 
 const drawerWidth = 270;
 
@@ -72,6 +73,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 export const DrawerNavBar = ({ open, onClose }) => {
   const { user } = useAuth();
   const theme = useTheme();
+  const { handleNavigate } = useNavigationGuard();
   if (!user) return null;
 
   const role = user?.role ?? 'guest';
@@ -110,7 +112,8 @@ export const DrawerNavBar = ({ open, onClose }) => {
             >
               <ListItemButton
                 onClick={() => {
-                  navigate(link);
+                  
+                  handleNavigate(link);
                   onClose();
                 }}
                 sx={[

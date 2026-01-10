@@ -26,11 +26,11 @@ import { ButtonWithLoader } from "../../generalComponents/ButtonWithLoader.jsx";
 import isEqual from "lodash.isequal";
 import cloneDeep from "lodash/cloneDeep";
 
-import CropSquareIcon from '@mui/icons-material/CropSquare';
-import FilterNoneIcon from '@mui/icons-material/FilterNone';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import IconButton from '@mui/material/IconButton';
 import { useElementSize } from '../../hooks/useElementSize.js';
+import { useNavigationGuard } from '../../hooks/useBlockNavigation.js';
+import { useDirty } from '../../contexts/DirtyContext.jsx';
 
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
   const confirm = useConfirm();
@@ -81,6 +81,19 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const isMdUp = useMediaQuery(theme.breakpoints.up('md')); // >900px
 
   const [canScroll, setCanScroll] = useState(false);
+
+  const { setIsDirtyContext, registerAutoSave } = useDirty();
+
+  const currentPlanRef = useRef({
+    mission: data?.mission || '',
+    objectives: data?.objectives || [],
+  });
+
+  // Cada vez que mission u objectives cambian:
+  useEffect(() => {
+    currentPlanRef.current = { mission, objectives };
+  }, [mission, objectives]);
+
 
   const scrollToRef = (ref) => {
     if (!ref) return;
@@ -142,64 +155,36 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   useEffect(() => {
     if (headerRef.current) {
       const height = headerRef.current.getBoundingClientRect().height;
-      console.log('Altura del header:', height);
     }
   }, [isFullscreen, isDirty]);
 
-
-
-  // const checkScrollPosition = () => {
-  //   const container = isFullscreen ? containerRef.current : document.documentElement;
-
-  //   if (!container) return;
-
-  //   const scrollTop = isFullscreen ? container.scrollTop : window.scrollY;
-  //   const clientHeight = isFullscreen ? container.clientHeight : window.innerHeight;
-  //   const scrollHeight = isFullscreen
-  //     ? container.scrollHeight
-  //     : document.documentElement.scrollHeight;
-
-  //   // Si NO hay scroll → flecha abajo desactivada
-  //   if (scrollHeight <= clientHeight + 2) {
-  //     setScrollDirection('down');
-  //     return;
-  //   }
-
-  //   // Si estamos al fondo → flecha arriba
-  //   if (scrollTop + clientHeight >= scrollHeight - 5) {
-  //     setScrollDirection('up');
-  //   } else {
-  //     setScrollDirection('down');
-  //   }
-  // };
-
   const checkScrollPosition = () => {
-  const container = isFullscreen ? containerRef.current : document.documentElement;
+    const container = isFullscreen ? containerRef.current : document.documentElement;
 
-  if (!container) return;
+    if (!container) return;
 
-  const scrollTop = isFullscreen ? container.scrollTop : window.scrollY;
-  const clientHeight = isFullscreen ? container.clientHeight : window.innerHeight;
-  const scrollHeight = isFullscreen
-    ? container.scrollHeight
-    : document.documentElement.scrollHeight;
+    const scrollTop = isFullscreen ? container.scrollTop : window.scrollY;
+    const clientHeight = isFullscreen ? container.clientHeight : window.innerHeight;
+    const scrollHeight = isFullscreen
+      ? container.scrollHeight
+      : document.documentElement.scrollHeight;
 
-  // Determinamos si hay scroll
-  if (scrollHeight <= clientHeight + 2) {
-    setCanScroll(false); // No se puede scrollear
-    setScrollDirection('down'); // default
-    return;
-  } else {
-    setCanScroll(true);
-  }
+    // Determinamos si hay scroll
+    if (scrollHeight <= clientHeight + 2) {
+      setCanScroll(false); // No se puede scrollear
+      setScrollDirection('down'); // default
+      return;
+    } else {
+      setCanScroll(true);
+    }
 
-  // Si estamos al fondo → flecha arriba
-  if (scrollTop + clientHeight >= scrollHeight - 5) {
-    setScrollDirection('up');
-  } else {
-    setScrollDirection('down');
-  }
-};
+    // Si estamos al fondo → flecha arriba
+    if (scrollTop + clientHeight >= scrollHeight - 5) {
+      setScrollDirection('up');
+    } else {
+      setScrollDirection('down');
+    }
+  };
 
 
   useEffect(() => {
@@ -283,11 +268,13 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const handleEditMission = (newText) => {
     setMission(newText);
     setIsDirty(true);
+    setIsDirtyContext(true);
   };
 
   const handleDeleteMission = () => {
     setMission('');
     setIsDirty(true);
+    setIsDirtyContext(true);
   };
 
   const handleCreateMission = () => {
@@ -301,6 +288,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const handleSaveNewMission = (newText) => {
     setMission(newText);
     setIsDirty(true);
+    setIsDirtyContext(true);
     setSelectedItem('mision');
   };
 
@@ -315,6 +303,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
       prev.map((obj) => (obj.id === id ? { ...obj, ...editedObj } : obj))
     );
     setIsDirty(true);
+    setIsDirtyContext(true);
   };
 
   const handleCreateObjective = () => {
@@ -330,6 +319,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     };
     setObjectives((prev) => [...prev, newObjective]);
     setIsDirty(true);
+    setIsDirtyContext(true);
     setSelectedObjectiveId(newObjective.id);
   };
 
@@ -343,6 +333,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const confirmDeleteObjective = (id) => {
     setObjectives((prev) => prev.filter((o) => o.id !== id));
     setIsDirty(true);
+    setIsDirtyContext(true);
     setObjectiveToDelete(null);
     if (selectedObjectiveId === id) {
       setSelectedObjectiveId(null);
@@ -369,6 +360,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
       })
     );
     setIsDirty(true);
+    setIsDirtyContext(true);
   };
 
   const handleDeleteProgram = (programId) => {
@@ -389,6 +381,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
       }))
     );
     setIsDirty(true);
+    setIsDirtyContext(true);
     if (selectedProgramId === programId) setSelectedProgramId(null);
     setProgramToDelete(null);
   };
@@ -409,6 +402,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
       )
     );
     setIsDirty(true);
+    setIsDirtyContext(true);
     setSelectedProgramId(newProgram.id);
   };
 
@@ -430,11 +424,13 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     );
 
     setIsDirty(true);
+    setIsDirtyContext(true);
     setIsCreateProjectModalOpen(false);
-  };
+  }; 
 
-  const handleSavePlan = async () => {
+  const handleSavePlan = async (autoSave = false) => {
     try {
+      const { mission, objectives } = currentPlanRef.current;
 
       const payload = {
         mission,
@@ -463,12 +459,17 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
       if (onPlanSaved) onPlanSaved(normalizePlanData(updated));
       originalDataRef.current = cloneDeep(normalizePlanData(updated));
       setIsDirty(false);
+      setIsDirtyContext(false);
 
-      notify('Plan estratégico guardado correctamente.', 'success');
+      console.log("auto save", autoSave)
+
+      if (!autoSave)  { 
+        notify('Plan estratégico guardado correctamente.', 'success');
+      };
 
     } catch (error) {
       console.error('Error guardando plan:', error);
-      notify("Ocurrió un error inesperado al guardar el plan estratégico. Inténtalo de nuevo más tarde.", 'error');
+      if (!autoSave) notify("Ocurrió un error inesperado al guardar el plan estratégico. Inténtalo de nuevo más tarde.", 'error');
     }
   };
 
@@ -481,17 +482,22 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     })
       .then((result) => {
         if (result.confirmed === true) {
-          console.log("aaaa", originalDataRef.current.mission);
-          console.log("eee", originalDataRef.current.objectives);
-
           setMission(originalDataRef.current.mission || '');
           setObjectives(cloneDeep(originalDataRef.current.objectives || []));
           setIsDirty(false);
+          setIsDirtyContext(false);
           notify("Cambios descartados correctamente.", "info");
         }
       })
       .catch(() => { });
   };
+
+  useEffect(() => {
+    console.log("registrw auto sabe")
+    registerAutoSave(async () => {
+      await handleSavePlan(true);
+    });
+  }, []);
 
   return (
     <>
@@ -569,7 +575,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
                   size="small"
                   onClick={() => {
                     setIsFullscreen(!isFullscreen);
-                    setTooltipOpen(false); // cerramos el tooltip al hacer click
+                    setTooltipOpen(false);
                   }}
                   sx={{
                     transition: 'transform 0.3s ease',
@@ -595,30 +601,32 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
               </Typography>
 
               <Tooltip title={scrollDirection === 'up' ? 'Ir arriba' : 'Ir abajo'}>
-                <IconButton
-                  size="small"
-                  onClick={handleScrollAction}
-                  disabled={!canScroll}
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    opacity: 1,
-                    transform: scrollDirection === 'up'
-                      ? 'rotate(180deg)'
-                      : 'rotate(0deg)',
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={handleScrollAction}
+                    disabled={!canScroll}
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      opacity: 1,
+                      transform: scrollDirection === 'up'
+                        ? 'rotate(180deg)'
+                        : 'rotate(0deg)',
 
-                    transition: `
+                      transition: `
         transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
         background-color 0.2s ease
       `,
 
-                    '&:hover': {
-                      backgroundColor: 'action.hover',
-                    },
-                  }}
-                >
-                  <KeyboardArrowDownIcon />
-                </IconButton>
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      },
+                    }}
+                  >
+                    <KeyboardArrowDownIcon />
+                  </IconButton>
+                </span>
               </Tooltip>
             </Box>
 
@@ -626,39 +634,47 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               <Tooltip title="Ir a misión">
-                <IconButton size="small" onClick={goToMission} disabled={!mission}>
-                  🧭
-                </IconButton>
+                <span>
+                  <IconButton size="small" onClick={goToMission} disabled={!mission}>
+                    🧭
+                  </IconButton>
+                </span>
               </Tooltip>
 
               <Tooltip title="Ir al objetivo seleccionado">
-                <IconButton
-                  size="small"
-                  disabled={!selectedObjectiveId}
-                  onClick={goToSelectedObjective}
-                >
-                  🎯
-                </IconButton>
+                <span>
+                  <IconButton
+                    size="small"
+                    disabled={!selectedObjectiveId}
+                    onClick={goToSelectedObjective}
+                  >
+                    🎯
+                  </IconButton>
+                </span>
               </Tooltip>
 
               <Tooltip title="Ir al programa seleccionado">
-                <IconButton
-                  size="small"
-                  disabled={!selectedProgramId}
-                  onClick={goToSelectedProgram}
-                >
-                  📦
-                </IconButton>
+                <span>
+                  <IconButton
+                    size="small"
+                    disabled={!selectedProgramId}
+                    onClick={goToSelectedProgram}
+                  >
+                    📦
+                  </IconButton>
+                </span>
               </Tooltip>
 
               <Tooltip title="Ver los proyectos">
-                <IconButton
-                  size="small"
-                  disabled={!selectedProgramId}
-                  onClick={goToProjects}
-                >
-                  📑
-                </IconButton>
+                <span>
+                  <IconButton
+                    size="small"
+                    disabled={!selectedProgramId}
+                    onClick={goToProjects}
+                  >
+                    📑
+                  </IconButton>
+                </span>
               </Tooltip>
             </Box>
           </Box>
@@ -669,15 +685,13 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             alignItems: 'center',
             justifyContent: 'center',
             gap: 1,
-            flexDirection: {
-              xs: 'row',
-            }
+            height: '48px',
           }}>
             {isDirty && (
               <Button
                 variant="contained"
                 color="error"
-                sx={{ width: { xs: '170px', sm: '170px' } }}
+                sx={{ width: '170px', height: '100%' }}
                 onClick={() => handleDiscardChanges()}
               >
                 Descartar cambios
@@ -685,10 +699,11 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             )}
             <ButtonWithLoader
               loading={loading}
-              onClick={handleSavePlan}
+              onClick={() => handleSavePlan(false)}
               disabled={!isDirty}
               variant="contained"
-              sx={{ color: 'white', px: 2, width: { xs: '170px' } }}
+              backgroundButton={theme => theme.palette.success.main}
+              sx={{ color: 'white', px: 2, width: '170px' }}
             >
               Guardar Plan
             </ButtonWithLoader>
@@ -807,6 +822,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
                   }))
                 );
                 setIsDirty(true);
+                setIsDirtyContext(true);
               }}
               onViewProject={(id) => window.open(`/proyectos/${id}`, '_blank')}
               onAddProject={() => setIsCreateProjectModalOpen(true)}

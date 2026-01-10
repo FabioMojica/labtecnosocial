@@ -31,7 +31,7 @@ export const useAuthEffects = () => {
       const warningTime = timeLeft - WARNING_BEFORE_EXPIRATION;
       warningTimeoutRef.current = window.setTimeout(() => {
         if (isActiveRef.current) {
-          notify(`Tu sesión expirará en ${AUTH_CONFIG.TOKEN_WARNING_MINUTES} minutos`, "warning", { persist: true });
+          notify(`Tu sesión expirará en ${AUTH_CONFIG.TOKEN_WARNING_MINUTES} minutos.`, "warning", { persist: true });
         }
       }, warningTime);
     }

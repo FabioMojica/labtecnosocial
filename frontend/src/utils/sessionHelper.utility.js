@@ -1,4 +1,5 @@
 import { jwtDecode } from "jwt-decode";
+import { clearSessionWarningActive } from "./sessionWarningStorage";
 
 export const saveSession = (token, user) => {
   const decoded = jwtDecode(token);
@@ -9,10 +10,10 @@ export const saveSession = (token, user) => {
 };
 
 export const clearSession = () => {
-  console.log("clear")
   sessionStorage.removeItem("token");
   sessionStorage.removeItem("user");
   sessionStorage.removeItem("token_expiration");
   sessionStorage.removeItem("homeData");
   localStorage.removeItem("operationalPlanningViewMode");
+  clearSessionWarningActive();
 };

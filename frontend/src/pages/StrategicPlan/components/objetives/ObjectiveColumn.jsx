@@ -18,8 +18,6 @@ const ObjectivesColumn = ({
   headerHeight
 }) => {
   const theme = useTheme(); 
-  console.log("fullscreen", isFullscreen)
-
   const isAddDisabled = !mission;
 
   return (

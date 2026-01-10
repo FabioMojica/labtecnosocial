@@ -18,7 +18,6 @@ export const loginUserApi = async (userData) => {
       return null;
     }
   } catch (error) {
-    console.log(error)
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
       return null;
     }
