@@ -34,6 +34,7 @@ import { createOperationalProjectApi } from "../../api";
 // 8. Tipos
 import { IntegrationsWithAPIsPanel } from "./components/IntegrationWithAPIsPanel";
 import { ProjectPreviewPanel } from "./components/ProjectPreviewPanel";
+import { Box } from "@mui/material";
 
 export const CreateProjectPage = () => {
     const initialProject = {
@@ -122,13 +123,13 @@ export const CreateProjectPage = () => {
     if (loading) return <FullScreenProgress text="Creando el proyecto" />
 
     return (
-        <>
+        <Box>  
             <TabButtons
                 labels={["Información del proyecto", "Asignar Responsables", "Integraciones con apis", "Crear Proyecto"]}
                 paramsLabels={["información", "asignarResponsables", "integrarAPIs", "crearProyecto"]}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
-            >
-                <CreateProjectInfoPanel
+            > 
+                <CreateProjectInfoPanel 
                     onChange={handleProjectChange}
                     panelHeight={tabsHeight}
                     project={project}
@@ -161,6 +162,6 @@ export const CreateProjectPage = () => {
                 onConfirm={handleConfirmCancelModal}
                 onCancel={() => setQuestionModalOpen(false)}
             />
-        </>
+        </Box>
     );
 }; 

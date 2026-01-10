@@ -166,6 +166,12 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                                                 secondary={page.url}
                                                 primaryTypographyProps={{ fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" }, fontWeight: 500, noWrap: true, sx: { textOverflow: 'ellipsis', overflow: 'hidden' } }}
                                                 secondaryTypographyProps={{ fontSize: "0.8rem", color: "text.secondary", noWrap: true, sx: { textOverflow: 'ellipsis', overflow: 'hidden' } }}
+                                                sx={{
+                                                        maxWidth: {
+                                                            xs: 150,
+                                                            sm: '100%'
+                                                        }
+                                                    }}
                                             />
 
                                             <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>

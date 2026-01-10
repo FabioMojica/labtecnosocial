@@ -103,7 +103,7 @@ const handleRemoveResponsible = useCallback((email) => {
                 minHeight: height,
                 height: height,
                 maxHeight: height,
-                p: 1,
+                
                 display: "flex",
                 flexDirection: "column",
                 gap: 1,

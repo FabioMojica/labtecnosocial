@@ -50,14 +50,22 @@ export const IntegrationsWithAPIsPanel = ({ panelHeight, selectedIntegrations, o
 
 
     return (
-        <Grid container spacing={1} columns={4} sx={{ width: "100%", p: 1 }}>
+        <Grid 
+            container 
+            spacing={1} 
+            columns={4} 
+            sx={{ 
+            width: "100%",
+            p: 1,
+        }}>
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
                 <GithubApi panelHeight={panelHeight} selected={githubSelected} onChange={handleGithubChange} />
             </Grid>
-
+ 
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
                 <FacebookApi panelHeight={panelHeight} selected={facebookSelected} onChange={handleFacebookChange} />
             </Grid>
+
 
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
                 <InstagramApi panelHeight={panelHeight} selected={instagramSelected} onChange={handleInstagramChange} />
@@ -65,7 +73,8 @@ export const IntegrationsWithAPIsPanel = ({ panelHeight, selectedIntegrations, o
 
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
                 <XApi panelHeight={panelHeight} selected={xSelected} onChange={handleXChange} />
-            </Grid>
+            </Grid> 
+            
         </Grid>
     );
 };

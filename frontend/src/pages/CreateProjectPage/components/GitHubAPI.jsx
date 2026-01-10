@@ -88,7 +88,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
     };
 
     return (
-        <Paper elevation={3} sx={{ height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 16px)`, justifyContent: 'space-between', display: 'flex', flexDirection: 'column', p: 0.5 }}>
+        <Paper elevation={3} sx={{ height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 16px)`, justifyContent: 'space-between', display: 'flex', flexDirection: 'column', p: 0.5, width: '100%' }}>
             <Box
                 sx={{
                     display: "flex",
@@ -177,9 +177,9 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                             </Typography>
                         )}
                     </Box>
+ 
 
-
-                    <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Card sx={{ flex: 1, display: 'flex', width: '100%', flexDirection: 'column'}}>
                         {/* Search */}
                         <SearchBar
                             data={repos}
@@ -209,7 +209,6 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                             backgroundColor: theme.palette.primary.dark,
                                         },
                                         minHeight: '100%',
-                                        width: '100%',
                                         pb: 6
                                     }}>
                                     {filteredRepos.map((repo) => {
@@ -229,9 +228,8 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                                     "&:hover": { backgroundColor: "action.hover" },
                                                     display: 'flex',
                                                     flexDirection: 'row',
-                                                    justifyContent: 'space-between',
                                                     pr: 0,
-                                                    position: 'relative'
+                                                    justifyContent: 'space-between'
                                                 }}
                                             >
                                                 <IconButton
@@ -241,6 +239,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                                 >
                                                     <OpenInNewIcon sx={{ fontSize: '1rem' }} />
                                                 </IconButton>
+                                                
 
                                                 <ListItemIcon>
                                                     <Avatar src={repo.image_url} alt={repo.name}>
@@ -263,7 +262,14 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                                         noWrap: true,
                                                         sx: { textOverflow: 'ellipsis', overflow: 'hidden' }
                                                     }}
+                                                    sx={{
+                                                        maxWidth: {
+                                                            xs: 150,
+                                                            sm: '100%'
+                                                        }
+                                                    }}
                                                 />
+                                                
 
                                                 <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
                                                     <Checkbox

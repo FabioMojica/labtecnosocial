@@ -10,9 +10,9 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { useAuth } from '../contexts';
 import { navBarOptionsConfig } from '../utils/generalConfig';
-import { useNavigate } from 'react-router-dom';
 import { Tooltip } from '@mui/material';
 import { useNavigationGuard } from '../hooks/useBlockNavigation';
+import { useLayout } from '../contexts/LayoutContext';
 
 const drawerWidth = 270;
 
@@ -49,6 +49,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
   ({ theme }) => ({
     width: drawerWidth,
     flexShrink: 0,
+    backgroundColor: 'purple',
     whiteSpace: 'nowrap',
     boxSizing: 'border-box',
     variants: [
@@ -75,10 +76,10 @@ export const DrawerNavBar = ({ open, onClose }) => {
   const theme = useTheme();
   const { handleNavigate } = useNavigationGuard();
   if (!user) return null;
+  const { left } = useLayout();
 
   const role = user?.role ?? 'guest';
   const menuItems = navBarOptionsConfig[role] || [];
-  const navigate = useNavigate();
 
   return (
     <Box
@@ -95,6 +96,7 @@ export const DrawerNavBar = ({ open, onClose }) => {
           '& .MuiDrawer-paper': {
             backgroundColor: theme.palette.primary.backgroundNavBar,
             color: theme.palette.primary.principalText,
+            ml: `${left}px`,
           },
         }}
       >

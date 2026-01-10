@@ -18,6 +18,7 @@ import { UsersDrawer } from './components/UsersDrawer';
 import { ViewUserDrawer } from './components/ViewUserDrawer';
 import { getAllUsersApi } from '../../api';
 import { UserItem } from './components/UserItem';
+import { useLayout } from '../../contexts/LayoutContext';
 
 
 const sortOptions = [
@@ -34,7 +35,6 @@ export function UsersListPage() {
     const theme = useTheme();
     const [open, setOpen] = useState(false);
     const { loading, callEndpoint } = useFetchAndLoad();
-    const { notify } = useNotification();
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const isLaptop = useMediaQuery(theme.breakpoints.up('md'));
@@ -45,6 +45,7 @@ export function UsersListPage() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [roleFilter, setRoleFilter] = useState("all");
     const [searchedUsers, setSearchedUsers] = useState([]);
+    const { right } = useLayout();
 
     useEffect(() => {
         setSearchedUsers(users);
@@ -324,7 +325,16 @@ export function UsersListPage() {
                 </Stack>
             </Box>
 
-            <UsersDrawer variant="permanent" open={open} anchor='right'>
+            <UsersDrawer 
+                variant="permanent" 
+                open={open} 
+                anchor='right'
+                sx={{
+                    '& .MuiDrawer-paper': {
+                        mr: `${right}px`,
+                    },
+                }}
+            >
                 <Box sx={{ position: 'fixed', top: 2 }}>
                     <Toolbar></Toolbar>
                     <IconButton size='small' onClick={handleDrawerClose}>

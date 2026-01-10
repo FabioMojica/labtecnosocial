@@ -9,6 +9,7 @@ const TabPanel = ({ children, value, index }) => (
     aria-labelledby={`tab-${index}`}
     style={{
       height: "100%",
+      width: '100%',
       display: value === index ? "flex" : "none",
       flexDirection: "column",
     }}
@@ -52,18 +53,6 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
     }
   }, [labels, onTabsHeightChange]);
 
-  // const handleTabChange = (_event, newValue) => {
-  //   if (!mountedTabs.has(newValue)) {
-  //     setMountedTabs(prev => new Set([...prev, newValue]));
-  //     setNextTab(newValue);
-  //   } else {
-  //     setValue(newValue);
-  //   }
-
-  //   setSearchParams({ tab: paramsLabels[newValue] });
-  //   onTabsHeightChange?.(tabsRef.current?.getBoundingClientRect().height ?? 0);
-  //   onChange?.(paramsLabels[newValue]);
-  // };
   const handleTabChange = (_event, newValue) => {
     // ✅ Evitar cambiar a tab si canChangeTab devuelve false
     if (typeof canChangeTab === "function" && !canChangeTab(newValue)) {
@@ -90,7 +79,11 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
   }, [nextTab, mountedTabs]);
 
   return (
-    <Box>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }}>
       <Tabs
         ref={tabsRef}
         value={value}
@@ -107,14 +100,24 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
               xs: "0.7rem",
               sm: "0.7rem",
               md: "0.7rem",
-              lg: "0.8rem",
+              lg: "0.8rem", 
               xl: "1.1rem",
             },
           },
+          width: {
+              xs: '280px',
+              sm: '100%'
+            },
         }}
       >
         {labels.map((label, idx) => (
-          <Tab key={idx} label={label} id={`tab-${idx}`} aria-controls={`tab-panel-${idx}`} />
+          <Tab 
+            key={idx} 
+            label={label} 
+            id={`tab-${idx}`} 
+            aria-controls={`tab-panel-${idx}`} 
+          />
+          
         ))}
       </Tabs>
 

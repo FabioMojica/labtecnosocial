@@ -23,6 +23,7 @@ import { ProjectItem } from './components/ProjectItem';
 import { ViewProjectDrawer } from './components/ViewProjectDrawer';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import { getAllOperationalProjectsApi } from '../../api';
+import { useLayout } from '../../contexts/LayoutContext';
 
 
 const drawerWidth = 400;
@@ -94,7 +95,8 @@ export function ProjectsListPage() {
     const { user, logout } = useAuth();
     const [error, setError] = useState(false);
     const [sortBy, setSortBy] = useState("name_asc");
-    
+    const { right } = useLayout();
+
     const displayedTitle = () => {
         if (user.role === 'admin') {
             return "Lista de proyectos"
@@ -350,7 +352,16 @@ export function ProjectsListPage() {
                 </Stack>
             </Box>
 
-            <Drawer variant="permanent" open={open} anchor='right'>
+            <Drawer
+                variant="permanent"
+                open={open}
+                anchor='right'
+                sx={{
+                    '& .MuiDrawer-paper': {
+                        mr: `${right}px`,
+                    },
+                }}
+            >
                 <Box sx={{ position: 'fixed', top: 2 }}>
                     <Toolbar></Toolbar>
                     <IconButton size='small' onClick={handleDrawerClose}>

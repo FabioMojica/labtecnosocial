@@ -263,6 +263,12 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                                                         noWrap: true,
                                                         sx: { textOverflow: 'ellipsis', overflow: 'hidden' }
                                                     }}
+                                                    sx={{
+                                                        maxWidth: {
+                                                            xs: 150,
+                                                            sm: '100%'
+                                                        }
+                                                    }}
                                                 />
 
                                                 <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>

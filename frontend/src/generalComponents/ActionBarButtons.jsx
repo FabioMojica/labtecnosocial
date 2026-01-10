@@ -9,6 +9,7 @@ export const ActionBarButtons = ({
   buttons,
   sx = {},
   sxButtons = {}
+  
 }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {

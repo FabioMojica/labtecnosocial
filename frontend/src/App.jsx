@@ -27,11 +27,12 @@ import { APIsDashboardPage } from './pages/APIsDashboardPage/ApisDashboardPage';
 import { ReportProvider } from './contexts/ReportContext';
 import { ReportBubble } from './generalComponents/ReportBubble';
 import { ReportModal } from './generalComponents/ReportModal';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ReportEditor } from './pages/Reports/ReportEditor';
 import { useSnackbarStyles } from './pages/StrategicPlan/hooks/useSnackBarStyles';
 import { useCloseTooltipsOnScroll } from './pages/StrategicPlan/hooks/useCloseTooltipsOnScroll';
 import { DirtyProvider } from './contexts/DirtyContext';
+import { LayoutProvider } from './contexts/LayoutContext';
 
 export const ROLES = {
   ADMIN: "admin",
@@ -81,6 +82,33 @@ function App() {
   const snackbarClasses = useSnackbarStyles();
   const [modalOpen, setModalOpen] = useState(false);
   useCloseTooltipsOnScroll();
+  const containerRef = useRef(null);
+  const [layoutOffsets, setLayoutOffsets] = useState({
+    left: 0,
+    right: 0,
+  });
+
+  const updateOffsets = () => {
+    if (!containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+
+    setLayoutOffsets({
+      left: rect.left,
+      right: window.innerWidth - rect.right,
+    });
+
+    console.log("lelel", rect.left, "riirri", rect.right)
+  };
+
+  useEffect(() => {
+    updateOffsets(); 
+
+    window.addEventListener("resize", updateOffsets);
+    return () => window.removeEventListener("resize", updateOffsets);
+  }, []);
+
+
 
   return (
     <CustomThemeProvider>
@@ -93,35 +121,45 @@ function App() {
         }}
       >
         <BrowserRouter>
-          <DirtyProvider>
-            <AuthProvider>
-              <ConfirmProvider>
-                <HeaderHeightProvider>
-                  <ConfirmProvider>
-                    <ReportProvider>
-                      <CssBaseline />
-                      <SessionExpirationModal />
-                      <Box sx={{
-                        flexGrow: 1,
-                        padding: 1,
-                        minHeight: '100vh',
-                        pl: {
-                          xs: getDrawerClosedWidth(theme, 'xs'),
-                          sm: getDrawerClosedWidth(theme, 'sm'),
-                        },
-                        maxWidth: 1600,
-                      }}>
-                        {/* BURBUJA DEL REPORTE */}
-                        <ReportBubble onClick={() => setModalOpen(true)} />
-                        <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
-                        <AppContent />
-                      </Box>
-                    </ReportProvider>
-                  </ConfirmProvider>
-                </HeaderHeightProvider>
-              </ConfirmProvider>
-            </AuthProvider>
-          </DirtyProvider>
+          <LayoutProvider value={layoutOffsets}>
+            <DirtyProvider>
+              <AuthProvider>
+                <ConfirmProvider>
+                  <HeaderHeightProvider>
+                    <ConfirmProvider>
+                      <ReportProvider>
+                        <CssBaseline />
+                        <SessionExpirationModal />
+                        <Box sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <Box
+                            ref={containerRef}
+                            sx={{
+                              flexGrow: 1,
+                              padding: 1,
+                              minHeight: '100vh',
+                              pl: {
+                                xs: getDrawerClosedWidth(theme, 'xs'),
+                                sm: getDrawerClosedWidth(theme, 'sm'),
+                              },
+                              maxWidth: 2000,
+                            }}>
+                            {/* BURBUJA DEL REPORTE */}
+                            <ReportBubble onClick={() => setModalOpen(true)} />
+                            <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
+                            <AppContent />
+                          </Box>
+                        </Box>
+                      </ReportProvider>
+                    </ConfirmProvider>
+                  </HeaderHeightProvider>
+                </ConfirmProvider>
+              </AuthProvider>
+            </DirtyProvider>
+          </LayoutProvider>
         </BrowserRouter>
       </SnackbarProvider>
     </CustomThemeProvider>
