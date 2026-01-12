@@ -18,6 +18,13 @@ export const loginUserApi = async (userData) => {
       return null;
     }
   } catch (error) {
+
+    console.log(error);
+
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
+    }
+    
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
       return null;
     }
@@ -28,8 +35,10 @@ export const loginUserApi = async (userData) => {
       }
       throw new Error(error.response.data.message || 'Error en la autenticación');
     }
+    
 
-    throw new Error('Ocurrió un error al intentar iniciar sesión. Inténtalo de nuevo más tarde.');
+
+    throw new Error(error);
   }
 };
 
@@ -49,6 +58,11 @@ export const logoutUserApi = async () => {
       return null;
     }
   } catch (error) {
+
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
+    }
+
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
       return null;
     }
@@ -77,6 +91,11 @@ export const meApi = async () => {
     return null;
   } catch (error) {
     console.log("error de me api", error)
+
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
+    }
+
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
       return null;
     }
@@ -102,6 +121,11 @@ export const refreshApi = async () => {
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
+
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
+    }
+
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
       return null;
     }
@@ -131,6 +155,11 @@ export const getSummaryDataApi = async (user) => {
       return null;
     }
   } catch (error) {
+    
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
+    }
+
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
       return null;
     }

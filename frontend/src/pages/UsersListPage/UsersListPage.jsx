@@ -1,5 +1,5 @@
 import { useTheme } from '@mui/material/styles';
-import { Box, CssBaseline, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Toolbar, Typography, useMediaQuery } from "@mui/material";
+import { Box, CssBaseline, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Toolbar, Typography, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useFetchAndLoad } from '../../hooks';
 import { useNotification } from '../../contexts';
@@ -184,8 +184,8 @@ export function UsersListPage() {
 
     return (
 
-        <Box sx={{ display: 'flex', p: 1, pr: 2 }}>
-            <CssBaseline />
+        <Box sx={{ display: 'flex', p: 1, pt: {xs: 2}, pr: {lg: 2} }}>
+            <CssBaseline /> 
 
             <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
                 <Box sx={{

@@ -9,7 +9,20 @@ import { exportStrategicPlanPDF } from './utils/exportStrategicPlanPDF';
 import { exportStrategicPlanDOCX } from './utils/exportStrategicPlanDOCX';
 
 
+
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
+
+
+const getRandomSoftColor = (bgColor) => {
+  let color;
+  do {
+    const hue = Math.floor(Math.random() * 360);
+    const saturation = Math.floor(Math.random() * 40) + 40;
+    const lightness = Math.floor(Math.random() * 30) + 30;
+    color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  } while (color === bgColor);
+  return color;
+};
 
 const StrategicPlanningTreeView = ({ data, year }) => {
   const theme = useTheme();
@@ -86,7 +99,7 @@ const StrategicPlanningTreeView = ({ data, year }) => {
     return (
       <Box
         sx={{
-          borderLeft: '4px solid #616161',
+          borderLeft: `4px solid ${getRandomSoftColor(theme.palette.background.paper)}`,
           borderRadius: 1,
           pl: 2,
           py: 2,
@@ -129,7 +142,7 @@ const StrategicPlanningTreeView = ({ data, year }) => {
     return (
       <Box
         sx={{
-          borderLeft: '4px solid #616161',
+          borderLeft: '4px solid #e77c7cff',
           borderRadius: 1,
           pl: 2,
           py: 2,
@@ -143,11 +156,12 @@ const StrategicPlanningTreeView = ({ data, year }) => {
           <Box
             key={objective.id}
             sx={{
-              borderLeft: '4px solid #616161',
+              borderLeft: `4px solid ${getRandomSoftColor(theme.palette.background.paper)}`,
               borderRadius: 1,
               pl: 2,
               py: 2,
               mt: 2,
+              mr: 1,
             }}
           >
             <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -162,7 +176,7 @@ const StrategicPlanningTreeView = ({ data, year }) => {
             {objective.indicators?.length > 0 && (
               <Box
                 sx={{
-                  borderLeft: '4px solid #616161',
+                  borderLeft: `4px solid ${getRandomSoftColor(theme.palette.background.paper)}`,
                   borderRadius: 1,
                   pl: 2,
                   py: 2,
@@ -177,7 +191,7 @@ const StrategicPlanningTreeView = ({ data, year }) => {
                   <Box
                     key={ind.id}
                     sx={{
-                      borderLeft: '4px solid #616161',
+                      borderLeft: `4px solid #616161`,
                       borderRadius: 1,
                       pl: 2,
                       py: 2,
@@ -188,21 +202,41 @@ const StrategicPlanningTreeView = ({ data, year }) => {
                       <Bullet />
                       <strong>{`Indicador ${index + 1}:`}</strong>
                     </Typography>
-                    <Box sx={{ mr: 5 }}>
+                    <Box sx={{ mr: 1 }}>
                       <Typography
-
                         variant="body2"
                         sx={{ display: 'flex', alignItems: 'center', ml: 2 }}
                       >
-                        <strong>Cantidad:</strong>&nbsp;&nbsp;{ind.amount}
+                        <strong>Cantidad:</strong>
                       </Typography>
+                      <Typography
+                        key={`${ind.id}-amount`}
+                        variant="body2"
+                        sx={{
+                          display: 'flex', alignItems: 'start', ml: 2,
+                          wordBreak: 'break-word', // rompe palabras largas si es necesario
+                          overflowWrap: 'anywhere', // fuerza a que se rompa en varias líneas
+                        }}
+                        textAlign={'justify'}
+                      >
+                        {ind.amount}
+                      </Typography>
+                      <Typography
+                        key={`${ind.id}-concept`}
+                        variant="body2"
+                        sx={{ display: 'flex', alignItems: 'start', ml: 2 }}
+                        textAlign={'justify'}
+                      >
+                        <strong>Concepto:</strong>&nbsp;
+                      </Typography>
+
                       <Typography
                         key={ind.id}
                         variant="body2"
                         sx={{ display: 'flex', alignItems: 'start', ml: 2 }}
                         textAlign={'justify'}
                       >
-                        <strong>Concepto:</strong>&nbsp;{ind.concept}
+                        {ind.concept}
                       </Typography>
                     </Box>
                   </Box>
@@ -217,37 +251,53 @@ const StrategicPlanningTreeView = ({ data, year }) => {
 
   return (
     <Box sx={{
-      py: 0,
-      px: { xs: 0, sm: 3 },
       overflowX: 'auto',
       "&::-webkit-scrollbar": { height: "2px" },
       "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
       "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
       "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
-      width: '100%'
+      pr: 1,
+      pl: {
+        xs: 1,
+        sm: 0
+      },
+      maxWidth: '100vw',
     }}>
       <Paper
         sx={{
-          padding: 3,
+          padding: {
+            xs: 0,
+            sm: 3,
+          },
           boxShadow: 4,
           borderRadius: 3,
-          minWidth: { xs: 700, sm: 'auto' },
           width: '100%',
           display: 'inline-block',
         }}
       >
         <Box
           sx={{
+            width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             mb: 2,
+            p: {
+              xs: 3,
+              sm: 0,
+            }
           }}
         >
-          <Typography 
-            variant="h5" 
-            sx={{ fontWeight: 'bold' }}
-            
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 'bold',
+              fontSize: {
+                xs: '1.3rem',
+                sm: '1.5rem'
+              },
+            }}
+
           >
             Plan Estratégico del año {year && `(${year})`}
           </Typography>
@@ -260,34 +310,37 @@ const StrategicPlanningTreeView = ({ data, year }) => {
 
         <Divider sx={{ mb: 2 }} />
 
-
-
-        {/* Misión */}
-        {data?.mission && (
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
-              Misión:
-            </Typography>
-            <Box
-              sx={{
-                borderLeft: '4px solid #616161',
-                borderRadius: 1,
-                px: 2,
-                py: 1,
-              }}
-            >
-              <Typography variant="body1" textAlign={'justify'}>{data.mission}</Typography>
+        <Box sx={{
+          px: {
+            xs: 1,
+          }
+        }}>
+          {/* Misión */}
+          {data?.mission && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Misión:
+              </Typography>
+              <Box
+                sx={{
+                  borderLeft: '4px solid #1F7D53',
+                  borderRadius: 1,
+                  px: 2,
+                  py: 1,
+                }}
+              >
+                <Typography variant="body1" textAlign={'justify'}>{data.mission}</Typography>
+              </Box>
             </Box>
-          </Box>
-        )}
+          )}
 
-        {/* Objetivos */}
-        {data?.objectives && data.objectives.length > 0 && (
-          <>
-            {renderObjectives(data.objectives)}
-          </>
-        )}
-
+          {/* Objetivos */}
+          {data?.objectives && data.objectives.length > 0 && (
+            <>
+              {renderObjectives(data.objectives)}
+            </>
+          )}
+        </Box>
       </Paper>
     </Box>
   );

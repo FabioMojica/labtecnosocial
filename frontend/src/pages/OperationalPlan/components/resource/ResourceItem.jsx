@@ -45,8 +45,8 @@ const ResourceItem = ({ value, onUpdate, onDelete }) => {
               "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
               "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
             }}>
-              {value.map((member, index) => (
-                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', mb: 0.8 }}>
+              {value?.map((resource, index) => (
+                <Box key={index} sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', mb: 0.8 }}>
                   <Box sx={{ width: '10%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginRight: 0.5 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600, marginBottom: 0.8 }}>
                       {index + 1}.
@@ -72,7 +72,7 @@ const ResourceItem = ({ value, onUpdate, onDelete }) => {
                     }}
                     variant="caption"
                   >
-                    {member}
+                    {resource}
                   </Typography>
                 </Box>
               ))}
@@ -88,14 +88,14 @@ const ResourceItem = ({ value, onUpdate, onDelete }) => {
                 fontSize: '0.75rem',
                 textAlign: 'center'
               }}>
-              No se han declarado responsables
+              No se han declarado recursos
             </Typography>
           </Box> 
         )} 
 
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
           {!hasResources ? (
-            <Tooltip title="Agregar responsables">
+            <Tooltip title="Agregar recurso">
               <IconButton size="small" onClick={() => setModalOpen(true)}>
                 <EditIcon fontSize="small" />
               </IconButton>

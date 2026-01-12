@@ -13,6 +13,10 @@ export const GridItem = ({ title, description, icon, link }) => {
                 transition: "transform 0.2s ease-in-out, box-shadow 0.2s",
                 cursor: link ? "pointer" : "default",
                 height: '100%',
+                mx: {
+                    xs: 2,
+                    sm: 0,
+                },
                 maxHeight: {
                     xs: '100%',
                     md: '100%',

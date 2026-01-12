@@ -25,18 +25,19 @@ const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://5v8j6gjj-5173.brs.devtunnels.ms',
+  'https://npml7czc-5173.brs.devtunnels.ms',
   'https://mi-dominio.com'
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('No permitido por CORS'));
-    }
-  },
+  // origin: function (origin, callback) {
+  //   if (!origin || allowedOrigins.includes(origin)) {
+  //     callback(null, true);
+  //   } else {
+  //     callback(new Error('No permitido por CORS'));
+  //   }
+  // },
+  origin: true,
   credentials: true,
 }));
 
@@ -44,9 +45,11 @@ app.use(cors({
 app.use(cookieParser());
 
 app.use(express.json());
-if (process.env.NODE_ENV !== 'test') {
-  app.use(morgan('dev')); 
-}
+// if (process.env.NODE_ENV !== 'test') {
+//   app.use(morgan('dev')); 
+// }
+
+app.use(morgan('dev'));
 
 
 app.use('/api/uploads', express.static(path.join(process.cwd(), 'uploads')));

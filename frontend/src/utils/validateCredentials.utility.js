@@ -54,3 +54,21 @@ export const validatePassword = (password) => {
   return null; 
 };
 
+export const generateSecurePassword = () => {
+    const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lower = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "0123456789";
+    const special = "!@#$%^&*()_+{}[]<>?";
+    const all = upper + lower + numbers + special;
+
+    let password = "";
+    password += upper[Math.floor(Math.random() * upper.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += special[Math.floor(Math.random() * special.length)];
+
+    for (let i = password.length; i < 8; i++) {
+      password += all[Math.floor(Math.random() * all.length)];
+    }
+
+    return password;
+  };

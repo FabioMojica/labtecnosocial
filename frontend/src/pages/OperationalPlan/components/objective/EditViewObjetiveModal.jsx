@@ -72,6 +72,22 @@ const EditViewObjectiveModal = ({ open, onClose, value, onSave, maxLength = 300 
         p: 3,
         pt: 2
       }}>
+      <Box
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: {
+                  xs: 300,
+                  md: 500,
+                },
+                bgcolor: "background.paper",
+                boxShadow: 24,
+                p: 3,
+                borderRadius: 2,
+              }}
+            ></Box>
         {/* Botón cerrar */}
         <IconButton
           onClick={onClose}
@@ -97,7 +113,7 @@ const EditViewObjectiveModal = ({ open, onClose, value, onSave, maxLength = 300 
           sx={{
             "& .MuiInputBase-input": {
               overflowY: "auto",
-              maxHeight: "200px",
+              maxHeight: "100px",
               "&::-webkit-scrollbar": { width: "2px" },
               "&::-webkit-scrollbar-track": {
                 backgroundColor: theme.palette.background.default,

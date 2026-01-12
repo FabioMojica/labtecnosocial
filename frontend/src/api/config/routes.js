@@ -1,6 +1,6 @@
 export const Routes = {
   LOGIN: "/auth/login",
-  LOGOUT: "/auth/logout", 
+  LOGOUT: "/auth/logout",  
 
   GET_ALL_USERS: "/users/getAllUsers",
   GET_USER_BY_EMAIL: "/users/getUserByEmail",

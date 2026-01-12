@@ -120,6 +120,7 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
         }}>
           <Button 
             variant="contained"
+            color='success'
             onClick={onClose} 
             disabled={loading}
           >

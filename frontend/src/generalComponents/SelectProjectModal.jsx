@@ -56,29 +56,26 @@ export const SelectProjectModal = ({
         onClick={() => setOpen(true)}
         disabled={disabled}
         sx={{
-          width: {
-            xs: '200px',
-            sm: '200px'
-          },
-          fontSize: "1rem",
+          fontSize: "1rem", 
           textTransform: "none",
           display: 'flex',
           alignItems: 'center',
           gap: 1,
           p: 1,
           overflow: 'hidden',
+          width: 150,
           ...sx
         }}
       >
         {loading ? (
           "Cargando..."
         ) : selectedProject ? (
-          <>
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1}}>
             <Avatar
               src={selectedProject.image_url ? `${API_UPLOADS}${selectedProject.image_url}` : undefined}
               sx={{
-                width: 46,
-                height: 46,
+                width: 36,
+                height: 36,
                 borderRadius: 2,
                 objectFit: "cover",
                 fontWeight: "bold",
@@ -100,13 +97,13 @@ export const SelectProjectModal = ({
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
-                WebkitLineClamp: 2,
+                WebkitLineClamp: 1,
               }}
               textAlign={'start'}
             >
               {selectedProject.name}
             </Typography>
-          </>
+          </Box>
         ) : (
           <Typography textAlign={'center'} sx={{ fontSize: '1rem' }}>Seleccionar Proyecto</Typography>
         )}

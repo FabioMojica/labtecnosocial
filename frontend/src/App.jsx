@@ -55,7 +55,7 @@ const AppContent = () => {
   return (
     <>
       {isAuthenticated && <Header />}
-      {isAuthenticated && <Toolbar />}
+      {isAuthenticated && <Toolbar />} 
 
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -98,7 +98,6 @@ function App() {
       right: window.innerWidth - rect.right,
     });
 
-    console.log("lelel", rect.left, "riirri", rect.right)
   };
 
   useEffect(() => {
@@ -139,10 +138,8 @@ function App() {
                             ref={containerRef}
                             sx={{
                               flexGrow: 1,
-                              padding: 1,
                               minHeight: '100vh',
                               pl: {
-                                xs: getDrawerClosedWidth(theme, 'xs'),
                                 sm: getDrawerClosedWidth(theme, 'sm'),
                               },
                               maxWidth: 2000,

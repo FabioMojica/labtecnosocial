@@ -46,7 +46,7 @@ const TeamItem = ({ value, onUpdate, onDelete }) => {
               "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
             }}>
               {value.map((member, index) => (
-                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', mb: 0.8 }}>
+                <Box key={index} sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', mb: 0.8 }}>
                   <Box sx={{ width: '10%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginRight: 0.5 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600, marginBottom: 0.8 }}>
                       {index + 1}.

@@ -8,6 +8,7 @@ const EditViewResourceModal = ({ open, onClose, resources = [], onSave, maxLengt
   const [newResource, setNewResource] = useState('');
   const [localResources, setLocalResources] = useState([]);
   const theme = useTheme();
+  
 
   useEffect(() => {
     setLocalResources(resources);
@@ -40,7 +41,7 @@ const EditViewResourceModal = ({ open, onClose, resources = [], onSave, maxLengt
     },
     onEscape: onClose,
   });
-
+ 
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 

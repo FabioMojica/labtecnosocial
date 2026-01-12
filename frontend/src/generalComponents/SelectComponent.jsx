@@ -1,8 +1,9 @@
 
-import { FormControl, MenuItem, Select, Box, Typography } from "@mui/material";
+import { FormControl, MenuItem, Select, Box, Typography, InputLabel } from "@mui/material";
 import { useState } from "react";
 
 export const SelectComponent = ({
+  label,
   options,
   value,
   onChange,
@@ -23,10 +24,14 @@ export const SelectComponent = ({
   };
 
   return (
-    <FormControl sx={{ width: fullWidth ? "100%" : "auto", height, ...sx }}>
+    <FormControl 
+      sx={{ width: fullWidth ? "100%" : "auto", height, ...sx }}
+    >
+      <InputLabel id="select-label">{label ? label : null}</InputLabel>
       <Select
         value={String(value ?? internalValue)}
         onChange={handleChange}
+        label={label ? label : null}
         sx={{
           width: "100%",
           height: "100%",

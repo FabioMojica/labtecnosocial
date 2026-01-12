@@ -52,6 +52,7 @@ export const refresh = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
+  console.error('Error en login', email, password);
 
   if (!email || !password) {
     return res.status(400).json({ message: 'Email y contraseña son requeridos.' });

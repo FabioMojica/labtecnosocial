@@ -100,6 +100,7 @@ const PeriodItem = ({ value, onUpdate, onDelete }) => {
               sx={{
                 fontStyle: 'italic',
                 fontSize: '0.75rem',
+                textAlign: 'center'
               }}>
               No se ha declarado un periodo
             </Typography>

@@ -161,7 +161,7 @@ const StrategicPlanningDashboardPage = () => {
 
 
   return (
-    <Box maxWidth sx={{ py: 1 }}>
+    <Box maxWidth sx={{ py: 2 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', }}>
         <Box
           sx={{
@@ -255,9 +255,7 @@ const StrategicPlanningDashboardPage = () => {
             )}
           </Box>
         </Box>
-
-
-        <Divider sx={{ width: '100%', mb: 1 }}></Divider>
+        
       </Box>
 
       {!planData && hasFetchedPlan && (
@@ -281,8 +279,9 @@ const StrategicPlanningDashboardPage = () => {
       )}
 
       {showColumnsView && selectedView && (
-        <Box sx={{ p: 0 }}>
+        <Box>
           {selectedView === "Columna" && (
+            <Box sx={{pr: { lg: 1 }}}>
             <StrategicPlanningColumnsView
               data={planData}
               year={selectedYear}
@@ -303,6 +302,7 @@ const StrategicPlanningDashboardPage = () => {
                 });
               }}
             />
+            </Box>
           )}
           {selectedView === "Documento" && (
             <StrategicPlanningTreeView data={planData} year={selectedYear} />

@@ -90,13 +90,17 @@ export const AdminLayout = () => {
     if (loading) return <FullScreenProgress text="Iniciando el sistema" />
 
     return (
-        <Grid container
+        <Grid 
+            container
+            spacing={1}
             sx={{
                 height: {
                     xs: 'auto',
-                    md: `calc(100vh - ${headerHeight}px)`
+                    md: `calc(100vh - ${headerHeight}px)`,
+                    lg: 'auto',
                 },
                 width: '100%',
+                p: {xs: 1, sm: 2}
             }}>
             <Grid size={{ xs: 12, md: 8 }} sx={{ height: { md: '100%', xs: 'auto' }, display: 'flex', gap: 2, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
 
@@ -121,7 +125,7 @@ export const AdminLayout = () => {
                 <Image src={logoToShow} alt="Lab Tecno Social Logo" width={230} height={100} />
 
                 <Grid justifyContent="center" container columns={12} spacing={1.5} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                         <GridItem
                             title="Planificación Estratégica"
                             description="Gestiona todos tus planes estratégicos anuales"
@@ -130,7 +134,7 @@ export const AdminLayout = () => {
                             
                         />
                     </Grid >
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                         <GridItem
                             title="Planificación Operativa"
                             description="Crea y edita planes operativos para tus proyectos"
@@ -138,7 +142,7 @@ export const AdminLayout = () => {
                             link="/planificacion/operativa"
                         />
                     </Grid>
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                         <GridItem
                             title="Gestión de Proyectos"
                             description="Crea proyectos, asignale responsables e integralos con plataformas"
@@ -146,7 +150,7 @@ export const AdminLayout = () => {
                             link="/proyectos"
                         />
                     </Grid>
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                         <GridItem
                             title="Gestión de Usuarios"
                             description="Gestiona usuarios con roles de administrador y coordinador"
@@ -154,7 +158,7 @@ export const AdminLayout = () => {
                             link="/usuarios"
                         />
                     </Grid>
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                         <GridItem
                             title="Dashboard de KPIs"
                             description="Visualiza los indicadores más importantes de tus proyectos integrados con plataformas"
@@ -162,7 +166,7 @@ export const AdminLayout = () => {
                             link="/dashboard"
                         />
                     </Grid>
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                         <GridItem
                             title="Elaboración de reportes"
                             description="Elabora reportes desde distintos puntos del sistema"
@@ -172,7 +176,8 @@ export const AdminLayout = () => {
                     </Grid>
                 </Grid>
             </Grid>
-            <Grid container size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', with: '100%', gap: 1 }}>
+
+            <Grid  container size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', with: '100%', gap: 1 }}>
                 <RealTimeClock />
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <Box

@@ -85,7 +85,7 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+        <Button onClick={onClose} disabled={loading} variant='contained' color='success'>
           Cancelar
         </Button>
         <ButtonWithLoader
@@ -95,7 +95,8 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
             variant="contained"
             backgroundButton={theme => theme.palette.error.main}
             sx={{
-              width: '100px',
+              width: '100px', 
+              minHeight: 0,
               color: "white",
               "&:hover": {
                 backgroundColor: theme => theme.palette.error.dark,

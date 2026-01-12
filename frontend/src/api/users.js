@@ -89,10 +89,11 @@ export const createUserApi = async (userData) => {
     );
 
     if (response.status === 200) return response.data;
+    
     return null;
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al crear el usuario");
-    throw new Error("Error al intentar crear el usuario");
+    throw new Error("Ocurrió un error inesperado al crear el usuario. Inténtalo de nuevo más tarde.");
   }
 };

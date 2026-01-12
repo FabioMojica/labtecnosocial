@@ -4,7 +4,8 @@ import {
   Box,
   IconButton,
   Tooltip,
-  useTheme
+  useTheme,
+  TextField
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -25,6 +26,7 @@ const ObjectiveItem = ({ value, onUpdate, onDelete }) => {
   return (
     <>
       <Box
+      key="hola"
         sx={{
           padding: 0.5,
           borderRadius: 1,

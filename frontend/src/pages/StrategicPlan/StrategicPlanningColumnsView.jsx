@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Tooltip, Grid, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Button, Tooltip, Grid, Typography, useMediaQuery, useTheme, TextField } from '@mui/material';
 import MisionColumn from './components/mision/MisionColumn';
 import CreateMisionItemModal from './components/mision/CreateMisionItemModal';
 import ObjectivesColumn from './components/objetives/ObjectiveColumn';
@@ -31,6 +31,7 @@ import IconButton from '@mui/material/IconButton';
 import { useElementSize } from '../../hooks/useElementSize.js';
 import { useNavigationGuard } from '../../hooks/useBlockNavigation.js';
 import { useDirty } from '../../contexts/DirtyContext.jsx';
+import { getDrawerClosedWidth } from '../../utils/index.js';
 
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
   const confirm = useConfirm();
@@ -89,10 +90,12 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     objectives: data?.objectives || [],
   });
 
-  // Cada vez que mission u objectives cambian:
+  // Cada vez que mission u objectives cambian: 
   useEffect(() => {
     currentPlanRef.current = { mission, objectives };
   }, [mission, objectives]);
+
+  console.log("hola")
 
 
   const scrollToRef = (ref) => {
@@ -426,7 +429,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     setIsDirty(true);
     setIsDirtyContext(true);
     setIsCreateProjectModalOpen(false);
-  }; 
+  };
 
   const handleSavePlan = async (autoSave = false) => {
     try {
@@ -463,7 +466,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
       console.log("auto save", autoSave)
 
-      if (!autoSave)  { 
+      if (!autoSave) {
         notify('Plan estratégico guardado correctamente.', 'success');
       };
 
@@ -493,7 +496,6 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   };
 
   useEffect(() => {
-    console.log("registrw auto sabe")
     registerAutoSave(async () => {
       await handleSavePlan(true);
     });
@@ -519,6 +521,13 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
           zIndex: isFullscreen ? 1500 : 'auto',
           overflow: isFullscreen ? 'auto' : 'visible',
           gap: 1,
+          maxWidth: {
+            xs: '100vw',
+            sm: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
+            md: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
+            lg: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
+            xl: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
+          },
         }}
       >
         <Box
@@ -721,6 +730,20 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             pb: 1,
             flex: isFullscreen ? 1 : 'unset',
             overflowY: isFullscreen ? 'auto' : 'visible',
+            width: '100%',
+            pb: 1,
+            "&::-webkit-scrollbar": { height: "2px", width: "2px" },
+            "&::-webkit-scrollbar-track": {
+              backgroundColor: theme.palette.background.default,
+              borderRadius: "2px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: theme.palette.primary.main,
+              borderRadius: "2px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: theme.palette.primary.dark,
+            },
           }}
           justifyContent="center"
         >

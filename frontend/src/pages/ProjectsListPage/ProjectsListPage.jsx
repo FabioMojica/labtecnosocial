@@ -229,13 +229,13 @@ export function ProjectsListPage() {
                 onButtonClick={() => fetchAllProjects()}
             />
         );
-    }
+    } 
 
     const displayedProjects = sortProjects(filteredProjects, sortBy);
 
 
     return (
-        <Box sx={{ display: 'flex', p: 1, pr: 2 }}>
+        <Box sx={{ display: 'flex', p: 1, pt: {xs: 2}, pr: {lg: 2} }}>
             <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
                 <Box sx={{
                     display: 'flex',

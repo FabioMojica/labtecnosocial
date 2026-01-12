@@ -21,8 +21,6 @@ const debounce = (func, delay = 100) => {
     };
 };
 
-
-
 export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValidationChange }) => {
     const fileInputRef = useRef(null);
     const [previewImage, setPreviewImage] = useState(null);

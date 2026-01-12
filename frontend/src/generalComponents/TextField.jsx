@@ -1,15 +1,14 @@
 import { TextField as MUITextField } from "@mui/material";
 
-
 export const TextField = ({
   labelFontSize,
-  variant= "standard",
+  variant = "standard",
   valueFontSize,
   sx,
-  maxLength = 1,
+  maxLength,
   InputProps,
-  InputLabelProps, 
-  autoComplete = "new-field",
+  InputLabelProps,
+  autoComplete = "off",
   ...props
 }) => {
   const defaultSx = {
@@ -22,21 +21,27 @@ export const TextField = ({
       ...(valueFontSize ? { fontSize: valueFontSize } : {}),
     },
   };
- 
+
   return (
-    <MUITextField 
-      fullWidth
-      variant={variant}
-      inputProps={{
-                ...props.inputProps, 
-                autoComplete: autoComplete,
-                spellCheck: false,
-                ...(maxLength ? { maxLength } : {}),
-            }}
-      InputProps={{ ...InputProps }}
-      InputLabelProps={{ ...InputLabelProps }}
-      sx={{ ...defaultSx, ...sx }}
-      {...props}
-    />
+    <form autoComplete="off">
+      <MUITextField
+        {...props}
+        fullWidth
+        variant={variant}
+        autoComplete="new-email"
+        inputProps={{
+          autoComplete: autoComplete,
+          spellCheck: false,
+          autoCorrect: "off",
+          autoCapitalize: "off",
+          inputMode: "text",
+          ...(maxLength ? { maxLength } : {}),
+          ...props.inputProps,
+        }}
+        InputProps={InputProps}
+        InputLabelProps={InputLabelProps}
+        sx={{ ...defaultSx, ...sx }}
+      />
+    </form>
   );
 };

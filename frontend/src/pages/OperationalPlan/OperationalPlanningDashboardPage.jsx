@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Tooltip, IconButton, Divider } from "@mui/material";
+import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Tooltip, IconButton, Divider, TextField } from "@mui/material";
 import OperationalPlanningTable from "./OperationalPlannigTable";
 import OperationalPlanningReadOnlyTable from "./OperationalPlanningReadOnlyTable";
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
@@ -68,8 +68,6 @@ const OperationalPlanningDashboardPage = () => {
     }
   }, [selectedProjectId, navigate]);
 
-
-
   useEffect(() => {
     if (id) {
       const parsedId = Number(id);
@@ -120,7 +118,7 @@ const OperationalPlanningDashboardPage = () => {
   const selectedProject = projects.find(p => p.id === Number(selectedProjectId));
 
   return (
-    <Box maxWidth sx={{ padding: 1 }}>
+    <Box sx={{ pt: { xs: 2 } }}>
       <Box
         sx={{
           display: "flex",
@@ -133,47 +131,41 @@ const OperationalPlanningDashboardPage = () => {
           gap: 1,
           width: '100%',
           mb: 1,
+          px: 1
         }}
       >
-        <Typography variant="h4" fontWeight={'bold'} sx={{
-          fontSize: {
-            xs: '1.5rem',
-            sm: '2rem'
-          },
-          width: 'auto'
-        }}>Planificación Operativa</Typography>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          sx={{ 
+            fontSize: {
+              xs: '1.5rem', 
+              sm: '2rem'
+            },
+            width: { xs: '100%', sm: 'auto' },
+            textAlign: 'center',
+          }}
+        >Planificación Operativa</Typography>
 
         <Box sx={{
           display: 'flex',
-          flexDirection: {
-            xs: 'column',
-            sm: 'row'
-          },
+          flexDirection: 'row',
           alignItems: 'center',
           gap: 2,
           justifyContent: 'flex-end',
         }}>
-          <SelectProjectModal
-            projects={projects}
+          <SelectProjectModal 
+            projects={projects} 
             selectedProjectId={selectedProjectId}
             onChange={handleProjectChange}
             loading={loading}
-            sx={{
-              width: {
-                xs: '100%',
-                sm: 200
-              }
-            }}
+            disabled={isEditing}
           />
 
           {(selectedProjectId && !planLoadError) && (
             <FormControl
               sx={{
-                minWidth: { xs: 100, sm: 150 },
-                width: {
-                xs: '100%',
-                sm: 200
-              }
+                minWidth: { xs: 50, sm: 150 }
               }}
               size="small"
               disabled={!selectedProjectId || isEditing}
@@ -229,8 +221,6 @@ const OperationalPlanningDashboardPage = () => {
         </Box>
       </Box>
 
-      <Divider />
-
       <DeleteOperationalPlanningTableDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -238,10 +228,11 @@ const OperationalPlanningDashboardPage = () => {
         onDeletePlan={handleDeleteOperationalPlanningTable}
       />
 
-      { selectedProjectId && (
+      {selectedProjectId && (
         viewMode === 'editable' ? (
           <OperationalPlanningTable
             projectId={selectedProjectId}
+            project={selectedProject}
             onProjectIdChange={setSelectedProjectId}
             onProjectWithoutPlan={handleProjectWithoutPlan}
             onProjectHasPlan={() => setHasPlan(true)}
@@ -260,17 +251,21 @@ const OperationalPlanningDashboardPage = () => {
             onLoadingRowsChange={setLoadingRows}
           />
         ))
-      }
+      } 
 
       {!selectedProjectId && (
+        <>
+      <Divider />
         <NoResultsScreen
           message="Seleccione un proyecto para visualizar la planificación operativa"
           icon={<TouchAppRoundedIcon sx={{ fontSize: 90, color: 'text.secondary' }} />}
           sx={{
             height: '60vh',
             justifyContent: 'center',
+            p: 1
           }}
         />
+      </>
       )}
     </Box>
   );

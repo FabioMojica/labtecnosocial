@@ -108,7 +108,7 @@ const BudgetItem = ({ value, onUpdate, onDelete }) => {
                 fontSize: '0.75rem',
                 textAlign: 'center'
               }}>
-              No se ha declarado un indicador
+              No se ha declarado un presupuesto
             </Typography>
           </Box>
         )}

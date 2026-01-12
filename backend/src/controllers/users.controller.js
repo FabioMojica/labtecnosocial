@@ -46,7 +46,7 @@ export const createUser = async (req, res) => {
 
     const { password: _, ...userWithoutPassword } = savedUser;
 
-    return res.status(201).json(userWithoutPassword);
+    return res.json(userWithoutPassword);
   } catch (error) {
     console.error('Error al crear usuario:', error);
     return res.status(500).json({ message: 'Error interno del servidor' });

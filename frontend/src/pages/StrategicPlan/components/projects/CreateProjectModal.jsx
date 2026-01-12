@@ -85,7 +85,7 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
 
         {errorLoading && (
           <Typography color="error" align="center" mt={2} mb={3}>
-            Ocurrió un problema al listar los proyectos, inténtelo de nuevo más tarde.
+            Ocurrió un problema al listar los proyectos, inténtalo de nuevo más tarde.
           </Typography>
         )}
 

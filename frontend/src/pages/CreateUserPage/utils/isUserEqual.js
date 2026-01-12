@@ -7,6 +7,7 @@ export const isUserEqual = (a, b) => {
     a.password === b.password &&
     a.role === b.role &&
     a.state === b.state &&
-    a.image_file === b.image_file
+    a.image_file === b.image_file && 
+    a.image_url === b.image_url
   );
 };

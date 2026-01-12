@@ -92,16 +92,16 @@ export const Header = () => {
                             top: 0,
                             left: 0,
                             display: 'flex',
-                            justifyContent: 'center', 
-                            alignItems:'center',
+                            justifyContent: 'center',
+                            alignItems: 'center',
                             backgroundColor: 'transparent'
                         }}
                     >
                         <Box
                             sx={{
                                 backgroundColor: theme.palette.primary.backgroundHeader,
-                               maxWidth: 2000,
-                               width: '100%',
+                                maxWidth: 2000,
+                                width: '100%',
                             }}
                         >
                             <Toolbar ref={toolbarRef} disableGutters sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', pr: '18px' }}>
@@ -144,7 +144,7 @@ export const Header = () => {
                                             sx={{
                                                 width: 40,
                                                 height: 40,
-                                                borderRadius: 2,
+                                                borderRadius: 2, 
                                                 boxShadow:
                                                     theme.palette.mode === "light"
                                                         ? "0 0 0 1px rgba(0,0,0,0.3)"
@@ -254,6 +254,8 @@ export const Header = () => {
                             </Toolbar>
                         </Box>
                     </AppBar>
+                    
+            
                     <DrawerNavBar open={open} onClose={handleCloseDrawer} />
                 </>
             )}

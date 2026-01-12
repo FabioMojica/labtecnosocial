@@ -31,7 +31,7 @@ const closedMixin = (theme) => ({
     duration: theme.transitions.duration.leavingScreen,
   }),
   overflowX: 'hidden',
-  width: `calc(${theme.spacing(7)} + 1px)`,
+  width: 0,
   [theme.breakpoints.up('sm')]: {
     width: `calc(${theme.spacing(8)} + 1px)`,
   },
@@ -89,6 +89,22 @@ export const DrawerNavBar = ({ open, onClose }) => {
       }}
     >
       <CssBaseline />
+
+      {open && (
+        <Box
+          onClick={onClose}
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0,0,0,0.4)', 
+            zIndex: theme.zIndex.drawer - 1,
+          }}
+        />
+      )}
+
       <Drawer
         variant="permanent"
         open={open}
@@ -96,7 +112,7 @@ export const DrawerNavBar = ({ open, onClose }) => {
           '& .MuiDrawer-paper': {
             backgroundColor: theme.palette.primary.backgroundNavBar,
             color: theme.palette.primary.principalText,
-            ml: `${left}px`,
+            ml: `calc(${left}px)`
           },
         }}
       >
@@ -114,7 +130,7 @@ export const DrawerNavBar = ({ open, onClose }) => {
             >
               <ListItemButton
                 onClick={() => {
-                  
+
                   handleNavigate(link);
                   onClose();
                 }}

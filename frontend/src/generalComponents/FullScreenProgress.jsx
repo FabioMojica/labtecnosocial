@@ -22,7 +22,7 @@ export const FullScreenProgress = ({ open = true, text }) => {
       }}
     >
       {text && (
-        <Typography variant="h6" sx={{ mb: 2 }}>
+        <Typography variant="h6" sx={{ mb: 2 }} textAlign={'center'}>
           {text}
         </Typography>
       )}

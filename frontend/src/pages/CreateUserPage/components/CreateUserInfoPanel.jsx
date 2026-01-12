@@ -4,6 +4,8 @@ import {
   Box,
   IconButton,
   InputAdornment,
+  useTheme,
+  Button,
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -11,11 +13,16 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
+import EmailIcon from '@mui/icons-material/Email';
+import BadgeIcon from '@mui/icons-material/Badge';
+import KeyIcon from '@mui/icons-material/Key';
 
 import {
+  QuestionModal,
   SelectComponent,
   TextField,
   UserImageDates,
+  ButtonWithLoader,
 } from "../../../generalComponents";
 import {
   cleanExtraSpaces,
@@ -23,20 +30,143 @@ import {
   validateTextLength,
   validateOnlyLetters,
 } from "../../../utils/textUtils";
-import { roleConfig, stateConfig } from "../../../utils";
+import { generateSecurePassword, roleConfig, stateConfig } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
+import { useNavigate } from "react-router-dom";
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
+// 1. Librerías externas
+import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
+import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRounded';
 
-export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
-  console.log("userrrrrrrrrr", user);
+// 2. Hooks personalizados
+import { useFetchAndLoad } from "../../../hooks";
+
+// 3. Utilidades / helpers 
+import { isUserEqual } from "../utils/isUserEqual";
+import { createUserFormData } from "../utils/createUserFormData";
+
+
+// 5. Servicios / UseCases
+import { createUserApi } from "../../../api";
+import { useLayout } from "../../../contexts/LayoutContext";
+import { downloadUserCredentials } from "../utils/downloadUserCredentials";
+
+export const CreateUserInfoPanel = ({ panelHeight }) => {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [overlayText, setOverlayText] = useState("Subir una imagen");
-  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const { notify } = useNotification();
   const { headerHeight } = useHeaderHeight();
+  const theme = useTheme();
+  const initialUser = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    image_file: null,
+    image_url: null,
+    role: 'coordinator',
+    state: 'habilitado',
+  };
+  const [user, setUser] = useState({ ...initialUser });
+  const [isDirty, setIsDirty] = useState(false);
+  const [questionModalOpen, setQuestionModalOpen] = useState(false);
+  const { loading, callEndpoint } = useFetchAndLoad();
+  const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
+  const { right } = useLayout();
+
+  const handleCreateUser = async () => {
+    if (!user) {
+      notify("Completa los datos del usuario antes de guardar", "info");
+      return;
+    }
+    try {
+      const userToSend = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        password: user.password,
+        image_file: user.image_file ?? null,
+        role: user.role,
+        state: user.state,
+      };
+
+      const formData = createUserFormData(userToSend);
+      const newUser = await callEndpoint(createUserApi(formData));
+      console.log(newUser);
+      notify("Usuario creado correctamente", "success");
+      navigate(`/usuario/${encodeURIComponent(newUser?.email)}`)
+
+      downloadUserCredentials({
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        password: user.password,
+      });
+
+    } catch (error) {
+      if (error?.response?.status === 413) {
+        notify(error.response.data.message || "La imagen supera el tamaño máximo permitido (2MB)", "error");
+        return;
+      }
+
+      if (
+        error?.message ===
+        "El correo que ingresaste ya pertenece a otro usuario. Prueba con uno diferente."
+      ) {
+        notify(error.message, "info");
+        return;
+      }
+      notify(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Ocurrió un error inesperado al crear el usuario. Inténtalo de nuevo más tarde.",
+        "error"
+      );
+    }
+  };
+
+  const handleUserChange = (changes) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...changes };
+      setIsDirty(!isUserEqual(updated, initialUser));
+      return updated;
+    });
+  };
+
+  const handleSave = () => {
+    handleCreateUser();
+  }
+
+  const handleCancelChanges = () => {
+    setQuestionModalOpen(true);
+  }
+
+  const handleConfirmCancelModal = () => {
+    setUser({ ...initialUser });
+    setIsDirty(false);
+    setQuestionModalOpen(false);
+    notify("Cambios descartados correctamente.", "info");
+    setErrors({});
+  };
+
+  const isFormValid = () => {
+    return (
+      user.firstName?.trim() &&
+      user.lastName?.trim() &&
+      user.email?.trim() &&
+      user.password?.trim() &&
+      user.role?.trim() &&
+      user.state?.trim() &&
+      !user.firstNameError &&
+      !user.lastNameError &&
+      !user.emailError &&
+      !user.passwordError
+    );
+  };
 
   useEffect(() => {
     setOverlayText(
@@ -58,18 +188,19 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
+      notify("Solo se permiten archivos de imagen (jpg, png).", "warning");
       return;
     }
     const previewUrl = URL.createObjectURL(file);
     setPreviewImage(previewUrl);
-    onChange?.({ image_file: file, image_url: previewUrl });
+    handleUserChange?.({ image_file: file, image_url: previewUrl });
     event.target.value = "";
   };
 
   const handleRemoveImage = () => {
+    if (!previewImage) return;
     setPreviewImage(null);
-    onChange?.({ image_url: null, image_file: null });
+    handleUserChange?.({ image_url: null, image_file: null });
   };
 
   const handleContextMenu = (e) => {
@@ -82,27 +213,6 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
     longPressTimer = setTimeout(() => handleRemoveImage(), 1000);
   };
   const handleTouchEnd = () => clearTimeout(longPressTimer);
-
-  const generateSecurePassword = () => {
-    const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const lower = "abcdefghijklmnopqrstuvwxyz";
-    const numbers = "0123456789";
-    const special = "!@#$%^&*()_+{}[]<>?";
-    const all = upper + lower + numbers + special;
-
-    let password = "";
-    password += upper[Math.floor(Math.random() * upper.length)];
-    password += numbers[Math.floor(Math.random() * numbers.length)];
-    password += special[Math.floor(Math.random() * special.length)];
-
-    for (let i = password.length; i < 8; i++) {
-      password += all[Math.floor(Math.random() * all.length)];
-    }
-
-    onChange?.({ password });
-    validateField("password", password);
-    notify("Contraseña segura generada correctamente", "info");
-  };
 
 
   const roleOptions = Object.entries(roleConfig).map(([key, value]) => ({
@@ -119,7 +229,7 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
   }));
 
   const validateField = (field, value) => {
-    const cleaned = cleanExtraSpaces(value);
+    const cleaned = value;
     let error = null;
 
     switch (field) {
@@ -147,31 +257,65 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
 
     setErrors((prev) => {
       const newErrors = { ...prev, [field]: error || "" };
-      onChange?.({ [`${field}Error`]: newErrors[field] });
+      handleUserChange?.({ [`${field}Error`]: newErrors[field] });
       return newErrors;
     });
 
-    onChange?.({ [field]: cleaned });
+    handleUserChange?.({ [field]: cleaned });
   };
+  const isPasswordValid = !validatePassword(user?.password ?? "");
 
   return (
+    <>
       <Grid
         container
-        spacing={2} 
+        spacing={2}
         sx={{
           width: "100%",
-          minHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
-          height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
-          maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+          height: {
+            xs: 'auto',
+            sm: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`
+          },
+          maxHeight: {
+            xs: 'auto',
+            sm: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`
+          },
+          minHeight: {
+            xs: 'auto',
+            sm: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`
+          },
         }}
-        
       >
-        <Grid size={{ xs: 12, md: 5 }} sx={{ height: { xs: "50%", sm: "100%" } }}>
+        <Grid size={{ xs: 12, md: 4.5 }}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            width: '100%',
+            height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+            maxHeight: {
+              xs: 250,
+              sm: 300,
+              lg: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+            },
+          }}>
           <UserImageDates
             overlay
             overlayText={overlayText}
             user={user}
-            sx={{ width: "100%", height: "100%" }}
+            sx={{
+              width: {
+                xs: 250,
+                sm: 300,
+                lg: '100%'
+              },
+              height: "100%",
+              maxHeight: 500,
+              boxShadow:
+                theme.palette.mode === "light"
+                  ? "0 0 0 1px rgba(0,0,0,0.3)"
+                  : "0 0 0 1px rgba(255,255,255,0.3)",
+              borderRadius: 2,
+            }}
             changeImage
             onChangeImage={handleOverlayClick}
             previewImage={previewImage ?? undefined}
@@ -183,174 +327,525 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
 
         <Grid
           container
-          spacing={2}
-          size={{ xs: 12, md: 7 }}
-          sx={{ height: "auto", display: "flex", flexDirection: "column", pb: { xs: 20, lg: 0 }}}
+          spacing={1}
+          size={{ xs: 12, md: 7.5 }}
+          sx={{ display: "flex", flexDirection: "column" }}
         >
-          {/* Nombre y Apellido */}
           <Grid container spacing={1}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                label="Nombre(s)*"
-                variant="filled"
-                value={user?.firstName ?? ""}
-                onChange={(e) => onChange?.({ firstName: e.target.value })}
-                onBlur={(e) => validateField("firstName", e.target.value)}
-                maxLength={100}
-                error={!!errors.firstName}
-                valueFontSize={{
-                  xs: '1rem',
-                  sm: '1.5rem'
-                }}
-              />
-              {errors.firstName && (
-                <Typography color="error" variant="caption">
-                  {errors.firstName}
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '100%',
+              gap: 1,
+              flexDirection: {
+                xs: 'column',
+                sm: 'row'
+              },
+              height: {
+                xs: 'auto',
+                sm: 80
+              },
+            }}>
+              <Box sx={{
+                display: 'flex',
+                width: {
+                  xs: '100%',
+                  sm: 'auto',
+                  lg: 'auto'
+                },
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                gap: 1,
+              }}>
+                <BadgeIcon sx={{
+                  mb: {
+                    xs: 0,
+                    sm: 3
+                  },
+                }} />
+                <Typography
+                  sx={{
+                    display: {
+                      xs: 'block',
+                      sm: 'none'
+                    },
+                    fontWeight: 'bold'
+                  }}
+                  variant="h5"
+                >
+                  Datos personales
                 </Typography>
-              )}
-            </Grid>
+              </Box>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  id="first-name"
+                  label={
+                    <>
+                      Nombre <span style={{ color: theme.palette.error.main }}>*</span>
+                    </>
+                  }
+                  disabled={loading}
+                  variant="outlined"
+                  value={user?.firstName ?? ""}
+                  error={!!errors.firstName}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleUserChange?.({ firstName: value });
+                    validateField("firstName", value);
+                  }}
+                  onBlur={(e) => {
+                    const cleaned = cleanExtraSpaces(e.target.value);
+                    handleUserChange?.({ firstName: cleaned });
+                    validateField("firstName", cleaned);
+                  }}
+                  inputProps={{ maxLength: 100 }}
+                  size='small'
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      minHeight: {
+                        xs: 50,
+                        sm: 60
+                      },
+                      maxHeight: {
+                        xs: 50,
+                        sm: 60
+                      },
+                      width: '100%',
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      padding: '8px 12px',
+                      fontSize: '0.95rem',
+                      lineHeight: '1.2',
+                    }
+                  }}
+                />
 
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                label="Apellido(s)*"
-                variant="filled"
-                value={user?.lastName ?? ""}
-                onChange={(e) => onChange?.({ lastName: e.target.value })}
-                onBlur={(e) => validateField("lastName", e.target.value)}
-                maxLength={100}
-                error={!!errors.lastName}
-                valueFontSize={{
-                  xs: '1rem',
-                  sm: '1.5rem'
-                }}
-              />
-              {errors.lastName && (
-                <Typography color="error" variant="caption">
-                  {errors.lastName}
-                </Typography>
-              )}
-            </Grid>
+                {/* Error + contador */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 0.5,
+                    px: 0.5,
+                  }}
+                >
+                  {/* Error a la izquierda */}
+                  <Typography
+                    variant="caption"
+                    color="error"
+                    sx={{
+                      visibility: errors.firstName ? "visible" : "hidden",
+                      fontSize: {
+                        xs: '0.6rem',
+                        sm: '0.65rem'
+                      }
+                    }}
+                  >
+                    {errors.firstName || "placeholder"}
+                  </Typography>
+
+                  {/* Contador a la derecha */}
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      fontSize: {
+                        xs: '0.6rem'
+                      },
+                      height: 20,
+                    }}
+                  >
+                    {(user?.firstName?.length ?? 0)} / 100
+                  </Typography>
+                </Box>
+              </Grid>
+
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  id="last-name"
+                  label={
+                    <>
+                      Apellidos <span style={{ color: theme.palette.error.main }}>*</span>
+                    </>
+                  }
+                  disabled={loading}
+                  variant="outlined"
+                  value={user?.lastName ?? ""}
+                  error={!!errors.lastName}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleUserChange?.({ lastName: value });
+                    validateField("lastName", value);
+                  }}
+                  onBlur={(e) => {
+                    const cleaned = cleanExtraSpaces(e.target.value);
+                    handleUserChange?.({ lastName: cleaned });
+                    validateField("lastName", cleaned);
+                  }}
+                  inputProps={{ maxLength: 100 }}
+                  size='small'
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      minHeight: {
+                        xs: 50,
+                        sm: 60
+                      },
+                      maxHeight: {
+                        xs: 50,
+                        sm: 60
+                      },
+                      width: '100%',
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      padding: '8px 12px',
+                      fontSize: '0.95rem',
+                      lineHeight: '1.2',
+                    },
+                    width: '100%'
+                  }}
+                />
+
+                {/* Error + contador */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 0.5,
+                    px: 0.5,
+                    height: 20,
+                  }}
+                >
+                  {/* Error a la izquierda */}
+                  <Typography
+                    variant="caption"
+                    color="error"
+                    sx={{
+                      visibility: errors.lastName ? "visible" : "hidden",
+                      fontSize: {
+                        xs: '0.6rem',
+                        sm: '0.65rem',
+                      }
+                    }}
+                  >
+                    {errors.lastName || "placeholder"}
+                  </Typography>
+
+                  {/* Contador a la derecha */}
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      fontSize: {
+                        xs: '0.6rem',
+                      }
+                    }}
+                  >
+                    {(user?.lastName?.length ?? 0)} / 100
+                  </Typography>
+                </Box>
+              </Grid>
+            </Box>
           </Grid>
 
           {/* Email */}
-          <Grid size={12}>
-            <TextField
-              autoComplete="new-email"
-              label="Email del usuario*"
-              variant="filled"
-              value={user?.email ?? ""}
-              onChange={(e) => onChange?.({ email: e.target.value })}
-              onBlur={(e) => validateField("email", e.target.value)}
-              maxLength={100}
-              error={!!errors.email}
-              valueFontSize={{
-                xs: '1rem',
-                sm: '1.5rem'
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => {
-                        if (user?.email) {
-                          navigator.clipboard.writeText(user.email);
-                          notify("Correo copiado al portapapeles", "info");
+          <Grid size={12} sx={{
+            width: '100%',
+            mt: {
+              xs: 2,
+              sm: 2,
+              lg: 1
+            }
+          }}>
+            <Box sx={{
+              display: 'flex',
+              width: '100%',
+              height: '100%',
+              flex: 1,
+              flexDirection: 'column',
+            }}>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}>
+                <EmailIcon sx={{
+
+                }} />
+                <Box sx={{
+                  width: '100%',
+                }}>
+                  <TextField
+                    id="new-email"
+                    disabled={loading}
+                    size='small'
+                    value={user?.email ?? ""}
+                    label={
+                    <>
+                      Correo electrónico <span style={{ color: theme.palette.error.main }}>*</span>
+                    </>
+                  }
+                    variant="outlined"
+                    error={!!errors.email}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      handleUserChange?.({ email: value });
+                      validateField("email", value);
+                    }}
+                    onBlur={(e) => {
+                      console.log("anyes on blute", e.target.value)
+                      const cleaned = cleanExtraSpaces(e.target.value);
+                      console.log("cleaness", cleaned, "xs")
+                      handleUserChange?.({ email: cleaned });
+                      validateField("email", cleaned);
+                    }}
+
+                    inputProps={{ maxLength: 100 }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            edge="end"
+                            onClick={() => {
+                              if (user?.email) {
+                                navigator.clipboard.writeText(user.email);
+                                notify("Correo copiado al portapapeles.", "info");
+                              }
+                            }}
+                            disabled={!!errors.email || !user?.email || loading}
+                          >
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      flex: 1,
+                      '& .MuiOutlinedInput-root': {
+                        minHeight: {
+                          xs: 50,
+                          sm: 60
+                        },
+                        maxHeight: {
+                          xs: 50,
+                          sm: 60
+                        },
+                      },
+                      '& .MuiOutlinedInput-input': {
+                        padding: '8px 12px',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.2',
+                      },
+                      width: '100%'
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mt: 0.5,
+                      px: 0.5,
+                      minHeight: 20,
+                    }}
+                  >
+                    {/* Error a la izquierda */}
+                    <Typography
+                      variant="caption"
+                      color="error"
+                      sx={{
+                        visibility: errors.email ? "visible" : "hidden",
+                        fontSize: {
+                          xs: '0.6rem',
+                          sm: '0.65rem'
                         }
                       }}
                     >
-                      <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            {errors.email && (
-              <Typography color="error" variant="caption">
-                {errors.email}
-              </Typography>
-            )}
-          </Grid>
+                      {errors.email || "placeholder"}
+                    </Typography>
 
-          {/* Contraseña */}
-          <Grid size={12}>
-            <TextField
-              autoComplete="new-password"
-              label="Contraseña del usuario*"
-              variant="filled"
-              type={showPassword ? "text" : "password"}
-              value={user?.password ?? ""}
-              onChange={(e) => {
-                onChange?.({ password: e.target.value });
-                validateField("password", e.target.value);
-              }}
-              onBlur={(e) => validateField("password", e.target.value)}
-              maxLength={8}
-              error={!!errors.password}
-              valueFontSize={{
-                xs: '1rem',
-                sm: '1.5rem'
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    >
-                      {showPassword ? (
-                        <VisibilityOffIcon fontSize="small" />
-                      ) : (
-                        <VisibilityIcon fontSize="small" />
-                      )}
-                    </IconButton>
-
-                    <IconButton
-                      onClick={generateSecurePassword}
-                      title="Generar contraseña segura"
-                    >
-                      <AutorenewIcon fontSize="small" />
-                    </IconButton>
-
-                    <IconButton
-                      onClick={() => {
-                        if (user?.password) {
-                          navigator.clipboard.writeText(user.password);
-                          notify("Contraseña copiada al portapapeles", "info");
-                        } else {
-                          notify("No hay contraseña para copiar", "warning");
+                    {/* Contador a la derecha */}
+                    <Typography variant="caption" color="text.secondary"
+                      sx={{
+                        fontSize: {
+                          xs: '0.6rem',
                         }
                       }}
-                      title="Copiar contraseña"
                     >
-                      <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            {errors.password && (
-              <Typography color="error" variant="caption">
-                {errors.password}
-              </Typography>
-            )}
+                      {user?.email?.length ?? 0} / 100
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
           </Grid>
+
+          <Grid size={12}>
+            <Box sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+            }}>
+              <KeyIcon sx={{
+                mb: 3
+              }} />
+
+              <Box sx={{
+                width: '100%',
+              }}>
+                <TextField
+                  id="new-password"
+                  disabled={loading}
+                  label={
+                    <>
+                      Contraseña <span style={{ color: theme.palette.error.main }}>*</span>
+                    </>
+                  }
+                  variant="outlined"
+                  size='small'
+                  type={showPassword ? "text" : "password"}
+                  value={user?.password ?? ""}
+                  error={!!errors.password}
+                  onChange={(e) => {
+                    handleUserChange?.({ password: e.target.value });
+                    validateField("password", e.target.value);
+                  }}
+                  onBlur={(e) => validateField("password", e.target.value)}
+                  inputProps={{ maxLength: 8 }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          edge="end"
+                          onClick={() => setShowPassword(!showPassword)}
+                          title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                        >
+                          {showPassword ? (
+                            <VisibilityOffIcon fontSize="small" />
+                          ) : (
+                            <VisibilityIcon fontSize="small" />
+                          )}
+                        </IconButton>
+
+                        <IconButton
+                          edge="end"
+                          disabled={loading}
+                          onClick={() => {
+                            const password = generateSecurePassword();
+                            handleUserChange?.({ password });
+                            validateField("password", password);
+                            notify("Contraseña segura generada correctamente.", "info");
+                          }}
+                          title="Generar contraseña segura"
+                          sx={{
+                            ml: 1
+                          }}
+                        >
+                          <AutorenewIcon fontSize="small" />
+                        </IconButton>
+
+                        <IconButton
+                          edge="end"
+                          disabled={!isPasswordValid || loading}
+                          onClick={() => {
+                            if (user?.password) {
+                              navigator.clipboard.writeText(user.password);
+                              notify("Contraseña copiada al portapapeles.", "info");
+                            } else {
+                              notify("No hay contraseña para copiar", "warning");
+                            }
+                          }}
+                          title="Copiar contraseña"
+                          sx={{
+                            ml: 1
+                          }}
+                        >
+                          <ContentCopyIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      minHeight: {
+                        xs: 50,
+                        sm: 60
+                      },
+                      maxHeight: {
+                        xs: 50,
+                        sm: 60
+                      },
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      padding: '8px 12px',
+                      fontSize: '0.95rem',
+                      lineHeight: '1.2',
+                    },
+                    width: '100%'
+                  }}
+                />
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 0.5,
+                    px: 0.5,
+                    minHeight: 20,
+                  }}
+                >
+                  {/* Error a la izquierda */}
+                  <Typography
+                    variant="caption"
+                    color="error"
+                    sx={{
+                      visibility: errors.password ? "visible" : "hidden",
+                      fontSize: {
+                        xs: '0.6rem',
+                        sm: '0.65rem',
+                      }
+                    }}
+                  >
+                    {errors.password || "placeholder"}
+                  </Typography>
+
+
+                  <Typography
+                    variant="caption"
+                    color={isPasswordValid ? "success.main" : "warning.main"}
+                    sx={{
+                      fontSize: {
+                        xs: '0.6rem'
+                      }
+                    }}
+                  >
+                    {(user?.password?.length ?? 0)} / 8
+                  </Typography>
+
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+
 
           {/* Role y Estado */}
           <Grid size={12}>
             <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
               <SelectComponent
+                label="Rol"
+                disabled={loading}
                 options={roleOptions}
                 value={user?.role}
-                onChange={(newRole) => onChange?.({ role: newRole })}
+                onChange={(newRole) => handleUserChange?.({ role: newRole })}
                 fullWidth
               />
               <SelectComponent
+                label="Estado"
+                disabled={loading}
                 options={stateOptions}
                 value={user?.state}
-                onChange={(newState) => onChange?.({ state: newState })}
+                onChange={(newState) => handleUserChange?.({ state: newState })}
                 fullWidth
               />
-
             </Box>
           </Grid>
         </Grid>
@@ -362,6 +857,55 @@ export const CreateUserInfoPanel = ({ user, panelHeight, onChange }) => {
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
+        <Box sx={{
+          mt: {
+            xs: 5,
+            sm: 5,
+            lg: 0
+          },
+          position: {
+            lg: 'fixed',
+          },
+          bottom: 20,
+          right: right + 20,
+          display: 'flex',
+          gap: 1,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'flex-end'
+        }}>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleCancelChanges}
+            disabled={!isDirty || loading}
+          >
+            Borrar Todo
+          </Button>
+          <ButtonWithLoader
+            loading={loading}
+            onClick={handleCreateUser}
+            backgroundButton={theme => theme.palette.success.main}
+            disabled={!isFormValid()}
+            sx={{
+              color: "white",
+              "&:hover": {
+                backgroundColor: theme => theme.palette.success.dark,
+              },
+              width: 140,
+            }}
+          >
+            Crear usuario
+          </ButtonWithLoader>
+        </Box>
+
       </Grid>
+      <QuestionModal
+        open={questionModalOpen}
+        question="¿Deseas borrar todos los cambios no guardados?"
+        onCancel={() => setQuestionModalOpen(false)}
+        onConfirm={handleConfirmCancelModal}
+      />
+    </>
   );
 };
