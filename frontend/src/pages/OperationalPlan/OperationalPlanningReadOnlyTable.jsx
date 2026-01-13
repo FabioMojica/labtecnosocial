@@ -20,6 +20,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { FullScreenProgress } from "../../generalComponents/FullScreenProgress.jsx";
 import { ErrorScreen } from "../../generalComponents/ErrorScreen.jsx";
+import { getDrawerClosedWidth } from "../../utils/index.js";
 
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -480,26 +481,16 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        {(!loadingRows && Array.isArray(rows) && rows.length > 0) && (
-          <Box sx={{ display: 'flex', width: '100%', gap: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
-
-            <ExportMenu
-              onExportExcel={() => { handleExportExcel(rows, project) }}
-              onExportPDF={() => { handleExportPDF(rows, project) }}
-            />
-
-            <Tooltip title="Resetear anchos a por defecto">
-              <IconButton onClick={resetColumnWidths} size="small" aria-label="reset column widths">
-                <RestartAltIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>)
-        }
-      </Box>
-
-
+    <Box sx={{
+      display: 'flex', flexDirection: 'column', gap: 2,
+      maxWidth: {
+        xs: '100vw',
+        sm: `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
+        md: `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
+        lg: `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 16px)`,
+        xl: `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
+      },
+    }}>
       {loadingRows ? (
         <FullScreenProgress text={'Obteniendo el plan operativo'} />
       ) : !rows.length ? (
@@ -510,7 +501,50 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
           />
         </>
       ) : (
-        <Box sx={{ height: 'auto', width: '100%' }}>
+        <Box
+          sx={{
+            height: 'auto',
+            width: '100%',
+            overflow: 'auto',
+            borderRadius: 2,
+          }}>
+          <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            {(!loadingRows && Array.isArray(rows) && rows.length > 0) && (
+              <Box sx={{ 
+                bgcolor: 'background.paper',
+                display: 'flex', width: '100%', pl: 2, gap: 1, alignItems: 'center', justifyContent: 'space-between', py: 2, px: 1 }}>
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  textAlign="center"
+                  sx={{
+                    fontSize: {
+                      xs: '1rem',
+                      sm: '1.3rem',
+                    },
+                    maxWidth: 300,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {`Plan Operativo ${project?.name}`}
+                </Typography>
+                <Box display={'flex'}>
+                  <ExportMenu
+                    onExportExcel={() => { handleExportExcel(rows, project) }}
+                    onExportPDF={() => { handleExportPDF(rows, project) }}
+                  />
+
+                  <Tooltip title="Resetear anchos a por defecto">
+                    <IconButton onClick={resetColumnWidths} size="small" aria-label="reset column widths">
+                      <RestartAltIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>)
+            }
+          </Box>
           <DataGrid
             key={gridKey}
             rows={rows}
@@ -527,6 +561,8 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
                 fontSize: { xs: '1rem', sm: '1.4rem' }
               },
               '& .MuiDataGrid-cell': {
+                border: `1px solid ${theme.palette.divider}`,
+                borderTop: 'none',
                 borderBottom: `1px solid ${theme.palette.divider}`,
                 borderRight: `1px solid ${theme.palette.divider}`,
                 padding: '12px',
@@ -541,13 +577,13 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
                     : 'rgba(255, 255, 255, 0.08)',
                 transition: 'background-color 0.2s ease',
               },
-              borderRadius: 2,
               boxShadow: 1,
             }}
           />
         </Box>
-      )}
-    </Box>
+      )
+      }
+    </Box >
   );
 };
 

@@ -3,6 +3,9 @@ export const normalizePlanData = (data) => {
 
   return {
     id: data?.id,
+    plan_version: data?.plan_version || 0,
+    created_at: data?.created_at || null,
+    updated_at: data?.updated_at || null,
     year: data?.year,
     mission: data.mission || '',
     objectives: data.objectives?.map(obj => ({

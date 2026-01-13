@@ -1,18 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Modal, Box, TextField, Button, IconButton, Typography, useTheme, Tooltip, useMediaQuery } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import useKeyboardShortcuts from '../../../../hooks/useKeyboardShortcuts';
 
-const EditViewResourceModal = ({ open, onClose, resources = [], onSave, maxLength=100 }) => {
+const EditViewResourceModal = ({ open, onClose, resources = [], onSave, maxLength = 100 }) => {
   const [newResource, setNewResource] = useState('');
   const [localResources, setLocalResources] = useState([]);
   const theme = useTheme();
-  
+  const [hasChanges, setHasChanges] = useState(false);
+  const initialResourcesRef = useRef([]);
 
   useEffect(() => {
     setLocalResources(resources);
-  }, [resources]);
+    initialResourcesRef.current = resources;
+    setHasChanges(false);
+  }, [resources, open]);
+
+  useEffect(() => {
+    const original = initialResourcesRef.current;
+    const changed = original.length !== localResources.length ||
+      original.some((res, idx) => res !== localResources[idx]);
+    setHasChanges(changed);
+  }, [localResources]);
 
   const handleAddResource = () => {
     if (newResource.trim()) {
@@ -41,7 +51,7 @@ const EditViewResourceModal = ({ open, onClose, resources = [], onSave, maxLengt
     },
     onEscape: onClose,
   });
- 
+
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -177,13 +187,27 @@ const EditViewResourceModal = ({ open, onClose, resources = [], onSave, maxLengt
             ))}
           </Box>
         ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            align="center"
+            sx={{
+              padding: '4px',
+              color: 'gray',
+              fontStyle: 'italic',
+              textAlign: 'center',
+              fontSize: '0.75rem',
+              mb: 2
+            }}
+          >
             No se han declarado recursos.
           </Typography>
         )}
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-          <Button onClick={handleSave} variant="contained">
+          <Button onClick={handleSave} disabled={!hasChanges} variant="contained">
             Guardar
           </Button>
         </Box>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Box, TextField, Button, IconButton, Typography, useTheme, Tooltip, useMediaQuery } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
@@ -8,6 +8,8 @@ const EditViewTeamModal = ({ open, onClose, teamMembers, onSave, maxLength= 100 
   const [newMember, setNewMember] = useState('');
   const [members, setMembers] = useState(teamMembers || []);
   const theme = useTheme();
+  const [hasChanges, setHasChanges] = useState(false);
+  const initialMembersRef = useRef([]);
 
   const handleAddMember = () => {
     if (newMember.trim()) {
@@ -15,6 +17,18 @@ const EditViewTeamModal = ({ open, onClose, teamMembers, onSave, maxLength= 100 
       setNewMember('');
     }
   };
+
+  useEffect(() => {
+    setMembers(teamMembers);
+    initialMembersRef.current = teamMembers; 
+    setHasChanges(false); 
+  }, [teamMembers, open]);
+ 
+  useEffect(() => {
+    const original = initialMembersRef.current;
+    const changed = original.length !== members.length || original.some((m, i) => m !== members[i]);
+    setHasChanges(changed);
+  }, [members]);
 
   const handleRemoveMember = (index) => {
     setMembers(members.filter((_, i) => i !== index));
@@ -173,13 +187,25 @@ const EditViewTeamModal = ({ open, onClose, teamMembers, onSave, maxLength= 100 
             ))}
           </Box>
         ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            No se han declarado responsables.
+           <Typography
+            variant="body2"
+            color="text.secondary"
+            align="center"
+            sx={{
+              padding: '4px',
+              color: 'gray',
+              fontStyle: 'italic',
+              textAlign: 'center',
+              fontSize: '0.75rem',
+              mb: 2
+            }}
+          >
+            No se han declarado recursos.
           </Typography>
         )}
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-          <Button onClick={handleSave} variant="contained">
+          <Button onClick={handleSave} disabled={!hasChanges} variant="contained">
             Guardar
           </Button>
         </Box>

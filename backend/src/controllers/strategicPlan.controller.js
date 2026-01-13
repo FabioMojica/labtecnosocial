@@ -71,9 +71,11 @@ export const updateStrategicPlan = async (req, res) => {
       return res.status(400).json({ message: 'Año inválido' });
     }
 
-    const { mission, objectives } = req.body;
+    const { mission, objectives, plan_version: clientVersion } = req.body;
     const repo = AppDataSource.getRepository(StrategicPlan);
 
+    let planTouched = false;
+ 
     let plan = await repo.findOne({
       where: { year },
       relations: [
@@ -85,10 +87,19 @@ export const updateStrategicPlan = async (req, res) => {
     });
 
     if (!plan) {
-      plan = await repo.save({ year, mission });
+      plan = await repo.save({ year, mission, plan_version: 0 });
+      planTouched = true;
     } else {
+      if (plan.plan_version > clientVersion) {
+        return res.status(409).json({
+          message: "Error al actualizar el plan estratégico: asegúrate de estar trabajando sobre la última versión del plan refrescando la página.",
+          currentVersion: plan.plan_version,
+        });
+      }
+
       plan.mission = mission;
       await repo.save(plan);
+      planTouched = true;
     }
 
     const validIncomingObjectiveIds = (objectives || [])
@@ -99,6 +110,7 @@ export const updateStrategicPlan = async (req, res) => {
       for (const oldObjective of plan.objectives) {
         if (!validIncomingObjectiveIds.includes(oldObjective.id)) {
           await AppDataSource.getRepository(Objective).delete(oldObjective.id);
+          planTouched = true;
         }
       }
     }
@@ -124,9 +136,11 @@ export const updateStrategicPlan = async (req, res) => {
           title: objData.objectiveTitle,
           strategicPlan: plan,
         });
+        planTouched = true;
       } else {
         objective.title = objData.objectiveTitle;
         objective = await objectiveRepo.save(objective);
+        planTouched = true;
       }
 
       const incomingIndicators = objData.indicators || [];
@@ -138,6 +152,7 @@ export const updateStrategicPlan = async (req, res) => {
       for (const oldInd of existingIndicators) {
         if (!incomingIndicatorIds.includes(oldInd.id)) {
           await indicatorRepo.delete(oldInd.id);
+          planTouched = true;
         }
       }
 
@@ -151,6 +166,7 @@ export const updateStrategicPlan = async (req, res) => {
             existing.concept = indData.concept;
             existing.amount = indData.amount;
             await indicatorRepo.save(existing);
+            planTouched = true;
           }
         } else {
           await indicatorRepo.save({
@@ -158,6 +174,7 @@ export const updateStrategicPlan = async (req, res) => {
             amount: indData.amount,
             objective: objective,
           });
+          planTouched = true;
         }
       }
 
@@ -170,6 +187,7 @@ export const updateStrategicPlan = async (req, res) => {
       for (const oldProg of existingPrograms) {
         if (!incomingProgramIds.includes(oldProg.id)) {
           await programRepo.delete(oldProg.id);
+          planTouched = true;
         }
       }
 
@@ -189,9 +207,11 @@ export const updateStrategicPlan = async (req, res) => {
             description: progData.programDescription,
             objective: objective,
           });
+          planTouched = true;
         } else {
           program.description = progData.programDescription;
           program = await programRepo.save(program);
+          planTouched = true;
         }
 
         const incomingProjects = progData.operationalProjects || [];
@@ -204,6 +224,7 @@ export const updateStrategicPlan = async (req, res) => {
           if (!incomingProjectIds.includes(oldProj.id)) {
             oldProj.program = null;
             await projectRepo.save(oldProj);
+            planTouched = true;
           }
         }
 
@@ -231,6 +252,7 @@ export const updateStrategicPlan = async (req, res) => {
 
             project.program = program;
             await projectRepo.save(project);
+            planTouched = true;
           } else {
             console.warn(`Proyecto con ID ${projData.id} no encontrado`);
           }
@@ -238,26 +260,34 @@ export const updateStrategicPlan = async (req, res) => {
       }
     }
 
-const updatedPlan = await repo.findOne({
-  where: { year },
-  relations: [
-    'objectives',
-    'objectives.indicators',
-    'objectives.programs',
-    'objectives.programs.operationalProjects',
-  ],
-});
+    if (planTouched) {
+      await repo.increment({ id: plan.id }, 'plan_version', 1);
+    }
 
-const planIsEmpty = (!mission || mission.trim() === '') && (!updatedPlan?.objectives || updatedPlan.objectives.length === 0);
 
-if (planIsEmpty) {
-  await repo.delete(plan.id);
-  return res.status(200).json(null);
-}
+    const updatedPlan = await repo.findOne({
+      where: { year },
+      relations: [
+        'objectives',
+        'objectives.indicators',
+        'objectives.programs',
+        'objectives.programs.operationalProjects',
+      ],
+    });
 
-return res.status(200).json(updatedPlan);
+    const planIsEmpty = (!mission || mission.trim() === '') && (!updatedPlan?.objectives || updatedPlan.objectives.length === 0);
 
-  } catch (error) {
+    if (planIsEmpty) {
+      await repo.delete(plan.id);
+      return res.status(200).json(null);
+    }
+
+    return res.status(200).json({
+      ...updatedPlan,
+      plan_version: updatedPlan.plan_version
+    });
+
+  } catch (error) { 
     console.error('Error al actualizar plan estratégico:', error);
     return res.status(500).json({ message: 'Error interno del servidor' });
   }

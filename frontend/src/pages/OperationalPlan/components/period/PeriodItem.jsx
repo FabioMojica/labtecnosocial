@@ -11,11 +11,20 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import EditViewPeriodModal from './EditViewPeriodModal';
-import { formatDate } from '../../../../utils/formatDate';
+import { formatDateTime } from '../../../../utils/formatDate';
 
-const PeriodItem = ({ value, onUpdate, onDelete }) => {
+const PeriodItem = ({ setGlobalModalOpen, value, onUpdate, onDelete }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const theme = useTheme();
+
+  const openModal = () => {
+    setModalOpen(true);
+    setGlobalModalOpen(true);
+  };
+   const closeModal = () => {
+    setModalOpen(false);
+    setGlobalModalOpen(false);
+  };
 
   const handleSave = (newValue) => {
     onUpdate(newValue);
@@ -64,7 +73,7 @@ const PeriodItem = ({ value, onUpdate, onDelete }) => {
                 }}
                 variant="caption"
               >
-                {formatDate(value.start)}
+                {formatDateTime(value.start)}
               </Typography>
             </Box>
             <Box>
@@ -88,7 +97,7 @@ const PeriodItem = ({ value, onUpdate, onDelete }) => {
                 }}
                 variant="caption"
               >
-                {formatDate(value.end)}
+                {formatDateTime(value.end)}
               </Typography>
             </Box>
           </Box>
@@ -110,14 +119,14 @@ const PeriodItem = ({ value, onUpdate, onDelete }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
           {!hasPeriod ? (
             <Tooltip title="Agregar periodo">
-              <IconButton size="small" onClick={() => setModalOpen(true)}>
+              <IconButton size="small" onClick={() => openModal()}>
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           ) : (
             <>
               <Tooltip title="Ver periodo">
-                <IconButton size="small" onClick={() => setModalOpen(true)}>
+                <IconButton size="small" onClick={() => openModal()}>
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -133,7 +142,7 @@ const PeriodItem = ({ value, onUpdate, onDelete }) => {
 
       <EditViewPeriodModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => closeModal()}
         value={value}
         onSave={handleSave}
       />

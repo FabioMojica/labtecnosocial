@@ -41,6 +41,12 @@ const OperationalPlanningDashboardPage = () => {
 
   useEffect(() => {
     if (selectedProjectId) {
+      setViewMode("editable");
+    }
+  }, [selectedProjectId]);
+
+  useEffect(() => {
+    if (selectedProjectId) {
       setHasPlan(true);
     }
   }, [selectedProjectId]);
@@ -117,6 +123,7 @@ const OperationalPlanningDashboardPage = () => {
 
   const selectedProject = projects.find(p => p.id === Number(selectedProjectId));
 
+
   return (
     <Box sx={{ pt: { xs: 2 } }}>
       <Box
@@ -131,15 +138,16 @@ const OperationalPlanningDashboardPage = () => {
           gap: 1,
           width: '100%',
           mb: 1,
-          px: 1
+          px: 1,
+          pr: 2,
         }}
       >
         <Typography
           variant="h4"
           fontWeight="bold"
-          sx={{ 
+          sx={{
             fontSize: {
-              xs: '1.5rem', 
+              xs: '1.5rem',
               sm: '2rem'
             },
             width: { xs: '100%', sm: 'auto' },
@@ -154,15 +162,15 @@ const OperationalPlanningDashboardPage = () => {
           gap: 2,
           justifyContent: 'flex-end',
         }}>
-          <SelectProjectModal 
-            projects={projects} 
+          <SelectProjectModal
+            projects={projects}
             selectedProjectId={selectedProjectId}
             onChange={handleProjectChange}
             loading={loading}
             disabled={isEditing}
           />
 
-          {(selectedProjectId && !planLoadError) && (
+          {(selectedProjectId && hasPlan && !planLoadError) && (
             <FormControl
               sx={{
                 minWidth: { xs: 50, sm: 150 }
@@ -192,7 +200,7 @@ const OperationalPlanningDashboardPage = () => {
             </FormControl>
           )}
 
-          {(selectedProjectId && hasPlan && !planLoadError && !loadingRows) && (
+          {(selectedProjectId && hasPlan && !planLoadError && !loadingRows && viewMode === 'editable') && (
             <Box
               sx={{
                 display: 'flex',
@@ -251,21 +259,21 @@ const OperationalPlanningDashboardPage = () => {
             onLoadingRowsChange={setLoadingRows}
           />
         ))
-      } 
+      }
 
       {!selectedProjectId && (
         <>
-      <Divider />
-        <NoResultsScreen
-          message="Seleccione un proyecto para visualizar la planificación operativa"
-          icon={<TouchAppRoundedIcon sx={{ fontSize: 90, color: 'text.secondary' }} />}
-          sx={{
-            height: '60vh',
-            justifyContent: 'center',
-            p: 1
-          }}
-        />
-      </>
+          <Divider sx={{ mr: 1, ml: { xs: 1 } }} />
+          <NoResultsScreen
+            message="Seleccione un proyecto para visualizar la planificación operativa"
+            icon={<TouchAppRoundedIcon sx={{ fontSize: 90, color: 'text.secondary' }} />}
+            sx={{
+              height: '60vh',
+              justifyContent: 'center',
+              p: 1
+            }}
+          />
+        </>
       )}
     </Box>
   );

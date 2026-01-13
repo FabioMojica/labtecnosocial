@@ -17,7 +17,7 @@ const ObjectivesColumn = ({
   isFullscreen,
   headerHeight
 }) => {
-  const theme = useTheme(); 
+  const theme = useTheme();
   const isAddDisabled = !mission;
 
   return (
@@ -35,16 +35,16 @@ const ObjectivesColumn = ({
           theme.palette.mode === 'dark'
             ? '0 4px 12px rgba(0,0,0,1)' : 3,
       }}
-    > 
-      <Box sx={{ 
+    >
+      <Box sx={{
         display: 'flex',
         flexDirection: 'column',
         gap: 1,
-        position: 'sticky', 
+        position: 'sticky',
         top: isFullscreen ? 0 : 80 + headerHeight,
-        overflow: 'hidden', 
-        borderRadius: 2, 
-        zIndex: 998, 
+        overflow: 'hidden',
+        borderRadius: 2,
+        zIndex: 998,
         px: 2,
         pl: 2,
         pr: 2,
@@ -72,9 +72,11 @@ const ObjectivesColumn = ({
                 ? "Debes crear o seleccionar una misión antes de agregar objetivos"
                 : "Agregar objetivo"
             }>
-            <IconButton onClick={onCreateObjective} size="small" color="primary" disabled={isAddDisabled}>
-              <AddIcon fontSize="small" />
-            </IconButton>
+            <span>
+              <IconButton onClick={onCreateObjective} size="small" color="primary" disabled={isAddDisabled}>
+                <AddIcon fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         </Box>
 
@@ -131,7 +133,7 @@ const ObjectivesColumn = ({
                 fontStyle: 'italic',
                 textAlign: 'center',
                 fontSize: '0.75rem',
-              }}> 
+              }}>
               No hay objetivos creados.
             </Typography>
           </Box>

@@ -12,9 +12,18 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 import EditViewBudgetModal from './EditViewBudgetModal';
 
-const BudgetItem = ({ value, onUpdate, onDelete }) => {
+const BudgetItem = ({ setGlobalModalOpen, value, onUpdate, onDelete }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const theme = useTheme();
+
+  const openModal = () => {
+    setModalOpen(true);
+    setGlobalModalOpen(true);
+  };
+   const closeModal = () => {
+    setModalOpen(false);
+    setGlobalModalOpen(false);
+  };
 
   const handleSave = (newValue) => {
     onUpdate(newValue);
@@ -116,14 +125,14 @@ const BudgetItem = ({ value, onUpdate, onDelete }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
           {!hasBudget ? (
             <Tooltip title="Crear indicador">
-              <IconButton size="small" onClick={() => setModalOpen(true)}>
+              <IconButton size="small" onClick={() => openModal()}>
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           ) : (
             <>
               <Tooltip title="Ver indicador">
-                <IconButton size="small" onClick={() => setModalOpen(true)}>
+                <IconButton size="small" onClick={() => openModal()}>
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -139,7 +148,7 @@ const BudgetItem = ({ value, onUpdate, onDelete }) => {
 
       <EditViewBudgetModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => closeModal(false)}
         value={value}
         onSave={handleSave}
       />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal,
   Box,
@@ -17,15 +17,45 @@ const EditViewPeriodModal = ({ open, onClose, value, onSave }) => {
   const [errorStart, setErrorStart] = useState('');
   const [errorEnd, setErrorEnd] = useState('');
   const theme = useTheme();
+  const initialRef = useRef({ start: '', end: '' });
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (value) {
-      setStart(value.start || '');
-      setEnd(value.end || '');
+      // Convertimos de timestamp a string "YYYY-MM-DDTHH:mm"
+      const formatDateTimeLocal = (ts) => {
+        if (!ts) return '';
+        const date = new Date(ts);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      };
+
+      const formattedStart = formatDateTimeLocal(value.start);
+      const formattedEnd = formatDateTimeLocal(value.end);
+
+      setStart(formattedStart);
+      setEnd(formattedEnd);
       setErrorStart('');
       setErrorEnd('');
+
+      initialRef.current = { start: formattedStart, end: formattedEnd };
+
+      setHasChanges(false);
     }
   }, [value, open]);
+
+  useEffect(() => {
+    if (start !== initialRef.current.start || end !== initialRef.current.end) {
+      setHasChanges(true);
+    } else {
+      setHasChanges(false);
+    }
+  }, [start, end]);
+
 
   const validate = () => {
     let valid = true;
@@ -52,12 +82,15 @@ const EditViewPeriodModal = ({ open, onClose, value, onSave }) => {
 
   const handleSave = () => {
     if (validate()) {
-      onSave({ start, end });
+      onSave({
+        start: new Date(start).toISOString(),
+        end: new Date(end).toISOString()
+      });
       onClose();
     }
   };
 
-  // Keyboard shortcuts
+
   useKeyboardShortcuts({
     enabled: open,
     onEnter: handleSave,
@@ -114,25 +147,27 @@ const EditViewPeriodModal = ({ open, onClose, value, onSave }) => {
         {/* Campo fecha inicio */}
         <TextField
           label="Fecha de inicio"
-          type="date"
+          type="datetime-local"
           value={start}
           onChange={(e) => setStart(e.target.value)}
           InputLabelProps={{ shrink: true }}
           fullWidth
           error={!!errorStart}
           helperText={errorStart}
+          onKeyDown={(e) => e.preventDefault()}
         />
 
         {/* Campo fecha fin */}
         <TextField
           label="Fecha de fin"
-          type="date"
+          type="datetime-local"
           value={end}
           onChange={(e) => setEnd(e.target.value)}
           InputLabelProps={{ shrink: true }}
           fullWidth
           error={!!errorEnd}
           helperText={errorEnd}
+          onKeyDown={(e) => e.preventDefault()}
         />
 
         {/* Botón guardar */}
@@ -140,7 +175,7 @@ const EditViewPeriodModal = ({ open, onClose, value, onSave }) => {
           <Button
             variant="contained"
             onClick={handleSave}
-            disabled={!start || !end}
+            disabled={!start || !end || !hasChanges }
             sx={{
               borderRadius: 2,
               px: 3,

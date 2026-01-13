@@ -106,6 +106,8 @@ const StrategicPlanningDashboardPage = () => {
 
 
       const res = await callEndpoint(getStrategicPlanByYearApi(yearToFetch));
+
+      console.log("fesp", res) 
       setPlanData(normalizePlanData(res));
       setShowColumnsView(true);
     } catch (error) {
@@ -168,14 +170,15 @@ const StrategicPlanningDashboardPage = () => {
             display: "flex",
             flexDirection: {
               sm: 'row',
-              xs: 'column'
+              xs: 'column' 
             },
             alignItems: "center",
             justifyContent: "space-between",
             gap: 2,
             width: '100%',
             mb: 1,
-            px: 1
+            px: 1,
+            pr: 2,
           }}
         >
           <Typography
@@ -260,7 +263,7 @@ const StrategicPlanningDashboardPage = () => {
 
       {!planData && hasFetchedPlan && (
         <>
-          <Divider />
+          <Divider sx={{mr: 1, ml: {xs: 1}}} />
           <NoResultsScreen
             message="Año sin plan estratégico registrado"
             buttonText={
@@ -281,7 +284,6 @@ const StrategicPlanningDashboardPage = () => {
       {showColumnsView && selectedView && (
         <Box>
           {selectedView === "Columna" && (
-            <Box sx={{pr: { lg: 1 }}}>
             <StrategicPlanningColumnsView
               data={planData}
               year={selectedYear}
@@ -290,7 +292,7 @@ const StrategicPlanningDashboardPage = () => {
                 setIsCreatingNewPlan(false);
                 if (!newPlan) {
                   setPlanData(null);
-                  setShowColumnsView(false);
+                  setShowColumnsView(false); 
                   setAllPlans((prev) => prev.filter((p) => p.year !== selectedYear));
                   return;
                 }
@@ -302,7 +304,6 @@ const StrategicPlanningDashboardPage = () => {
                 });
               }}
             />
-            </Box>
           )}
           {selectedView === "Documento" && (
             <StrategicPlanningTreeView data={planData} year={selectedYear} />

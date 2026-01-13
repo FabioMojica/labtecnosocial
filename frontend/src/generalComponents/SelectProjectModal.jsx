@@ -58,12 +58,15 @@ export const SelectProjectModal = ({
         sx={{
           fontSize: "1rem", 
           textTransform: "none",
-          display: 'flex',
+          display: 'flex', 
           alignItems: 'center',
           gap: 1,
           p: 1,
           overflow: 'hidden',
-          width: 150,
+          width: {
+            xs: 150,
+            lg: 200
+          },
           ...sx
         }}
       >
@@ -125,6 +128,7 @@ export const SelectProjectModal = ({
             px: 3,
             pt: 2,
             position: 'relative',
+            overflow: 'hidden'
           }}
         >
           <IconButton

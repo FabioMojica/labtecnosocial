@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { 
+import {
   Typography,
   Box,
   IconButton,
   Tooltip,
   useTheme,
-  TextField
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,9 +12,18 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 import EditViewObjectiveModal from './EditViewObjetiveModal';
 
-const ObjectiveItem = ({ value, onUpdate, onDelete }) => {
+const ObjectiveItem = ({ setGlobalModalOpen, value, onUpdate, onDelete }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const theme = useTheme();
+
+  const openModal = () => {
+    setModalOpen(true);
+    setGlobalModalOpen(true);
+  };
+   const closeModal = () => {
+    setModalOpen(false);
+    setGlobalModalOpen(false);
+  };
 
   const handleSave = (newText) => {
     onUpdate(newText);
@@ -26,7 +34,6 @@ const ObjectiveItem = ({ value, onUpdate, onDelete }) => {
   return (
     <>
       <Box
-      key="hola"
         sx={{
           padding: 0.5,
           borderRadius: 1,
@@ -89,7 +96,7 @@ const ObjectiveItem = ({ value, onUpdate, onDelete }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
           {!hasObjective ? (
             <Tooltip title="Crear objetivo">
-              <IconButton size="small" onClick={() => setModalOpen(true)}>
+              <IconButton size="small" onClick={() => openModal()}>
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -98,7 +105,7 @@ const ObjectiveItem = ({ value, onUpdate, onDelete }) => {
               <Tooltip title="Ver objetivo">
                 <IconButton
                   size="small"
-                  onClick={() => setModalOpen(true)}
+                  onClick={() => openModal()}
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
@@ -115,7 +122,7 @@ const ObjectiveItem = ({ value, onUpdate, onDelete }) => {
 
       <EditViewObjectiveModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => closeModal()}
         value={value}
         onSave={handleSave}
       />

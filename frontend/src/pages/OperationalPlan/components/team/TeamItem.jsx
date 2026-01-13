@@ -6,8 +6,17 @@ import EditIcon from '@mui/icons-material/Edit';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import EditViewTeamModal from './EditViewTeamModal';
 
-const TeamItem = ({ value, onUpdate, onDelete }) => {
+const TeamItem = ({ setGlobalModalOpen, value, onUpdate, onDelete }) => {
   const [modalOpen, setModalOpen] = useState(false);
+
+  const openModal = () => {
+    setModalOpen(true);
+    setGlobalModalOpen(true);
+  };
+   const closeModal = () => {
+    setModalOpen(false);
+    setGlobalModalOpen(false);
+  };
 
   const handleSave = (newValue) => {
     onUpdate(newValue);
@@ -96,14 +105,14 @@ const TeamItem = ({ value, onUpdate, onDelete }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
           {!hasTeamMembers ? (
             <Tooltip title="Agregar responsables">
-              <IconButton size="small" onClick={() => setModalOpen(true)}>
+              <IconButton size="small" onClick={() => openModal()}>
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           ) : (
             <>
               <Tooltip title="Ver responsables">
-                <IconButton size="small" onClick={() => setModalOpen(true)}>
+                <IconButton size="small" onClick={() => openModal()}>
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -119,7 +128,7 @@ const TeamItem = ({ value, onUpdate, onDelete }) => {
 
       <EditViewTeamModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => closeModal()}
         teamMembers={value}
         onSave={handleSave}
       />

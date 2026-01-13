@@ -29,13 +29,15 @@ import cloneDeep from "lodash/cloneDeep";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import IconButton from '@mui/material/IconButton';
 import { useElementSize } from '../../hooks/useElementSize.js';
-import { useNavigationGuard } from '../../hooks/useBlockNavigation.js';
 import { useDirty } from '../../contexts/DirtyContext.jsx';
 import { getDrawerClosedWidth } from '../../utils/index.js';
+import { formatDate } from '../../utils/formatDate.js';
 
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
+  console.log("dataaaaaaa", data)
   const confirm = useConfirm();
   const theme = useTheme();
+  const [planVersion, setPlanVersion] = useState(data?.plan_version || 0);
   const originalDataRef = useRef(cloneDeep(data));
   const [mission, setMission] = useState(data?.mission || '');
   const [selectedItem, setSelectedItem] = useState('mision');
@@ -90,12 +92,9 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     objectives: data?.objectives || [],
   });
 
-  // Cada vez que mission u objectives cambian: 
   useEffect(() => {
     currentPlanRef.current = { mission, objectives };
   }, [mission, objectives]);
-
-  console.log("hola")
 
 
   const scrollToRef = (ref) => {
@@ -456,23 +455,31 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             })),
           })),
         })),
+        plan_version: planVersion,
       };
 
       const updated = await callEndpoint(updateStrategicPlanApi(year, payload));
-      if (onPlanSaved) onPlanSaved(normalizePlanData(updated));
-      originalDataRef.current = cloneDeep(normalizePlanData(updated));
-      setIsDirty(false);
-      setIsDirtyContext(false);
-
-      console.log("auto save", autoSave)
-
-      if (!autoSave) {
-        notify('Plan estratégico guardado correctamente.', 'success');
-      };
-
+      
+      if (updated) {
+        setPlanVersion(updated.plan_version);
+        originalDataRef.current = cloneDeep(normalizePlanData(updated));
+        setIsDirty(false);
+        setIsDirtyContext(false);
+        if (onPlanSaved) onPlanSaved(normalizePlanData(updated));
+        if (!autoSave) notify('Plan estratégico guardado correctamente.', 'success');
+      }
     } catch (error) {
       console.error('Error guardando plan:', error);
-      if (!autoSave) notify("Ocurrió un error inesperado al guardar el plan estratégico. Inténtalo de nuevo más tarde.", 'error');
+
+      if (error.message?.includes('asegúrate de estar trabajando sobre la última versión del plan')) {
+        if (!autoSave) notify('No se actualizó el plan estratégico por que no estás trabajando sobre la última versión del plan.', 'error', { persist: true});
+      } else {
+        if (!autoSave)
+          notify(
+            "Ocurrió un error inesperado al guardar el plan estratégico. Inténtalo de nuevo más tarde.",
+            'error'
+          );
+      }
     }
   };
 
@@ -525,7 +532,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             xs: '100vw',
             sm: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
             md: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
-            lg: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
+            lg: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 16px)`,
             xl: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
           },
         }}
@@ -856,6 +863,76 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             />
           </Grid>
         </Grid>
+        {data?.mission !== '' && (
+          <Box sx={{
+            bgcolor: 'background.paper',
+            width: '100%',
+            borderBottomRightRadius: 6,
+            borderBottomLeftRadius: 6,
+            p: 1,
+            display: 'flex',
+            flexDirection: {
+              xs: 'column',
+              lg: 'row'
+            },
+            justifyContent: 'space-between'
+          }}>
+            {data?.created_at && data?.updated_at && (
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography fontWeight="bold" variant='caption'>
+                  Fecha de creación:{" "}
+                  <Typography
+                    component="span"
+                    variant="body1"
+                    color="textSecondary"
+                    sx={{
+                      fontStyle: 'italic',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {formatDate(data?.created_at)}
+                  </Typography>
+                </Typography>
+                <Typography fontWeight="bold" variant='caption'>
+                  Fecha de actualización:{" "}
+                  <Typography
+                    component="span"
+                    variant="body1"
+                    color="textSecondary"
+                    sx={{
+                      fontStyle: 'italic',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {formatDate(data?.updated_at)}
+                  </Typography>
+                </Typography>
+              </Box>
+            )}
+
+            <Box sx={{
+              display: 'flex',
+              flexDirection: { xs: 'row', lg: 'column' },
+              gap: { xs: 1, lg: 0 },
+              alignItems: 'center'
+            }}>
+              <Typography fontWeight="bold" variant='caption'>
+                Versión del plan:{" "}
+              </Typography>
+              <Typography
+                component="span"
+                variant="body1"
+                color="textSecondary"
+                sx={{
+                  fontStyle: 'italic',
+                  fontSize: '0.9rem',
+                }}
+              >
+                {planVersion}
+              </Typography>
+            </Box>
+          </Box>
+        )}
       </Box>
 
       <CreateMisionItemModal

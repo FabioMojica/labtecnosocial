@@ -19,9 +19,18 @@ export const StrategicPlan = new EntitySchema({
       length: 3000,
       nullable: false,
     },
+    plan_version: {
+      type: Number,
+      default: 0,
+    },
     created_at: {
       type: 'timestamp',
       createDate: true,
+      default: () => 'NOW()',
+    },
+    updated_at: {
+      type: 'timestamp',
+      updateDate: true,
       default: () => 'NOW()',
     },
   },
