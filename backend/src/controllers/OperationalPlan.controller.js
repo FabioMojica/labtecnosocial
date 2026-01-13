@@ -1,13 +1,7 @@
 import { AppDataSource } from '../../data-source.js';
 import { OperationalProject } from '../entities/OperationalProject.js';
-import { User } from '../entities/User.js';
-import { ProjectResponsible } from '../entities/ProjectResponsible.js';
-import { ProjectIntegration } from '../entities/ProjectIntegration.js';
-import { Program } from '../entities/Program.js';
-import { StrategicPlan } from '../entities/StrategicPlan.js';
 import { OperationalRow } from '../entities/OperationalRow.js';
-import fs from 'fs';
-import path from 'path';
+import { isRowEmpty } from '../utils/isRowEmpty.js';
 
 
 export const getOperationalProjectRows = async (req, res) => {
@@ -56,6 +50,10 @@ export const saveOperationalRowsOfProject = async (req, res) => {
     }
 
     for (const rowData of update) {
+      if (isRowEmpty(rowData)) {
+        continue;
+      }
+
       const existingRow = await rowRepository.findOneBy({ id: rowData.id });
       if (!existingRow) {
         await queryRunner.rollbackTransaction();
@@ -76,6 +74,9 @@ export const saveOperationalRowsOfProject = async (req, res) => {
     }
 
     for (const rowData of create) {
+      if (isRowEmpty(rowData)) {
+        continue;
+      }
       const newRow = rowRepository.create({
         objective: rowData.objective,
         indicator_amount: rowData.indicator_amount,

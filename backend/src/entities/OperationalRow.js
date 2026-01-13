@@ -12,7 +12,7 @@ export const OperationalRow = new EntitySchema({
     objective: {
       type: String,
       nullable: true,
-      length: 300, 
+      length: 300,
     },
     indicator_amount: {
       type: 'numeric',
@@ -21,7 +21,7 @@ export const OperationalRow = new EntitySchema({
     indicator_concept: {
       type: String,
       nullable: true,
-      length: 300, 
+      length: 300,
     },
     team: {
       type: 'text',
@@ -42,11 +42,11 @@ export const OperationalRow = new EntitySchema({
       nullable: true,
     },
     period_start: {
-      type: 'date',
+      type: 'timestamp',  
       nullable: true,
     },
     period_end: {
-      type: 'date',
+      type: 'timestamp',
       nullable: true,
     },
   },
