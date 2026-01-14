@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Button,
@@ -13,8 +13,9 @@ import {
   ListItemText,
   useTheme,
   IconButton,
+  Divider,
 } from "@mui/material";
-import { NoResultsScreen } from ".";
+import { NoResultsScreen, SearchBar } from ".";
 import { useNavigate } from "react-router-dom";
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -34,13 +35,14 @@ export const SelectProjectModal = ({
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  // Filtrado de proyectos según el término de búsqueda
-  const filteredProjects = useMemo(() => {
-    if (!searchTerm) return projects;
-    return projects.filter((p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [projects, searchTerm]);
+  const [filteredProjects, setFilteredProjects] = useState(projects);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    console.log("hla")
+    setFilteredProjects(projects);
+  }, [projects]);
+
 
   const handleSelect = (project) => {
     onChange(project.id);
@@ -56,24 +58,21 @@ export const SelectProjectModal = ({
         onClick={() => setOpen(true)}
         disabled={disabled}
         sx={{
-          fontSize: "1rem", 
+          fontSize: "1rem",
           textTransform: "none",
-          display: 'flex', 
+          display: 'flex',
           alignItems: 'center',
           gap: 1,
           p: 1,
           overflow: 'hidden',
-          width: {
-            xs: 150,
-            lg: 200
-          },
+          width: 150,
           ...sx
         }}
       >
         {loading ? (
           "Cargando..."
         ) : selectedProject ? (
-          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1}}>
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1 }}>
             <Avatar
               src={selectedProject.image_url ? `${API_UPLOADS}${selectedProject.image_url}` : undefined}
               sx={{
@@ -160,27 +159,31 @@ export const SelectProjectModal = ({
             <>
               <Typography
                 variant="h6"
-                sx={{ 
-                  mb: 2, 
-                  textAlign: "center", 
+                sx={{
+                  mb: 2,
+                  textAlign: "center",
                   fontWeight: "bold",
                   fontSize: {
                     xs: '1rem',
                     sm: '1.4rem'
-                  } 
+                  }
                 }}
               >
                 Selecciona un proyecto
               </Typography>
 
-              <TextField
-                fullWidth
+              <SearchBar
+                data={projects}
+                fields={["name"]}
                 placeholder="Buscar proyectos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ mb: 2 }}
-                inputProps={{ maxLength: 100 }}
+                onResults={(results, query) => {
+                  setFilteredProjects(results);
+                  setSearchQuery(query);
+                }}
+                sx={{ height: 'auto', mb: 1 }}
               />
+              
+              <Divider sx={{mb: 1}}/>
 
               {filteredProjects.length === 0 ? (
                 <Box
@@ -203,13 +206,14 @@ export const SelectProjectModal = ({
                     textAlign: 'center',
                     fontSize: '0.9rem',
                   }}>
-                    No se encontraron resultados para “{searchTerm}”
+                    No se encontraron resultados para “{searchQuery}”
                   </Typography>
                 </Box>
               ) : (
                 <List
                   sx={{
-                    maxHeight: "50vh",
+                    maxHeight: "80%",
+                    minHeight: "auto",
                     overflowY: "auto",
                     "&::-webkit-scrollbar": { width: "2px" },
                     "&::-webkit-scrollbar-track": {
@@ -223,6 +227,7 @@ export const SelectProjectModal = ({
                     "&::-webkit-scrollbar-thumb:hover": {
                       backgroundColor: theme.palette.primary.dark,
                     },
+                    px: 1,
                   }}
                   
                 >
@@ -231,6 +236,12 @@ export const SelectProjectModal = ({
                       key={project.id}
                       selected={project.id === selectedProjectId}
                       onClick={() => handleSelect(project)}
+                      sx={{
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        mb: 1
+                      }}
                     >
                       <ListItemAvatar>
                         <Avatar

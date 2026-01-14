@@ -8,6 +8,7 @@ export function SearchBar({
   fields,
   placeholder = "Buscar...",
   onResults,
+  sx,
 }) {
   const [query, setQuery] = useState("");
 
@@ -63,7 +64,7 @@ export function SearchBar({
           </InputAdornment>
         ),
       }}
-      sx={{ width: "100%", height: "100%" }}
+      sx={{ width: "100%", height: "100%", ...sx }}
     />
   );
 }
