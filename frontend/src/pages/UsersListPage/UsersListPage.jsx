@@ -174,7 +174,7 @@ export function UsersListPage() {
         }
 
         return sorted;
-    };
+    }; 
 
     const displayedUsers = sortUsers(
         filterUsers(searchedUsers)
@@ -184,7 +184,7 @@ export function UsersListPage() {
 
     return (
 
-        <Box sx={{ display: 'flex', p: 1, pt: {xs: 2}, pr: {lg: 2} }}>
+        <Box sx={{ display: 'flex', p: 1, pt: {xs: 2}, pr: {lg: 2} }}> 
             <CssBaseline /> 
 
             <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
@@ -327,9 +327,9 @@ export function UsersListPage() {
 
             <UsersDrawer 
                 variant="permanent" 
-                open={open} 
+                open={open}  
                 anchor='right'
-                sx={{
+                sx={{ 
                     '& .MuiDrawer-paper': {
                         mr: `${right}px`,
                     },

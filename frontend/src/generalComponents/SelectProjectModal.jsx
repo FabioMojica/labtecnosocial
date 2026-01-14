@@ -127,7 +127,7 @@ export const SelectProjectModal = ({
             px: 3,
             pt: 2,
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
           }}
         >
           <IconButton
@@ -203,7 +203,7 @@ export const SelectProjectModal = ({
                   <Typography variant="body1" color="textSecondary" sx={{
                     color: 'gray',
                     fontStyle: 'italic',
-                    textAlign: 'center',
+                    textAlign: 'center', 
                     fontSize: '0.9rem',
                   }}>
                     No se encontraron resultados para “{searchQuery}”

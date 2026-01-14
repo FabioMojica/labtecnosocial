@@ -33,6 +33,7 @@ import { useSnackbarStyles } from './pages/StrategicPlan/hooks/useSnackBarStyles
 import { useCloseTooltipsOnScroll } from './pages/StrategicPlan/hooks/useCloseTooltipsOnScroll';
 import { DirtyProvider } from './contexts/DirtyContext';
 import { LayoutProvider } from './contexts/LayoutContext';
+import { useLayoutOffsets } from './hooks/useLayoutOffsets';
 
 export const ROLES = {
   ADMIN: "admin",
@@ -77,37 +78,13 @@ const AppContent = () => {
   );
 };
 
-function App() {
+function App() { 
   const theme = useTheme();
   const snackbarClasses = useSnackbarStyles();
   const [modalOpen, setModalOpen] = useState(false);
   useCloseTooltipsOnScroll();
   const containerRef = useRef(null);
-  const [layoutOffsets, setLayoutOffsets] = useState({
-    left: 0,
-    right: 0,
-  });
-
-  const updateOffsets = () => {
-    if (!containerRef.current) return;
-
-    const rect = containerRef.current.getBoundingClientRect();
-
-    setLayoutOffsets({
-      left: rect.left,
-      right: window.innerWidth - rect.right,
-    });
-
-  };
-
-  useEffect(() => {
-    updateOffsets(); 
-
-    window.addEventListener("resize", updateOffsets);
-    return () => window.removeEventListener("resize", updateOffsets);
-  }, []);
-
-
+  const layoutOffsets = useLayoutOffsets(containerRef);
 
   return (
     <CustomThemeProvider>

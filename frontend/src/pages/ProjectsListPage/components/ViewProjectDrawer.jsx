@@ -10,7 +10,7 @@ export const ViewProjectDrawer = ({ project }) => {
     if (!project) return null;
     const navigate = useNavigate();
     const theme = useTheme();
-
+ 
     return (
         <>
             <Toolbar />

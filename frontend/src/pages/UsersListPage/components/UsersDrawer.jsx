@@ -8,7 +8,7 @@ const openedMixin = (theme) => ({
     transition: theme.transitions.create('width', {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.enteringScreen,
-    }),
+    }), 
 });
 
 const closedMixin = (theme) => ({
