@@ -26,12 +26,16 @@ import { ButtonWithLoader, ErrorScreen, FullScreenProgress, NoResultsScreen, Sea
 import { useFetchAndLoad } from '../../hooks';
 import { getDrawerClosedWidth } from '../../utils';
 import { useDirty } from '../../contexts/DirtyContext';
+import { formatDate } from '../../utils/formatDate';
 
 const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, onProjectHasPlan, onEditingChange, hasPlan, onLoadError }) => {
+    console.log("Holaaaaaaaaaaaaaaaaa")
+
     const confirm = useConfirm();
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
     const [rows, setRows] = useState([]);
+    const [planInfo, setPlanInfo] = useState({ operationalPlan_created_at: null, operationalPlan_updated_at: null, operationalPlan_version: 0 });
     const theme = useTheme();
     const [contextMenu, setContextMenu] = useState(null);
 
@@ -63,6 +67,15 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
     const initialRowsRef = useRef(initialRows);
 
     useEffect(() => {
+        if (!projectId || !hasPlan) {
+            setRows([]);
+            setInitialRows([]);
+            setPlanInfo({ operationalPlan_created_at: null, operationalPlan_updated_at: null, operationalPlan_version: 0 });
+        }
+    }, [projectId, hasPlan]);
+
+
+    useEffect(() => {
         if (hasUnsavedChanges) {
             setIsDirtyContext(true);
         } else {
@@ -71,7 +84,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
     }, [hasUnsavedChanges]);
 
     useEffect(() => {
-        console.log("current", rows);
         currentRowsRef.current = rows;
     }, [rows]);
     useEffect(() => {
@@ -200,7 +212,16 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
     const fetchProjectDetails = async () => {
         setLoadingProjectDetails(true);
         try {
-            const res = await getOperationalPlanOfProjectApi(projectId);
+            const response = await getOperationalPlanOfProjectApi(projectId);
+
+            console.log("responseeeeeee", response)
+
+            const res = response?.rows;
+            setPlanInfo({
+                operationalPlan_created_at: response?.operationalPlan_created_at || null,
+                operationalPlan_updated_at: response?.operationalPlan_updated_at || null,
+                operationalPlan_version: response?.operationalPlan_version || 0
+            });
 
             if (Array.isArray(res) && res.length === 0) {
                 if (onProjectWithoutPlan) onProjectWithoutPlan(projectId);
@@ -593,13 +614,19 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                 rows.map((row, index) => [row.id ?? row._tempId, index])
             );
 
-            const response = await callEndpoint(saveOperationalRowsApi(projectId, {
+            const resp = await callEndpoint(saveOperationalRowsApi(projectId, {
+                operationalPlan_version: planInfo.operationalPlan_version,
                 create: rowsToCreate,
                 update: rowsToUpdate,
                 delete: rowsToDelete.map(r => r.id).filter(Boolean),
             }));
 
-            console.log("respise", response);
+            const response = resp?.savedRows;
+            setPlanInfo({
+                operationalPlan_created_at: resp?.operationalPlan_created_at,
+                operationalPlan_updated_at: resp?.operationalPlan_updated_at,
+                operationalPlan_version: resp?.operationalPlan_version
+            });
 
             const updatedRows = response
                 .map(row => {
@@ -641,8 +668,17 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
             if (!autoSave) notify('Plan operativo guardado correctamente.', 'success');
 
         } catch (error) {
-            console.log(error);
-            if (!autoSave) notify("Ocurrió un error inesperado al guardar el plan operativo. Inténtalo de nuevo más tarde.", 'error');
+            console.error('Error guardando plan:', error);
+
+            if (error.message?.includes('asegúrate de estar trabajando sobre la última versión del plan')) {
+                if (!autoSave) notify('No se actualizó el plan estratégico por que no estás trabajando sobre su última versión.', 'error', { persist: true });
+            } else {
+                if (!autoSave)
+                    notify(
+                        "Ocurrió un error inesperado al guardar el plan estratégico. Inténtalo de nuevo más tarde.",
+                        'error'
+                    );
+            }
         } finally {
             setSaving(false);
         }
@@ -925,8 +961,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                                 borderLeft: '1px solid',
                                 borderRight: '1px solid',
                                 borderColor: 'divider',
-                                borderBottomLeftRadius: 8,
-                                borderBottomRightRadius: 8,
+
                             }}>
                             <Box
                                 sx={{
@@ -1105,6 +1140,78 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                             </Box>
                         </Box>
                     ))}
+
+                {(rows.length > 0 && planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && planInfo?.operationalPlan_version !== 0) && (
+                    <Box sx={{
+                        bgcolor: 'background.paper',
+                        width: '100%',
+                        borderBottomRightRadius: 6,
+                        borderBottomLeftRadius: 6,
+                        p: 1,
+                        display: 'flex',
+                        flexDirection: {
+                            xs: 'column',
+                            lg: 'row'
+                        },
+                        justifyContent: 'space-between',
+                        mb: 1
+                    }}>
+                        {planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && (
+                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                <Typography fontWeight="bold" variant='caption'>
+                                    Fecha de creación:{" "}
+                                    <Typography
+                                        component="span"
+                                        variant="body1"
+                                        color="textSecondary"
+                                        sx={{
+                                            fontStyle: 'italic',
+                                            fontSize: '0.9rem',
+                                        }}
+                                    >
+                                        {formatDate(planInfo?.operationalPlan_created_at)}
+                                    </Typography>
+                                </Typography>
+                                <Typography fontWeight="bold" variant='caption'>
+                                    Fecha de actualización:{" "}
+                                    <Typography
+                                        component="span"
+                                        variant="body1"
+                                        color="textSecondary"
+                                        sx={{
+                                            fontStyle: 'italic',
+                                            fontSize: '0.9rem',
+                                        }}
+                                    >
+                                        {formatDate(planInfo?.operationalPlan_updated_at)}
+                                    </Typography>
+                                </Typography>
+                            </Box>
+                        )}
+
+                        <Box sx={{
+                            display: 'flex',
+                            flexDirection: { xs: 'row', lg: 'column' },
+                            gap: { xs: 1, lg: 0 },
+                            alignItems: 'center'
+                        }}>
+                            <Typography fontWeight="bold" variant='caption'>
+                                Versión del plan:{" "}
+                            </Typography>
+                            <Typography
+                                component="span"
+                                variant="body1"
+                                color="textSecondary"
+                                sx={{
+                                    fontStyle: 'italic',
+                                    fontSize: '0.9rem',
+                                }}
+                            >
+                                {planInfo?.operationalPlan_version}
+                            </Typography>
+                        </Box>
+                    </Box>
+                )}
             </Box >
 
             <Menu

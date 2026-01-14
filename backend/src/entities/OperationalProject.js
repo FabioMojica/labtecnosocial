@@ -8,8 +8,16 @@ export const OperationalProject = new EntitySchema({
       type: Number,
       primary: true,
       generated: 'increment',
+    }, 
+    project_version: {
+      type: Number,
+      default: 0, 
     },
-    name: {
+    operationalPlan_version: {
+      type: Number, 
+      default: 0,
+    },
+    name: { 
       type: String,
       length: 100,
       nullable: false,
@@ -21,7 +29,7 @@ export const OperationalProject = new EntitySchema({
     },
     image_url: {
       type: String,
-      nullable: true,
+      nullable: true, 
     },
     created_at: {
       type: 'timestamp',
@@ -30,8 +38,16 @@ export const OperationalProject = new EntitySchema({
     },
     updated_at: {
       type: 'timestamp',
-      updateDate: true,
+      updateDate: true, 
       default: () => 'NOW()',
+    },
+    operationalPlan_created_at: {
+      type: 'timestamp',
+      nullable: true, 
+    },
+    operationalPlan_updated_at: {
+      type: 'timestamp',
+      nullable: true, 
     },
   },
   relations: {
@@ -55,7 +71,7 @@ export const OperationalProject = new EntitySchema({
       inverseSide: 'operationalProject',
       cascade: true,
     },
-    integrations: {
+    integrations: { 
       type: 'one-to-many',
       target: 'ProjectIntegration',
       inverseSide: 'project',

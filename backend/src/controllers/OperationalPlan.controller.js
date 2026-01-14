@@ -9,29 +9,42 @@ export const getOperationalProjectRows = async (req, res) => {
     const { id } = req.params;
 
     const rowRepository = AppDataSource.getRepository(OperationalRow);
+    const projectRepository = AppDataSource.getRepository(OperationalProject);
+
+    const project = await projectRepository.findOneBy({ id: parseInt(id) });
+    if (!project) {
+      return res.status(404).json({ message: 'Proyecto operativo no encontrado' });
+    }
 
     const rows = await rowRepository.find({
-      where: {
-        operationalProject: { id: parseInt(id) }
-      },
-      order: {
-        id: 'ASC'
-      }
-    });
+      where: { operationalProject: { id: parseInt(id) } },
+      order: { id: 'ASC' },
+    }); 
 
-    return res.status(200).json(rows);
+    return res.status(200).json({ 
+      rows,
+      operationalPlan_version: project.operationalPlan_version,
+      operationalPlan_created_at: project.operationalPlan_created_at,
+      operationalPlan_updated_at: project.operationalPlan_updated_at,
+    }); 
   } catch (error) {
     console.error('Error al obtener filas operativas del proyecto:', error);
     return res.status(500).json({ message: 'Error al obtener las filas operativas del proyecto' });
   }
 };
 
+
 export const saveOperationalRowsOfProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
 
   try {
     const { id: projectId } = req.params;
-    const { create = [], update = [], delete: deleteIds = [] } = req.body;
+    const { 
+      operationalPlan_version: clientVersion, 
+      create = [], 
+      update = [], 
+      delete: deleteIds = [] 
+    } = req.body;
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -40,10 +53,19 @@ export const saveOperationalRowsOfProject = async (req, res) => {
     const projectRepository = queryRunner.manager.getRepository(OperationalProject);
 
     const project = await projectRepository.findOneBy({ id: parseInt(projectId) });
+
     if (!project) {
       await queryRunner.rollbackTransaction();
       return res.status(404).json({ message: 'Proyecto operativo no encontrado' });
     }
+
+    if (clientVersion < project.operationalPlan_version) {
+      await queryRunner.rollbackTransaction();
+      return res.status(409).json({
+        message: "Error al actualizar el plan estratégico: asegúrate de estar trabajando sobre la última versión del plan refrescando la página.",
+        currentVersion: project.operationalPlan_version,
+      });
+    } 
 
     if (deleteIds.length > 0) {
       await rowRepository.delete(deleteIds);
@@ -74,7 +96,7 @@ export const saveOperationalRowsOfProject = async (req, res) => {
     }
 
     for (const rowData of create) {
-      if (isRowEmpty(rowData)) {
+      if (isRowEmpty(rowData)) { 
         continue;
       }
       const newRow = rowRepository.create({
@@ -90,15 +112,30 @@ export const saveOperationalRowsOfProject = async (req, res) => {
         operationalProject: project,
       });
       await rowRepository.save(newRow);
-    }
 
+      if (!project.operationalPlan_created_at) {
+        project.operationalPlan_created_at = new Date();
+      }
+    }
+    project.operationalPlan_updated_at = new Date();
+
+    await projectRepository.save(project);
+    await projectRepository.increment({ id: project.id }, 'operationalPlan_version', 1);
+    const updatedProject = await projectRepository.findOneBy({ id: project.id });
+    
     await queryRunner.commitTransaction();
 
     const savedRows = await rowRepository.find({
       where: { operationalProject: { id: parseInt(projectId) } },
     });
 
-    return res.status(200).json(savedRows);
+    return res.status(200).json({
+      savedRows,
+      operationalPlan_version: updatedProject.operationalPlan_version,
+      operationalPlan_created_at: updatedProject.operationalPlan_created_at,
+      operationalPlan_updated_at: updatedProject.operationalPlan_updated_at,
+    });
+
   } catch (error) {
     await queryRunner.rollbackTransaction();
     console.error('Error al guardar filas operativas:', error);
@@ -107,6 +144,7 @@ export const saveOperationalRowsOfProject = async (req, res) => {
     await queryRunner.release();
   }
 };
+
 
 export const deleteOperationalPlanning = async (req, res) => {
   const { id } = req.params;
@@ -134,8 +172,14 @@ export const deleteOperationalPlanning = async (req, res) => {
       await queryRunner.rollbackTransaction();
       return res.status(400).json({ message: 'El proyecto no tiene filas operativas registradas' });
     }
-
     await rowRepository.remove(rowsToDelete);
+
+    project.operationalPlan_created_at = null;
+    project.operationalPlan_updated_at = null;
+    project.operationalPlan_version = 0;
+
+    await projectRepository.save(project);
+
 
     await queryRunner.commitTransaction();
     return res.status(200).json({ message: 'Planificación operativa eliminada correctamente' });
