@@ -875,7 +875,9 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
               xs: 'column',
               lg: 'row'
             },
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            borderTop: '1px solid',
+            borderColor: 'divider',
           }}>
             {data?.created_at && data?.updated_at && (
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>

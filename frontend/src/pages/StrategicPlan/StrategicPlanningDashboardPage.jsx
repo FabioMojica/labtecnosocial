@@ -213,8 +213,11 @@ const StrategicPlanningDashboardPage = () => {
               disabled={isChildDirty}
               availableYears={allPlans.map(p => p.year)}
               onChange={(newYear) => {
+                console.log("holaaaaaaaaaa", )
+                if (newYear === selectedYear) return;
+                console.log("Cahuuu", )
                 setIsCreatingNewPlan(false);
-                setIsChildDirty(false);
+                setIsChildDirty(false); 
                 setSelectedYear(newYear);
                 setPlanData(null);
                 setShowColumnsView(false);
@@ -241,6 +244,7 @@ const StrategicPlanningDashboardPage = () => {
                 }}
               >
                 <Tooltip title={`Eliminar el plan estratégico del año ${selectedYear}`}>
+                  <span>
                   <IconButton
                     onClick={() => setDeleteDialogOpen(true)}
                     color="error"
@@ -253,6 +257,7 @@ const StrategicPlanningDashboardPage = () => {
                   >
                     <DeleteOutlineIcon />
                   </IconButton>
+                  </span>
                 </Tooltip>
               </Box>
             )}
@@ -261,7 +266,7 @@ const StrategicPlanningDashboardPage = () => {
         
       </Box>
 
-      {!planData && hasFetchedPlan && (
+      {!planData &&  hasFetchedPlan && (
         <>
           <Divider sx={{mr: 1, ml: {xs: 1}}} />
           <NoResultsScreen

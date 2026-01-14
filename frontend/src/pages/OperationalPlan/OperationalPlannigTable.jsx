@@ -1147,14 +1147,16 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                         width: '100%',
                         borderBottomRightRadius: 6,
                         borderBottomLeftRadius: 6,
-                        p: 1,
+                        p: 1, 
                         display: 'flex',
                         flexDirection: {
                             xs: 'column',
                             lg: 'row'
                         },
                         justifyContent: 'space-between',
-                        mb: 1
+                        mb: 1,
+                        borderTop: '1px solid',
+                        borderColor: 'divider',
                     }}>
                         {planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && (
                             <Box sx={{ display: 'flex', flexDirection: 'column' }}>

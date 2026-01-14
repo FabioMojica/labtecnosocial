@@ -401,6 +401,7 @@ const handleExportPDF = async (rows, project) => {
 const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithoutPlan, hasPlan, onLoadError, onLoadingRowsChange }) => {
   const theme = useTheme();
   const [rows, setRows] = useState([]);
+  const [planInfo, setPlanInfo] = useState({ operationalPlan_created_at: null, operationalPlan_updated_at: null, operationalPlan_version: 0 });
   const [loadingRows, setLoadingRows] = useState(false);
   const [gridKey, setGridKey] = useState(0);
   const [hasLoadError, setHasLoadError] = useState(false);
@@ -409,14 +410,22 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
     if (!projectId || !hasPlan) {
       setRows([]);
     }
-  }, [projectId, hasPlan]);
+  }, [projectId, hasPlan]); 
 
 
   const loadRows = async () => {
     setLoadingRows(true);
     if (onLoadingRowsChange) onLoadingRowsChange(true);
     try {
-      const res = await getOperationalPlanOfProjectApi(projectId);
+      const response = await getOperationalPlanOfProjectApi(projectId);
+      const res = response?.rows;
+      setPlanInfo({
+        operationalPlan_created_at: response?.operationalPlan_created_at || null,
+        operationalPlan_updated_at: response?.operationalPlan_updated_at || null,
+        operationalPlan_version: response?.operationalPlan_version || 0
+      });
+
+      console.log(res);
 
       if (Array.isArray(res) && res.length === 0) {
         if (onProjectWithoutPlan) onProjectWithoutPlan(projectId);
@@ -510,9 +519,10 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
           }}>
           <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             {(!loadingRows && Array.isArray(rows) && rows.length > 0) && (
-              <Box sx={{ 
+              <Box sx={{
                 bgcolor: 'background.paper',
-                display: 'flex', width: '100%', pl: 2, gap: 1, alignItems: 'center', justifyContent: 'space-between', py: 2, px: 1 }}>
+                display: 'flex', width: '100%', pl: 2, gap: 1, alignItems: 'center', justifyContent: 'space-between', py: 2, px: 1
+              }}>
                 <Typography
                   variant="h6"
                   fontWeight="bold"
@@ -580,9 +590,80 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
               boxShadow: 1,
             }}
           />
+
+          {(rows.length > 0 && planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && planInfo?.operationalPlan_version !== 0) && (
+            <Box sx={{
+              bgcolor: 'background.paper',
+              width: '100%',
+              borderBottomRightRadius: 6,
+              borderBottomLeftRadius: 6,
+              p: 1,
+              display: 'flex',
+              flexDirection: {
+                xs: 'column',
+                lg: 'row'
+              },
+              justifyContent: 'space-between',
+              mb: 1
+            }}>
+              {planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && (
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography fontWeight="bold" variant='caption'>
+                    Fecha de creación:{" "}
+                    <Typography
+                      component="span"
+                      variant="body1"
+                      color="textSecondary"
+                      sx={{
+                        fontStyle: 'italic',
+                        fontSize: '0.9rem',
+                      }}
+                    >
+                      {formatDate(planInfo?.operationalPlan_created_at)}
+                    </Typography>
+                  </Typography>
+                  <Typography fontWeight="bold" variant='caption'>
+                    Fecha de actualización:{" "}
+                    <Typography
+                      component="span"
+                      variant="body1"
+                      color="textSecondary"
+                      sx={{
+                        fontStyle: 'italic',
+                        fontSize: '0.9rem',
+                      }}
+                    >
+                      {formatDate(planInfo?.operationalPlan_updated_at)}
+                    </Typography>
+                  </Typography>
+                </Box>
+              )}
+
+              <Box sx={{
+                display: 'flex',
+                flexDirection: { xs: 'row', lg: 'column' },
+                gap: { xs: 1, lg: 0 },
+                alignItems: 'center'
+              }}>
+                <Typography fontWeight="bold" variant='caption'>
+                  Versión del plan:{" "}
+                </Typography>
+                <Typography
+                  component="span"
+                  variant="body1"
+                  color="textSecondary"
+                  sx={{
+                    fontStyle: 'italic',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  {planInfo?.operationalPlan_version}
+                </Typography>
+              </Box>
+            </Box>
+          )}
         </Box>
-      )
-      }
+      )}
     </Box >
   );
 };
