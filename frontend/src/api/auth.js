@@ -77,9 +77,6 @@ export const logoutUserApi = async () => {
 
 export const meApi = async () => {
   const controller = loadAbort(); 
- 
-  
-    console.log("me api")
 
   try {
     const response = await axiosInstance.get(Routes.ME, {
@@ -90,7 +87,6 @@ export const meApi = async () => {
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
-    console.log("error de me api", error)
 
     if (error.code === 'ECONNABORTED') {
       throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');

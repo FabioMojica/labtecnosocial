@@ -30,7 +30,6 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import IconButton from '@mui/material/IconButton';
 import { useElementSize } from '../../hooks/useElementSize.js';
 import { useDirty } from '../../contexts/DirtyContext.jsx';
-import { getDrawerClosedWidth } from '../../utils/index.js';
 import { formatDate } from '../../utils/formatDate.js';
 import { useLayout } from '../../contexts/LayoutContext.jsx';
 

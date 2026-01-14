@@ -75,7 +75,7 @@ const AppContent = () => {
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>
-  );
+  ); 
 };
 
 function App() {
@@ -102,7 +102,6 @@ function App() {
               <AuthProvider>
                 <ConfirmProvider>
                   <HeaderHeightProvider>
-                    <ConfirmProvider>
                       <ReportProvider>
                         <CssBaseline />
                         <SessionExpirationModal />
@@ -133,7 +132,6 @@ function App() {
                           </Box>
                         </Box>
                       </ReportProvider>
-                    </ConfirmProvider>
                   </HeaderHeightProvider>
                 </ConfirmProvider>
               </AuthProvider>

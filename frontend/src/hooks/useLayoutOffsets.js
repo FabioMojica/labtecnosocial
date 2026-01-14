@@ -11,7 +11,6 @@ export function useLayoutOffsets(containerRef) {
 
   const updateOffsets = useCallback(() => {
     if (!containerRef.current) return;
-    console.log("Hola")
 
     const rect = containerRef.current.getBoundingClientRect();
 

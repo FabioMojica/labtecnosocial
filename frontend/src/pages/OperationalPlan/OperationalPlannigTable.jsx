@@ -20,7 +20,7 @@ import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 
 import { getOperationalPlanOfProjectApi, saveOperationalRowsApi } from '../../api';
 
-import { formatRow, isRowEmpty, removeRowIfEmpty, toNullableNumber } from './utils/rowsFuncions';
+import { formatRow, isRowEmpty, removeRowIfEmpty } from './utils/rowsFuncions';
 import { useNotification } from '../../contexts';
 import { ButtonWithLoader, ErrorScreen, FullScreenProgress, NoResultsScreen, SearchBar } from '../../generalComponents';
 import { useFetchAndLoad } from '../../hooks';
@@ -28,20 +28,25 @@ import { getDrawerClosedWidth } from '../../utils';
 import { useDirty } from '../../contexts/DirtyContext';
 import { formatDate } from '../../utils/formatDate';
 
-const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, onProjectHasPlan, onEditingChange, hasPlan, onLoadError }) => {
-    console.log("Holaaaaaaaaaaaaaaaaa")
+const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, projectWithoutPlan, onUnsavedChanges, onErrorFetchedPlan }) => {
 
     const confirm = useConfirm();
+    const theme = useTheme();
+
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
-    const [rows, setRows] = useState([]);
-    const [planInfo, setPlanInfo] = useState({ operationalPlan_created_at: null, operationalPlan_updated_at: null, operationalPlan_version: 0 });
-    const theme = useTheme();
-    const [contextMenu, setContextMenu] = useState(null);
 
-    const [loadingProjectDetails, setLoadingProjectDetails] = useState(false);
-    const [saving, setSaving] = useState(false);
+    const [rows, setRows] = useState([]);
+    const rowRefs = useRef({});
+
     const [initialRows, setInitialRows] = useState([]);
+    const initialRowsRef = useRef(initialRows);
+    const currentRowsRef = useRef(rows);
+
+    const [planInfo, setPlanInfo] = useState({ operationalPlan_created_at: null, operationalPlan_updated_at: null, operationalPlan_version: 0 });
+
+    const [contextMenu, setContextMenu] = useState(null);
+    const [loadingProjectDetails, setLoadingProjectDetails] = useState(false);
     const [hasLoadError, setHasLoadError] = useState(false);
 
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -56,24 +61,18 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
 
     const { setIsDirtyContext, registerAutoSave } = useDirty();
 
-    const rowRefs = useRef({});
     const [highlightedRowKey, setHighlightedRowKey] = useState(null);
 
     const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
 
     const hasUnsavedChanges = !isEqual(rows, initialRows);
-
-    const currentRowsRef = useRef(rows);
-    const initialRowsRef = useRef(initialRows);
+    const hasChanges = () => !isEqual(rows, initialRows);
 
     useEffect(() => {
-        if (!projectId || !hasPlan) {
-            setRows([]);
-            setInitialRows([]);
-            setPlanInfo({ operationalPlan_created_at: null, operationalPlan_updated_at: null, operationalPlan_version: 0 });
+        if (typeof onUnsavedChanges === 'function') {
+            onUnsavedChanges(hasUnsavedChanges);
         }
-    }, [projectId, hasPlan]);
-
+    }, [hasUnsavedChanges, onUnsavedChanges]);
 
     useEffect(() => {
         if (hasUnsavedChanges) {
@@ -86,10 +85,10 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
     useEffect(() => {
         currentRowsRef.current = rows;
     }, [rows]);
+
     useEffect(() => {
         initialRowsRef.current = initialRows;
     }, [initialRows]);
-
 
     useEffect(() => {
         const handleBeforeUnload = (e) => {
@@ -202,13 +201,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
         return () => observer.disconnect();
     }, [isFullscreen, rows]);
 
-    useEffect(() => {
-        if (!projectId || !hasPlan) {
-            setRows([]);
-            setInitialRows([]);
-        }
-    }, [projectId, hasPlan]);
-
     const fetchProjectDetails = async () => {
         setLoadingProjectDetails(true);
         try {
@@ -223,8 +215,10 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                 operationalPlan_version: response?.operationalPlan_version || 0
             });
 
-            if (Array.isArray(res) && res.length === 0) {
-                if (onProjectWithoutPlan) onProjectWithoutPlan(projectId);
+            if (Array.isArray(res) && res.length === 0 && res?.operationalPlan_created_at == null) {
+                onProjectWithoutPlan(true);
+            } else {
+                onProjectWithoutPlan(false);
             }
 
             const transformedRows = res.map(row => ({
@@ -249,25 +243,20 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
             setRows(transformedRows);
             setInitialRows(cloneDeep(transformedRows));
             setHasLoadError(false);
-            if (onLoadError) onLoadError(false);
+            onErrorFetchedPlan(false);
         } catch (error) {
+            onErrorFetchedPlan(true);
             setHasLoadError(true);
             console.log(error)
-            if (onLoadError) onLoadError(true);
         } finally {
             setLoadingProjectDetails(false);
         }
     };
 
     useEffect(() => {
-        if (!projectId) {
-            setRows([]);
-            setInitialRows([]);
-            return;
-        }
-
+        console.log("ilalalalalala")
         fetchProjectDetails();
-    }, [projectId]);
+    }, [projectId, projectWithoutPlan]);
 
     // Objetivos oooooooooooooooooooooooooooooooooooooooooooooooooo
     const handleUpdateObjetiveItem = (index, key, newText) => {
@@ -445,6 +434,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
 
     const handleAddRow = () => {
         if (!projectId) return;
+
         const tempId = crypto.randomUUID();
 
         setRows(prev => [
@@ -532,13 +522,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
         }
     }, [isFullscreen]);
 
-    const hasChanges = () => !isEqual(rows, initialRows);
-
-    useEffect(() => {
-        if (onEditingChange) {
-            onEditingChange(hasChanges());
-        }
-    }, [rows, initialRows]);
 
     const handleDiscardChanges = () => {
         confirm({
@@ -577,15 +560,9 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
         }
 
         const validRows = rows.filter(row => !isRowEmpty(row));
-        const emptyRows = rows.filter(row => isRowEmpty(row));
         const formattedRows = validRows.map(formatRow);
         const formattedInitialRows = initialRows.map(formatRow);
 
-        const hasPlanYet = initialRows.length > 0;
-
-        if (!hasPlanYet && formattedRows.length > 0) {
-            if (onProjectHasPlan) onProjectHasPlan(projectId);
-        }
         const initialMap = new Map(formattedInitialRows.map(r => [r.id, r]));
         const currentMap = new Map(formattedRows.map(r => [r.id, r]));
         const rowsToCreate = formattedRows.filter(r => !r.id);
@@ -600,8 +577,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                 return current && isRowEmpty(current);
             }),
         ];
-
-        setSaving(true);
 
         try {
             const tempIdMap = new Map(
@@ -621,7 +596,15 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                 delete: rowsToDelete.map(r => r.id).filter(Boolean),
             }));
 
+
             const response = resp?.savedRows;
+
+            if (Array.isArray(response) && resp.length === 0 && resp?.operationalPlan_created_at == null) {
+                onProjectWithoutPlan(true);
+            } else {
+                onProjectWithoutPlan(false);
+            }
+
             setPlanInfo({
                 operationalPlan_created_at: resp?.operationalPlan_created_at,
                 operationalPlan_updated_at: resp?.operationalPlan_updated_at,
@@ -679,8 +662,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                         'error'
                     );
             }
-        } finally {
-            setSaving(false);
         }
     };
 
@@ -690,26 +671,48 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
         });
     }, []);
 
+    const hasEmptyRow = rows.some(row => isRowEmpty(row));
+
 
     if (loadingProjectDetails) {
         return (
             <FullScreenProgress text={"Obteniendo el plan operativo"} />
+        ); 
+    } 
+
+    if (hasLoadError) {
+        return (
+            <Box sx={{ width: '100%', justifyContent: 'center', alignItems: 'center', px: 1 }}>
+                <Divider sx={{ width: '100%' }} />
+                <ErrorScreen
+                    message="Ocurrió un error al obtener el plan operativo del proyecto"
+                    buttonText="Intentar de nuevo"
+                    onButtonClick={() => fetchProjectDetails()}
+                    sx={{ height: "60vh", p: 2 }}
+                />
+            </Box>
         );
     }
 
-    if (hasLoadError) {
-        return <ErrorScreen sx={{
-            height: '60vh'
-        }} message="Ocurrió un error al obtener el plan operativo del proyecto" buttonText="Intentar de nuevo" onButtonClick={() => fetchProjectDetails()} />
+    if (projectWithoutPlan && !loadingProjectDetails && rows.length === 0) {
+        return (
+            <Box sx={{ width: '100%', justifyContent: 'center', alignItems: 'center', px: 1 }}>
+                <Divider sx={{ width: '100%' }} />
+                <NoResultsScreen
+                    message='Proyecto sin plan operativo registrado'
+                    buttonText={'Crear plan operativo'}
+                    onButtonClick={() => handleAddRow()}
+                    sx={{ height: "60vh", p: 2 }}
+                />
+            </Box>
+        )
     }
-
-    const hasEmptyRow = rows.some(row => isRowEmpty(row));
 
     return (
         <>
             <Box
                 sx={{
-                    display: 'flex', 
+                    display: 'flex',
                     flexDirection: 'column',
                     position: isFullscreen ? 'fixed' : 'relative',
                     top: isFullscreen ? 0 : 'auto',
@@ -719,224 +722,205 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                     bgcolor: (theme) => theme.palette.background.default,
                     zIndex: isFullscreen ? 1500 : 'auto',
                     overflow: isFullscreen ? 'auto' : 'visible',
-                    maxWidth: {
-                        xs: '100vw',
-                        sm: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
-                        md: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
-                        lg: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 16px)`,
-                        xl: isFullscreen ? '100vw' : `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
-                    },
+                    maxWidth: { xs: '100vw', lg: '100%' }
                 }}
             >
                 {rows.length > 0 && projectId && (
-                    <Box
-                        ref={headerRef}
-                        sx={{
-                            position: isFullscreen ? 'relative' : 'sticky',
-                            top: isFullscreen ? 0 : 64,
-                            zIndex: isFullscreen ? 1600 : 999,
-                            bgcolor: 'background.paper',
-                            borderTopLeftRadius: 8,
-                            borderTopRightRadius: 8,
-                            borderBottom: 'none',
-                            borderColor: 'divider',
-                            p: 1,
-                            width: '100%',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            flexDirection: {
-                                xs: 'column',
-                                md: 'row',
-                            },
-                            gap: 1
-                        }}
-                    >
+                    <>
+                        <Box
+                            ref={headerRef}
+                            sx={{
+                                position: isFullscreen ? 'relative' : 'sticky',
+                                top: isFullscreen ? 0 : 64,
+                                zIndex: isFullscreen ? 1600 : 999,
+                                bgcolor: 'background.paper',
+                                borderTopLeftRadius: 8,
+                                borderTopRightRadius: 8,
+                                borderBottom: 'none',
+                                borderColor: 'divider',
+                                p: 1,
+                                width: '100%',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                flexDirection: {
+                                    xs: 'column',
+                                    md: 'row',
+                                },
+                                gap: 1
+                            }}
+                        >
 
-                        <Box sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexDirection: {
-                                xs: 'column',
-                                sm: 'row',
-                                md: 'row',
-                                lg: 'row'
-                            },
-                            gap: 1
-                        }}>
                             <Box sx={{
                                 display: 'flex',
-                                gap: 1,
-                                justifyContent: {
-                                    xs: 'space-between',
-                                    sm: 'left'
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexDirection: {
+                                    xs: 'column',
+                                    sm: 'row',
+                                    md: 'row',
+                                    lg: 'row'
                                 },
-                                width: '100%',
-                                alignItems: 'center'
+                                gap: 1
                             }}>
-                                <Tooltip
-                                    title={isFullscreen ? "Minimizar" : "Maximizar"}
-                                    open={tooltipOpen}
-                                    onOpen={() => setTooltipOpen(true)}
-                                    onClose={() => setTooltipOpen(false)}
-                                >
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => {
-                                            setIsFullscreen(!isFullscreen);
-                                            setTooltipOpen(false);
-                                        }}
-                                        sx={{
-                                            transition: 'transform 0.3s ease',
-                                            transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
-                                        }}
+                                <Box sx={{
+                                    display: 'flex',
+                                    gap: 1,
+                                    justifyContent: {
+                                        xs: 'space-between',
+                                        sm: 'left'
+                                    },
+                                    width: '100%',
+                                    alignItems: 'center'
+                                }}>
+                                    <Tooltip
+                                        title={isFullscreen ? "Minimizar" : "Maximizar"}
+                                        open={tooltipOpen}
+                                        onOpen={() => setTooltipOpen(true)}
+                                        onClose={() => setTooltipOpen(false)}
                                     >
-                                        {isFullscreen ? <CloseFullscreenIcon fontSize="small" /> : <FullscreenIcon fontSize="medium" />}
-                                    </IconButton>
-                                </Tooltip>
-
-                                <Typography
-                                    variant="h6"
-                                    fontWeight="bold"
-                                    textAlign="center"
-                                    sx={{
-                                        fontSize: {
-                                            xs: '1rem',
-                                            sm: '1.3rem',
-                                        },
-                                        maxWidth: 300,
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                    }}
-                                >
-                                    {`Plan Operativo ${project?.name}`}
-                                </Typography>
-
-
-                                <Tooltip title={scrollDirection === 'up' ? 'Ir arriba' : 'Ir abajo'}>
-                                    <span>
                                         <IconButton
                                             size="small"
-                                            onClick={handleScrollAction}
-                                            disabled={!canScroll}
+                                            onClick={() => {
+                                                setIsFullscreen(!isFullscreen);
+                                                setTooltipOpen(false);
+                                            }}
                                             sx={{
-                                                border: '1px solid',
-                                                borderColor: 'divider',
-                                                opacity: 1,
-                                                transform: scrollDirection === 'up'
-                                                    ? 'rotate(180deg)'
-                                                    : 'rotate(0deg)',
+                                                transition: 'transform 0.3s ease',
+                                                transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                            }}
+                                        >
+                                            {isFullscreen ? <CloseFullscreenIcon fontSize="small" /> : <FullscreenIcon fontSize="medium" />}
+                                        </IconButton>
+                                    </Tooltip>
 
-                                                transition: `
+                                    <Typography
+                                        variant="h6"
+                                        fontWeight="bold"
+                                        textAlign="center"
+                                        sx={{
+                                            fontSize: {
+                                                xs: '1rem',
+                                                sm: '1.3rem',
+                                            },
+                                            maxWidth: 300,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                        }}
+                                    >
+                                        {`Plan Operativo ${project?.name}`}
+                                    </Typography>
+
+
+                                    <Tooltip title={scrollDirection === 'up' ? 'Ir arriba' : 'Ir abajo'}>
+                                        <span>
+                                            <IconButton
+                                                size="small"
+                                                onClick={handleScrollAction}
+                                                disabled={!canScroll}
+                                                sx={{
+                                                    border: '1px solid',
+                                                    borderColor: 'divider',
+                                                    opacity: 1,
+                                                    transform: scrollDirection === 'up'
+                                                        ? 'rotate(180deg)'
+                                                        : 'rotate(0deg)',
+
+                                                    transition: `
                         transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
                         background-color 0.2s ease
                       `,
 
-                                                '&:hover': {
-                                                    backgroundColor: 'action.hover',
+                                                    '&:hover': {
+                                                        backgroundColor: 'action.hover',
+                                                    },
+                                                }}
+                                            >
+                                                <KeyboardArrowDownIcon />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                </Box>
+
+                                <Box sx={{
+                                    display: {
+                                        lg: 'none'
+                                    },
+                                    justifyContent: 'center',
+                                    mt: 1
+                                }}>
+                                    <Tooltip
+                                        title="Añadir fila"
+                                        arrow
+                                        componentsProps={{
+                                            tooltip: {
+                                                sx: {
+                                                    fontSize: '0.8rem',
+                                                    backgroundColor: 'rgba(0,0,0,0.75)',
+                                                    color: 'white',
+                                                    px: 2,
+                                                    py: 0.5
                                                 },
-                                            }}
-                                        >
-                                            <KeyboardArrowDownIcon />
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
+                                            },
+                                        }}
+                                    >
+                                        <span>
+                                            <IconButton
+                                                onClick={handleAddRow}
+                                                disabled={hasEmptyRow}
+                                                color="primary"
+                                                sx={{
+                                                    borderRadius: '50%',
+                                                    width: 50,
+                                                    height: 50,
+                                                    padding: 0,
+                                                    '&:hover': {
+                                                        backgroundColor: 'rgba(25, 118, 210, 0.15)',
+                                                        borderRadius: '50%',
+                                                    },
+                                                }}
+                                            >
+                                                <AddIcon />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                </Box>
                             </Box>
+
 
                             <Box sx={{
-                                display: {
-                                    lg: 'none'
-                                },
+                                display: 'flex',
+                                alignItems: 'center',
                                 justifyContent: 'center',
-                                mt: 1
+                                gap: 1,
+                                height: '48px',
                             }}>
-                                <Tooltip
-                                    title="Añadir fila"
-                                    arrow
-                                    componentsProps={{
-                                        tooltip: {
-                                            sx: {
-                                                fontSize: '0.8rem',
-                                                backgroundColor: 'rgba(0,0,0,0.75)',
-                                                color: 'white',
-                                                px: 2,
-                                                py: 0.5
-                                            },
-                                        },
+                                {hasUnsavedChanges && (
+                                    <Button
+                                        variant="contained"
+                                        color="error"
+                                        sx={{ width: '170px', height: '100%' }}
+                                        onClick={() => handleDiscardChanges()}
+                                        disabled={loading}
+                                    >
+                                        Descartar cambios
+                                    </Button>
+                                )}
+                                <ButtonWithLoader
+                                    loading={loading}
+                                    onClick={() => handleSave(false)}
+                                    disabled={!hasChanges() || rows.some(row => isRowEmpty(row))}
+                                    variant="contained"
+                                    backgroundButton={theme => theme.palette.success.main}
+                                    sx={{
+                                        color: 'white', px: 2, width: '170px',
+                                        display: (hasChanges()) ? 'block' : 'none',
                                     }}
                                 >
-                                    <span>
-                                        <IconButton
-                                            onClick={handleAddRow}
-                                            disabled={hasEmptyRow}
-                                            color="primary"
-                                            sx={{
-                                                borderRadius: '50%',
-                                                width: 50,
-                                                height: 50,
-                                                padding: 0,
-                                                '&:hover': {
-                                                    backgroundColor: 'rgba(25, 118, 210, 0.15)',
-                                                    borderRadius: '50%',
-                                                },
-                                            }}
-                                        >
-                                            <AddIcon />
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
+                                    Guardar Plan
+                                </ButtonWithLoader>
                             </Box>
                         </Box>
-
-
-                        <Box sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 1,
-                            height: '48px',
-                        }}>
-                            {hasUnsavedChanges && (
-                                <Button
-                                    variant="contained"
-                                    color="error"
-                                    sx={{ width: '170px', height: '100%' }}
-                                    onClick={() => handleDiscardChanges()}
-                                >
-                                    Descartar cambios
-                                </Button>
-                            )}
-                            <ButtonWithLoader
-                                loading={loading}
-                                onClick={() => handleSave(false)}
-                                disabled={!hasChanges() || rows.some(row => isRowEmpty(row))}
-                                variant="contained"
-                                backgroundButton={theme => theme.palette.success.main}
-                                sx={{
-                                    color: 'white', px: 2, width: '170px',
-                                    display: (hasPlan || hasChanges()) ? 'block' : 'none',
-                                }}
-                            >
-                                Guardar Plan
-                            </ButtonWithLoader>
-                        </Box>
-                    </Box>
-                )}
-
-
-                {rows.length === 0 && !loadingProjectDetails && projectId ? (
-                    <>
-                        <Divider sx={{ mr: 1, ml: { xs: 1 } }} />
-                        <NoResultsScreen
-                            message='Proyecto sin plan operativo registrado'
-                            buttonText={'Crear plan operativo'}
-                            onButtonClick={handleAddRow}
-                            sx={{ height: "60vh", p: 2 }}
-                        />
-                    </>
-                ) : (
-                    projectId && (
                         <Box
                             ref={containerRef}
                             sx={{
@@ -1139,24 +1123,28 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
                                 </Tooltip>
                             </Box>
                         </Box>
-                    ))}
 
-                {(rows.length > 0 && planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && planInfo?.operationalPlan_version !== 0) && (
+                    </>
+                )}
+
+
+
+
+
+                {(planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && planInfo?.operationalPlan_version !== 0) && (
                     <Box sx={{
                         bgcolor: 'background.paper',
                         width: '100%',
                         borderBottomRightRadius: 6,
                         borderBottomLeftRadius: 6,
-                        p: 1, 
+                        p: 1,
                         display: 'flex',
                         flexDirection: {
                             xs: 'column',
                             lg: 'row'
                         },
                         justifyContent: 'space-between',
-                        mb: 1,
-                        borderTop: '1px solid',
-                        borderColor: 'divider',
+                        mb: 1
                     }}>
                         {planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && (
                             <Box sx={{ display: 'flex', flexDirection: 'column' }}>

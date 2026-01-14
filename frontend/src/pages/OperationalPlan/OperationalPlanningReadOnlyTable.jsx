@@ -398,7 +398,7 @@ const handleExportPDF = async (rows, project) => {
 };
 
 
-const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithoutPlan, hasPlan, onLoadError, onLoadingRowsChange }) => {
+const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithoutPlan, projectWithoutPlan, onErrorFetchedPlan }) => {
   const theme = useTheme();
   const [rows, setRows] = useState([]);
   const [planInfo, setPlanInfo] = useState({ operationalPlan_created_at: null, operationalPlan_updated_at: null, operationalPlan_version: 0 });
@@ -407,16 +407,15 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
   const [hasLoadError, setHasLoadError] = useState(false);
 
   useEffect(() => {
-    if (!projectId || !hasPlan) {
+    if (!projectId) {
       setRows([]);
     }
-  }, [projectId, hasPlan]); 
+  }, [projectId]);
 
 
   const loadRows = async () => {
-    setLoadingRows(true);
-    if (onLoadingRowsChange) onLoadingRowsChange(true);
     try {
+      setLoadingRows(true);
       const response = await getOperationalPlanOfProjectApi(projectId);
       const res = response?.rows;
       setPlanInfo({
@@ -427,8 +426,10 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
 
       console.log(res);
 
-      if (Array.isArray(res) && res.length === 0) {
-        if (onProjectWithoutPlan) onProjectWithoutPlan(projectId);
+      if (Array.isArray(res) && res.length === 0 && res?.operationalPlan_created_at == null) {
+        onProjectWithoutPlan(true);
+      } else {
+        onProjectWithoutPlan(false);
       }
 
       const transformedRows = res.map(row => ({
@@ -452,13 +453,12 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
 
       setRows(transformedRows);
       setHasLoadError(false);
-      if (onLoadError) onLoadError(false);
     } catch (error) {
       setHasLoadError(true);
-      if (onLoadError) onLoadError(true);
+      onErrorFetchedPlan(true);
     } finally {
       setLoadingRows(false);
-      if (onLoadingRowsChange) onLoadingRowsChange(false);
+      onErrorFetchedPlan(false);
     }
   };
 
@@ -483,189 +483,194 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
 
   if (hasLoadError) {
     return (
-      <ErrorScreen sx={{
-        height: '60vh'
-      }} message="Ocurrió un error al obtener el plan operativo del proyecto" buttonText="Intentar de nuevo" onButtonClick={() => loadRows()} />
-    )
+      <Box sx={{ width: '100%', justifyContent: 'center', alignItems: 'center', px: 1 }}>
+        <Divider sx={{ width: '100%' }} />
+        <ErrorScreen
+          message="Ocurrió un error al obtener el plan operativo del proyecto"
+          buttonText="Intentar de nuevo"
+          onButtonClick={() => fetchProjectDetails()}
+          sx={{ height: "60vh", p: 2 }}
+        />
+      </Box>
+    );
   }
+
+
+  if (projectWithoutPlan && !loadingRows && rows.length === 0) {
+    return (
+      <Box sx={{ width: '100%', justifyContent: 'center', alignItems: 'center', px: 1 }}>
+        <Divider sx={{ width: '100%' }} />
+        <NoResultsScreen
+          message="Este proyecto no tiene un plan operativo registrado."
+          sx={{ height: '60vh' }}
+        />
+      </Box>
+    ) 
+  }
+
 
   return (
     <Box sx={{
       display: 'flex', flexDirection: 'column', gap: 2,
-      maxWidth: {
-        xs: '100vw',
-        sm: `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
-        md: `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
-        lg: `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 16px)`,
-        xl: `calc(100vw - ${getDrawerClosedWidth(theme, 'sm')} - 8px)`,
-      },
+      maxWidth: { xs: '100vw', lg: '100%' }
     }}>
-      {loadingRows ? (
-        <FullScreenProgress text={'Obteniendo el plan operativo'} />
-      ) : !rows.length ? (
-        <>
-          <NoResultsScreen
-            message="Este proyecto no tiene un plan operativo. Crea uno desde la vista editable."
-            sx={{ height: '50vh' }}
-          />
-        </>
-      ) : (
-        <Box
-          sx={{
-            height: 'auto',
-            width: '100%',
-            overflow: 'auto',
-            borderRadius: 2,
-          }}>
-          <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            {(!loadingRows && Array.isArray(rows) && rows.length > 0) && (
-              <Box sx={{
-                bgcolor: 'background.paper',
-                display: 'flex', width: '100%', pl: 2, gap: 1, alignItems: 'center', justifyContent: 'space-between', py: 2, px: 1
-              }}>
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  textAlign="center"
-                  sx={{
-                    fontSize: {
-                      xs: '1rem',
-                      sm: '1.3rem',
-                    },
-                    maxWidth: 300,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {`Plan Operativo ${project?.name}`}
-                </Typography>
-                <Box display={'flex'}>
-                  <ExportMenu
-                    onExportExcel={() => { handleExportExcel(rows, project) }}
-                    onExportPDF={() => { handleExportPDF(rows, project) }}
-                  />
 
-                  <Tooltip title="Resetear anchos a por defecto">
-                    <IconButton onClick={resetColumnWidths} size="small" aria-label="reset column widths">
-                      <RestartAltIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Box>)
-            }
-          </Box>
-          <DataGrid
-            key={gridKey}
-            rows={rows}
-            columns={defaultColumns}
-            getRowId={(row) => row.id}
-            getRowHeight={() => 'auto'}
-            pageSize={10}
-            rowSelection={false}
-            disableSelectionOnClick
-            disableColumnMenu
-            sx={{
-              '& .MuiDataGrid-columnHeaders': {
-                fontWeight: 'bold',
-                fontSize: { xs: '1rem', sm: '1.4rem' }
-              },
-              '& .MuiDataGrid-cell': {
-                border: `1px solid ${theme.palette.divider}`,
-                borderTop: 'none',
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                borderRight: `1px solid ${theme.palette.divider}`,
-                padding: '12px',
-              },
-              '& .MuiDataGrid-cell:last-child': {
-                borderRight: 'none',
-              },
-              '& .MuiDataGrid-row:hover': {
-                backgroundColor:
-                  theme.palette.mode === 'light'
-                    ? 'rgba(0, 0, 0, 0.05)'
-                    : 'rgba(255, 255, 255, 0.08)',
-                transition: 'background-color 0.2s ease',
-              },
-              boxShadow: 1,
-            }}
-          />
-
-          {(rows.length > 0 && planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && planInfo?.operationalPlan_version !== 0) && (
+      <Box
+        sx={{
+          height: 'auto',
+          width: '100%',
+          overflow: 'auto',
+          borderRadius: 2,
+        }}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          {(!loadingRows && Array.isArray(rows) && rows.length > 0) && (
             <Box sx={{
               bgcolor: 'background.paper',
-              width: '100%',
-              borderBottomRightRadius: 6,
-              borderBottomLeftRadius: 6,
-              p: 1,
-              display: 'flex',
-              flexDirection: {
-                xs: 'column',
-                lg: 'row'
-              },
-              justifyContent: 'space-between',
-              mb: 1
+              display: 'flex', width: '100%', pl: 2, gap: 1, alignItems: 'center', justifyContent: 'space-between', py: 2, px: 1
             }}>
-              {planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && (
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Typography fontWeight="bold" variant='caption'>
-                    Fecha de creación:{" "}
-                    <Typography
-                      component="span"
-                      variant="body1"
-                      color="textSecondary"
-                      sx={{
-                        fontStyle: 'italic',
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      {formatDate(planInfo?.operationalPlan_created_at)}
-                    </Typography>
-                  </Typography>
-                  <Typography fontWeight="bold" variant='caption'>
-                    Fecha de actualización:{" "}
-                    <Typography
-                      component="span"
-                      variant="body1"
-                      color="textSecondary"
-                      sx={{
-                        fontStyle: 'italic',
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      {formatDate(planInfo?.operationalPlan_updated_at)}
-                    </Typography>
-                  </Typography>
-                </Box>
-              )}
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                textAlign="center"
+                sx={{
+                  fontSize: {
+                    xs: '1rem',
+                    sm: '1.3rem',
+                  },
+                  maxWidth: 300,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {`Plan Operativo ${project?.name}`}
+              </Typography>
+              <Box display={'flex'}>
+                <ExportMenu
+                  onExportExcel={() => { handleExportExcel(rows, project) }}
+                  onExportPDF={() => { handleExportPDF(rows, project) }}
+                />
 
-              <Box sx={{
-                display: 'flex',
-                flexDirection: { xs: 'row', lg: 'column' },
-                gap: { xs: 1, lg: 0 },
-                alignItems: 'center'
-              }}>
+                <Tooltip title="Resetear anchos a por defecto">
+                  <IconButton onClick={resetColumnWidths} size="small" aria-label="reset column widths">
+                    <RestartAltIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>)
+          }
+        </Box>
+        <DataGrid
+          key={gridKey}
+          rows={rows}
+          columns={defaultColumns}
+          getRowId={(row) => row.id}
+          getRowHeight={() => 'auto'}
+          pageSize={10}
+          rowSelection={false}
+          disableSelectionOnClick
+          disableColumnMenu
+          sx={{
+            '& .MuiDataGrid-columnHeaders': {
+              fontWeight: 'bold',
+              fontSize: { xs: '1rem', sm: '1.4rem' }
+            },
+            '& .MuiDataGrid-cell': {
+              border: `1px solid ${theme.palette.divider}`,
+              borderTop: 'none',
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              borderRight: `1px solid ${theme.palette.divider}`,
+              padding: '12px',
+            },
+            '& .MuiDataGrid-cell:last-child': {
+              borderRight: 'none',
+            },
+            '& .MuiDataGrid-row:hover': {
+              backgroundColor:
+                theme.palette.mode === 'light'
+                  ? 'rgba(0, 0, 0, 0.05)'
+                  : 'rgba(255, 255, 255, 0.08)',
+              transition: 'background-color 0.2s ease',
+            },
+            boxShadow: 1,
+          }}
+        />
+
+        {(rows.length > 0 && planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && planInfo?.operationalPlan_version !== 0) && (
+          <Box sx={{
+            bgcolor: 'background.paper',
+            width: '100%',
+            borderBottomRightRadius: 6,
+            borderBottomLeftRadius: 6,
+            p: 1,
+            display: 'flex',
+            flexDirection: {
+              xs: 'column',
+              lg: 'row'
+            },
+            justifyContent: 'space-between',
+            mb: 1
+          }}>
+            {planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && (
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography fontWeight="bold" variant='caption'>
-                  Versión del plan:{" "}
+                  Fecha de creación:{" "}
+                  <Typography
+                    component="span"
+                    variant="body1"
+                    color="textSecondary"
+                    sx={{
+                      fontStyle: 'italic',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {formatDate(planInfo?.operationalPlan_created_at)}
+                  </Typography>
                 </Typography>
-                <Typography
-                  component="span"
-                  variant="body1"
-                  color="textSecondary"
-                  sx={{
-                    fontStyle: 'italic',
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  {planInfo?.operationalPlan_version}
+                <Typography fontWeight="bold" variant='caption'>
+                  Fecha de actualización:{" "}
+                  <Typography
+                    component="span"
+                    variant="body1"
+                    color="textSecondary"
+                    sx={{
+                      fontStyle: 'italic',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {formatDate(planInfo?.operationalPlan_updated_at)}
+                  </Typography>
                 </Typography>
               </Box>
+            )}
+
+            <Box sx={{
+              display: 'flex',
+              flexDirection: { xs: 'row', lg: 'column' },
+              gap: { xs: 1, lg: 0 },
+              alignItems: 'center'
+            }}>
+              <Typography fontWeight="bold" variant='caption'>
+                Versión del plan:{" "}
+              </Typography>
+              <Typography
+                component="span"
+                variant="body1"
+                color="textSecondary"
+                sx={{
+                  fontStyle: 'italic',
+                  fontSize: '0.9rem',
+                }}
+              >
+                {planInfo?.operationalPlan_version}
+              </Typography>
             </Box>
-          )}
-        </Box>
-      )}
+          </Box>
+        )}
+      </Box>
+
     </Box >
   );
 };
 
-export default OperationalPlanningReadOnlyTable;
+export default OperationalPlanningReadOnlyTable; 

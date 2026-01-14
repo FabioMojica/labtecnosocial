@@ -32,14 +32,12 @@ export const SelectProjectModal = ({
 }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
   const [filteredProjects, setFilteredProjects] = useState(projects);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    console.log("hla")
     setFilteredProjects(projects);
   }, [projects]);
 
@@ -53,6 +51,7 @@ export const SelectProjectModal = ({
 
   return (
     <>
+
       <Button
         variant="outlined"
         onClick={() => setOpen(true)}
@@ -127,7 +126,9 @@ export const SelectProjectModal = ({
             px: 3,
             pt: 2,
             position: 'relative',
-            overflow: 'hidden',
+            display: 'flex',         // <--- hacer que los hijos puedan usar flex
+            flexDirection: 'column', // <--- para que searchbar + list se apilen
+            overflow: 'hidden',      // mantiene el modal sin scroll propio
           }}
         >
           <IconButton
@@ -182,8 +183,8 @@ export const SelectProjectModal = ({
                 }}
                 sx={{ height: 'auto', mb: 1 }}
               />
-              
-              <Divider sx={{mb: 1}}/>
+
+              <Divider sx={{ mb: 1 }} />
 
               {filteredProjects.length === 0 ? (
                 <Box
@@ -203,7 +204,7 @@ export const SelectProjectModal = ({
                   <Typography variant="body1" color="textSecondary" sx={{
                     color: 'gray',
                     fontStyle: 'italic',
-                    textAlign: 'center', 
+                    textAlign: 'center',
                     fontSize: '0.9rem',
                   }}>
                     No se encontraron resultados para “{searchQuery}”
@@ -212,8 +213,7 @@ export const SelectProjectModal = ({
               ) : (
                 <List
                   sx={{
-                    maxHeight: "80%",
-                    minHeight: "auto",
+                    flex: 1,
                     overflowY: "auto",
                     "&::-webkit-scrollbar": { width: "2px" },
                     "&::-webkit-scrollbar-track": {
@@ -229,7 +229,7 @@ export const SelectProjectModal = ({
                     },
                     px: 1,
                   }}
-                  
+
                 >
                   {filteredProjects.map((project) => (
                     <ListItemButton
@@ -285,7 +285,6 @@ export const SelectProjectModal = ({
           )}
         </Box>
       </Modal>
-
     </>
   );
 };

@@ -213,7 +213,6 @@ const StrategicPlanningDashboardPage = () => {
               disabled={isChildDirty}
               availableYears={allPlans.map(p => p.year)}
               onChange={(newYear) => {
-                console.log("holaaaaaaaaaa", )
                 if (newYear === selectedYear) return;
                 console.log("Cahuuu", )
                 setIsCreatingNewPlan(false);

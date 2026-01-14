@@ -9,7 +9,7 @@ export const SpinnerLoading = ({
 }) => {
   if (!open) return null;
 
-  return (
+  return ( 
     <Box
       sx={{
         width: "100%",

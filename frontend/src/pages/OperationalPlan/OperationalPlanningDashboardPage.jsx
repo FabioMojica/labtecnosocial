@@ -25,32 +25,14 @@ const OperationalPlanningDashboardPage = () => {
   const { notify } = useNotification();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [error, setError] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [planLoadError, setPlanLoadError] = useState(false);
-  const [loadingRows, setLoadingRows] = useState(false);
-
-
-  const handlePlanLoadError = (hasError) => {
-    setPlanLoadError(hasError);
-  };
-
-
   const navigate = useNavigate();
-
-  const [hasPlan, setHasPlan] = useState(true);
-
-  useEffect(() => {
-    if (selectedProjectId) {
-      setViewMode("editable");
-    }
-  }, [selectedProjectId]);
-
-  useEffect(() => {
-    if (selectedProjectId) {
-      setHasPlan(true);
-    }
-  }, [selectedProjectId]);
-
+  const [projectWithoutPlan, setProjectWithoutPlan] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges ] = useState(false);
+  
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem(VIEW_MODE_KEY) || "editable";
+  });
 
   const fetchProjects = async () => {
     try {
@@ -61,52 +43,37 @@ const OperationalPlanningDashboardPage = () => {
       setError(true);
     }
   };
-
   useEffect(() => {
     fetchProjects();
   }, []);
-
   useEffect(() => {
     if (selectedProjectId) {
       navigate(`/planificacion/operativa/${selectedProjectId}`, { replace: true });
     } else {
       navigate(`/planificacion/operativa`, { replace: true });
     }
+    setViewMode('editable');
   }, [selectedProjectId, navigate]);
 
-  useEffect(() => {
-    if (id) {
-      const parsedId = Number(id);
-      if (!isNaN(parsedId) && parsedId !== selectedProjectId) {
-        setSelectedProjectId(parsedId);
-      }
-    }
-  }, [id]);
-
-  const [viewMode, setViewMode] = useState(() => {
-    return localStorage.getItem(VIEW_MODE_KEY) || "editable";
-  });
-
-
-  useEffect(() => {
-    localStorage.setItem(VIEW_MODE_KEY, viewMode);
-  }, [viewMode]);
-
-  const handleProjectWithoutPlan = () => {
-    setHasPlan(false);
+  const handleProjectWithoutPlan = (valor) => {
+    setProjectWithoutPlan(valor);
+  };
+  const handleErrorFetchedPlan = (valor) => {
+    setPlanLoadError(valor);
   };
 
   const handleProjectChange = (newId) => {
     setSelectedProjectId(Number(newId));
   };
-
+ 
   const handleDeleteOperationalPlanningTable = async () => {
     if (!selectedProjectId) return;
     try {
       await deleteOperationalPlanningApi(selectedProjectId);
       notify('Planificación operativa del proyecto eliminada correctamente.', 'success');
-      setHasPlan(false);
+      handleProjectWithoutPlan(true);
     } catch (err) {
+      console.log("hola", err)
       notify("Ocurrió un error inesperado al eliminar la planificación operativa del proyecto. Inténtalo de nuevo más tarde.", 'error');
     } finally {
       setDeleteDialogOpen(false);
@@ -117,7 +84,7 @@ const OperationalPlanningDashboardPage = () => {
     return <FullScreenProgress text={"Obteniendo los proyectos"} />
   }
 
-  if (error) {
+  if (error) { 
     return <ErrorScreen message="Ocurrió un error al obtener los proyectos" buttonText="Intentar de nuevo" onButtonClick={() => fetchProjects()} />
   }
 
@@ -125,7 +92,7 @@ const OperationalPlanningDashboardPage = () => {
 
 
   return (
-    <Box sx={{ pt: { xs: 2 } }}>
+    <Box> 
       <Box
         sx={{
           display: "flex",
@@ -167,64 +134,68 @@ const OperationalPlanningDashboardPage = () => {
             selectedProjectId={selectedProjectId}
             onChange={handleProjectChange}
             loading={loading}
-            disabled={isEditing}
+            disabled={hasUnsavedChanges}
           />
 
-          {(selectedProjectId && hasPlan && !planLoadError) && (
-            <FormControl
-              sx={{
-                minWidth: { xs: 50, sm: 150 }
-              }}
-              size="small"
-              disabled={!selectedProjectId || isEditing}
-            >
-              <InputLabel id="view-mode-label">Modo de vista</InputLabel>
-              <Select
-                labelId="view-mode-label"
-                value={viewMode}
-                label="Modo de vista"
-                onChange={(e) => setViewMode(e.target.value)}
-                sx={{
-                  '& .MuiSelect-select': {
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: '100%',
-                  },
-                }}
-              >
-                <MenuItem value="editable">Editable</MenuItem>
-                <MenuItem value="readonly">Solo lectura</MenuItem>
-              </Select>
-            </FormControl>
-          )}
-
-          {(selectedProjectId && hasPlan && !planLoadError && !loadingRows && viewMode === 'editable') && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Tooltip title="Eliminar el plan operativo">
-
-                <IconButton
-                  onClick={() => setDeleteDialogOpen(true)}
-                  color="error"
+          {!projectWithoutPlan && !planLoadError && (
+            <>
+              {(selectedProjectId) && (
+                <FormControl
                   sx={{
-                    boxShadow: 3,
-                    width: 40,
-                    height: 40,
-                    ml: 1,
+                    minWidth: { xs: 50, sm: 150 }
                   }}
-                  disabled={isEditing}
+                  size="small"
+                  disabled={!selectedProjectId || hasUnsavedChanges}
+                > 
+                  <InputLabel id="view-mode-label">Modo de vista</InputLabel>
+                  <Select 
+                    labelId="view-mode-label"
+                    value={viewMode}
+                    label="Modo de vista"
+                    onChange={(e) => setViewMode(e.target.value)}
+                    sx={{
+                      '& .MuiSelect-select': { 
+                        display: 'block',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: '100%',
+                      },
+                    }}
+                  >
+                    <MenuItem value="editable">Editable</MenuItem>
+                    <MenuItem value="readonly">Solo lectura</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+
+              {(viewMode === 'editable' && selectedProjectId) && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <DeleteOutlineIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
+                  <Tooltip title="Eliminar el plan operativo">
+
+                    <IconButton
+                      onClick={() => setDeleteDialogOpen(true)}
+                      color="error"
+                      sx={{
+                        boxShadow: 3,
+                        width: 40,
+                        height: 40,
+                        ml: 1,
+                      }}
+                      disabled={hasUnsavedChanges}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              )}
+            </>
           )}
         </Box>
       </Box>
@@ -236,27 +207,24 @@ const OperationalPlanningDashboardPage = () => {
         onDeletePlan={handleDeleteOperationalPlanningTable}
       />
 
-      {selectedProjectId && (
+      {selectedProjectId && selectedProject && (
         viewMode === 'editable' ? (
           <OperationalPlanningTable
             projectId={selectedProjectId}
             project={selectedProject}
-            onProjectIdChange={setSelectedProjectId}
             onProjectWithoutPlan={handleProjectWithoutPlan}
-            onProjectHasPlan={() => setHasPlan(true)}
-            onEditingChange={setIsEditing}
-            hasPlan={hasPlan}
-            onLoadError={handlePlanLoadError}
+            projectWithoutPlan={projectWithoutPlan}
+            onUnsavedChanges={(hasChanges) => setHasUnsavedChanges(hasChanges)}
+            onErrorFetchedPlan={handleErrorFetchedPlan}
           />
         ) : (
           <OperationalPlanningReadOnlyTable
             projectId={selectedProjectId}
-            onProjectIdChange={setSelectedProjectId}
             project={selectedProject}
             onProjectWithoutPlan={handleProjectWithoutPlan}
-            hasPlan={hasPlan}
-            onLoadError={handlePlanLoadError}
-            onLoadingRowsChange={setLoadingRows}
+            projectWithoutPlan={projectWithoutPlan}
+            onUnsavedChanges={(hasChanges) => setHasUnsavedChanges(hasChanges)}
+            onErrorFetchedPlan={handleErrorFetchedPlan}
           />
         ))
       }
