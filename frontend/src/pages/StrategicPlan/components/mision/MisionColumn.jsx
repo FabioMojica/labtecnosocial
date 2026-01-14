@@ -28,7 +28,7 @@ const MisionColumn = ({ missionRef, mission, onEdit, onDelete, onCreate, isSelec
         flexDirection: 'column',
         gap: 1,
         position: 'sticky',
-        top: isFullscreen ? 0 : 80 + headerHeight,
+        top: isFullscreen ? 0 : 80 + headerHeight, 
         overflow: 'hidden', 
         borderRadius: 2,
         zIndex: 998,

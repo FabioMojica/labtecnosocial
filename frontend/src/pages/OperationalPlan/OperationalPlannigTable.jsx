@@ -709,7 +709,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, on
         <>
             <Box
                 sx={{
-                    display: 'flex',
+                    display: 'flex', 
                     flexDirection: 'column',
                     position: isFullscreen ? 'fixed' : 'relative',
                     top: isFullscreen ? 0 : 'auto',

@@ -56,7 +56,7 @@ const AppContent = () => {
   return (
     <>
       {isAuthenticated && <Header />}
-      {isAuthenticated && <Toolbar />} 
+      {isAuthenticated && <Toolbar />}
 
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -78,7 +78,7 @@ const AppContent = () => {
   );
 };
 
-function App() { 
+function App() {
   const theme = useTheme();
   const snackbarClasses = useSnackbarStyles();
   const [modalOpen, setModalOpen] = useState(false);
@@ -116,15 +116,20 @@ function App() {
                             sx={{
                               flexGrow: 1,
                               minHeight: '100vh',
-                              pl: {
-                                sm: getDrawerClosedWidth(theme, 'sm'),
-                              },
+                              pl: { 
+                                lg: getDrawerClosedWidth(), 
+                              }, 
                               maxWidth: 2000,
+                            }}> 
+                            <Box sx={{
+                              width: '100%',
+                              px: {xs: 0, lg: 1},
                             }}>
-                            {/* BURBUJA DEL REPORTE */}
-                            <ReportBubble onClick={() => setModalOpen(true)} />
-                            <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
-                            <AppContent />
+                              {/* BURBUJA DEL REPORTE */}
+                              <ReportBubble onClick={() => setModalOpen(true)} />
+                              <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
+                              <AppContent />
+                            </Box>
                           </Box>
                         </Box>
                       </ReportProvider>

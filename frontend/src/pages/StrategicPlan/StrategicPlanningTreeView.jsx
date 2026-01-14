@@ -26,6 +26,9 @@ const getRandomSoftColor = (bgColor) => {
 };
 
 const StrategicPlanningTreeView = ({ data, year }) => {
+  console.log("dataaaaa", data);
+
+
   const theme = useTheme();
   const [planVersion, setPlanVersion] = useState(data?.plan_version || 0);
 
@@ -258,12 +261,9 @@ const StrategicPlanningTreeView = ({ data, year }) => {
       "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
       "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
       "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
-      pr: 1,
-      pl: {
-        xs: 1,
-        sm: 0
-      },
       maxWidth: '100vw',
+      px: {xs: 1, lg: 0},
+      mb: 2
     }}>
       <Paper
         sx={{
@@ -376,7 +376,7 @@ const StrategicPlanningTreeView = ({ data, year }) => {
                   Fecha de actualización:{" "}
                   <Typography
                     component="span"
-                    variant="body1"
+                    variant="body1" 
                     color="textSecondary"
                     sx={{
                       fontStyle: 'italic',

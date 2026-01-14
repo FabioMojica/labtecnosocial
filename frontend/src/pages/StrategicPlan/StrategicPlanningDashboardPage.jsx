@@ -163,7 +163,7 @@ const StrategicPlanningDashboardPage = () => {
 
 
   return (
-    <Box maxWidth sx={{ py: 2 }}>
+    <Box maxWidth>
       <Box sx={{ display: 'flex', flexDirection: 'column', }}>
         <Box
           sx={{

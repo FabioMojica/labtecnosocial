@@ -4,12 +4,14 @@ export function useLayoutOffsets(containerRef) {
   const [offsets, setOffsets] = useState({
     left: 0,
     right: 0,
+    width: 0,
     hasScroll: false,
     scrollbarWidth: 0,
   });
 
   const updateOffsets = useCallback(() => {
     if (!containerRef.current) return;
+    console.log("Hola")
 
     const rect = containerRef.current.getBoundingClientRect();
 
@@ -22,9 +24,8 @@ export function useLayoutOffsets(containerRef) {
     setOffsets({
       left: rect.left,
       right:
-        window.innerWidth -
-        rect.right -
-        (hasVerticalScroll ? scrollbarWidth : 0),
+        window.innerWidth - rect.right - (hasVerticalScroll ? scrollbarWidth : 0),
+      width: rect.width,
       hasScroll: hasVerticalScroll,
       scrollbarWidth,
     });
@@ -34,14 +35,12 @@ export function useLayoutOffsets(containerRef) {
     updateOffsets();
 
     window.addEventListener("resize", updateOffsets);
-    window.addEventListener("scroll", updateOffsets);
 
     const observer = new ResizeObserver(updateOffsets);
-    observer.observe(document.body);
+    observer.observe(document.body); 
 
     return () => {
       window.removeEventListener("resize", updateOffsets);
-      window.removeEventListener("scroll", updateOffsets);
       observer.disconnect();
     };
   }, [updateOffsets]);

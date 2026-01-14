@@ -81,7 +81,7 @@ export const Header = () => {
     };
 
     return (
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, mb: 1 }}> 
             {user && (
                 <>
                     <AppBar
