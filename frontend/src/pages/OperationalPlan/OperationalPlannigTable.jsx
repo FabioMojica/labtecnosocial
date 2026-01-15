@@ -28,7 +28,7 @@ import { getDrawerClosedWidth } from '../../utils';
 import { useDirty } from '../../contexts/DirtyContext';
 import { formatDate } from '../../utils/formatDate';
 
-const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, projectWithoutPlan, onUnsavedChanges, onErrorFetchedPlan }) => {
+const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, projectWithoutPlan, onUnsavedChanges, onErrorFetchedPlan, onProjectLoading }) => {
 
     const confirm = useConfirm();
     const theme = useTheme();
@@ -203,6 +203,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
 
     const fetchProjectDetails = async () => {
         setLoadingProjectDetails(true);
+        onProjectLoading(true);
         try {
             const response = await getOperationalPlanOfProjectApi(projectId);
 
@@ -250,6 +251,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
             console.log(error)
         } finally {
             setLoadingProjectDetails(false);
+            onProjectLoading(false);
         }
     };
 
@@ -700,9 +702,20 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                 <Divider sx={{ width: '100%' }} />
                 <NoResultsScreen
                     message='Proyecto sin plan operativo registrado'
-                    buttonText={'Crear plan operativo'}
+                    buttonText="Crear plan operativo"
                     onButtonClick={() => handleAddRow()}
                     sx={{ height: "60vh", p: 2 }}
+                    buttonSx={{
+                        backgroundColor: "primary.main",
+                        color: "primary.contrastText",
+                        "&:hover": {
+                            backgroundColor: "primary.dark",
+                        },
+                        "&.Mui-disabled": {
+                            backgroundColor: "action.disabledBackground",
+                            color: "action.disabled",
+                        },
+                    }}
                 />
             </Box>
         )
@@ -945,7 +958,8 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                 borderLeft: '1px solid',
                                 borderRight: '1px solid',
                                 borderColor: 'divider',
-
+                                borderBottomLeftRadius: !planInfo?.operationalPlan_created_at ? 10 : 0,
+                                borderBottomRightRadius: !planInfo?.operationalPlan_created_at ? 10 : 0,
                             }}>
                             <Box
                                 sx={{
@@ -1126,12 +1140,8 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
 
                     </>
                 )}
-
-
-
-
-
-                {(planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && planInfo?.operationalPlan_version !== 0) && (
+            </Box>
+            {(planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && planInfo?.operationalPlan_version !== 0) && (
                     <Box sx={{
                         bgcolor: 'background.paper',
                         width: '100%',
@@ -1202,7 +1212,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                         </Box>
                     </Box>
                 )}
-            </Box >
 
             <Menu
                 open={contextMenu !== null}

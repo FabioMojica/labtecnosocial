@@ -27,11 +27,26 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
       await callEndpoint(onDeletePlan());
       onClose();
     } catch (error) {
+      throw error;
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      maxWidth="sm"
+      fullWidth
+      onClose={(event, reason) => {
+        if (loading) {
+          if (reason === 'backdropClick') {
+            return;
+          }
+          return;
+        }
+        onClose();
+      }}
+      disableEscapeKeyDown={loading}
+    >
       <Box sx={{
         width: '100%',
         height: '100%',
@@ -65,10 +80,7 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
 
           <List sx={{ pl: 2, mb: 2 }}>
             <ListItem sx={{ display: 'list-item', py: 0 }}>
-              <ListItemText primary="* Todas las filas del plan operativo serán eliminadas permanentemente." />
-            </ListItem>
-            <ListItem sx={{ display: 'list-item', py: 0 }}>
-              <ListItemText primary="* La vista documento del plan operativo también se eliminará permanentemente." />
+              <ListItemText primary="* Todo el plan operativo del proyecto seleccionado será eliminado permanentemente." />
             </ListItem>
             <ListItem sx={{ display: 'list-item', py: 0 }}>
               <ListItemText primary="* Esta operación no se puede deshacer." sx={{

@@ -107,7 +107,7 @@ const StrategicPlanningDashboardPage = () => {
 
       const res = await callEndpoint(getStrategicPlanByYearApi(yearToFetch));
 
-      console.log("fesp", res) 
+      console.log("fesp", res)
       setPlanData(normalizePlanData(res));
       setShowColumnsView(true);
     } catch (error) {
@@ -170,7 +170,7 @@ const StrategicPlanningDashboardPage = () => {
             display: "flex",
             flexDirection: {
               sm: 'row',
-              xs: 'column' 
+              xs: 'column'
             },
             alignItems: "center",
             justifyContent: "space-between",
@@ -214,9 +214,9 @@ const StrategicPlanningDashboardPage = () => {
               availableYears={allPlans.map(p => p.year)}
               onChange={(newYear) => {
                 if (newYear === selectedYear) return;
-                console.log("Cahuuu", )
+                console.log("Cahuuu",)
                 setIsCreatingNewPlan(false);
-                setIsChildDirty(false); 
+                setIsChildDirty(false);
                 setSelectedYear(newYear);
                 setPlanData(null);
                 setShowColumnsView(false);
@@ -244,32 +244,32 @@ const StrategicPlanningDashboardPage = () => {
               >
                 <Tooltip title={`Eliminar el plan estratégico del año ${selectedYear}`}>
                   <span>
-                  <IconButton
-                    onClick={() => setDeleteDialogOpen(true)}
-                    color="error"
-                    disabled={isChildDirty}
-                    sx={{
-                      boxShadow: 3,
-                      width: 40,
-                      height: 40,
-                    }}
-                  >
-                    <DeleteOutlineIcon />
-                  </IconButton>
+                    <IconButton
+                      onClick={() => setDeleteDialogOpen(true)}
+                      color="error"
+                      disabled={isChildDirty}
+                      sx={{
+                        boxShadow: 3,
+                        width: 40,
+                        height: 40,
+                      }}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
                   </span>
                 </Tooltip>
               </Box>
             )}
           </Box>
         </Box>
-        
+
       </Box>
 
-      {!planData &&  hasFetchedPlan && (
+      {!planData && hasFetchedPlan && (
         <>
-          <Divider sx={{mr: 1, ml: {xs: 1}}} />
+          <Divider sx={{ mr: 1, ml: { xs: 1 } }} />
           <NoResultsScreen
-            message="Año sin plan estratégico registrado"
+            message='Año sin plan estratégico registrado'
             buttonText={
               user?.role === "admin"
                 ? "Crear Plan Estratégico"
@@ -280,8 +280,18 @@ const StrategicPlanningDashboardPage = () => {
                 ? onChangeToColumnsView
                 : undefined
             }
-            sx={{ height: "60vh" }}
-          />
+            sx={{ height: "80vh" }}
+            buttonSx={{
+              backgroundColor: "primary.main",
+              color: "primary.contrastText",
+              "&:hover": {
+                backgroundColor: "primary.dark",
+              },
+              "&.Mui-disabled": {
+                backgroundColor: "action.disabledBackground",
+                color: "action.disabled",
+              },
+            }} />
         </>
       )}
 
@@ -296,7 +306,7 @@ const StrategicPlanningDashboardPage = () => {
                 setIsCreatingNewPlan(false);
                 if (!newPlan) {
                   setPlanData(null);
-                  setShowColumnsView(false); 
+                  setShowColumnsView(false);
                   setAllPlans((prev) => prev.filter((p) => p.year !== selectedYear));
                   return;
                 }

@@ -8,6 +8,7 @@ import { FullScreenProgress } from "../../../generalComponents";
 import { deleteProjectByIdApi } from "../../../api";
 import { Link as MuiLink } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
+import { slugify } from "../../../utils/slugify";
 
 
 export const MorePanel = ({ project, panelHeight }) => {
@@ -78,7 +79,6 @@ export const MorePanel = ({ project, panelHeight }) => {
                                             <MuiLink
                                             component={RouterLink}
                                                 to={`/planificacion/estrategica/${project?.program?.objective?.strategicPlan?.year}`}
-                                                
                                                 sx={{ color: 'orange', fontWeight: 'bold', textDecoration: 'none' }}
                                             >
                                                 planificación estratégica del año {project?.program?.objective?.strategicPlan?.year}
@@ -100,11 +100,12 @@ export const MorePanel = ({ project, panelHeight }) => {
                                         * Se eliminará también todo su{' '}
                                         <MuiLink
                                             component={RouterLink}
-                                            to={`/planificacion/operativa/${project?.id}`}
+                                            to={`/planificacion-operativa/${slugify(project?.name)}`}
+                                            state={{ id: project?.id }}
                                             sx={{ color: 'orange', fontWeight: 'bold', textDecoration: 'none' }}
                                         >
                                             plan operativo
-                                        </MuiLink>{' '}
+                                        </MuiLink>{' '} 
                                         asociado.
                                     </>
                                 }

@@ -192,8 +192,7 @@ export function ProjectsListPage() {
             case "admin":
                 return <NoResultsScreen
                     message='Aún no tienes proyectos registrados'
-                    buttonText="Crear uno"
-                    triggerOnEnter
+                    buttonText="Crear Proyecto"
                     onButtonClick={() => navigate("/proyectos/crear")}
                     buttonSx={{
                         backgroundColor: "primary.main",

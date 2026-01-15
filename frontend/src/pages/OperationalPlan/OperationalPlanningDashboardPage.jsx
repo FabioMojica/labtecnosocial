@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Tooltip, IconButton, Divider, TextField } from "@mui/material";
 import OperationalPlanningTable from "./OperationalPlannigTable";
@@ -7,20 +7,17 @@ import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import { ErrorScreen, FullScreenProgress, NoResultsScreen } from "../../generalComponents";
 import { SelectProjectModal } from "../../generalComponents/SelectProjectModal";
 import { deleteOperationalPlanningApi, getAllOperationalProjectsApi } from "../../api";
-import { useAuthEffects, useFetchAndLoad } from "../../hooks";
 import { useNotification } from "../../contexts";
 import DeleteOperationalPlanningTableDialog from "./components/DeleteOperationalPlanningTableDialog";
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-
-const VIEW_MODE_KEY = "operationalPlanningViewMode";
+import { slugify } from "../../utils/slugify";
+import { useFetchAndLoad } from "../../hooks";
 
 const OperationalPlanningDashboardPage = () => {
-  const { id } = useParams();
+  const location = useLocation();
+  const id = location.state?.id;
   const [projects, setProjects] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState(() => {
-    const parsed = Number(id);
-    return !isNaN(parsed) ? parsed : "";
-  });
+  const [selectedProject, setSelectedProject] = useState(null);
   const { loading, callEndpoint } = useFetchAndLoad();
   const { notify } = useNotification();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -28,11 +25,10 @@ const OperationalPlanningDashboardPage = () => {
   const [planLoadError, setPlanLoadError] = useState(false);
   const navigate = useNavigate();
   const [projectWithoutPlan, setProjectWithoutPlan] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges ] = useState(false);
-  
-  const [viewMode, setViewMode] = useState(() => {
-    return localStorage.getItem(VIEW_MODE_KEY) || "editable";
-  });
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [ loadingProject, setLoadingProject ] = useState(false);
+
+  const [viewMode, setViewMode] = useState('editable')
 
   const fetchProjects = async () => {
     try {
@@ -46,14 +42,33 @@ const OperationalPlanningDashboardPage = () => {
   useEffect(() => {
     fetchProjects();
   }, []);
+
   useEffect(() => {
-    if (selectedProjectId) {
-      navigate(`/planificacion/operativa/${selectedProjectId}`, { replace: true });
-    } else {
-      navigate(`/planificacion/operativa`, { replace: true });
+    if (selectedProject) {
+
+      navigate(
+        `/planificacion-operativa/${slugify(selectedProject?.name)}`,
+        { replace: true },
+        {
+          state: { id: id }
+        }
+      );
+      setViewMode('editable');
+
     }
-    setViewMode('editable');
-  }, [selectedProjectId, navigate]);
+  }, [selectedProject]);
+
+  useEffect(() => {
+    if (!id || projects.length === 0) return;
+
+    const projectFromState = projects.find(p => p.id === id);
+
+    if (projectFromState) {
+      setSelectedProject(projectFromState);
+      setViewMode('editable');
+    }
+  }, [id, projects]);
+
 
   const handleProjectWithoutPlan = (valor) => {
     setProjectWithoutPlan(valor);
@@ -61,15 +76,17 @@ const OperationalPlanningDashboardPage = () => {
   const handleErrorFetchedPlan = (valor) => {
     setPlanLoadError(valor);
   };
-
-  const handleProjectChange = (newId) => {
-    setSelectedProjectId(Number(newId));
+  const handleProjectChange = (project) => {
+    setSelectedProject(project);
   };
- 
+  const handleLoadingProject = (valor) => {
+    setLoadingProject(valor);
+  };
+
   const handleDeleteOperationalPlanningTable = async () => {
-    if (!selectedProjectId) return;
+    if (!selectedProject) return;
     try {
-      await deleteOperationalPlanningApi(selectedProjectId);
+      await deleteOperationalPlanningApi(selectedProject?.id);
       notify('Planificación operativa del proyecto eliminada correctamente.', 'success');
       handleProjectWithoutPlan(true);
     } catch (err) {
@@ -84,15 +101,12 @@ const OperationalPlanningDashboardPage = () => {
     return <FullScreenProgress text={"Obteniendo los proyectos"} />
   }
 
-  if (error) { 
+  if (error) {
     return <ErrorScreen message="Ocurrió un error al obtener los proyectos" buttonText="Intentar de nuevo" onButtonClick={() => fetchProjects()} />
   }
 
-  const selectedProject = projects.find(p => p.id === Number(selectedProjectId));
-
-
   return (
-    <Box> 
+    <Box>
       <Box
         sx={{
           display: "flex",
@@ -131,30 +145,30 @@ const OperationalPlanningDashboardPage = () => {
         }}>
           <SelectProjectModal
             projects={projects}
-            selectedProjectId={selectedProjectId}
+            selectedProject={selectedProject}
             onChange={handleProjectChange}
             loading={loading}
             disabled={hasUnsavedChanges}
           />
 
-          {!projectWithoutPlan && !planLoadError && (
+          {!projectWithoutPlan && !planLoadError && !loading && !loadingProject && (
             <>
-              {(selectedProjectId) && (
+              {(selectedProject) && (
                 <FormControl
                   sx={{
                     minWidth: { xs: 50, sm: 150 }
                   }}
                   size="small"
-                  disabled={!selectedProjectId || hasUnsavedChanges}
-                > 
+                  disabled={!selectedProject || hasUnsavedChanges}
+                >
                   <InputLabel id="view-mode-label">Modo de vista</InputLabel>
-                  <Select 
+                  <Select
                     labelId="view-mode-label"
                     value={viewMode}
                     label="Modo de vista"
                     onChange={(e) => setViewMode(e.target.value)}
                     sx={{
-                      '& .MuiSelect-select': { 
+                      '& .MuiSelect-select': {
                         display: 'block',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -169,7 +183,7 @@ const OperationalPlanningDashboardPage = () => {
                 </FormControl>
               )}
 
-              {(viewMode === 'editable' && selectedProjectId) && (
+              {(viewMode === 'editable' && selectedProject) && (
                 <Box
                   sx={{
                     display: 'flex',
@@ -203,33 +217,35 @@ const OperationalPlanningDashboardPage = () => {
       <DeleteOperationalPlanningTableDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        project={projects.find(p => p.id === Number(selectedProjectId))}
+        project={selectedProject}
         onDeletePlan={handleDeleteOperationalPlanningTable}
       />
 
-      {selectedProjectId && selectedProject && (
+      {selectedProject && (
         viewMode === 'editable' ? (
           <OperationalPlanningTable
-            projectId={selectedProjectId}
+            projectId={selectedProject?.id}
             project={selectedProject}
             onProjectWithoutPlan={handleProjectWithoutPlan}
             projectWithoutPlan={projectWithoutPlan}
             onUnsavedChanges={(hasChanges) => setHasUnsavedChanges(hasChanges)}
             onErrorFetchedPlan={handleErrorFetchedPlan}
+            onProjectLoading={handleLoadingProject}
           />
         ) : (
           <OperationalPlanningReadOnlyTable
-            projectId={selectedProjectId}
+            projectId={selectedProject?.id}
             project={selectedProject}
             onProjectWithoutPlan={handleProjectWithoutPlan}
             projectWithoutPlan={projectWithoutPlan}
             onUnsavedChanges={(hasChanges) => setHasUnsavedChanges(hasChanges)}
             onErrorFetchedPlan={handleErrorFetchedPlan}
+            onProjectLoading={handleLoadingProject}
           />
         ))
       }
 
-      {!selectedProjectId && (
+      {!selectedProject && (
         <>
           <Divider sx={{ mr: 1, ml: { xs: 1 } }} />
           <NoResultsScreen

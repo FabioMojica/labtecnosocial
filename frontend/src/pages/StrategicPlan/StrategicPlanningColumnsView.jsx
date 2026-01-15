@@ -697,6 +697,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
                 color="error"
                 sx={{ width: '170px', height: '100%' }}
                 onClick={() => handleDiscardChanges()}
+                disabled={loading}
               >
                 Descartar cambios
               </Button>

@@ -121,7 +121,7 @@ export const CoordinatorLayout = () => {
                             title="Planificación Operativa"
                             description="Crea y edita planes operativos de los proyectos de los que eres responsable"
                             icon={<TableChartRoundedIcon fontSize="large" />}
-                            link="/planificacion/operativa"
+                            link="/planificacion-operativa"
                         />
                     </Grid>
                     <Grid size={{ xs: 6, md: 4 }}>

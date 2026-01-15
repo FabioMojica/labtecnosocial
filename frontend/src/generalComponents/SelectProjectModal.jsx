@@ -25,7 +25,7 @@ const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 export const SelectProjectModal = ({
   sx,
   projects = [],
-  selectedProjectId,
+  selectedProject,
   onChange,
   loading = false,
   disabled = false,
@@ -43,13 +43,11 @@ export const SelectProjectModal = ({
 
 
   const handleSelect = (project) => {
-    onChange(project.id);
+    onChange(project);
     setOpen(false);
   };
 
-  const selectedProject = projects.find((p) => p.id === selectedProjectId);
-
-  return (
+  return ( 
     <>
 
       <Button
@@ -126,9 +124,9 @@ export const SelectProjectModal = ({
             px: 3,
             pt: 2,
             position: 'relative',
-            display: 'flex',         // <--- hacer que los hijos puedan usar flex
-            flexDirection: 'column', // <--- para que searchbar + list se apilen
-            overflow: 'hidden',      // mantiene el modal sin scroll propio
+            display: 'flex',         
+            flexDirection: 'column', 
+            overflow: 'hidden',     
           }}
         >
           <IconButton
@@ -148,14 +146,20 @@ export const SelectProjectModal = ({
             </Box>
           ) : projects.length === 0 ? (
             <NoResultsScreen
-              message="No tienes ningún proyecto registrado en el sistema"
-              buttonText="Registrar un proyecto"
-              onButtonClick={() => navigate('/proyectos/crear')}
-              sx={{
-                height: '100%',
-                width: '100%',
-              }}
-            />
+              message='Aún no tienes proyectos registrados'
+              buttonText="Crear uno"
+              onButtonClick={() => navigate("/proyectos/crear")}
+              buttonSx={{
+                backgroundColor: "primary.main",
+                color: "primary.contrastText",
+                "&:hover": {
+                  backgroundColor: "primary.dark",
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: "action.disabledBackground",
+                  color: "action.disabled",
+                },
+              }} />
           ) : (
             <>
               <Typography
@@ -234,7 +238,7 @@ export const SelectProjectModal = ({
                   {filteredProjects.map((project) => (
                     <ListItemButton
                       key={project.id}
-                      selected={project.id === selectedProjectId}
+                      selected={project.id === selectedProject?.id}
                       onClick={() => handleSelect(project)}
                       sx={{
                         border: '1px solid',
@@ -271,7 +275,7 @@ export const SelectProjectModal = ({
                           noWrap: true,
                           sx: {
                             fontWeight:
-                              project.id === selectedProjectId
+                              project.id === selectedProject?.id
                                 ? "bold"
                                 : "normal",
                           },
