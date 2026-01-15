@@ -44,7 +44,21 @@ const IndicatorItem = ({ setGlobalModalOpen, value, onUpdate, onDelete }) => {
           textAlign: 'left',
           justifyContent: 'space-between',
           boxShadow: 3,
-          gap: 0.5
+          gap: 0.5,
+          p: 1,
+          '&:hover': {
+            backgroundColor:
+              theme.palette.mode === 'light'
+                ? 'rgba(0, 0, 0, 0.05)'
+                : 'rgba(255, 255, 255, 0.08)',
+            transition: 'background-color 0.2s ease',
+          },
+          borderRadius: 1,
+          cursor: 'pointer',
+          border: theme.palette.mode === "light"
+            ? `1px solid #b9c0b3ff`
+            : "1px solid #e0e0e0",
+          transition: 'box-shadow 0.3s ease',
         }}
       >
         {hasIndicator ? (

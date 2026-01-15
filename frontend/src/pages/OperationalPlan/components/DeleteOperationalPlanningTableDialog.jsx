@@ -25,7 +25,6 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
   const handleDelete = async () => {
     try {
       await callEndpoint(onDeletePlan());
-      onClose();
     } catch (error) {
       throw error;
     }
@@ -96,6 +95,7 @@ const DeleteOperationalPlanningTableDialog = ({ open, onClose, project, onDelete
             Escribe el nombre exacto del proyecto para confirmar:
           </Typography>
           <TextField
+            disabled={loading}
             inputRef={inputRef}
             fullWidth
             value={inputName}

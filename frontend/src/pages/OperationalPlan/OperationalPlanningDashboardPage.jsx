@@ -89,13 +89,11 @@ const OperationalPlanningDashboardPage = () => {
       await deleteOperationalPlanningApi(selectedProject?.id);
       notify('Planificación operativa del proyecto eliminada correctamente.', 'success');
       handleProjectWithoutPlan(true);
-    } catch (err) {
-      console.log("hola", err)
-      notify("Ocurrió un error inesperado al eliminar la planificación operativa del proyecto. Inténtalo de nuevo más tarde.", 'error');
-    } finally {
       setDeleteDialogOpen(false);
-    }
-  };
+    } catch (err) {
+      notify("Ocurrió un error inesperado al eliminar la planificación operativa del proyecto. Inténtalo de nuevo más tarde.", 'error');
+    } 
+  }; 
 
   if (loading) {
     return <FullScreenProgress text={"Obteniendo los proyectos"} />

@@ -38,7 +38,7 @@ export function useLayoutOffsets(containerRef) {
     const observer = new ResizeObserver(updateOffsets);
     observer.observe(document.body); 
 
-    return () => {
+    return () => { 
       window.removeEventListener("resize", updateOffsets);
       observer.disconnect();
     };

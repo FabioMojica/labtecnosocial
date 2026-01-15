@@ -78,15 +78,12 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const headerRef = useRef(null);
   const { height: headerHeight } = useElementSize(headerRef);
 
-  const isXs = useMediaQuery(theme.breakpoints.down('sm')); // <600px
-  const isSm = useMediaQuery(theme.breakpoints.between('sm', 'md')); // 600-900px
-  const isMdUp = useMediaQuery(theme.breakpoints.up('md')); // >900px
+  const isXs = useMediaQuery(theme.breakpoints.down('sm')); 
+  const isSm = useMediaQuery(theme.breakpoints.between('sm', 'md')); 
 
   const [canScroll, setCanScroll] = useState(false);
 
   const { setIsDirtyContext, registerAutoSave } = useDirty();
-
-  const { width } = useLayout();
 
   const currentPlanRef = useRef({
     mission: data?.mission || '',
@@ -187,8 +184,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     } else {
       setScrollDirection('down');
     }
-  };
-
+  }
 
   useEffect(() => {
     const container = isFullscreen ? containerRef.current : window;
@@ -512,7 +508,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
       <Box
         sx={{
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'column', 
           alignItems: 'center',
           justifyContent: 'center',  
           position: isFullscreen ? 'fixed' : 'relative',
@@ -522,9 +518,9 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
           height: isFullscreen ? '100vh' : 'auto',
           bgcolor: (theme) => theme.palette.background.default,
           zIndex: isFullscreen ? 1500 : 'auto',
-          overflow: isFullscreen ? 'auto' : 'visible',
+          overflow: isFullscreen ? 'auto' : 'visible', 
         }}
-      > 
+      >  
         <Box
           ref={headerRef}
           sx={{
@@ -537,7 +533,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             borderBottom: '1px solid',
             borderColor: 'divider',
             p: 1,
-            width: '100%',
+            width: '100%', 
             display: 'flex',
             justifyContent: 'space-between',
             flexDirection: {
@@ -721,10 +717,10 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
           ref={containerRef}
           spacing={2}
           sx={{
-            width: '100%', 
+            width: '100%',  
             px: 1,
             flex: isFullscreen ? 1 : 'unset',
-            overflowY: isFullscreen ? 'auto' : 'visible',
+            overflowY: isFullscreen ? 'auto' : 'visible', 
             width: '100%',
             pb: 2,
             "&::-webkit-scrollbar": { height: "2px", width: "2px" },

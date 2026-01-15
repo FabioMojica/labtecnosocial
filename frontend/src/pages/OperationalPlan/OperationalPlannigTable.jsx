@@ -24,12 +24,11 @@ import { formatRow, isRowEmpty, removeRowIfEmpty } from './utils/rowsFuncions';
 import { useNotification } from '../../contexts';
 import { ButtonWithLoader, ErrorScreen, FullScreenProgress, NoResultsScreen, SearchBar } from '../../generalComponents';
 import { useFetchAndLoad } from '../../hooks';
-import { getDrawerClosedWidth } from '../../utils';
 import { useDirty } from '../../contexts/DirtyContext';
 import { formatDate } from '../../utils/formatDate';
+import { useElementSize } from '../../hooks/useElementSize';
 
 const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, projectWithoutPlan, onUnsavedChanges, onErrorFetchedPlan, onProjectLoading }) => {
-
     const confirm = useConfirm();
     const theme = useTheme();
 
@@ -52,6 +51,8 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
     const [isFullscreen, setIsFullscreen] = useState(false);
 
     const headerRef = useRef(null);
+    const { height: headerHeight } = useElementSize(headerRef);
+
     const [tooltipOpen, setTooltipOpen] = useState(false);
     const [scrollDirection, setScrollDirection] = useState('down');
 
@@ -109,7 +110,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
         if (headerRef.current) {
             const height = headerRef.current.getBoundingClientRect().height;
         }
-    }, [isFullscreen]);
+    }, []);
 
     const handleScrollAction = () => {
         const container = isFullscreen ? containerRef.current : window;
@@ -522,7 +523,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
         if (headerRef.current) {
             const height = headerRef.current.getBoundingClientRect().height;
         }
-    }, [isFullscreen]);
+    }, [isFullscreen, hasChanges]);
 
 
     const handleDiscardChanges = () => {
@@ -675,12 +676,20 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
 
     const hasEmptyRow = rows.some(row => isRowEmpty(row));
 
+     useEffect(() => {
+        if (isFullscreen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }, [isFullscreen]);
+
 
     if (loadingProjectDetails) {
         return (
             <FullScreenProgress text={"Obteniendo el plan operativo"} />
-        ); 
-    } 
+        );
+    }
 
     if (hasLoadError) {
         return (
@@ -721,6 +730,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
         )
     }
 
+
     return (
         <>
             <Box
@@ -734,8 +744,8 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                     height: isFullscreen ? '100vh' : 'auto',
                     bgcolor: (theme) => theme.palette.background.default,
                     zIndex: isFullscreen ? 1500 : 'auto',
+                    maxWidth: { xs: '100vw', lg: '100%' },
                     overflow: isFullscreen ? 'auto' : 'visible',
-                    maxWidth: { xs: '100vw', lg: '100%' }
                 }}
             >
                 {rows.length > 0 && projectId && (
@@ -747,8 +757,8 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                 top: isFullscreen ? 0 : 64,
                                 zIndex: isFullscreen ? 1600 : 999,
                                 bgcolor: 'background.paper',
-                                borderTopLeftRadius: 8,
-                                borderTopRightRadius: 8,
+                                borderTopLeftRadius: 5,
+                                borderTopRightRadius: 5,
                                 borderBottom: 'none',
                                 borderColor: 'divider',
                                 p: 1,
@@ -759,7 +769,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                     xs: 'column',
                                     md: 'row',
                                 },
-                                gap: 1
+                                gap: 1,
                             }}
                         >
 
@@ -900,7 +910,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                 </Box>
                             </Box>
 
-
                             <Box sx={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -934,10 +943,48 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                 </ButtonWithLoader>
                             </Box>
                         </Box>
+
+                        <Grid container sx={{
+                            bgcolor: 'background.paper',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderLeft: 'none',
+                            borderRight: 'none',
+                            position: 'sticky',
+                            top: isFullscreen ? 0 : 80 + headerHeight,
+                            zIndex: isFullscreen ? 1600 : 999,
+                        }}>
+                            {columns.map(({ index, title, key }) => (
+                                <Grid
+                                    key={key}
+                                    size={{ xs: 2, sm: 2, md: 2, lg: 2 }}
+                                >
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            height: 40,
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="h6"
+                                            sx={{ fontWeight: 'bold', textAlign: 'center', width: '100%' }}
+                                        >
+                                            {title}
+                                        </Typography>
+                                    </Box>
+                                </Grid>
+                            ))}
+                        </Grid>
+
                         <Box
                             ref={containerRef}
                             sx={{
+                                maxHeight: isFullscreen ? 'calc(100vh - 64px)' : 'auto',
+                                width: '100%',
                                 overflowX: 'auto',
+                                overflowY: 'visible',
                                 width: '100%',
                                 pb: 1,
                                 "&::-webkit-scrollbar": { height: "2px", width: "2px" },
@@ -960,48 +1007,23 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                 borderColor: 'divider',
                                 borderBottomLeftRadius: !planInfo?.operationalPlan_created_at ? 10 : 0,
                                 borderBottomRightRadius: !planInfo?.operationalPlan_created_at ? 10 : 0,
-                            }}>
+                            }}
+                        >
                             <Box
                                 sx={{
                                     width: '100%',
                                     minWidth: '1020px',
-                                    px: 1,
                                     pb: 1,
                                     flex: isFullscreen ? 1 : 'unset',
-                                    overflowY: isFullscreen ? 'auto' : 'visible',
+                                    overflowY: 'none',
+                                    mt: 1
                                 }}
                                 justifyContent="center"
                             >
-                                {/* === HEADERS === */}
-                                <Grid container>
-                                    {columns.map(({ index, title, key }) => (
-                                        <Grid
-                                            key={key}
-                                            size={{ xs: 2, sm: 2, md: 2, lg: 2 }}
-                                        >
-                                            <Box
-                                                sx={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    height: 40,
-                                                }}
-                                            >
-                                                <Typography
-                                                    variant="h6"
-                                                    sx={{ fontWeight: 'bold', textAlign: 'center', width: '100%' }}
-                                                >
-                                                    {title}
-                                                </Typography>
-                                            </Box>
-                                            <Divider sx={{ mb: 1 }} />
-                                        </Grid>
-                                    ))}
-                                </Grid>
-
                                 {/* === FILAS === */}
                                 {rows.map((row, index) => (
                                     <Box
+                                        disabled={true}
                                         key={row.id ?? row._tempId}
                                         ref={(el) => (rowRefs.current[row.id ?? row._tempId] = el)}
                                         className={
@@ -1016,7 +1038,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                             gap: 1,
                                             borderRadius: 1,
                                             padding: 0.5,
-                                            marginBottom: 1,
+                                            marginBottom: 2,
                                             cursor: 'pointer',
                                             transition: 'background-color 0.15s ease',
                                             '&:hover': {
@@ -1025,7 +1047,8 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                                         ? 'rgba(0, 0, 0, 0.05)'
                                                         : 'rgba(255, 255, 255, 0.08)',
                                             },
-                                            height: 230
+                                            height: 240,
+                                            px: 1
                                         }}
                                     >
                                         <ObjectiveItem
@@ -1099,7 +1122,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                 ))}
                             </Box>
 
-                            <Box sx={{ display: { xs: 'none', lg: 'flex' }, justifyContent: 'center', mt: 1 }}>
+                            <Box sx={{ display: { xs: 'none', lg: 'flex' }, justifyContent: 'center', my: 1 }}>
                                 <Tooltip
                                     title="Añadir fila"
                                     arrow
@@ -1142,76 +1165,76 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                 )}
             </Box>
             {(planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && planInfo?.operationalPlan_version !== 0) && (
-                    <Box sx={{
-                        bgcolor: 'background.paper',
-                        width: '100%',
-                        borderBottomRightRadius: 6,
-                        borderBottomLeftRadius: 6,
-                        p: 1,
-                        display: 'flex',
-                        flexDirection: {
-                            xs: 'column',
-                            lg: 'row'
-                        },
-                        justifyContent: 'space-between',
-                        mb: 1
-                    }}>
-                        {planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && (
-                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                <Typography fontWeight="bold" variant='caption'>
-                                    Fecha de creación:{" "}
-                                    <Typography
-                                        component="span"
-                                        variant="body1"
-                                        color="textSecondary"
-                                        sx={{
-                                            fontStyle: 'italic',
-                                            fontSize: '0.9rem',
-                                        }}
-                                    >
-                                        {formatDate(planInfo?.operationalPlan_created_at)}
-                                    </Typography>
-                                </Typography>
-                                <Typography fontWeight="bold" variant='caption'>
-                                    Fecha de actualización:{" "}
-                                    <Typography
-                                        component="span"
-                                        variant="body1"
-                                        color="textSecondary"
-                                        sx={{
-                                            fontStyle: 'italic',
-                                            fontSize: '0.9rem',
-                                        }}
-                                    >
-                                        {formatDate(planInfo?.operationalPlan_updated_at)}
-                                    </Typography>
-                                </Typography>
-                            </Box>
-                        )}
-
-                        <Box sx={{
-                            display: 'flex',
-                            flexDirection: { xs: 'row', lg: 'column' },
-                            gap: { xs: 1, lg: 0 },
-                            alignItems: 'center'
-                        }}>
+                <Box sx={{
+                    bgcolor: 'background.paper',
+                    width: '100%',
+                    borderBottomRightRadius: 6,
+                    borderBottomLeftRadius: 6,
+                    p: 1,
+                    display: 'flex',
+                    flexDirection: {
+                        xs: 'column',
+                        lg: 'row'
+                    },
+                    justifyContent: 'space-between',
+                    mb: 1
+                }}>
+                    {planInfo?.operationalPlan_created_at && planInfo?.operationalPlan_updated_at && (
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                             <Typography fontWeight="bold" variant='caption'>
-                                Versión del plan:{" "}
+                                Fecha de creación:{" "}
+                                <Typography
+                                    component="span"
+                                    variant="body1"
+                                    color="textSecondary"
+                                    sx={{
+                                        fontStyle: 'italic',
+                                        fontSize: '0.9rem',
+                                    }}
+                                >
+                                    {formatDate(planInfo?.operationalPlan_created_at)}
+                                </Typography>
                             </Typography>
-                            <Typography
-                                component="span"
-                                variant="body1"
-                                color="textSecondary"
-                                sx={{
-                                    fontStyle: 'italic',
-                                    fontSize: '0.9rem',
-                                }}
-                            >
-                                {planInfo?.operationalPlan_version}
+                            <Typography fontWeight="bold" variant='caption'>
+                                Fecha de actualización:{" "}
+                                <Typography
+                                    component="span"
+                                    variant="body1"
+                                    color="textSecondary"
+                                    sx={{
+                                        fontStyle: 'italic',
+                                        fontSize: '0.9rem',
+                                    }}
+                                >
+                                    {formatDate(planInfo?.operationalPlan_updated_at)}
+                                </Typography>
                             </Typography>
                         </Box>
+                    )}
+
+                    <Box sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'row', lg: 'column' },
+                        gap: { xs: 1, lg: 0 },
+                        alignItems: 'center'
+                    }}>
+                        <Typography fontWeight="bold" variant='caption'>
+                            Versión del plan:{" "}
+                        </Typography>
+                        <Typography
+                            component="span"
+                            variant="body1"
+                            color="textSecondary"
+                            sx={{
+                                fontStyle: 'italic',
+                                fontSize: '0.9rem',
+                            }}
+                        >
+                            {planInfo?.operationalPlan_version}
+                        </Typography>
                     </Box>
-                )}
+                </Box>
+            )}
 
             <Menu
                 open={contextMenu !== null}
