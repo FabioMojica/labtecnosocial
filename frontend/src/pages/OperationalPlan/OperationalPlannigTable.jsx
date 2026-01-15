@@ -21,7 +21,7 @@ import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import { getOperationalPlanOfProjectApi, saveOperationalRowsApi } from '../../api';
 
 import { formatRow, isRowEmpty, removeRowIfEmpty } from './utils/rowsFuncions';
-import { useNotification } from '../../contexts';
+import { useHeaderHeight, useNotification } from '../../contexts';
 import { ButtonWithLoader, ErrorScreen, FullScreenProgress, NoResultsScreen, SearchBar } from '../../generalComponents';
 import { useFetchAndLoad } from '../../hooks';
 import { useDirty } from '../../contexts/DirtyContext';
@@ -51,7 +51,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
     const [isFullscreen, setIsFullscreen] = useState(false);
 
     const headerRef = useRef(null);
-    const { height: headerHeight } = useElementSize(headerRef);
+    const { height } = useElementSize(headerRef);
 
     const [tooltipOpen, setTooltipOpen] = useState(false);
     const [scrollDirection, setScrollDirection] = useState('down');
@@ -68,6 +68,29 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
 
     const hasUnsavedChanges = !isEqual(rows, initialRows);
     const hasChanges = () => !isEqual(rows, initialRows);
+
+    const { headerHeight } = useHeaderHeight();
+
+    const rowsWrapperRef = useRef(null);
+    const [rowsHeight, setRowsHeight] = useState(0);
+
+    useEffect(() => {
+        if (!rowsWrapperRef.current) return;
+
+        console.log("Holaaaaaa")
+
+        const observer = new ResizeObserver(([entry]) => {
+            setRowsHeight(entry.contentRect.height);
+        });
+
+        console.log(rowsHeight)
+
+        observer.observe(rowsWrapperRef.current);
+        return () => observer.disconnect();
+
+    }, [rows]);
+
+
 
     useEffect(() => {
         if (typeof onUnsavedChanges === 'function') {
@@ -599,6 +622,8 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                 delete: rowsToDelete.map(r => r.id).filter(Boolean),
             }));
 
+            console.log("respiejsaj", resp)
+
 
             const response = resp?.savedRows;
 
@@ -676,7 +701,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
 
     const hasEmptyRow = rows.some(row => isRowEmpty(row));
 
-     useEffect(() => {
+    useEffect(() => {
         if (isFullscreen) {
             document.body.style.overflow = 'hidden';
         } else {
@@ -753,7 +778,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                         <Box
                             ref={headerRef}
                             sx={{
-                                position: isFullscreen ? 'relative' : 'sticky',
+                                position: 'sticky',
                                 top: isFullscreen ? 0 : 64,
                                 zIndex: isFullscreen ? 1600 : 999,
                                 bgcolor: 'background.paper',
@@ -764,114 +789,110 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                 p: 1,
                                 width: '100%',
                                 display: 'flex',
-                                justifyContent: 'space-between',
-                                flexDirection: {
-                                    xs: 'column',
-                                    md: 'row',
-                                },
-                                gap: 1,
-                            }}
-                        >
-
-                            <Box sx={{
-                                display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 flexDirection: {
                                     xs: 'column',
                                     sm: 'row',
-                                    md: 'row',
-                                    lg: 'row'
                                 },
-                                gap: 1
-                            }}>
-                                <Box sx={{
-                                    display: 'flex',
-                                    gap: 1,
-                                    justifyContent: {
-                                        xs: 'space-between',
-                                        sm: 'left'
-                                    },
-                                    width: '100%',
-                                    alignItems: 'center'
-                                }}>
-                                    <Tooltip
-                                        title={isFullscreen ? "Minimizar" : "Maximizar"}
-                                        open={tooltipOpen}
-                                        onOpen={() => setTooltipOpen(true)}
-                                        onClose={() => setTooltipOpen(false)}
-                                    >
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => {
-                                                setIsFullscreen(!isFullscreen);
-                                                setTooltipOpen(false);
-                                            }}
-                                            sx={{
-                                                transition: 'transform 0.3s ease',
-                                                transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
-                                            }}
-                                        >
-                                            {isFullscreen ? <CloseFullscreenIcon fontSize="small" /> : <FullscreenIcon fontSize="medium" />}
-                                        </IconButton>
-                                    </Tooltip>
+                                gap: 2,
+                            }}
+                        >
 
-                                    <Typography
-                                        variant="h6"
-                                        fontWeight="bold"
-                                        textAlign="center"
+                            <Box sx={{
+                                display: 'flex',
+                                height: '100%',
+                                width: {
+                                    xs: '100%',
+                                    lg: 'auto',
+                                },
+                                gap: 1,
+                                justifyContent: {
+                                    xs: 'space-between',
+                                    sm: 'left'
+                                },
+                                alignItems: 'center',
+                            }}>
+                                <Tooltip
+                                    title={isFullscreen ? "Minimizar" : "Maximizar"}
+                                    open={tooltipOpen}
+                                    onOpen={() => setTooltipOpen(true)}
+                                    onClose={() => setTooltipOpen(false)}
+                                >
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => {
+                                            setIsFullscreen(!isFullscreen);
+                                            setTooltipOpen(false);
+                                        }}
                                         sx={{
-                                            fontSize: {
-                                                xs: '1rem',
-                                                sm: '1.3rem',
-                                            },
-                                            maxWidth: 300,
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
+                                            transition: 'transform 0.3s ease',
+                                            transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
                                         }}
                                     >
-                                        {`Plan Operativo ${project?.name}`}
-                                    </Typography>
+                                        {isFullscreen ? <CloseFullscreenIcon fontSize="small" /> : <FullscreenIcon fontSize="medium" />}
+                                    </IconButton>
+                                </Tooltip>
+
+                                <Typography
+                                    variant="h6"
+                                    fontWeight="bold"
+                                    textAlign="center"
+                                    sx={{
+                                        fontSize: {
+                                            xs: '1rem',
+                                            sm: '1.3rem',
+                                        },
+                                        maxWidth: 300,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                    }}
+                                >
+                                    {`Plan Operativo ${project?.name}`}
+                                </Typography>
 
 
-                                    <Tooltip title={scrollDirection === 'up' ? 'Ir arriba' : 'Ir abajo'}>
-                                        <span>
-                                            <IconButton
-                                                size="small"
-                                                onClick={handleScrollAction}
-                                                disabled={!canScroll}
-                                                sx={{
-                                                    border: '1px solid',
-                                                    borderColor: 'divider',
-                                                    opacity: 1,
-                                                    transform: scrollDirection === 'up'
-                                                        ? 'rotate(180deg)'
-                                                        : 'rotate(0deg)',
+                                <Tooltip title={scrollDirection === 'up' ? 'Ir arriba' : 'Ir abajo'}>
+                                    <span>
+                                        <IconButton
+                                            size="small"
+                                            onClick={handleScrollAction}
+                                            disabled={!canScroll}
+                                            sx={{
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                opacity: 1,
+                                                transform: scrollDirection === 'up'
+                                                    ? 'rotate(180deg)'
+                                                    : 'rotate(0deg)',
 
-                                                    transition: `
+                                                transition: `
                         transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
                         background-color 0.2s ease
                       `,
 
-                                                    '&:hover': {
-                                                        backgroundColor: 'action.hover',
-                                                    },
-                                                }}
-                                            >
-                                                <KeyboardArrowDownIcon />
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                </Box>
+                                                '&:hover': {
+                                                    backgroundColor: 'action.hover',
+                                                },
+                                            }}
+                                        >
+                                            <KeyboardArrowDownIcon />
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                            </Box>
 
-                                <Box sx={{
-                                    display: {
-                                        lg: 'none'
-                                    },
-                                    justifyContent: 'center',
-                                    mt: 1
-                                }}>
+                            <Box sx={{
+                                display: 'flex',
+                                width: '100%',
+                                flex: 1,
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                display: 'flex',
+                                gap: 1,
+                                alignItems: 'center',
+                            }}>
                                     <Tooltip
                                         title="Añadir fila"
                                         arrow
@@ -881,8 +902,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                                     fontSize: '0.8rem',
                                                     backgroundColor: 'rgba(0,0,0,0.75)',
                                                     color: 'white',
-                                                    px: 2,
-                                                    py: 0.5
+                                                    
                                                 },
                                             },
                                         }}
@@ -907,86 +927,74 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                             </IconButton>
                                         </span>
                                     </Tooltip>
+
+                                <Box sx={{ height: '100%', display: 'flex', gap: 1, alignItems: 'center' }}>
+                                    {hasUnsavedChanges && (
+                                        <Button
+                                            variant="contained"
+                                            color="error"
+                                            sx={{
+                                                width: { xs: '100px', lg: '170px' },
+                                                height: 48,
+                                                fontSize: {
+                                                    xs: '0.6rem',
+                                                    sm: '0.7rem',
+                                                    lg: '0.9rem'
+                                                }
+                                            }}
+                                            onClick={() => handleDiscardChanges()}
+                                            disabled={loading}
+                                        >
+                                            Descartar cambios
+                                        </Button>
+                                    )}
+                                    <ButtonWithLoader
+                                        loading={loading}
+                                        onClick={() => handleSave(false)}
+                                        disabled={!hasChanges() || rows.some(row => isRowEmpty(row))}
+                                        variant="contained"
+                                        backgroundButton={theme => theme.palette.success.main}
+                                        sx={{
+                                            color: 'white', px: 2,
+                                            width: { xs: '100px', lg: '170px' },
+                                            display: (hasChanges()) ? 'block' : 'none',
+                                            fontSize: {
+                                                xs: '0.6rem',
+                                                sm: '0.7rem',
+                                                lg: '0.9rem'
+                                            }
+                                        }}
+                                    >
+                                        Guardar Plan
+                                    </ButtonWithLoader>
                                 </Box>
                             </Box>
 
-                            <Box sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 1,
-                                height: '48px',
-                            }}>
-                                {hasUnsavedChanges && (
-                                    <Button
-                                        variant="contained"
-                                        color="error"
-                                        sx={{ width: '170px', height: '100%' }}
-                                        onClick={() => handleDiscardChanges()}
-                                        disabled={loading}
-                                    >
-                                        Descartar cambios
-                                    </Button>
-                                )}
-                                <ButtonWithLoader
-                                    loading={loading}
-                                    onClick={() => handleSave(false)}
-                                    disabled={!hasChanges() || rows.some(row => isRowEmpty(row))}
-                                    variant="contained"
-                                    backgroundButton={theme => theme.palette.success.main}
-                                    sx={{
-                                        color: 'white', px: 2, width: '170px',
-                                        display: (hasChanges()) ? 'block' : 'none',
-                                    }}
-                                >
-                                    Guardar Plan
-                                </ButtonWithLoader>
-                            </Box>
                         </Box>
-
-                        <Grid container sx={{
-                            bgcolor: 'background.paper',
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            borderLeft: 'none',
-                            borderRight: 'none',
-                            position: 'sticky',
-                            top: isFullscreen ? 0 : 80 + headerHeight,
-                            zIndex: isFullscreen ? 1600 : 999,
-                        }}>
-                            {columns.map(({ index, title, key }) => (
-                                <Grid
-                                    key={key}
-                                    size={{ xs: 2, sm: 2, md: 2, lg: 2 }}
-                                >
-                                    <Box
-                                        sx={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            height: 40,
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="h6"
-                                            sx={{ fontWeight: 'bold', textAlign: 'center', width: '100%' }}
-                                        >
-                                            {title}
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-                            ))}
-                        </Grid>
 
                         <Box
                             ref={containerRef}
                             sx={{
-                                maxHeight: isFullscreen ? 'calc(100vh - 64px)' : 'auto',
+                                border: '1px solid',
+                                borderTop: 'none',
+                                borderBottom: '1px solid',
+                                borderLeft: '1px solid',
+                                borderRight: '1px solid',
+                                borderColor: 'divider',
+                                borderBottomLeftRadius: !planInfo?.operationalPlan_created_at ? 10 : 0,
+                                borderBottomRightRadius: !planInfo?.operationalPlan_created_at ? 10 : 0,
                                 width: '100%',
-                                overflowX: 'auto',
-                                overflowY: 'visible',
+                                flex: isFullscreen ? 1 : 'unset',
+                                maxWidth: '100vw',
+                                overflowY: {
+                                    xs: 'unset',
+                                    lg: 'auto',
+                                },
+                                overflowX: {
+                                    xs: 'auto',
+                                    lg: 'unset',
+                                },
                                 width: '100%',
-                                pb: 1,
                                 "&::-webkit-scrollbar": { height: "2px", width: "2px" },
                                 "&::-webkit-scrollbar-track": {
                                     backgroundColor: theme.palette.background.default,
@@ -999,27 +1007,46 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                 "&::-webkit-scrollbar-thumb:hover": {
                                     backgroundColor: theme.palette.primary.dark,
                                 },
-                                border: '1px solid',
-                                borderTop: 'none',
-                                borderBottom: '1px solid',
-                                borderLeft: '1px solid',
-                                borderRight: '1px solid',
-                                borderColor: 'divider',
-                                borderBottomLeftRadius: !planInfo?.operationalPlan_created_at ? 10 : 0,
-                                borderBottomRightRadius: !planInfo?.operationalPlan_created_at ? 10 : 0,
                             }}
+
                         >
-                            <Box
-                                sx={{
-                                    width: '100%',
-                                    minWidth: '1020px',
-                                    pb: 1,
-                                    flex: isFullscreen ? 1 : 'unset',
-                                    overflowY: 'none',
-                                    mt: 1
-                                }}
-                                justifyContent="center"
-                            >
+                            {/* === HEADERS === */}
+                            <Grid container sx={{
+                                bgcolor: 'background.paper',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderLeft: 'none',
+                                borderRight: 'none',
+                                position: 'sticky',
+                                top: 0,
+                                zIndex: isFullscreen ? 1600 : 900,
+                                minWidth: '1020px',
+                            }}>
+                                {columns.map(({ index, title, key }) => (
+                                    <Grid
+                                        key={key}
+                                        size={{ xs: 2, sm: 2, md: 2, lg: 2 }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                height: 40,
+                                            }}
+                                        >
+                                            <Typography
+                                                variant="h6"
+                                                sx={{ fontWeight: 'bold', textAlign: 'center', width: '100%' }}
+                                            >
+                                                {title}
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                ))}
+                            </Grid>
+
+                            <Box sx={{ mt: 1 }} >
                                 {/* === FILAS === */}
                                 {rows.map((row, index) => (
                                     <Box
@@ -1121,46 +1148,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                     </Box>
                                 ))}
                             </Box>
-
-                            <Box sx={{ display: { xs: 'none', lg: 'flex' }, justifyContent: 'center', my: 1 }}>
-                                <Tooltip
-                                    title="Añadir fila"
-                                    arrow
-                                    componentsProps={{
-                                        tooltip: {
-                                            sx: {
-                                                fontSize: '0.8rem',
-                                                backgroundColor: 'rgba(0,0,0,0.75)',
-                                                color: 'white',
-                                                px: 2,
-                                                py: 0.5
-                                            },
-                                        },
-                                    }}
-                                >
-                                    <span>
-                                        <IconButton
-                                            onClick={handleAddRow}
-                                            disabled={hasEmptyRow}
-                                            color="primary"
-                                            sx={{
-                                                borderRadius: '50%',
-                                                width: 50,
-                                                height: 50,
-                                                padding: 0,
-                                                '&:hover': {
-                                                    backgroundColor: 'rgba(25, 118, 210, 0.15)',
-                                                    borderRadius: '50%',
-                                                },
-                                            }}
-                                        >
-                                            <AddIcon />
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
-                            </Box>
                         </Box>
-
                     </>
                 )}
             </Box>

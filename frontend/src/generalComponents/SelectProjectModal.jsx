@@ -62,18 +62,17 @@ export const SelectProjectModal = ({
           gap: 1,
           p: 1,
           overflow: 'hidden',
-          width: 150,
           ...sx
         }}
       >
         {loading ? (
           "Cargando..."
         ) : selectedProject ? (
-          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1 }}>
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1, width: 100 }}>
             <Avatar
               src={selectedProject.image_url ? `${API_UPLOADS}${selectedProject.image_url}` : undefined}
               sx={{
-                width: 36,
+                width: 36, 
                 height: 36,
                 borderRadius: 2,
                 objectFit: "cover",
@@ -97,6 +96,7 @@ export const SelectProjectModal = ({
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 WebkitLineClamp: 1,
+                
               }}
               textAlign={'start'}
             >
@@ -104,7 +104,11 @@ export const SelectProjectModal = ({
             </Typography>
           </Box>
         ) : (
-          <Typography textAlign={'center'} sx={{ fontSize: '1rem' }}>Seleccionar Proyecto</Typography>
+          <Typography 
+            textAlign={'center'} 
+            sx={{ fontSize: '1rem', width: 200 }}>
+              Seleccionar Proyecto
+          </Typography>
         )}
       </Button>
 

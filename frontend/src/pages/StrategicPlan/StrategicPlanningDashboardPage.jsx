@@ -161,9 +161,8 @@ const StrategicPlanningDashboardPage = () => {
     return <ErrorScreen message="Ocurrió un error al obtener los planes estratégicos" buttonText="Intentar de nuevo" onButtonClick={() => fetchAllPlans()} />
   }
 
-
   return (
-    <Box maxWidth>
+    <Box sx={{mt: { xs: 2, lg: 0}}} maxWidth>
       <Box sx={{ display: 'flex', flexDirection: 'column', }}>
         <Box
           sx={{
@@ -315,7 +314,7 @@ const StrategicPlanningDashboardPage = () => {
                   const exists = prev.some(p => p.year === newPlan.year);
                   if (exists) return prev;
                   return [...prev, { year: newPlan.year }];
-                });
+                }); 
               }}
             />
           )}

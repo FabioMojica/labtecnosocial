@@ -104,14 +104,14 @@ const OperationalPlanningDashboardPage = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{mt: { xs: 2, lg: 0}}}>
       <Box
         sx={{
           display: "flex",
           flexDirection: {
             sm: 'row',
             xs: 'column'
-          },
+          }, 
           alignItems: "center",
           justifyContent: "space-between",
           gap: 1,
@@ -140,7 +140,7 @@ const OperationalPlanningDashboardPage = () => {
           alignItems: 'center',
           gap: 2,
           justifyContent: 'flex-end',
-        }}>
+        }}> 
           <SelectProjectModal
             projects={projects}
             selectedProject={selectedProject}
