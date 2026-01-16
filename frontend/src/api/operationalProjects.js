@@ -119,7 +119,7 @@ export const assignProjectToProgram = async (projectId, programId) => {
   try {
     const response = await axiosInstance.patch(
       `${Routes.UPDATE_PROJECT}/${projectId}`, 
-      { program_id: programId },
+      { program_id: programId }, 
       { signal: controller.signal }
     );
     if (response.status === 200) return response.data;

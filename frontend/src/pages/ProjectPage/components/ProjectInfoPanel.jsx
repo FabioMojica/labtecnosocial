@@ -14,9 +14,9 @@ import CancelIcon from '@mui/icons-material/Cancel';
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
-export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
+export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChange, resetTrigger }) => {
     const theme = useTheme();
-    const fileInputRef = useRef(null); 
+    const fileInputRef = useRef(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [overlayText, setOverlayText] = useState("Subir una imagen");
     const [errors, setErrors] = useState({ name: "", description: "" });
@@ -26,6 +26,17 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
     const [originalDescription, setOriginalDescription] = useState("");
     const { notify } = useNotification();
     const { headerHeight } = useHeaderHeight();
+ 
+    useEffect(() => {
+        console.log("trigger", resetTrigger)
+        setIsEditingName(false);
+        setIsEditingDescription(false);
+        setErrors({ name: "", description: "" });
+    }, [resetTrigger]);
+
+    useEffect(() => {
+        onErrorsChange?.({ ...errors });
+    }, [errors]);
 
     const startEditName = () => {
         setOriginalName(project?.name ?? "");
@@ -56,11 +67,9 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
             return;
         }
 
-
         if (project.image_file instanceof File) {
             setPreviewImage(URL.createObjectURL(project.image_file));
         }
-        // Si no hay cambio local, usar la URL del backend
         else if (project.image_url) {
             setPreviewImage(`${API_UPLOADS}${encodeURI(project.image_url)}`);
         } else {
@@ -371,7 +380,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                                         isEditingDescription ? "Borrar cambios" : "Editar descripción"
                                     }>
                                         <span>
-                                            <IconButton 
+                                            <IconButton
                                                 size="small"
                                                 onClick={isEditingDescription ? cancelEditDescription : startEditDescription}
                                             >

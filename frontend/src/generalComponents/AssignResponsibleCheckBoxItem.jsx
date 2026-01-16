@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, Box, Typography, Checkbox, Tooltip, useTheme } from "@mui/material";
+import { Avatar, Box, Typography, Checkbox, Tooltip, useTheme, Button } from "@mui/material";
 import { Item } from "./Item";
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import { roleConfig, stateConfig } from "../utils";
@@ -24,22 +24,11 @@ export const AssignResponsibleCheckBoxItem = ({
     color: "error.main",
   };
 
-  const handleToggle = () => {
-    const newChecked = !checked;
-
-    onChange?.(newChecked);
-  };
-
   return (
-    <Item
-      onClick={(e) => {
-        handleToggle();
-      }}
-
+    <Item 
       leftComponents={[
         <Box
           sx={{ display: "flex", gap: 1, }}
-
         >
           <Avatar
             src={responsible.image_url ? `${API_UPLOADS}${responsible.image_url}` : ""}
@@ -50,13 +39,13 @@ export const AssignResponsibleCheckBoxItem = ({
               objectFit: "cover",
               fontWeight: "bold",
               boxShadow:
-                                    theme.palette.mode === 'light'
-                                        ? '0 0 0 1px rgba(0,0,0,0.3)'
-                                        : '0 0 0 1px rgba(255,255,255,0.3)',
+                theme.palette.mode === 'light'
+                  ? '0 0 0 1px rgba(0,0,0,0.3)'
+                  : '0 0 0 1px rgba(255,255,255,0.3)',
             }}
           >
             {responsible.firstName?.[0]?.toUpperCase() ?? ""}
-  {responsible.lastName?.[0]?.toUpperCase() ?? ""}
+            {responsible.lastName?.[0]?.toUpperCase() ?? ""}
           </Avatar>
           <Box sx={{ display: "flex", flexDirection: "column" }}>
             <Typography>{responsible.firstName}</Typography>
@@ -67,27 +56,45 @@ export const AssignResponsibleCheckBoxItem = ({
       ]}
       rightComponents={[
         <Box
-          key="right"
+          key="right" 
           sx={{
             display: "flex",
+            flex: 1,
             height: "100%",
-            marginTop: { xs: 2, sm: 0 },
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 1
+            gap: 1,
+            width: '100%',
+            mt: {
+              xs: 1,
+              lg: 0
+            }
           }}
         >
+          <Box sx={{
+            display: 'flex',
+            width: '100%',
+            alignItems: 'center',
+            gap: {
+              xs: 1,
+              lg: 0
+            }
+          }}>
           <Box
             sx={{
               display: "flex",
               minWidth: { sm: 100, xs: 50 },
               flexDirection: "column",
+              justifyContent: 'center',
+              height: '100%',
               alignItems: "center",
+              gap: 0.5
             }}
           >
-            <Typography>{responsible.projectCount}</Typography>
-            <Typography variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem' }}>Proyectos</Typography>
+            <Typography lineHeight={1}>{responsible.projectCount}</Typography>
+            <Typography lineHeight={1} variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem'}}>Proyectos</Typography>
           </Box>
+
           <Box
             sx={{
               display: "flex",
@@ -113,14 +120,24 @@ export const AssignResponsibleCheckBoxItem = ({
             })}
             <Typography variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem' }}>{responsible.state}</Typography>
           </Box>
-          <Checkbox
-            checked={checked}
-            onChange={(e) => onChange?.(e.target.checked)}
-            onClick={(e) => {
-              handleToggle();
-            }}
-          />
+          </Box>
         </Box>,
+         <Button
+            sx={{
+              height: 36,
+              minWidth: '100px',
+              border: "none",
+              borderRadius: 1,
+              cursor: "pointer",
+              bgcolor: 
+                checked ? theme.palette.error.main : theme.palette.success.main,
+              color: theme.palette.error.contrastText,
+              fontSize: "0.9rem",
+            }}
+            onClick={() => onChange?.(!checked)}
+          >
+            {checked ? "Desasignar" : "Asignar"}
+          </Button>
       ]}
     />
   );

@@ -29,7 +29,6 @@ export const AssignResponsiblesPanel = ({ panelHeight, onChange }) => {
     const { headerHeight } = useHeaderHeight();
     const [users, setUsers] = useState([]);
     const height = `calc(100vh - ${headerHeight}px - ${panelHeight}px)`;
-    const tallerHeight = `calc((${height}) * 0.70)`;
     const shorterHeight = `calc((${height}) * 0.30)`;
     const { loading, callEndpoint } = useFetchAndLoad();
     const [error, setError] = useState(false);
@@ -116,12 +115,7 @@ const handleRemoveResponsible = useCallback((email) => {
 
             >
                 <Grid
-                    size={{
-                        xs: 12,
-                        sm: 12,
-                        md: 12,
-                        lg: 6
-                    }}
+                    size={12}
                     sx={{
                         height: height,
                         p: 0.5
@@ -143,8 +137,7 @@ const handleRemoveResponsible = useCallback((email) => {
                                 <SearchBar
                                     data={users}
                                     fields={['firstName', 'lastName', 'email']}
-                                    placeholder="Buscar responsable..."
-                                    // onResults={(filtered) => setFilteredUsers(filtered)}
+                                    placeholder="Buscar responsables..."
                                     onResults={debouncedSetFilteredUsers}
                                 />
                             </Box>
@@ -192,7 +185,7 @@ const handleRemoveResponsible = useCallback((email) => {
                     </Paper>
                 </Grid>
 
-                {/* --- RESPONSABLES ASIGNADOS --- */}
+                {/* --- RESPONSABLES ASIGNADOS ---
                 <Grid
                     size={{
                         xs: 12,
@@ -340,7 +333,7 @@ const handleRemoveResponsible = useCallback((email) => {
                             )}
                         </Box>
                     </Paper>
-                </Grid>
+                </Grid> */}
             </Grid>
         </Box>
     );

@@ -5,10 +5,11 @@ export const useResponsiblesPanel = (
   allUsers,
   onChange
 ) => {
+  console.log("useeeeeeeee", initialResponsibles)
   const [projectResponsibles, setProjectResponsibles] = useState(initialResponsibles);
   const [preEliminados, setPreEliminados] = useState([]);
   const [preAnadidos, setPreAnadidos] = useState([]);
-  const initialRef = useRef(initialResponsibles);
+  const initialRef = useRef(initialResponsibles); 
 
 
   const notifyParent = (updatedProjectResponsibles, updatedPreEliminados, updatedPreAnadidos) => {
@@ -64,8 +65,6 @@ export const useResponsiblesPanel = (
       return updatedPreAnadidos;
     });
   };
-
-
 
   const reset = () => {
     setProjectResponsibles(structuredClone(initialRef.current));

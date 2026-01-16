@@ -258,7 +258,7 @@ export function UsersListPage() {
                             data={users}
                             fields={["firstName", "lastName", "email"]}
                             placeholder="Buscar usuarios..."
-                            onResults={setSearchedUsers}
+                            onResults={setSearchedUsers} 
                         />
                         <FormControl sx={{ minWidth: 200 }}>
                             <InputLabel>Ordenar usuarios por</InputLabel>

@@ -1,24 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Tab, Tabs, useMediaQuery, useTheme } from "@mui/material";
 
-// const TabPanel = ({ children, value, index }) => (
-//   <div
-//     role="tabpanel"
-//     id={`tab-panel-${index}`}
-//     aria-labelledby={`tab-${index}`}
-//     style={{
-//       height: "100%",
-//       width: '100%',
-//       display: value === index ? "flex" : "none",
-//       flexDirection: "column",
-//     }}
-//   >
-//     {children}
-//   </div>
-// );
-// import React, { useEffect, useRef, useState } from "react";
-// import { Box, Tab, Tabs, useMediaQuery, useTheme } from "@mui/material";
-
 const TabPanel = ({ children, value, index }) => (
   <div
     role="tabpanel"
@@ -34,7 +16,6 @@ const TabPanel = ({ children, value, index }) => (
     {children}
   </div>
 );
-
 
 export const TabButtons = ({
   labels,

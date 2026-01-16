@@ -1,198 +1,363 @@
 import React, { useEffect, useRef, useState } from "react";
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box, Stack } from "@mui/material";
-import { SearchBar, NoResultsScreen, SelectComponent, FullScreenProgress } from "../../../generalComponents";
+import { Box, Divider, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Stack, Tooltip, Typography, useTheme } from "@mui/material";
+import { SearchBar, NoResultsScreen, FullScreenProgress, AssignResponsibleCheckBoxItem, ErrorScreen } from "../../../generalComponents";
 import { useHeaderHeight, useNotification } from "../../../contexts";
+import CloseIcon from '@mui/icons-material/Close';
 
 import { useFetchAndLoad } from "../../../hooks";
-import { useResponsiblesPanel } from "../hooks/useResponsiblesPanel";
-
-import { getFilteredResponsibles } from '../utils/responsible.utility';
-import { renderResponsiblesList } from '../utils/responsibleReder.utility';
 import { getAllUsersApi } from "../../../api";
+
+const MemoizedCheckBoxItem = React.memo(
+    ({ responsible, checked, onChange }) => {
+        return (
+            <AssignResponsibleCheckBoxItem
+                responsible={responsible}
+                checked={checked}
+                onChange={onChange}
+            />
+        );
+    },
+);
 
 export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onChange }) => {
     const { headerHeight } = useHeaderHeight();
-    const [users, setUsers] = useState([]);
+    const theme = useTheme();
+    const [viewResponsiblesPanel, setViewResponsiblesPanel] = useState(
+        responsibles?.length > 0
+    );
+    const originalResponsibles = responsibles ?? [];
     const [allUsers, setAllUsers] = useState([]);
+    const [filter, setFilter] = useState("originals");
+    const [searchText, setSearchText] = useState("");
+    const [filteredUsers, setFilteredUsers] = useState(originalResponsibles);
+    const height = `calc(100vh - ${headerHeight}px - ${panelHeight}px)`;
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
-    const [searchResults, setSearchResults] = useState([]) || null;
-    const [selectedView, setSelectedView] = useState("project");
-    const hasFetchedAllUsers = useRef(false);
-    const initialResponsibles = responsibles.map(r => ({
-        id: Number(r.id),
-        firstName: r.firstName,
-        lastName: r.lastName,
-        email: r.email,
-        image_url: r.image_url,
-        projectCount: r.projectCount,
-        role: (r).role,
-        state: r.state,
-    }));
-
-    const {
-        projectResponsibles,
-        preEliminados,
-        preAnadidos,
-        removeResponsible,
-        restoreResponsible,
-        addPreResponsible,
-        removePreResponsible,
-        reset,
-        initialRef
-    } = useResponsiblesPanel(initialResponsibles, allUsers, onChange);
-
-    const noInitialResponsibles = initialResponsibles.length === 0;
+    const [selectedUsers, setSelectedUsers] = useState(() => {
+        const initial = {};
+        responsibles.forEach((user) => {
+            initial[user.email] = true;
+        });
+        return initial;
+    });
+    const [ errorFetchAllUsers, setErrorFetchAllUsers ] = useState(null);
 
     useEffect(() => {
-        if (!responsibles) return;
-
-        initialRef.current = responsibles.map(r => ({
-            id: Number(r.id),
-            firstName: r.firstName,
-            lastName: r.lastName,
-            email: r.email,
-            image_url: r.image_url,
-            projectCount: r.projectCount,
-            role: r.role,
-            state: r.state,
-        }));
-
-        reset();
+        if ((responsibles?.length ?? 0) === 0) {
+            setViewResponsiblesPanel(false);
+            setFilter("news");
+        } else {
+            setFilter("originals");
+            setViewResponsiblesPanel(true);
+        }
     }, [responsibles]);
 
+    const newsUsers = allUsers.filter(
+        (user) => !originalResponsibles.some((orig) => orig.email === user.email)
+    );
 
-    const dataToSearch = getFilteredResponsibles({
-        selectedView,
-        projectResponsibles,
-        preEliminados,
-        preAnadidos,
-        allUsers
-    });
+    useEffect(() => {
+        const resetSelected = {};
 
+        responsibles.forEach(user => {
+            resetSelected[user.email] = true;
+        });
+
+        setSelectedUsers(resetSelected);
+    }, [responsibles]);
+
+    useEffect(() => {
+        let usersToFilter = filter === "originals" ? originalResponsibles : newsUsers;
+
+        if (searchText) {
+            const lower = searchText.toLowerCase();
+            usersToFilter = usersToFilter.filter(
+                (user) =>
+                    user.firstName.toLowerCase().includes(lower) ||
+                    user.lastName.toLowerCase().includes(lower) ||
+                    user.email.toLowerCase().includes(lower)
+            );
+        }
+
+        setFilteredUsers(usersToFilter);
+    }, [filter, searchText, originalResponsibles, allUsers]);
+
+    const handleToggleUser = (user) => {
+        setSelectedUsers((prev) => {
+            const newChecked = !prev[user.email];
+            const updated = { ...prev, [user.email]: newChecked };
+            const preEliminados = originalResponsibles.filter(u => !updated[u.email]);
+            const preAnadidos = newsUsers.filter(u => updated[u.email]);
+
+            onChange?.({
+                preEliminados,
+                preAnadidos
+            });
+            return updated;
+        });
+    };
     const fetchAllUsers = async () => {
         try {
             const response = await callEndpoint(getAllUsersApi());
             setAllUsers(response);
-            setUsers(response);
-
+            setErrorFetchAllUsers(false);
         } catch (err) {
-            notify(err?.message, "error");
+            setErrorFetchAllUsers(true);
         }
     };
 
     useEffect(() => {
-        if (selectedView === "assign" && !hasFetchedAllUsers.current) {
-            fetchAllUsers();
-            hasFetchedAllUsers.current = true;
+        fetchAllUsers();
+    }, [])
+    const handleToggleViewResponsiblesPanel = (valor) => {
+        setViewResponsiblesPanel(valor);
+    }
+    const handleCloseCase1 = () => {
+        handleToggleViewResponsiblesPanel(false);
+        onChange?.({
+            preEliminados: [],
+            preAnadidos: []
+        });
+        const resetSelected = {};
+        originalResponsibles.forEach(user => {
+            resetSelected[user.email] = true;
+        });
+        newsUsers.forEach(user => {
+            resetSelected[user.email] = false;
+        });
+
+        setSelectedUsers(resetSelected);
+    }
+
+    useEffect(() => {
+        const resetSelected = {};
+        originalResponsibles.forEach(user => {
+            resetSelected[user.email] = true;
+        });
+        newsUsers.forEach(user => {
+            resetSelected[user.email] = false;
+        });
+        setSelectedUsers(resetSelected);
+
+        onChange?.({
+            preEliminados: [],
+            preAnadidos: []
+        });
+
+        if(responsibles.length === 0) {
+            setViewResponsiblesPanel(false);
         }
-    }, [selectedView]);
 
-    const [hasSearched, setHasSearched] = useState(false);
+        setFilter("originals");
 
-    const handleSearchResults = (results) => {
-        setSearchResults(results);
-        setHasSearched(true);
+    }, [resetTrigger]);
+
+
+    const handleCloseCase2 = () => {
+        const resetSelected = {};
+        originalResponsibles.forEach(user => {
+            resetSelected[user.email] = true;
+        });
+        newsUsers.forEach(user => {
+            resetSelected[user.email] = false;
+        });
+
+        setSelectedUsers(resetSelected);
+        onChange?.({
+            preEliminados: [],
+            preAnadidos: []
+        });
+        setFilter("originals");
+
     };
 
-    const listToRender = hasSearched ? searchResults : dataToSearch;
-    const hasResults = listToRender.length > 0;
+    const hasChanges =
+        originalResponsibles.some(u => !selectedUsers[u.email]) ||
+        newsUsers.some(u => selectedUsers[u.email]);
 
 
-    if (loading) return <FullScreenProgress text="Obteniendo usuarios" />;
-
-
+    if (loading) return <FullScreenProgress text="Obteniendo responsables" />;
+    if (errorFetchAllUsers) return <ErrorScreen sx={{height: '70vh'}} message="Ocurrió un error inesperado al obtener los responsables del proyecto" buttonText="Intentar de nuevo" onButtonClick={() => fetchAllUsers()} />
 
     return (
         <Box
             sx={{
                 width: "100%",
-                minHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-                height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-                maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-                p: 1,
+                minHeight: height,
+                height: height,
+                maxHeight: height,
                 display: "flex",
                 flexDirection: "column",
                 gap: 1,
             }}
         >
-            <CssBaseline />
-            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box sx={{
-                    display: "flex",
-                    gap: 1,
-                    flexDirection: {
-                        xs: 'column-reverse',
-                        sm: "row",
-                    },
-                }}>
-
-                    <SearchBar
-                        data={dataToSearch}
-                        fields={["firstName", "lastName"]}
-                        placeholder="Buscar..."
-                        onResults={handleSearchResults}
-                    />
-
-                    <SelectComponent
-                        options={[
-                            { value: "project", label: "Responsables del proyecto" },
-                            { value: "preEliminados", label: "Pre eliminados" },
-                            { value: "assign", label: "Asignar nuevos responsables" },
-                            { value: "preAnadidos", label: "Pre añadidos" },
-                        ]}
-                        value={selectedView}
-
-                        onChange={(val) => {
-                            setSelectedView(String(val));
-                            setSearchResults([]);
-                            setHasSearched(false);
-                        }}
+            {!viewResponsiblesPanel && responsibles?.length === 0 ? (
+                <NoResultsScreen
+                    message='Este proyecto no tiene responsables asignados'
+                    buttonText="Asignar Responsables"
+                    onButtonClick={() => {
+                        setFilter("news");
+                        handleToggleViewResponsiblesPanel(true)
+                    }}
+                    sx={{ height: '70vh' }}
+                    buttonSx={{
+                        backgroundColor: "primary.main",
+                        color: "primary.contrastText",
+                        "&:hover": {
+                            backgroundColor: "primary.dark",
+                        },
+                        "&.Mui-disabled": {
+                            backgroundColor: "action.disabledBackground",
+                            color: "action.disabled",
+                        },
+                    }}
+                />
+            ) : (
+                <Grid container
+                    sx={{
+                        width: '100%',
+                        maxHeight: height,
+                    }}
+                >
+                    <Grid
+                        size={12}
                         sx={{
-                            maxWidth: {
-                                xs: "100%",
-                                sm: 250,
-                            }
+                            height: height,
+                            p: 0.5
                         }}
-                        height={40}
-                        optionFontSize={{ sm: '0.9rem' }}
-                    />
-                </Box>
+                    >
+                        <Paper sx={{ width: '100%', height: '100%', p: 1, display: 'flex', flexDirection: 'column', gap: 1, position: 'relative' }}>
+                            <Typography variant='h5' textAlign={'center'} sx={{ fontSize: { xs: '1rem', sm: '1.4rem' } }}>
+                                {
+                                    responsibles?.length === 0 ? "Seleccionar Responsables" : "Responsables del proyecto"
+                                }
+                            </Typography>
 
-                {noInitialResponsibles && selectedView === "project" ? (
-                    <NoResultsScreen
-                        message="Este proyecto no tiene responsables asignados"
-                        buttonText="Asignar responsables"
-                        onButtonClick={() => setSelectedView("assign")}
-                        sx={{ height: '50vh' }}
-                    />
-                ) : !hasResults ? (
-                    selectedView === "assign" && allUsers.length > 0 && projectResponsibles.length === allUsers.length ? (
-                        <NoResultsScreen
-                            message="Todos los usuarios fueron añadidos al proyecto"
-                            sx={{ height: '50vh' }}
-                        />
-                    ) : (
-                        <NoResultsScreen
-                            message="No se encontraron responsables"
-                            sx={{ height: '50vh' }}
-                        />
-                    )
-                ) : (
-                    <Stack spacing={1} sx={{ width: "100%", pb: { sm: 15, xs: 150 } }}>
-                        {renderResponsiblesList({
-                            list: listToRender,
-                            selectedView,
-                            addPreResponsible,
-                            removePreResponsible,
-                            removeResponsible,
-                            restoreResponsible
-                        })}
-                    </Stack>
-                )}
+                            {responsibles?.length === 0 && (
+                                <Tooltip
+                                    title={
+                                        responsibles?.length === 0 ? "Cancelar" : "Descartar cambios"
+                                    }
+                                >
+                                    <CloseIcon
+                                        onClick={() => handleCloseCase1()}
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: 10,
+                                            cursor: 'pointer',
+                                            color: theme.palette.text.secondary,
+                                            fontSize: 28,
+                                            "&:hover": { color: theme.palette.error.main }
+                                        }}
+                                    />
+                                </Tooltip>
+                            )}
 
-            </Box>
+                            {(responsibles?.length > 0 && hasChanges) && (
+                                <Tooltip title="Descartar cambios">
+                                    <CloseIcon
+                                        onClick={handleCloseCase2}
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: 10,
+                                            cursor: 'pointer',
+                                            color: theme.palette.text.secondary,
+                                            fontSize: 28,
+                                            "&:hover": { color: theme.palette.error.main }
+                                        }}
+                                    />
+                                </Tooltip>
+                            )}
+
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    flexGrow: 1,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    minHeight: 0,
+                                    gap: 1
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: {
+                                            xs: 'column-reverse',
+                                            lg: 'row',
+                                        },
+                                        gap: 1,
+                                    }}
+                                >
+                                    <SearchBar
+                                        data={filter === "originals" ? originalResponsibles : newsUsers}
+                                        fields={['firstName', 'lastName', 'email']}
+                                        placeholder="Buscar usuarios..."
+                                        onResults={(results, query) => setSearchText(query)}
+                                    />
+
+                                    <FormControl size="small" sx={{ minWidth: 180 }}>
+                                        <Select
+                                            value={filter}
+                                            onChange={(e) => setFilter(e.target.value)}
+                                        >
+                                            <MenuItem value="originals">Originales</MenuItem>
+                                            <MenuItem value="news">Asignar Nuevos</MenuItem>
+                                        </Select>
+                                    </FormControl>
+
+                                </Box>
+
+                                <Divider />
+
+                                {/* Lista ocupa el resto del espacio */}
+                                <Box
+                                    sx={{
+                                        flexGrow: 1,
+                                        overflowY: 'auto',
+                                        "&::-webkit-scrollbar": { width: "2px" },
+                                        "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+                                        "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+                                        "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 1,
+                                        p: 1,
+                                    }}
+                                >
+                                    {filteredUsers.length > 0 ? (
+                                        filteredUsers.map((user) => (
+                                            <MemoizedCheckBoxItem
+                                                key={user.email}
+                                                responsible={user}
+                                                checked={!!selectedUsers[user.email]}
+                                                onChange={() => handleToggleUser(user)}
+                                            />
+                                        ))
+                                    ) : (
+                                        <NoResultsScreen
+                                            message="No se encontraron usuarios que coincidan con la búsqueda"
+                                            sx={{
+                                                height: '100%',
+                                                justifyContent: 'center',
+                                            }}
+                                            iconSX={{
+                                                fontSize: 60,
+                                                color: theme.palette.text.secondary,
+                                            }}
+                                        />
+                                    )}
+                                </Box>
+                            </Box>
+
+                        </Paper>
+                    </Grid>
+                </Grid>
+            )}
         </Box>
+
     );
 };

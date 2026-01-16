@@ -57,7 +57,7 @@ export const Item = ({
               <Box key={index} sx={{width: '100%', display: 'flex', justifyContent: 'flex-start', }}>{component}</Box>
             ))}
           </Box>
-
+ 
           {/* Derecha */}
           <Box
             sx={{
@@ -65,14 +65,14 @@ export const Item = ({
               alignItems: "center",
               justifyContent: {
                 md: "flex-end",
-                xs: "center"
+                xs: "space-between"
               },
               gap: 2,
               flexWrap: "wrap",
               width: {
                 md: '50%',
                 xs: '100%',
-              }
+              },
             }}
           >
             {rightComponents.map((component, index) => (
