@@ -48,7 +48,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
     ({ theme }) => ({
         width: drawerWidth,
         flexShrink: 0,
-        whiteSpace: 'nowrap', 
+        whiteSpace: 'nowrap',
         boxSizing: 'border-box',
         variants: [
             {
@@ -114,7 +114,10 @@ export function ProjectsListPage() {
         if (isLaptop) {
             handleDrawerOpen();
         } else {
-            navigate(`/proyecto/${project.id}?tab=Información del proyecto`);
+            navigate(`/proyecto/${project?.name}`, {
+                replace: true,
+                state: { id: project?.id },
+            });
         }
     };
 
@@ -211,9 +214,19 @@ export function ProjectsListPage() {
                     message='Aún no tienes proyectos asignados'
                     buttonText="Ir al inicio"
                     onButtonClick={() => navigate("/inicio")}
-                />;
+                    buttonSx={{
+                        backgroundColor: "primary.main",
+                        color: "primary.contrastText",
+                        "&:hover": {
+                            backgroundColor: "primary.dark",
+                        },
+                        "&.Mui-disabled": {
+                            backgroundColor: "action.disabledBackground",
+                            color: "action.disabled",
+                        },
+                    }} />;
             default:
-                notify("Rol no encontrado, se cerrará la sesión", "error");
+                notify("Rol no encontrado, se cerrará la sesión de emergencia", "error");
                 logout();
         }
     }
@@ -228,18 +241,18 @@ export function ProjectsListPage() {
                 onButtonClick={() => fetchAllProjects()}
             />
         );
-    } 
+    }
 
     const displayedProjects = sortProjects(filteredProjects, sortBy);
- 
 
-    return ( 
-        <Box sx={{ display: 'flex', p: 1, pt: {xs: 2}, pr: {lg: 2} }}>
+
+    return (
+        <Box sx={{ display: 'flex', px: 1, py: { xs: 1, lg: 0 } }}>
             <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
                 <Box sx={{
                     display: 'flex',
                     gap: 1,
-                    flexDirection: 'column', 
+                    flexDirection: 'column',
                     width: '100%',
                     mb: 1.5
                 }}>
@@ -353,14 +366,14 @@ export function ProjectsListPage() {
 
             <Drawer
                 variant="permanent"
-                open={open} 
+                open={open}
                 anchor='right'
                 sx={{
                     '& .MuiDrawer-paper': {
                         mr: `${right}px`,
                     },
                 }}
-            > 
+            >
                 <Box sx={{ position: 'fixed', top: 2 }}>
                     <Toolbar></Toolbar>
                     <IconButton size='small' onClick={handleDrawerClose}>

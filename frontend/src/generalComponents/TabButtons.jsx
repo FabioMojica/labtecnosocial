@@ -1,6 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Tab, Tabs, useMediaQuery, useTheme } from "@mui/material";
-import { useSearchParams } from "react-router-dom";
+
+// const TabPanel = ({ children, value, index }) => (
+//   <div
+//     role="tabpanel"
+//     id={`tab-panel-${index}`}
+//     aria-labelledby={`tab-${index}`}
+//     style={{
+//       height: "100%",
+//       width: '100%',
+//       display: value === index ? "flex" : "none",
+//       flexDirection: "column",
+//     }}
+//   >
+//     {children}
+//   </div>
+// );
+// import React, { useEffect, useRef, useState } from "react";
+// import { Box, Tab, Tabs, useMediaQuery, useTheme } from "@mui/material";
 
 const TabPanel = ({ children, value, index }) => (
   <div
@@ -9,7 +26,7 @@ const TabPanel = ({ children, value, index }) => (
     aria-labelledby={`tab-${index}`}
     style={{
       height: "100%",
-      width: '100%',
+      width: "100%",
       display: value === index ? "flex" : "none",
       flexDirection: "column",
     }}
@@ -18,45 +35,37 @@ const TabPanel = ({ children, value, index }) => (
   </div>
 );
 
-export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange, onChange, canChangeTab }) => {
+
+export const TabButtons = ({
+  labels,
+  children,
+  onTabsHeightChange,
+  canChangeTab,
+  onChange,
+  sx,
+}) => {
   const theme = useTheme();
   const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
-  const [searchParams, setSearchParams] = useSearchParams();
 
-  const paramValue = searchParams.get("tab") ?? paramsLabels[0];
-
-  const initialValue = Math.max(0, paramsLabels.indexOf(paramValue));
-  const [value, setValue] = useState(initialValue);
-  const [mountedTabs, setMountedTabs] = useState(new Set([initialValue]));
-
+  const [value, setValue] = useState(0);
+  const [mountedTabs, setMountedTabs] = useState(new Set([0]));
   const [nextTab, setNextTab] = useState(null);
 
   const tabsRef = useRef(null);
   const variant = isLaptop ? "fullWidth" : "scrollable";
 
-  useEffect(() => {
-    const paramValue = searchParams.get("tab");
-    if (paramValue) {
-      const decodedParam = decodeURIComponent(paramValue);
-      const newValue = paramsLabels.indexOf(decodedParam);
-      if (newValue >= 0 && newValue !== value) {
-        handleTabChange(newValue);
-      }
-    }
-  }, [searchParams]);
-
-  // Calcula la altura del Tabs
+  // calcular altura
   useEffect(() => {
     if (tabsRef.current) {
-      const height = tabsRef.current.getBoundingClientRect().height;
-      onTabsHeightChange?.(height);
+      onTabsHeightChange?.(
+        tabsRef.current.getBoundingClientRect().height
+      );
     }
   }, [labels, onTabsHeightChange]);
 
   const handleTabChange = (_event, newValue) => {
-    // ✅ Evitar cambiar a tab si canChangeTab devuelve false
     if (typeof canChangeTab === "function" && !canChangeTab(newValue)) {
-      return; // no hacer nada
+      return;
     }
 
     if (!mountedTabs.has(newValue)) {
@@ -66,9 +75,7 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
       setValue(newValue);
     }
 
-    setSearchParams({ tab: paramsLabels[newValue] });
-    onTabsHeightChange?.(tabsRef.current?.getBoundingClientRect().height ?? 0);
-    onChange?.(paramsLabels[newValue]);
+    onChange?.(newValue);
   };
 
   useEffect(() => {
@@ -79,11 +86,14 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
   }, [nextTab, mountedTabs]);
 
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
-    }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        ...sx,
+      }}
+    >
       <Tabs
         ref={tabsRef}
         value={value}
@@ -100,24 +110,27 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
               xs: "0.7rem",
               sm: "0.7rem",
               md: "0.7rem",
-              lg: "0.8rem", 
+              lg: "0.8rem",
               xl: "1.1rem",
             },
           },
           width: {
-              xs: '280px',
-              sm: '100%'
-            },
+            xs: "100vw",
+            sm: "100%",
+          },
         }}
       >
         {labels.map((label, idx) => (
-          <Tab 
-            key={idx} 
-            label={label} 
-            id={`tab-${idx}`} 
-            aria-controls={`tab-panel-${idx}`} 
+          <Tab
+            key={idx}
+            label={label}
+            disabled={
+              typeof canChangeTab === "function" &&
+              !canChangeTab(idx)
+            }
+            id={`tab-${idx}`}
+            aria-controls={`tab-panel-${idx}`}
           />
-          
         ))}
       </Tabs>
 
@@ -131,3 +144,4 @@ export const TabButtons = ({ labels, paramsLabels, children, onTabsHeightChange,
     </Box>
   );
 };
+ 

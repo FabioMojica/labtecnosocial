@@ -5,14 +5,14 @@ import React, { memo, useEffect, useState } from "react";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
-export const ProjectImageDatesComponent = ({
+export const ProjectImageDates = ({
     project,
     sx,
     overlay = false,
     overlayText = "Ir al proyecto",
     changeImage = false,
     fallbackLetter,
-    onChangeImage,
+    onChangeImage, 
     previewImage,
     ...rest
 }) => {
@@ -31,11 +31,6 @@ export const ProjectImageDatesComponent = ({
     }
 }, [project.image_file, project.image_url]);
 
-
-
-    const imageSrc = project.image_url
-        ? `${API_UPLOADS}${encodeURI(project.image_url)}`
-        : undefined;
 
     useEffect(() => {
     },[project, fallbackLetter]);
@@ -169,11 +164,3 @@ export const ProjectImageDatesComponent = ({
         </Box>
     );
 }
-
-export const ProjectImageDates = memo(ProjectImageDatesComponent, (prev, next) => {
-    return (
-        prev.project?.image_url === next.project?.image_url &&
-        prev.previewImage === next.previewImage &&
-        prev.fallbackLetter === next.fallbackLetter
-    );
-});

@@ -1,9 +1,9 @@
-import { Box, Grid, Typography, Button, Avatar, Stack, useTheme, Tooltip, IconButton } from "@mui/material";
-import { ActionBarButtons, ProjectImageDates } from "../../../generalComponents";
+import { Box, Grid, Typography, Button, Avatar, Stack, useTheme, Tooltip, IconButton, Divider } from "@mui/material";
+import { ActionBarButtons, ButtonWithLoader, ProjectImageDates } from "../../../generalComponents";
 import { useHeaderHeight } from "../../../contexts";
 import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRounded';
 import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
-import { integrationsConfig } from "../../../utils";
+import { useDrawerClosedWidth, integrationsConfig } from "../../../utils";
 
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
@@ -18,6 +18,7 @@ export const ProjectPreviewPanel = ({
     const { headerHeight } = useHeaderHeight();
     const heightCalc = `calc(100vh - ${headerHeight}px - ${panelHeight}px)`;
     const theme = useTheme();
+    const drawer = useDrawerClosedWidth();
 
     return (
         <Grid
@@ -25,41 +26,87 @@ export const ProjectPreviewPanel = ({
             spacing={2}
             sx={{
                 width: "100%",
-                minHeight: heightCalc,
-                height: heightCalc,
-                maxHeight: heightCalc,
-                p: 1,
+                minHeight: {
+                    xs: heightCalc,
+                    lg: heightCalc,
+                },
+                height: {
+                    xs: 'auto',
+                    lg: heightCalc,
+                },
+                maxHeight: {
+                    xs: 'auto',
+                    lg: heightCalc,
+                },
+                maxWidth: {
+                    xs: '100vw',
+                    lg: `calc(100vw - ${drawer} - 24px)`
+                },
+                px: {xs: 1, lg: 0},
+                mt: 1
             }}
         >
             <Grid
-                size={{
-                    xs: 12,
-                    md: 5
-                }}
-                sx={{
-                    height: { xs: "50%", md: "100%" },
+                size={{ xs: 12, md: 4.5 }}
+                sx={{ 
+                    display: 'flex',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+                    maxHeight: {
+                        xs: 250,
+                        sm: 300,
+                        lg: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+                    },
                 }}
             >
                 <ProjectImageDates
                     project={project}
-                    sx={{ width: "100%", height: "100%" }}
+
+                    sx={{
+                        width: {
+                            xs: 250,
+                            sm: 300,
+                            lg: '100%'
+                        },
+                        height: "100%",
+                        maxHeight: 500,
+                        boxShadow:
+                            theme.palette.mode === "light"
+                                ? "0 0 0 1px rgba(0,0,0,0.3)"
+                                : "0 0 0 1px rgba(255,255,255,0.3)",
+                        borderRadius: 2,
+                    }}
                     fallbackLetter={project.name && project.name[0].toUpperCase()}
                 />
             </Grid>
 
             <Grid
-                size={{
-                    xs: 12,
-                    md: 7
-                }}
+                size={{ xs: 12, md: 7.5 }}
                 sx={{
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
-                    height: "100%",
+                    maxHeight: {
+                        xs: '100%',
+                        lg: heightCalc,
+                    },
+                    pb: 2
                 }}
+
             >
-                <Box sx={{ width: '100%' }}>
+                <Box sx={{
+                    width: '100%', 
+                    height: {
+                        xs: 'auto',
+                        lg: heightCalc
+                    },
+                     overflowY: 'auto',
+                                    "&::-webkit-scrollbar": { width: "2px" },
+                                    "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+                                    "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+                                    "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+                }}>
                     <Typography variant='h6' sx={{ fontWeight: 'bold' }}>Nombre del proyecto:</Typography>
 
                     <Typography
@@ -228,24 +275,46 @@ export const ProjectPreviewPanel = ({
                     </Box>
                 </Box>
 
-                <ActionBarButtons
-                    buttons={[
-                        {
-                            label: "Cancelar",
-                            variant: "outlined",
-                            icon: <ModeStandbyRoundedIcon />,
-                            onClick: onCancel,
-                        },
-                        {
-                            label: "Crear proyecto",
-                            variant: "contained",
-                            color: "primary",
-                            icon: <LibraryAddCheckRoundedIcon />,
-                            onClick: onSave,
-                            triggerOnEnter: true,
-                            disabled: !project.name || !project.description || !isProjectValid
-                        }]}
-                        />
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    mt: {
+                        xs: 5, 
+                        sm: 2
+                    },
+                }}>
+                    <Divider sx={{ width: '100%' }} />
+                    <Box sx={{ display: 'flex', width: '100%', justifyContent: 'flex-end', gap: 2 }}>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={onCancel}
+
+                        >
+                            Borrar Todo
+                        </Button>
+                        <ButtonWithLoader
+                            // loading={loading}
+                            onClick={onSave}
+                            backgroundButton={theme => theme.palette.success.main}
+                            disabled={!project.name || !project.description || !isProjectValid}
+                            sx={{
+                                color: "white",
+                                "&:hover": {
+                                    backgroundColor: theme => theme.palette.success.dark,
+                                },
+                                width: 140,
+                            }}
+                        >
+                            Crear proyecto
+                        </ButtonWithLoader>
+                    </Box>
+                </Box>
             </Grid>
         </Grid>
     );

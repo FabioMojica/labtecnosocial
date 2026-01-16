@@ -8,7 +8,7 @@ async function main() {
     await AppDataSource.initialize();
     console.log('✅ Conectado a la base de datos');
 
-    const manager = AppDataSource.manager;
+    const manager = AppDataSource.manager; 
 
     // ---------------------------
     // 1) Usuarios (insertar o recuperar si ya existen)
@@ -60,6 +60,97 @@ async function main() {
         state: 'habilitado',
         image_url: 'https://i.pravatar.cc/150?img=12',
       },
+      {
+        firstName: 'María José',
+        lastName: 'Quispe Ramos',
+        email: 'mariajose.admin@gmail.com',
+        password: await hash('maria1A@'),
+        role: 'admin',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=21',
+      },
+      {
+        firstName: 'Carlos Eduardo',
+        lastName: 'Rojas Lima',
+        email: 'carlos.admin@gmail.com',
+        password: await hash('carlos1A@'),
+        role: 'admin',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=22',
+      },
+      {
+        firstName: 'Ana Sofía',
+        lastName: 'Vargas Peña',
+        email: 'ana.vargas@gmail.com',
+        password: await hash('ana1A@'),
+        role: 'admin',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=23',
+      },
+      {
+        firstName: 'Jorge Luis',
+        lastName: 'Mendoza Cruz',
+        email: 'jorge.mendoza@gmail.com',
+        password: await hash('jorge1A@'),
+        role: 'admin',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=24',
+      },
+      {
+        firstName: 'Daniela',
+        lastName: 'Flores Aguilar',
+        email: 'daniela.flores@gmail.com',
+        password: await hash('daniela1A@'),
+        role: 'admin',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=25',
+      },
+      {
+        firstName: 'Rodrigo',
+        lastName: 'Salinas Ortega',
+        email: 'rodrigo.salinas@gmail.com',
+        password: await hash('rodrigo1A@'),
+        role: 'coordinator',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=26',
+      },
+      {
+        firstName: 'Valeria',
+        lastName: 'Gutiérrez Paredes',
+        email: 'valeria.gutierrez@gmail.com',
+        password: await hash('valeria1A@'),
+        role: 'coordinator',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=27',
+      },
+      {
+        firstName: 'Fernando',
+        lastName: 'Arce Molina',
+        email: 'fernando.arce@gmail.com',
+        password: await hash('fernando1A@'),
+        role: 'coordinator',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=28',
+      },
+      {
+        firstName: 'Paola',
+        lastName: 'Navarro Céspedes',
+        email: 'paola.navarro@gmail.com',
+        password: await hash('paola1A@'),
+        role: 'coordinator',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=29',
+      },
+      {
+        firstName: 'Sebastián',
+        lastName: 'Torres Hidalgo',
+        email: 'sebastian.torres@gmail.com',
+        password: await hash('sebastian1A@'),
+        role: 'admin',
+        state: 'habilitado',
+        image_url: 'https://i.pravatar.cc/150?img=30',
+      },
+
     ];
 
     const users = [];
@@ -249,7 +340,7 @@ async function main() {
     process.exit(0);
   } catch (err) {
     console.error('❌ Error ejecutando seed:', err);
-    try { await AppDataSource.destroy(); } catch(e) {}
+    try { await AppDataSource.destroy(); } catch (e) { }
     process.exit(1);
   }
 }

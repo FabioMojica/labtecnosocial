@@ -1,4 +1,4 @@
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Grid, IconButton, InputAdornment, Tooltip, Typography, useTheme } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import {
@@ -7,17 +7,48 @@ import {
     TextFieldMultiline,
 } from "../../../generalComponents";
 import { cleanExtraSpaces, validateRequiredText, validateTextLength } from "../../../utils/textUtils";
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+import DescriptionIcon from '@mui/icons-material/Description';
+import EditIcon from '@mui/icons-material/Edit';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
-    const fileInputRef = useRef(null);
+    const theme = useTheme();
+    const fileInputRef = useRef(null); 
     const [previewImage, setPreviewImage] = useState(null);
     const [overlayText, setOverlayText] = useState("Subir una imagen");
     const [errors, setErrors] = useState({ name: "", description: "" });
-
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [isEditingDescription, setIsEditingDescription] = useState(false);
+    const [originalName, setOriginalName] = useState("");
+    const [originalDescription, setOriginalDescription] = useState("");
     const { notify } = useNotification();
     const { headerHeight } = useHeaderHeight();
+
+    const startEditName = () => {
+        setOriginalName(project?.name ?? "");
+        setIsEditingName(true);
+    };
+
+    const startEditDescription = () => {
+        setOriginalDescription(project?.description ?? "");
+        setIsEditingDescription(true);
+    };
+
+    const cancelEditName = () => {
+        onChange?.({ name: originalName });
+        setErrors((prev) => ({ ...prev, name: "" }));
+        setIsEditingName(false);
+    };
+
+    const cancelEditDescription = () => {
+        onChange?.({ description: originalDescription });
+        setErrors((prev) => ({ ...prev, description: "" }));
+        setIsEditingDescription(false);
+    };
+
 
     useEffect(() => {
         if (!project) {
@@ -85,7 +116,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
 
     // --- Validación de texto ---
     const handleNameChange = (e) => {
-        const value = e.target.value; // <-- no limpiar aquí
+        const value = e.target.value;
         const error =
             validateRequiredText(value, "Nombre del proyecto") ||
             validateTextLength(value, 3, 100, "Nombre del proyecto");
@@ -94,7 +125,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
     };
 
     const handleNameBlur = (e) => {
-        const cleaned = cleanExtraSpaces(e.target.value); // <-- limpiar al salir
+        const cleaned = cleanExtraSpaces(e.target.value);
         onChange?.({ name: cleaned });
     };
 
@@ -125,12 +156,33 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                 p: 1,
             }}
         >
-            <Grid size={{ xs: 12, md: 5 }} sx={{ height: { xs: "50%", sm: "100%" } }}>
+            <Grid
+                size={{ xs: 12, md: 4.5 }}
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+                    maxHeight: {
+                        xs: 250,
+                        sm: 300,
+                        lg: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+                    },
+                }}
+            >
                 <ProjectImageDates
                     overlay
                     overlayText={overlayText}
                     project={project}
-                    sx={{ width: "100%", height: "100%" }}
+                    sx={{
+                        width: {
+                            xs: 250,
+                            sm: 300,
+                            lg: '100%'
+                        },
+                        height: "100%",
+                        maxHeight: 500,
+                    }}
                     changeImage
                     onChangeImage={handleOverlayClick}
                     previewImage={previewImage ?? undefined}
@@ -140,39 +192,242 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange }) => {
                 />
             </Grid>
 
+
             <Grid
                 container
-                spacing={2}
-                size={{ xs: 12, md: 7 }}
-                sx={{ height: "auto", display: "flex", flexDirection: "column", pb: { xs: 20, sm: 0 } }}
+                spacing={1}
+                size={{ xs: 12, md: 7.5 }}
+                sx={{ display: "flex", flexDirection: "column" }}
             >
-                <Grid size={12}>
+                <Grid sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        gap: 1,
+                        mb: 1,
+                    }}>
+                        <DriveFileRenameOutlineIcon />
+                        <Typography
+                            sx={{
+                                fontWeight: 'bold'
+                            }}
+                            variant="h5"
+                        >
+                            Nombre del proyecto
+                        </Typography>
+                    </Box>
                     <TextField
-                        label="Nombre del proyecto*"
-                        variant="filled"
+                        label={
+                            project?.name !== "" ? null :
+                                <>
+                                    Ingrese un nombre para el proyecto <span style={{ color: theme.palette.error.main }}>*</span>
+                                </>
+                        }
+                        variant="outlined"
                         value={project?.name ?? ""}
                         onChange={handleNameChange}
-                        onBlur={handleNameBlur}                        
+                        onBlur={handleNameBlur}
                         maxLength={100}
                         error={!!errors.name}
+                        inputProps={{ maxLength: 100 }}
+                        disabled={!isEditingName}
+                        size='small'
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                minHeight: {
+                                    xs: 50,
+                                    sm: 60
+                                },
+                                maxHeight: {
+                                    xs: 50,
+                                    sm: 60
+                                },
+                                width: '100%',
+                            },
+                            '& .MuiOutlinedInput-input': {
+                                padding: '8px 12px',
+                                fontSize: '0.95rem',
+                                lineHeight: '1.2',
+                                textAlign: 'justify'
+                            }
+                        }}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <Tooltip title={
+                                        isEditingName ? "Borrar cambios" : "Editar nombre"
+                                    }>
+                                        <span>
+                                            <IconButton
+                                                size="small"
+                                                onClick={isEditingName ? cancelEditName : startEditName}
+                                            >
+                                                {
+                                                    isEditingName ? (
+                                                        <CancelIcon fontSize="small" />
+                                                    ) : (
+                                                        <EditIcon fontSize="small" />
+                                                    )
+                                                }
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                </InputAdornment>
+                            ),
+                        }}
                     />
-                    {errors.name && <Typography color="error" variant="caption">{errors.name}</Typography>}
+
+                    {/* Error + contador */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            mt: 0.5,
+                            px: 0.5,
+                        }}
+                    >
+                        {/* Error a la izquierda */}
+                        <Typography
+                            variant="caption"
+                            color="error"
+                            sx={{
+                                visibility: errors.name ? "visible" : "hidden",
+                                fontSize: {
+                                    xs: '0.6rem',
+                                    sm: '0.65rem'
+                                }
+                            }}
+                        >
+                            {errors.name || "placeholder"}
+                        </Typography>
+
+                        {/* Contador a la derecha */}
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                                fontSize: {
+                                    xs: '0.6rem'
+                                },
+                                height: 20,
+                            }}
+                        >
+                            {(project?.name?.length ?? 0)} / 100
+                        </Typography>
+                    </Box>
                 </Grid>
 
-                <Grid size={12}>
+                <Grid
+                    sx={{ display: 'flex', flexDirection: 'column' }}
+                >
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        gap: 1,
+                        mb: 1,
+                    }}>
+                        <DescriptionIcon />
+                        <Typography
+                            sx={{
+                                fontWeight: 'bold'
+                            }}
+                            variant="h5"
+                        >
+                            Descripción
+                        </Typography>
+                    </Box>
                     <TextFieldMultiline
                         rows={6}
-                        variant="filled"
-                        label="Descripción del proyecto*"
                         value={project?.description ?? ""}
                         onChange={handleDescriptionChange}
                         onBlur={handleDescriptionBlur}
                         maxLength={300}
                         error={!!errors.description}
+                        variant="outlined"
+                        disabled={!isEditingDescription}
+                        label={
+                            project?.description !== "" ? null :
+                                <>
+                                    Ingrese una descripción para el proyecto <span style={{ color: theme.palette.error.main }}>*</span>
+                                </>
+                        }
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                width: '100%',
+                            },
+                            '& .MuiOutlinedInput-input': {
+                                padding: '8px 12px',
+                                fontSize: '0.95rem',
+                                lineHeight: '1.2',
+                                textAlign: 'justify'
+                            }
+                        }}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <Tooltip title={
+                                        isEditingDescription ? "Borrar cambios" : "Editar descripción"
+                                    }>
+                                        <span>
+                                            <IconButton 
+                                                size="small"
+                                                onClick={isEditingDescription ? cancelEditDescription : startEditDescription}
+                                            >
+                                                {
+                                                    isEditingDescription ? (
+                                                        <CancelIcon fontSize="small" />
+                                                    ) : (
+                                                        <EditIcon fontSize="small" />
+                                                    )
+                                                }
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                </InputAdornment>
+                            ),
+                        }}
                     />
-                    {errors.description && (
-                        <Typography color="error" variant="caption">{errors.description}</Typography>
-                    )}
+
+                    {/* Error + contador */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            mt: 0.5,
+                            px: 0.5,
+                        }}
+                    >
+                        {/* Error a la izquierda */}
+                        <Typography
+                            variant="caption"
+                            color="error"
+                            sx={{
+                                visibility: errors.description ? "visible" : "hidden",
+                                fontSize: {
+                                    xs: '0.6rem',
+                                    sm: '0.65rem'
+                                }
+                            }}
+                        >
+                            {errors.description || "placeholder"}
+                        </Typography>
+
+                        {/* Contador a la derecha */}
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                                fontSize: {
+                                    xs: '0.6rem'
+                                },
+                                height: 20,
+                            }}
+                        >
+                            {(project?.description.length ?? 0)} / 300
+                        </Typography>
+                    </Box>
                 </Grid>
             </Grid>
 

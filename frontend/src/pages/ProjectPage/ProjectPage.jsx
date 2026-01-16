@@ -1,7 +1,7 @@
 import { Box, Button } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useNotification } from "../../contexts";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useAuth, useNotification } from "../../contexts";
 import { ActionBarButtons } from "../../generalComponents";
 
 import { useAuthEffects, useFetchAndLoad } from "../../hooks";
@@ -20,6 +20,7 @@ import { ProjectInfoPanel } from "./components/ProjectInfoPanel";
 import { getProjectByIdApi, updateProjectApi } from "../../api";
 import { updateProjectFormData } from "./utils/updateProjectFormData";
 import { ProjectIntegrationsWithApisPanel } from "./components/ProjectIntegrationsWithApisPanel copy";
+import { FloatingActionButtons } from "./components/FloatingActionButtons";
 
 const areResponsiblesEqual = (
     a,
@@ -39,10 +40,11 @@ export const ProjectPage = () => {
     const [tabsHeight, setTabsHeight] = useState(0);
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
-    const { id } = useParams();
+    const location = useLocation();
+    const id = location.state?.id;
 
     const navigate = useNavigate();
-    if (!id) return <ErrorScreen message="Proyecto no encontrado" buttonText="Volver a proyectos" onButtonClick={() => navigate('/proyectos')} />;
+
     const projectId = id;
     const [activeTab, setActiveTab] = useState("Información del proyecto");
     const [project, setProject] = useState(null);
@@ -54,6 +56,7 @@ export const ProjectPage = () => {
     const [error, setError] = useState(false);
 
     const fetchProjectById = async () => {
+        if (!id) return;
         try {
             const resp = await callEndpoint(getProjectByIdApi(projectId));
             setProject(resp);
@@ -66,21 +69,21 @@ export const ProjectPage = () => {
             setError(false);
         } catch (err) {
             const errorMessage =
-            err?.message ||
-            err?.response?.data?.message ||
-            "";
+                err?.message ||
+                err?.response?.data?.message ||
+                "";
             if (errorMessage.includes("No tienes permisos para acceder a este proyecto")) {
                 navigate("/404", { replace: true });
                 return;
             }
-            
+
             if (errorMessage.includes("Proyecto no encontrado")) {
                 navigate("/404", { replace: true });
                 return;
             }
-            
+
             setError(true);
-            
+
             notify(
                 "Ocurrió un error inesperado al obtener el proyecto. Inténtalo de nuevo más tarde.",
                 "error"
@@ -92,13 +95,6 @@ export const ProjectPage = () => {
     useEffect(() => {
         fetchProjectById();
     }, []);
-
-    useEffect(() => {
-        const urlTab = new URLSearchParams(window.location.search).get("tab");
-        if (!urlTab) {
-            navigate(`/proyecto/${id}?tab=Información del proyecto`, { replace: true });
-        }
-    }, [id, navigate]);
 
     const handleProjectChange = (changes) => {
         if (!project) return;
@@ -163,52 +159,52 @@ export const ProjectPage = () => {
 
     if (loading) return <FullScreenProgress text="Obteniendo el proyecto" />;
     if (error) return <ErrorScreen message="Ocurrió un error inesperado al obtener el proyecto" buttonText="Intentar de nuevo" onButtonClick={() => fetchProjectById()} />
+    if (!id) return <ErrorScreen message="Proyecto no encontrado" buttonText="Volver a proyectos" onButtonClick={() => navigate('/proyectos')} />;
 
     return (
         <>
-        { project && 
-        <>
-        <TabButtons
-                labels={["Información del proyecto", "Responsables", "Integraciones con apis", "Plan operativo", "Más"]}
-                paramsLabels={["Información del proyecto", "Responsables", "Integraciones con apis", "Plan operativo", "Más"]}
-                onTabsHeightChange={(height) => setTabsHeight(height)}
-                onChange={(newTab) => setActiveTab(newTab)}
-            >
+            {project &&
+                <>
+                    <TabButtons
+                        labels={["Información del proyecto", "Responsables", "Integraciones con apis", "Plan operativo", "Más"]}
+                        paramsLabels={["Información del proyecto", "Responsables", "Integraciones con apis", "Plan operativo", "Más"]}
+                        onTabsHeightChange={(height) => setTabsHeight(height)}
+                        onChange={(newTab) => setActiveTab(newTab)}
+                    >
 
-                <ProjectInfoPanel onChange={handleProjectChange} panelHeight={tabsHeight} project={project} />
+                        <ProjectInfoPanel onChange={handleProjectChange} panelHeight={tabsHeight} project={project} />
 
-                <ResponsiblesPanel
-                    panelHeight={tabsHeight}
-                    responsibles={project?.projectResponsibles || []}
-                    resetTrigger={resetResponsiblesTrigger}
-                    onChange={(updatedData) =>
-                        handleProjectChange({
-                            projectResponsibles: updatedData.projectResponsibles,
-                            preEliminados: updatedData.preEliminados,
-                            preAnadidos: updatedData.preAnadidos
-                        })
-                    }
-                />
+                        <ResponsiblesPanel
+                            panelHeight={tabsHeight}
+                            responsibles={project?.projectResponsibles || []}
+                            resetTrigger={resetResponsiblesTrigger}
+                            onChange={(updatedData) =>
+                                handleProjectChange({
+                                    projectResponsibles: updatedData.projectResponsibles,
+                                    preEliminados: updatedData.preEliminados,
+                                    preAnadidos: updatedData.preAnadidos
+                                })
+                            }
+                        />
 
-                <ProjectIntegrationsWithApisPanel
-                    panelHeight={tabsHeight}
-                    selectedIntegrations={project?.integrations || []}
-                    onChange={(newIntegrations) => handleProjectChange({ integrations: newIntegrations })}
-                />
+                        <ProjectIntegrationsWithApisPanel
+                            panelHeight={tabsHeight}
+                            selectedIntegrations={project?.integrations || []}
+                            onChange={(newIntegrations) => handleProjectChange({ integrations: newIntegrations })}
+                        />
 
-                <Box>Apis</Box>
-                <MorePanel project={project} panelHeight={tabsHeight}></MorePanel>
-            </TabButtons>
+                        <Box>Apis</Box>
+                        <MorePanel project={project} panelHeight={tabsHeight}></MorePanel>
+                    </TabButtons>
 
-            <QuestionModal
-                open={questionModalOpen}
-                question="¿Deseas descartar los cambios no guardados?"
-                onCancel={() => setQuestionModalOpen(false)}
-                onConfirm={handleConfirmCancelModal}
-            />
+                    <QuestionModal
+                        open={questionModalOpen}
+                        question="¿Deseas descartar los cambios no guardados?"
+                        onCancel={() => setQuestionModalOpen(false)}
+                        onConfirm={handleConfirmCancelModal}
+                    />
 
-            {activeTab !== "Más" && (
-                <ActionBarButtons
+                    {/* <ActionBarButtons
                     visible={isDirty}
                     buttons={[
                         {
@@ -228,9 +224,15 @@ export const ProjectPage = () => {
                             disabled: !project?.name || !project?.description,
                         },
                     ]}
-                />
-            )}</>
-        }
+                /> */}
+                    <FloatingActionButtons
+                        visible={isDirty}
+                        onSave={handleSave}
+                        onCancel={handleCancelChanges}
+                        saveDisabled={!project?.name || !project?.description}
+                    />
+                </>
+            }
         </>
     );
 }

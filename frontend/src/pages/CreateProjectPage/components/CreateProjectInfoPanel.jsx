@@ -1,4 +1,4 @@
-import { Grid, Typography, useTheme } from "@mui/material";
+import { Box, Grid, Typography, useTheme } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import {
@@ -11,6 +11,8 @@ import {
     validateRequiredText,
     validateTextLength,
 } from "../../../utils/textUtils";
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 
 const debounce = (func, delay = 100) => {
@@ -28,11 +30,9 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
     const [errors, setErrors] = useState({ name: "", description: "" });
     const [localName, setLocalName] = useState(project?.name ?? "");
     const [localDescription, setLocalDescription] = useState(project?.description ?? "");
-
-
+    const theme = useTheme();
     const { notify } = useNotification();
     const { headerHeight } = useHeaderHeight();
-
     const debouncedChange = useRef(debounce(onChange, 1));
 
     useEffect(() => {
@@ -45,21 +45,18 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
     }, [errors, project, onValidationChange]);
 
     useEffect(() => {
-        if (previewImage) {
-            const hasHover = window.matchMedia("(hover: hover)").matches;
-            setOverlayText(
-                hasHover
+        setOverlayText(
+            previewImage
+                ? window.matchMedia("(hover: hover)").matches
                     ? "Cambiar imagen (click izquierdo), borrar imagen (click derecho)"
                     : "Toca para cambiar la imagen, borrar imagen (mantener presionado)"
-            );
-        } else {
-            setOverlayText("Subir una imagen");
-        }
+                : "Subir una imagen"
+        );
     }, [previewImage]);
 
     useEffect(() => {
         setPreviewImage(project?.image_url ?? null);
-    }, []);
+    }, [project]);
 
     const handleOverlayClick = () => fileInputRef.current?.click();
 
@@ -106,7 +103,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
     const handleNameBlur = () => {
         const cleaned = cleanExtraSpaces(localName);
         setLocalName(cleaned);
-        onChange?.({ name: cleaned }); // actualizar proyecto global
+        onChange?.({ name: cleaned }); 
         debouncedChange.current({ name: cleaned });
     };
 
@@ -135,25 +132,53 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
             spacing={2}
             sx={{
                 width: "100%",
-                minHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-                height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-                maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-                p: 1,
+                height: {
+                    xs: 'auto',
+                    sm: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`
+                },
+                maxHeight: {
+                    xs: 'auto',
+                    sm: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`
+                },
+                minHeight: {
+                    xs: 'auto',
+                    sm: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`
+                },
+                mt: 1,
+                px: { xs: 1, lg: 0 }
             }}
         >
             <Grid
-                size={{ xs: 12, md: 5 }}
+                size={{ xs: 12, md: 4.5 }}
                 sx={{
-                    height: { xs: "50%", sm: "100%" },
+                    display: 'flex',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+                    maxHeight: {
+                        xs: 250,
+                        sm: 300,
+                        lg: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
+                    },
                 }}
             >
                 <ProjectImageDates
                     overlay
                     overlayText={overlayText}
                     project={project}
-                    sx={{
-                        width: "100%",
+                    sx={{ 
+                        width: {
+                            xs: 250,
+                            sm: 300,
+                            lg: '100%' 
+                        },
                         height: "100%",
+                        maxHeight: 500,
+                        boxShadow:
+                            theme.palette.mode === "light"
+                                ? "0 0 0 1px rgba(0,0,0,0.3)"
+                                : "0 0 0 1px rgba(255,255,255,0.3)",
+                        borderRadius: 2,
                     }}
                     changeImage
                     onChangeImage={handleOverlayClick}
@@ -167,52 +192,187 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
 
             <Grid
                 container
-                spacing={2}
-                size={{ xs: 12, md: 7 }}
-                sx={{
-                    height: "auto", display: 'flex', flexDirection: 'column', pb: {
-                        xs: 20,
-                        sm: 0,
-                    }
-                }}
+                spacing={1}
+                size={{ xs: 12, md: 7.5 }}
+                sx={{ display: "flex", flexDirection: "column" }}
             >
-                <Grid size={12}>
+                <Grid sx={{display: 'flex', flexDirection: 'column'}}>
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        gap: 1,
+                        mb: 1,
+                    }}>
+                        <DriveFileRenameOutlineIcon />
+                        <Typography
+                            sx={{
+                                fontWeight: 'bold'
+                            }}
+                            variant="h5"
+                        >
+                            Nombre del proyecto
+                        </Typography>
+                    </Box>
                     <TextField
-                        label="Ingrese un nombre para el proyecto (máx. 100 car.)*"
-                        variant="filled"
-                        // value={project?.name}
+                        label={
+                            <>
+                                Ingrese un nombre para el proyecto <span style={{ color: theme.palette.error.main }}>*</span>
+                            </>
+                        }
+                        variant="outlined"
                         value={localName}
+                        error={!!errors.name}
                         onChange={handleNameChange}
                         onBlur={handleNameBlur}
                         maxLength={100}
-                        error={!!errors.name}
+                        inputProps={{ maxLength: 100 }}
+                        size='small'
+                        sx={{
+                            '& .MuiOutlinedInput-root': { 
+                                minHeight: {
+                                    xs: 50,
+                                    sm: 60
+                                },
+                                maxHeight: {
+                                    xs: 50,
+                                    sm: 60
+                                },
+                                width: '100%',
+                            },
+                            '& .MuiOutlinedInput-input': {
+                                padding: '8px 12px',
+                                fontSize: '0.95rem',
+                                lineHeight: '1.2',
+                                textAlign: 'justify'
+                            }
+                        }}
                     />
 
-                    {errors.name && (
-                        <Typography color="error" variant="caption">
-                            {errors.name}
+                    {/* Error + contador */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            mt: 0.5,
+                            px: 0.5,
+                        }}
+                    >
+                        {/* Error a la izquierda */}
+                        <Typography
+                            variant="caption"
+                            color="error"
+                            sx={{
+                                visibility: errors.name ? "visible" : "hidden",
+                                fontSize: {
+                                    xs: '0.6rem',
+                                    sm: '0.65rem'
+                                }
+                            }}
+                        >
+                            {errors.name || "placeholder"}
                         </Typography>
-                    )}
+
+                        {/* Contador a la derecha */}
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                                fontSize: {
+                                    xs: '0.6rem'
+                                },
+                                height: 20,
+                            }}
+                        >
+                            {(localName.length ?? 0)} / 100
+                        </Typography>
+                    </Box>
                 </Grid>
 
-                <Grid size={12}>
+                <Grid 
+                    sx={{display: 'flex', flexDirection: 'column'}}
+                >
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        gap: 1,
+                        mb: 1,
+                    }}>
+                        <DescriptionIcon />
+                        <Typography
+                            sx={{
+                                fontWeight: 'bold'
+                            }}
+                            variant="h5"
+                        >
+                            Descripción
+                        </Typography>
+                    </Box>
                     <TextFieldMultiline
                         rows={8}
-                        variant="filled"
-                        label="Ingrese una descripción para el proyecto (máx. 300 car.)*"
-                        // value={project?.description}
+                        variant="outlined"
+                        label={
+                            <>
+                                Ingrese una descripción para el proyecto <span style={{ color: theme.palette.error.main }}>*</span>
+                            </>
+                        }
                         value={localDescription}
                         onChange={handleDescriptionChange}
                         onBlur={handleDescriptionBlur}
                         maxLength={300}
                         error={!!errors.description}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                width: '100%',
+                            },
+                            '& .MuiOutlinedInput-input': {
+                                padding: '8px 12px',
+                                fontSize: '0.95rem',
+                                lineHeight: '1.2', 
+                                textAlign: 'justify'
+                            }
+                        }}
                     />
- 
-                    {errors.description && (
-                        <Typography color="error" variant="caption" textAlign={'right'} sx={{ width: '100%' }}>
-                            {errors.description}
+
+                    {/* Error + contador */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            mt: 0.5,
+                            px: 0.5,
+                        }}
+                    >
+                        {/* Error a la izquierda */}
+                        <Typography
+                            variant="caption"
+                            color="error"
+                            sx={{
+                                visibility: errors.description ? "visible" : "hidden",
+                                fontSize: {
+                                    xs: '0.6rem',
+                                    sm: '0.65rem'
+                                }
+                            }}
+                        >
+                            {errors.description || "placeholder"}
                         </Typography>
-                    )}
+
+                        {/* Contador a la derecha */}
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                                fontSize: {
+                                    xs: '0.6rem'
+                                },
+                                height: 20,
+                            }}
+                        >
+                            {(localDescription.length ?? 0)} / 300
+                        </Typography>
+                    </Box>
                 </Grid>
             </Grid>
 

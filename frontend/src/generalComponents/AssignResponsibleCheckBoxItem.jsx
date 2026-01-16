@@ -49,11 +49,12 @@ export const AssignResponsibleCheckBoxItem = ({
               borderRadius: 2,
               objectFit: "cover",
               fontWeight: "bold",
+              boxShadow:
+                                    theme.palette.mode === 'light'
+                                        ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                        : '0 0 0 1px rgba(255,255,255,0.3)',
             }}
           >
-
-            {/* {responsible.firstName[0].toUpperCase()}
-            {responsible.lastName[0].toUpperCase()} */}
             {responsible.firstName?.[0]?.toUpperCase() ?? ""}
   {responsible.lastName?.[0]?.toUpperCase() ?? ""}
           </Avatar>

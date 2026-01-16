@@ -18,7 +18,7 @@ export const UserImageDates = ({
   return (
     <Box
       {...rest}
-      sx={{
+      sx={{ 
         display: "flex",
         flexDirection: "column",
         width: "100%",

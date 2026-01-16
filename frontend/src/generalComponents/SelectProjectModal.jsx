@@ -18,6 +18,7 @@ import {
 import { NoResultsScreen, SearchBar } from ".";
 import { useNavigate } from "react-router-dom";
 import CloseIcon from '@mui/icons-material/Close';
+import { useAuth } from "../contexts";
 
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
@@ -33,6 +34,7 @@ export const SelectProjectModal = ({
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [filteredProjects, setFilteredProjects] = useState(projects);
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,7 +49,7 @@ export const SelectProjectModal = ({
     setOpen(false);
   };
 
-  return ( 
+  return (
     <>
 
       <Button
@@ -72,7 +74,7 @@ export const SelectProjectModal = ({
             <Avatar
               src={selectedProject.image_url ? `${API_UPLOADS}${selectedProject.image_url}` : undefined}
               sx={{
-                width: 36, 
+                width: 36,
                 height: 36,
                 borderRadius: 2,
                 objectFit: "cover",
@@ -96,7 +98,7 @@ export const SelectProjectModal = ({
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 WebkitLineClamp: 1,
-                
+
               }}
               textAlign={'start'}
             >
@@ -104,10 +106,10 @@ export const SelectProjectModal = ({
             </Typography>
           </Box>
         ) : (
-          <Typography 
-            textAlign={'center'} 
+          <Typography
+            textAlign={'center'}
             sx={{ fontSize: '1rem', width: 200 }}>
-              Seleccionar Proyecto
+            Seleccionar Proyecto
           </Typography>
         )}
       </Button>
@@ -128,9 +130,9 @@ export const SelectProjectModal = ({
             px: 3,
             pt: 2,
             position: 'relative',
-            display: 'flex',         
-            flexDirection: 'column', 
-            overflow: 'hidden',     
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
           }}
         >
           <IconButton
@@ -148,11 +150,27 @@ export const SelectProjectModal = ({
             <Box display="flex" justifyContent="center" py={3}>
               <CircularProgress size={30} />
             </Box>
-          ) : projects.length === 0 ? (
+          ) : projects.length === 0 ? user?.role === 'admin' ? (
             <NoResultsScreen
               message='Aún no tienes proyectos registrados'
               buttonText="Crear uno"
               onButtonClick={() => navigate("/proyectos/crear")}
+              buttonSx={{
+                backgroundColor: "primary.main",
+                color: "primary.contrastText",
+                "&:hover": {
+                  backgroundColor: "primary.dark",
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: "action.disabledBackground",
+                  color: "action.disabled", 
+                },
+              }} />
+          ) : (
+            <NoResultsScreen
+              message='Aún no tienes proyectos asignados para acceder a su plan operativo'
+              buttonText="Ir al inicio"
+              onButtonClick={() => navigate("/inicio")}
               buttonSx={{
                 backgroundColor: "primary.main",
                 color: "primary.contrastText",

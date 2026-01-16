@@ -82,7 +82,7 @@ export const MorePanel = ({ user, panelHeight }) => {
                                 <Box>
                                     <ListItemText
                                         primary={
-                                            <>
+                                            <> 
                                                 * Este usuario es responsable de{' '}
                                                 <MuiLink
                                                     component={RouterLink}

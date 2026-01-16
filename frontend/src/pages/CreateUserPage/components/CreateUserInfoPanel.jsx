@@ -66,7 +66,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
     password: '',
     image_file: null,
     image_url: null,
-    role: 'coordinator',
+    role: 'coordinator', 
     state: 'habilitado',
   };
   const [user, setUser] = useState({ ...initialUser });
@@ -137,10 +137,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
     });
   };
 
-  const handleSave = () => {
-    handleCreateUser();
-  }
-
   const handleCancelChanges = () => {
     setQuestionModalOpen(true);
   }
@@ -169,7 +165,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
   };
 
   useEffect(() => {
-    setOverlayText(
+    setOverlayText( 
       previewImage
         ? window.matchMedia("(hover: hover)").matches
           ? "Cambiar imagen (click izquierdo), borrar imagen (click derecho)"
@@ -270,7 +266,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
       <Grid
         container
         spacing={2}
-        sx={{
+        sx={{  
           width: "100%",
           height: {
             xs: 'auto',
@@ -286,7 +282,8 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           },
         }}
       >
-        <Grid size={{ xs: 12, md: 4.5 }}
+        <Grid 
+          size={{ xs: 12, md: 4.5 }}
           sx={{
             display: 'flex',
             justifyContent: 'center',
@@ -298,11 +295,11 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
               lg: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
             },
           }}>
-          <UserImageDates
-            overlay
+          <UserImageDates 
+            overlay 
             overlayText={overlayText}
             user={user}
-            sx={{
+            sx={{ 
               width: {
                 xs: 250,
                 sm: 300,
@@ -326,7 +323,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
         </Grid>
 
         <Grid
-          container
+          container 
           spacing={1}
           size={{ xs: 12, md: 7.5 }}
           sx={{ display: "flex", flexDirection: "column" }}
@@ -334,7 +331,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           <Grid container spacing={1}>
             <Box sx={{
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'center', 
               width: '100%',
               gap: 1,
               flexDirection: {
@@ -857,7 +854,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
-        <Box sx={{
+        <Box sx={{ 
           mt: {
             xs: 5,
             sm: 5,

@@ -35,11 +35,11 @@ export const CreateUserPage = () => {
     }, []);
     
     return (
-        <Box sx={{ p: 1 }}>
+        <Box sx={{ px: 1, py: {xs: 1, lg: 0}}}> 
             <Box ref={headerRef}>
                 <Typography
                     variant="h4"
-                    fontWeight="bold"
+                    fontWeight="bold" 
                     sx={{
                         fontSize: {
                             xs: '1.5rem',
@@ -48,7 +48,7 @@ export const CreateUserPage = () => {
                         width: { xs: '100%', sm: 'auto' },
                         textAlign: {
                             xs: 'center',
-                            lg: 'left'
+                            lg: 'left' 
                         },
                     }}
                 >

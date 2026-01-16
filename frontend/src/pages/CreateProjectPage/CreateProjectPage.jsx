@@ -52,25 +52,12 @@ export const CreateProjectPage = () => {
     const [questionModalOpen, setQuestionModalOpen] = useState(false);
     const { loading, callEndpoint } = useFetchAndLoad();
     const [isProjectValid, setIsProjectValid] = useState(false);
-    
 
     const navigate = useNavigate();
+
     useEffect(() => {
         setIsDirty(!isProjectEqual(project, initialProject));
     }, [project]);
-
-    useEffect(() => {
-        const handleBeforeUnload = (e) => {
-            e.preventDefault();
-            e.returnValue = "";
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, []);
 
     const handleCreateProject = async () => {
         if (!project) {
@@ -78,8 +65,7 @@ export const CreateProjectPage = () => {
             return;
         }
         try {
-            const responsiblesIds = project.newResponsibles?.map(u => u.id) ?? [];
-
+            const responsiblesIds = project.newResponsibles?.map(u => u.id) ?? []; 
             const projectToSend = {
                 name: project.name,
                 description: project.description,
@@ -88,11 +74,15 @@ export const CreateProjectPage = () => {
                 integrations: project.integrations ?? [],
             };
             const formData = createProjectFormData(projectToSend);
-            await callEndpoint(createOperationalProjectApi(formData));
+            const newProject = await callEndpoint(createOperationalProjectApi(formData));
             notify("Proyecto creado correctamente", "success");
-            navigate('/proyectos', { replace: true });
+            navigate(`/proyecto/${newProject?.name}`, {
+                replace: true,
+                state: { id: newProject?.id },
+            });
         } catch (error) {
-            notify(error?.message || "Ocurrió un error inesperado al crear el proyecto. Inténtalo de nuevo más tarde.", "error");
+            console.log(error)
+            notify("Ocurrió un error inesperado al crear el proyecto. Inténtalo de nuevo más tarde.", "error");
         }
     };
 
@@ -123,13 +113,20 @@ export const CreateProjectPage = () => {
     if (loading) return <FullScreenProgress text="Creando el proyecto" />
 
     return (
-        <Box>  
+        <Box>
             <TabButtons
                 labels={["Información del proyecto", "Asignar Responsables", "Integraciones con apis", "Crear Proyecto"]}
                 paramsLabels={["información", "asignarResponsables", "integrarAPIs", "crearProyecto"]}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
-            > 
-                <CreateProjectInfoPanel 
+                canChangeTab={(idx) => {
+                    if (idx === 0) return true; 
+                    if (idx === 1) return isProjectValid;
+                    if (idx === 2) return isProjectValid;
+                    if (idx === 3) return isProjectValid;
+                    return false;
+                }}
+            >
+                <CreateProjectInfoPanel
                     onChange={handleProjectChange}
                     panelHeight={tabsHeight}
                     project={project}

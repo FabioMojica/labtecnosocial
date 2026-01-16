@@ -5,7 +5,7 @@ import { useFetchAndLoad } from "../../../hooks";
 import { getAllUsersApi } from "../../../api";
 import { Box, Grid, Paper, Typography, useTheme, IconButton, Avatar } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-
+ 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 import { useDebouncedCallback } from 'use-debounce';
@@ -103,7 +103,6 @@ const handleRemoveResponsible = useCallback((email) => {
                 minHeight: height,
                 height: height,
                 maxHeight: height,
-                
                 display: "flex",
                 flexDirection: "column",
                 gap: 1,
@@ -116,6 +115,83 @@ const handleRemoveResponsible = useCallback((email) => {
                 }}
 
             >
+                <Grid
+                    size={{
+                        xs: 12,
+                        sm: 12,
+                        md: 12,
+                        lg: 6
+                    }}
+                    sx={{
+                        height: height,
+                        p: 0.5
+                    }}
+                >
+                    <Paper sx={{ width: '100%', height: '100%', p: 1, display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant='h5' textAlign={'center'} sx={{ fontSize: { xs: '1rem', sm: '1.4rem' } }}>Seleccionar Responsables</Typography>
+                        <Box
+                            sx={{
+                                width: '100%',
+                                flexGrow: 1,
+                                display: 'flex', 
+                                flexDirection: 'column',
+                                minHeight: 0,
+                            }}
+                        >
+                            {/* Barra de búsqueda (alto fijo) */}
+                            <Box sx={{ flexShrink: 0, mb: 0.5 }}>
+                                <SearchBar
+                                    data={users}
+                                    fields={['firstName', 'lastName', 'email']}
+                                    placeholder="Buscar responsable..."
+                                    // onResults={(filtered) => setFilteredUsers(filtered)}
+                                    onResults={debouncedSetFilteredUsers}
+                                />
+                            </Box>
+
+                            {/* Lista ocupa el resto del espacio */}
+                            <Box
+                                sx={{
+                                    flexGrow: 1,
+                                    overflowY: 'auto',
+                                    "&::-webkit-scrollbar": { width: "2px" },
+                                    "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+                                    "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+                                    "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 1,
+                                    p: 1,
+                                }}
+                            >
+                                {filteredUsers.length > 0 ? (
+                                    filteredUsers.map((user) => (
+                                        <MemoizedCheckBoxItem 
+                                            key={user.email}
+                                            responsible={user}
+                                            checked={selectedResponsibles.has(user.email)}
+                                            onChange={checked => handleToggleResponsible(user.email, checked)}
+                                        />
+                                    ))
+                                ) : ( 
+                                    <NoResultsScreen
+                                        message="No se encontraron usuarios que coincidan con la búsqueda"
+                                        sx={{
+                                            height: '100%',
+                                            justifyContent: 'center',
+                                        }}
+                                        iconSX={{
+                                            fontSize: 60,
+                                            color: theme.palette.text.secondary,
+                                        }}
+                                    />
+                                )}
+                            </Box> 
+                        </Box>
+
+                    </Paper>
+                </Grid>
+
                 {/* --- RESPONSABLES ASIGNADOS --- */}
                 <Grid
                     size={{
@@ -129,6 +205,10 @@ const handleRemoveResponsible = useCallback((email) => {
                         height: { xs: shorterHeight, lg: height },
                         maxHeight: { xs: shorterHeight, lg: height },
                         p: 0.5,
+                        display: {
+                        lg: 'block',
+                        xs: 'none',
+                    }
                     }}
                 >
                     <Paper
@@ -259,85 +339,6 @@ const handleRemoveResponsible = useCallback((email) => {
                                 />
                             )}
                         </Box>
-                    </Paper>
-                </Grid>
-
-                <Grid
-                    size={{
-                        xs: 12,
-                        sm: 12,
-                        md: 12,
-                        lg: 6
-                    }}
-                    sx={{
-                        height: { xs: tallerHeight, lg: height },
-                        maxHeight: { xs: tallerHeight, lg: height },
-                        p: 0.5
-                    }}
-                >
-                    <Paper sx={{ width: '100%', height: '100%', p: 1, display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant='h5' textAlign={'center'} sx={{ fontSize: { xs: '0.9rem', sm: '1.4rem' } }}>Seleccionar Responsables</Typography>
-                        <Box
-                            sx={{
-                                width: '100%',
-                                flexGrow: 1,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                minHeight: 0,
-                            }}
-                        >
-                            {/* Barra de búsqueda (alto fijo) */}
-                            <Box sx={{ flexShrink: 0, mb: 0.5 }}>
-                                <SearchBar
-                                    data={users}
-                                    fields={['firstName', 'lastName', 'email']}
-                                    placeholder="Buscar responsable..."
-                                    // onResults={(filtered) => setFilteredUsers(filtered)}
-                                    onResults={debouncedSetFilteredUsers}
-                                />
-                            </Box>
-
-                            {/* Lista ocupa el resto del espacio */}
-                            <Box
-                                sx={{
-                                    flexGrow: 1,
-                                    overflowY: 'auto',
-                                    "&::-webkit-scrollbar": { width: "2px" },
-                                    "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
-                                    "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
-                                    "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 1,
-                                    p: 1,
-                                }}
-                            >
-                                {filteredUsers.length > 0 ? (
-                                    filteredUsers.map((user) => (
-                                    
-                                        <MemoizedCheckBoxItem
-                                            key={user.email}
-                                            responsible={user}
-                                            checked={selectedResponsibles.has(user.email)}
-                                            onChange={checked => handleToggleResponsible(user.email, checked)}
-                                        />
-                                    ))
-                                ) : (
-                                    <NoResultsScreen
-                                        message="No se encontraron usuarios que coincidan con la búsqueda"
-                                        sx={{
-                                            height: '100%',
-                                            justifyContent: 'center',
-                                        }}
-                                        iconSX={{
-                                            fontSize: 60,
-                                            color: theme.palette.text.secondary,
-                                        }}
-                                    />
-                                )}
-                            </Box>
-                        </Box>
-
                     </Paper>
                 </Grid>
             </Grid>

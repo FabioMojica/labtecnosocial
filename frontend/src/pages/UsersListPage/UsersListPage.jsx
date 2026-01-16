@@ -184,7 +184,7 @@ export function UsersListPage() {
 
     return (
 
-        <Box sx={{ display: 'flex', p: 1, pt: {xs: 2}, pr: {lg: 2} }}> 
+        <Box sx={{ display: 'flex', px: 1, py: {xs: 1, lg: 0}}}> 
             <CssBaseline /> 
 
             <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>

@@ -19,7 +19,7 @@ import {
 
 
 import { Header, PrivateRoute, SessionExpirationModal } from './generalComponents';
-import { getDrawerClosedWidth } from './utils';
+import { useDrawerClosedWidth } from './utils';
 import StrategicPlanningDashboardPage from './pages/StrategicPlan/StrategicPlanningDashboardPage';
 import OperationalPlanningDashboardPage from './pages/OperationalPlan/OperationalPlanningDashboardPage';
 import { ConfirmProvider } from 'material-ui-confirm';
@@ -67,7 +67,7 @@ const AppContent = () => {
         <Route path="/usuario/:email" element={<PrivateRoute element={<UserPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/proyectos" element={<PrivateRoute element={<ProjectsListPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/proyectos/crear" element={<PrivateRoute element={<CreateProjectPage />} allowedRoles={[ROLES.ADMIN]} />} />
-        <Route path="/proyecto/:id" element={<PrivateRoute element={<ProjectPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
+        <Route path="/proyecto/:name" element={<PrivateRoute element={<ProjectPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/planificacion-estrategica/:year" element={<PrivateRoute element={<StrategicPlanningDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/planificacion-operativa/:name?" element={<PrivateRoute element={<OperationalPlanningDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
         <Route path="/dashboard" element={<PrivateRoute element={<APIsDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
@@ -116,7 +116,7 @@ function App() {
                               flexGrow: 1,
                               minHeight: '100vh',
                               pl: { 
-                                lg: getDrawerClosedWidth(), 
+                                lg: useDrawerClosedWidth(), 
                               }, 
                               maxWidth: 2000,
                             }}> 

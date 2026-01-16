@@ -14,8 +14,7 @@ export const createOperationalProjectApi = async (projectData) => {
       }
     );
 
-    if (response.status === 200) return response.data;
-    return null;
+    return response.data;
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al crear el proyecto");

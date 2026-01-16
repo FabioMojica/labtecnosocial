@@ -20,7 +20,6 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { FullScreenProgress } from "../../generalComponents/FullScreenProgress.jsx";
 import { ErrorScreen } from "../../generalComponents/ErrorScreen.jsx";
-import { getDrawerClosedWidth } from "../../utils/index.js";
 
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL;
