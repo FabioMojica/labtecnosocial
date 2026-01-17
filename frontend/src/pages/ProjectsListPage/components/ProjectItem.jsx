@@ -33,7 +33,7 @@ export const ProjectItem = ({ project, onClick }) => {
   const theme = useTheme();
 
   const imageSrc = project.image_url
-    ? `${API_UPLOADS}${project.image_url}`
+    ? `${API_UPLOADS}${project.image_url}` 
     : undefined;
 
   return (
@@ -44,7 +44,7 @@ export const ProjectItem = ({ project, onClick }) => {
           sx={{
             display: "flex",
             flexDirection: "row",
-            gap: 1,
+            gap: 1, 
             alignItems: "center",
             justifyContent: "start",
           }}
@@ -119,10 +119,10 @@ export const ProjectItem = ({ project, onClick }) => {
             display: "flex",
             mt: { xs: 2, sm: 0 },
             height: "100%",
-            width: { xs: "100%", sm: 560 },
+            width: { xs: "100%" },
             alignItems: "center",
             justifyContent: { xs: "space-around", sm: "flex-end" },
-            gap: 3,
+            gap: 2,
             flexWrap: "wrap",
           }}
         >

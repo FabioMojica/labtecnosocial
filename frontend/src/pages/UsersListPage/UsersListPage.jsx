@@ -28,7 +28,7 @@ const sortOptions = [
     { label: "Menos proyectos asignados", value: "projects_asc" },
     { label: "Más antiguos", value: "created_asc" },
     { label: "Menos antiguos", value: "created_desc" },
-];
+]; 
 
 
 export function UsersListPage() {
@@ -314,7 +314,7 @@ export function UsersListPage() {
                         displayedUsers.map(user => (
                             <UserItem key={user.id} user={user} onClick={() => handleUserClick(user)} />
                         ))
-                    ) : (
+                    ) : ( 
                         <Box sx={{ width: '100%' }}>
                             <NoResultsScreen
                                 sx={{ height: '50vh' }}

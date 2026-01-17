@@ -82,7 +82,7 @@ const sortOptions = [
     { label: "Más actualizados", value: "updated_desc" },
 ];
 
-export function ProjectsListPage() {
+export function ProjectsListPage() { 
     const theme = useTheme();
     const [open, setOpen] = useState(false);
     const { loading, callEndpoint } = useFetchAndLoad();
@@ -352,7 +352,7 @@ export function ProjectsListPage() {
                                 project={project}
                                 onClick={() => handleProjectClick(project)}
                             />
-                        ))
+                        )) 
                     ) : (
                         <Box sx={{ width: '100%' }}>
                             <NoResultsScreen

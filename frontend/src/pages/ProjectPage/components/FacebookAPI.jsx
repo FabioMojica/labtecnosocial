@@ -22,6 +22,9 @@ import { SearchBar, ErrorScreen, SpinnerLoading, NoResultsScreen } from "../../.
 import { useHeaderHeight } from "../../../contexts";
 import { getFacebookPagesApi } from "../../../api";
 import { integrationsConfig } from "../../../utils";
+import EditIcon from "@mui/icons-material/Edit";
+import CloseIcon from "@mui/icons-material/Close";
+
 
 export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
     const { icon: FacebookIcon, label, color } = integrationsConfig.facebook;
@@ -32,10 +35,25 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
 
     const [pages, setPages] = useState([]);
     const [filteredPages, setFilteredPages] = useState([]);
-    const selectedPages = selected;
 
     const [tooltipContent, setTooltipContent] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempSelected, setTempSelected] = useState(selected);
+    const selectedPages = isEditing ? tempSelected : selected;
+    
+        useEffect(() => {
+            setTempSelected(selected);
+        }, [selected]);
+
+    const handleEditToggle = () => {
+        if (isEditing) {
+            setTempSelected(selected);
+            setIsEditing(false);
+        } else {
+            setIsEditing(true);
+        }
+    };
 
     const getFacebookPages = async () => {
         try {
@@ -50,12 +68,11 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
 
     useEffect(() => { getFacebookPages(); }, []);
 
+    
     const handleTogglePage = (page) => {
-        const alreadySelected = selectedPages.some((r) => r.id === page.id);
-        const newSelected = alreadySelected
-            ? selectedPages.filter(r => r.id !== page.id)
-            : [...selectedPages, page];
-        onChange?.(newSelected);
+        if (!isEditing) return;  
+        const alreadySelected = tempSelected.some(r => r.id === page.id);
+        setTempSelected(alreadySelected ? [] : [page]); 
     };
 
     const handleContextMenu = (e, page) => {
@@ -74,9 +91,18 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
     return (
         <Paper elevation={3} sx={{ height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 16px)`, display: 'flex', flexDirection: 'column', p: 0.5 }}>
             {/* Header */}
-            <Box sx={{ display: "flex", gap: 2, alignItems: "center", justifyContent: "flex-start", height: '10%' }}>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center", justifyContent: "space-between", height: '10%' }}>
+                <Box sx={{ display: 'flex', gap: 2 }}>
                 <FacebookIcon sx={{ fontSize: 40, color }} />
                 <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
+                </Box>
+            
+                {/* NUEVO: Botón Edit/Close */}
+                <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
+                    <IconButton size="small" onClick={handleEditToggle}>
+                        {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
+                    </IconButton>
+                </Tooltip>
             </Box>
 
             {/* Loading / Error / No Results */}
@@ -93,7 +119,7 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                         {selectedPages.length > 0 ? (
                             <Stack
                                 direction="row"
-                                gap={1}
+                                gap={1} 
                                 alignItems="center"
                                 justifyContent="flex-start"
                                 sx={{
@@ -108,6 +134,7 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                             >
                                 {selectedPages.map(page => (
                                     <Chip
+                                        disabled={!isEditing}
                                         key={page.id}
                                         label={page.name}
                                         onDelete={() => handleTogglePage(page)}
@@ -149,12 +176,12 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                                 "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark }
                             }}>
                                 {filteredPages.map(page => {
-                                    const checked = selectedPages.some(r => r.id === page.id);
+                                    const checked = selectedPages.some(r => String(r.id) === String(page.id));
 
                                     const handleOpenPage = (e) => { e.stopPropagation(); window.open(page.url, "_blank"); };
 
                                     return (
-                                        <ListItemButton key={page.id} onContextMenu={(e) => handleContextMenu(e, page)} onClick={() => handleTogglePage(page)} sx={{ "&:hover": { backgroundColor: "action.hover" }, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', pr: 0, position: 'relative' }}>
+                                        <ListItemButton disabled={!isEditing} key={page.id} onContextMenu={(e) => handleContextMenu(e, page)} onClick={() => handleTogglePage(page)} sx={{ "&:hover": { backgroundColor: "action.hover" }, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', pr: 0, position: 'relative' }}>
                                             <IconButton size="small" onClick={handleOpenPage} sx={{ position: 'absolute', top: -3, left: -3 }}>
                                                 <OpenInNewIcon sx={{ fontSize: '1rem' }} />
                                             </IconButton>
@@ -169,11 +196,11 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                                                 primaryTypographyProps={{ fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" }, fontWeight: 500, noWrap: true, sx: { textOverflow: 'ellipsis', overflow: 'hidden' } }}
                                                 secondaryTypographyProps={{ fontSize: "0.8rem", color: "text.secondary", noWrap: true, sx: { textOverflow: 'ellipsis', overflow: 'hidden' } }}
                                                 sx={{
-                                                        maxWidth: {
-                                                            xs: 150,
-                                                            sm: '100%'
-                                                        }
-                                                    }}
+                                                    maxWidth: {
+                                                        xs: 150,
+                                                        sm: '100%'
+                                                    }
+                                                }}
                                             />
 
                                             <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>

@@ -312,7 +312,7 @@ export const getProjectById = async (req, res) => {
         }
         : null,
       integrations: project.integrations.map((i) => ({
-        id: i.id,
+        id: i.integration_id,
         name: i.name,
         platform: i.platform,
         url: i.url,

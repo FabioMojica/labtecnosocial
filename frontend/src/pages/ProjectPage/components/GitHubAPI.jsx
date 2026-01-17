@@ -29,19 +29,28 @@ import {
 import { useHeaderHeight } from "../../../contexts";
 import { getGitHubRepositoriesApi } from "../../../api";
 
+import EditIcon from "@mui/icons-material/Edit";
+import CloseIcon from "@mui/icons-material/Close";
+
 export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
     const { icon: GitHubIcon, label, color } = integrationsConfig.github;
     const theme = useTheme();
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [error, setError] = useState(false);
-    const selectedRepos = selected;
 
     const [repos, setRepos] = useState([]);
     const [filteredRepos, setFilteredRepos] = useState([]);
 
     const [tooltipContent, setTooltipContent] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempSelected, setTempSelected] = useState(selected);
+
+    useEffect(() => {
+        setTempSelected(selected);
+    }, [selected]);
 
     const getGitHubRepositories = async () => {
         try {
@@ -58,18 +67,6 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
         getGitHubRepositories();
     }, []);
 
-    const handleToggleRepo = (repo) => {
-        const alreadySelected = selectedRepos.some((r) => r.id === repo.id);
-
-        let newSelected;
-        if (alreadySelected) {
-            newSelected = selectedRepos.filter(r => r.id !== repo.id);
-        } else {
-            newSelected = [...selectedRepos, repo];
-        }
-
-        onChange?.(newSelected);
-    };
 
     const handleContextMenu = (e, repo) => {
         e.preventDefault();
@@ -87,6 +84,24 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
         }, 3000);
     };
 
+    const handleToggleRepo = (repo) => {
+        if (!isEditing) return; 
+        const alreadySelected = tempSelected.some(r => r.id === repo.id);
+        setTempSelected(alreadySelected ? [] : [repo]); 
+    };
+    
+
+    const handleEditToggle = () => {
+        if (isEditing) {
+            setTempSelected(selected);
+            setIsEditing(false);
+        } else {
+            setIsEditing(true);
+        }
+    };
+    
+    const selectedRepos = isEditing ? tempSelected : selected;
+
     return (
         <Paper elevation={3} sx={{ height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 16px)`, justifyContent: 'space-between', display: 'flex', flexDirection: 'column', p: 0.5 }}>
             <Box
@@ -94,14 +109,24 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                     display: "flex",
                     gap: 2,
                     alignItems: "center",
-                    justifyContent: "flex-start",
+                    justifyContent: "space-between",
                     height: '10%',
+                    pt: 1
                 }}
             >
-                <GitHubIcon sx={{ fontSize: 40, color }} />
-                <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>
-                    {label}
-                </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <GitHubIcon sx={{ fontSize: 40, color }} />
+                    <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>
+                        {label}
+                    </Typography>
+                </Box>
+
+                {/* NUEVO: Botón Edit/Close */}
+                <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
+                    <IconButton size="small" onClick={handleEditToggle}>
+                        {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
+                    </IconButton>
+                </Tooltip>
             </Box>
 
             {loading ? (
@@ -157,6 +182,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                         onDelete={() => handleToggleRepo(repo)}
                                         color="primary"
                                         variant="outlined"
+                                        disabled={!isEditing}
                                     />
                                 ))}
                             </Stack>
@@ -213,7 +239,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                         pb: 6
                                     }}>
                                     {filteredRepos.map((repo) => {
-                                        const checked = selectedRepos.some(r => r.id === repo.id);
+                                        const checked = selectedRepos.some(r => String(r.id) === String(repo.id));
 
                                         const handleOpenRepo = (e) => {
                                             e.stopPropagation();
@@ -223,6 +249,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                         return (
                                             <ListItemButton
                                                 key={repo.id}
+                                                disabled={!isEditing}
                                                 onContextMenu={(e) => handleContextMenu(e, repo)}
                                                 onClick={() => handleToggleRepo(repo)}
                                                 sx={{
@@ -299,7 +326,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                                         height: 0,
                                                     }),
                                                 },
-                                                
+
                                             }}
                                             placement="top-start"
                                         >

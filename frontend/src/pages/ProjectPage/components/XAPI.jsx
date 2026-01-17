@@ -19,6 +19,8 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useEffect, useState } from "react";
 import { useFetchAndLoad } from "../../../hooks";
 import { integrationsConfig } from "../../../utils";
+import EditIcon from "@mui/icons-material/Edit";
+import CloseIcon from "@mui/icons-material/Close";
 import {
     ErrorScreen,
     NoResultsScreen,
@@ -35,13 +37,30 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [error, setError] = useState(false);
-    const selectedAccounts = selected;
 
+    const [tempSelected, setTempSelected] = useState(selected);
+    
+    const [isEditing, setIsEditing] = useState(false);
+    const selectedAccounts = isEditing ? tempSelected : selected;
     const [accounts, setAccounts] = useState([]);
     const [filteredAccounts, setFilteredAccounts] = useState([]);
 
     const [tooltipContent, setTooltipContent] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+
+    useEffect(() => {
+        setTempSelected(selected);
+    }, [selected]);
+
+    const handleEditToggle = () => {
+        if (isEditing) {
+            setTempSelected(selected);
+            setIsEditing(false);
+        } else {
+            setIsEditing(true);
+        }
+    };
+
 
     const getXAccounts = async () => {
         try {
@@ -58,17 +77,11 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
         getXAccounts();
     }, []);
 
-    const handleToggleAccounts = (accounts) => {
-        const alreadySelected = selectedAccounts.some((r) => r.id === accounts.id);
 
-        let newSelected;
-        if (alreadySelected) {
-            newSelected = selectedAccounts.filter(r => r.id !== accounts.id);
-        } else {
-            newSelected = [...selectedAccounts, accounts];
-        }
-
-        onChange?.(newSelected);
+    const handleToggleAccounts = (account) => {
+        const alreadySelected = selected.some(r => r.id === account.id);
+        // Si ya está seleccionado, lo borramos; si no, lo seleccionamos
+        onChange?.(alreadySelected ? [] : [account]);
     };
 
     const handleContextMenu = (e, accounts) => {
@@ -94,14 +107,23 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                     display: "flex",
                     gap: 2,
                     alignItems: "center",
-                    justifyContent: "flex-start",
+                    justifyContent: "space-between",
                     height: '10%',
                 }}
             >
-                <XIcon sx={{ fontSize: 40, color }} />
-                <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>
-                    {label}
-                </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <XIcon sx={{ fontSize: 40, color }} />
+                    <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>
+                        {label}
+                    </Typography>
+                </Box>
+
+                {/* NUEVO: Botón Edit/Close */}
+                <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
+                    <IconButton size="small" onClick={handleEditToggle}>
+                        {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
+                    </IconButton>
+                </Tooltip>
             </Box>
 
             {loading ? (
@@ -153,6 +175,7 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                                 {selectedAccounts.map((accounts) => (
                                     <Chip
                                         key={accounts.id}
+                                        disabled={!isEditing}
                                         label={accounts.name}
                                         onDelete={() => handleToggleAccounts(accounts)}
                                         color="primary"
@@ -213,7 +236,7 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                                         pb: 6
                                     }}>
                                     {filteredAccounts.map((account) => {
-                                        const checked = selectedAccounts.some(r => r.id === account.id);
+                                        const checked = selectedAccounts.some(r => String(r.id) === String(account.id));
 
                                         const handleOpenAccounts = (e) => {
                                             e.stopPropagation();
@@ -222,6 +245,7 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
 
                                         return (
                                             <ListItemButton
+                                                disabled={!isEditing}
                                                 key={account.id}
                                                 onContextMenu={(e) => handleContextMenu(e, account)}
                                                 onClick={() => handleToggleAccounts(account)}

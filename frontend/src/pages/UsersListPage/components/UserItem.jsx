@@ -55,7 +55,7 @@ export const UserItem = ({ user, onClick }) => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <Avatar
-                            src={imageSrc ?? undefined}
+                            src={imageSrc ?? undefined} 
                             sx={{
                                 width: 56,
                                 height: 56,

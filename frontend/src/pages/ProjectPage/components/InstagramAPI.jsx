@@ -27,6 +27,8 @@ import {
 } from "../../../generalComponents";
 import { useHeaderHeight } from "../../../contexts";
 import { getInstagramPagesApi } from "../../../api";
+import EditIcon from "@mui/icons-material/Edit";
+import CloseIcon from "@mui/icons-material/Close";
 
 export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
     const { icon: InstagramIcon, label, color } = integrationsConfig.instagram;
@@ -34,14 +36,30 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [error, setError] = useState(false);
-    
+
     const [pages, setPages] = useState([]);
     const [filteredPages, setFilteredPages] = useState([]);
-    const selectedPages = selected;
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempSelected, setTempSelected] = useState(selected);
+    const selectedPages = isEditing ? tempSelected : selected;
 
     // Tooltip global
     const [tooltipContent, setTooltipContent] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+
+    useEffect(() => {
+        setTempSelected(selected);
+    }, [selected]);
+
+    const handleEditToggle = () => {
+        if (isEditing) {
+            setTempSelected(selected);
+            setIsEditing(false);
+        } else {
+            setIsEditing(true);
+        }
+    };
+
 
     // Fetch pages
     const getInstagramPages = async () => {
@@ -59,17 +77,23 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
         getInstagramPages();
     }, []);
 
+    // const handleTogglePage = (page) => {
+    //     const alreadySelected = selectedPages.some((r) => r.id === page.id);
+
+    //     let newSelected;
+    //     if (alreadySelected) {
+    //         newSelected = selectedPages.filter(r => r.id !== page.id);
+    //     } else {
+    //         newSelected = [...selectedPages, page];
+    //     }
+
+    //     onChange?.(newSelected);
+    // };
+
     const handleTogglePage = (page) => {
-        const alreadySelected = selectedPages.some((r) => r.id === page.id);
-
-        let newSelected;
-        if (alreadySelected) {
-            newSelected = selectedPages.filter(r => r.id !== page.id);
-        } else {
-            newSelected = [...selectedPages, page];
-        }
-
-        onChange?.(newSelected);
+        const alreadySelected = selected.some(r => r.id === page.id);
+        // Si ya está seleccionado, lo borramos; si no, lo seleccionamos
+        onChange?.(alreadySelected ? [] : [page]);
     };
 
     // Tooltip en context menu
@@ -89,9 +113,18 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
 
     return (
         <Paper elevation={3} sx={{ height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 16px)`, display: 'flex', flexDirection: 'column', p: 0.5 }}>
-            <Box sx={{ display: "flex", gap: 2, alignItems: "center", justifyContent: "flex-start", height: '10%' }}>
-                <InstagramIcon sx={{ fontSize: 40, color }} />
-                <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center", justifyContent: "space-between", height: '10%' }}>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <InstagramIcon sx={{ fontSize: 40, color }} />
+                    <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
+                </Box>
+                {/* NUEVO: Botón Edit/Close */}
+                <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
+                    <IconButton size="small" onClick={handleEditToggle}>
+                        {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
+                    </IconButton>
+                </Tooltip>
+
             </Box>
 
             {loading ? (
@@ -127,6 +160,7 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                             >
                                 {selectedPages.map(page => (
                                     <Chip
+                                        disabled={!isEditing}
                                         key={page.id}
                                         label={page.name}
                                         onDelete={() => handleTogglePage(page)}
@@ -137,19 +171,19 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                             </Stack>
                         ) : (
                             <Typography
-                                                            variant="body2"
-                                                            color="text.secondary"
-                                                            align="center"
-                                                            sx={{
-                                                                padding: '4px',
-                                                                color: 'gray',
-                                                                fontStyle: 'italic',
-                                                                textAlign: 'center',
-                                                                fontSize: '0.9rem',
-                                                            }}
-                                                        >
-                                                            Sin páginas seleccionadas
-                                                        </Typography>
+                                variant="body2"
+                                color="text.secondary"
+                                align="center"
+                                sx={{
+                                    padding: '4px',
+                                    color: 'gray',
+                                    fontStyle: 'italic',
+                                    textAlign: 'center',
+                                    fontSize: '0.9rem',
+                                }}
+                            >
+                                Sin páginas seleccionadas
+                            </Typography>
                         )}
                     </Box>
 
@@ -175,7 +209,7 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                                 pb: 6
                             }}>
                                 {filteredPages.map(page => {
-                                    const checked = selectedPages.some(r => r.id === page.id);
+                                    const checked = selectedPages.some(r => String(r.id) === String(page.id));
 
                                     const handleOpenPage = (e) => {
                                         e.stopPropagation();
@@ -184,6 +218,7 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
 
                                     return (
                                         <ListItemButton
+                                            disabled={!isEditing}
                                             key={page.id}
                                             onContextMenu={(e) => handleContextMenu(e, page)}
                                             onClick={() => handleTogglePage(page)}
@@ -210,11 +245,11 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                                                 primaryTypographyProps={{ fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" }, fontWeight: 500, noWrap: true, sx: { textOverflow: 'ellipsis', overflow: 'hidden' } }}
                                                 secondaryTypographyProps={{ fontSize: "0.8rem", color: "text.secondary", noWrap: true, sx: { textOverflow: 'ellipsis', overflow: 'hidden' } }}
                                                 sx={{
-                                                        maxWidth: {
-                                                            xs: 150,
-                                                            sm: '100%'
-                                                        }
-                                                    }}
+                                                    maxWidth: {
+                                                        xs: 150,
+                                                        sm: '100%'
+                                                    }
+                                                }}
                                             />
 
                                             <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>

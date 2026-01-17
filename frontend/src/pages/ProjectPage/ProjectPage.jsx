@@ -16,22 +16,8 @@ import { ResponsiblesPanel } from "./components/ResponsiblesPanel";
 import { ProjectInfoPanel } from "./components/ProjectInfoPanel";
 import { getProjectByIdApi, updateProjectApi } from "../../api";
 import { updateProjectFormData } from "./utils/updateProjectFormData";
-import { ProjectIntegrationsWithApisPanel } from "./components/ProjectIntegrationsWithApisPanel copy";
+import { ProjectIntegrationsWithApisPanel } from "./components/ProjectIntegrationsWithApisPanel";
 import { FloatingActionButtons } from "./components/FloatingActionButtons";
-
-const areResponsiblesEqual = (
-    a,
-    b,
-) => {
-
-    if (a?.length !== b?.length) return false;
-
-    const idsA = a?.map(r => r.id).sort();
-    const idsB = b?.map(r => r.id).sort();
-
-    return idsA?.every((id, index) => id === idsB?.[index]);
-};
-
 
 export const ProjectPage = () => {
     const [tabsHeight, setTabsHeight] = useState(0);
@@ -192,7 +178,7 @@ export const ProjectPage = () => {
 
                         <ProjectIntegrationsWithApisPanel
                             panelHeight={tabsHeight}
-                            selectedIntegrations={updatedProject?.integrations || []}
+                            integrations={updatedProject?.integrations || []}
                             onChange={(newIntegrations) => handleProjectChange({ integrations: newIntegrations })}
                         />
 
@@ -205,7 +191,7 @@ export const ProjectPage = () => {
                         onCancel={() => setQuestionModalOpen(false)}
                         onConfirm={handleConfirmCancelModal}
                     />
-
+ 
                     <FloatingActionButtons
                         loading={loadingupdateProject}
                         visible={isDirty}
