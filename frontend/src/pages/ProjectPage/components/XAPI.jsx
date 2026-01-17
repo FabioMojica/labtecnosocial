@@ -39,7 +39,7 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
     const [error, setError] = useState(false);
 
     const [tempSelected, setTempSelected] = useState(selected);
-    
+
     const [isEditing, setIsEditing] = useState(false);
     const selectedAccounts = isEditing ? tempSelected : selected;
     const [accounts, setAccounts] = useState([]);
@@ -119,11 +119,13 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                 </Box>
 
                 {/* NUEVO: Botón Edit/Close */}
-                <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
-                    <IconButton size="small" onClick={handleEditToggle}>
-                        {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
-                    </IconButton>
-                </Tooltip>
+                {!error && !loading &&
+                    <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
+                        <IconButton size="small" onClick={handleEditToggle}>
+                            {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
+                        </IconButton>
+                    </Tooltip>
+                }
             </Box>
 
             {loading ? (

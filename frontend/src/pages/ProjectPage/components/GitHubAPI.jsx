@@ -99,7 +99,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
             setIsEditing(true);
         }
     };
-    
+
     const selectedRepos = isEditing ? tempSelected : selected;
 
     return (
@@ -121,12 +121,13 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                     </Typography>
                 </Box>
 
-                {/* NUEVO: Botón Edit/Close */}
-                <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
-                    <IconButton size="small" onClick={handleEditToggle}>
-                        {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
-                    </IconButton>
-                </Tooltip>
+                 {!error && !loading &&
+                    <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
+                        <IconButton size="small" onClick={handleEditToggle}>
+                            {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
+                        </IconButton>
+                    </Tooltip>
+                }
             </Box>
 
             {loading ? (

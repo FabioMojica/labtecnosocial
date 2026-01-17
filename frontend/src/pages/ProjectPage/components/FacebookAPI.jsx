@@ -97,12 +97,13 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                 <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
                 </Box>
             
-                {/* NUEVO: Botón Edit/Close */}
-                <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
-                    <IconButton size="small" onClick={handleEditToggle}>
-                        {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
-                    </IconButton>
-                </Tooltip>
+                {!error && !loading &&
+                    <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
+                        <IconButton size="small" onClick={handleEditToggle}>
+                            {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
+                        </IconButton>
+                    </Tooltip>
+                }
             </Box>
 
             {/* Loading / Error / No Results */}
