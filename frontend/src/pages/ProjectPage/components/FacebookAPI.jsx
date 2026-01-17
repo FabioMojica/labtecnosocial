@@ -16,7 +16,7 @@ import {
     IconButton,
 } from "@mui/material";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetchAndLoad } from "../../../hooks";
 import { SearchBar, ErrorScreen, SpinnerLoading, NoResultsScreen } from "../../../generalComponents";
 import { useHeaderHeight } from "../../../contexts";
@@ -26,9 +26,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 
 
-export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
+export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetTrigger }) => {
     const { icon: FacebookIcon, label, color } = integrationsConfig.facebook;
-    const theme = useTheme();
+    const theme = useTheme(); 
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [error, setError] = useState(false);
@@ -38,28 +38,46 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
 
     const [tooltipContent, setTooltipContent] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+
     const [isEditing, setIsEditing] = useState(false);
-    const [tempSelected, setTempSelected] = useState(selected);
-    const selectedPages = isEditing ? tempSelected : selected;
-    
-        useEffect(() => {
-            setTempSelected(selected);
-        }, [selected]);
+    const [tempSelected, setTempSelected] = useState(null);
+    const initialSelectedRef = useRef([]);
+
+    useEffect(() => {
+        let facebookIntegrationInitial = facebookIntegration;
+        if (facebookIntegration == undefined) {
+            facebookIntegrationInitial = null;
+        }
+        setTempSelected(facebookIntegrationInitial);
+        initialSelectedRef.current = facebookIntegrationInitial;
+    }, [facebookIntegration]);
 
     const handleEditToggle = () => {
         if (isEditing) {
-            setTempSelected(selected);
+            setTempSelected(initialSelectedRef.current);
             setIsEditing(false);
+            onChange({ intAnadidos: [], intEliminados: [] });
         } else {
             setIsEditing(true);
         }
     };
 
+    useEffect(() => { 
+        setTempSelected(initialSelectedRef.current);
+        setIsEditing(false);
+        onChange({ intAnadidos: [], intEliminados: [] });
+    }, [resetTrigger]);
+
+
     const getFacebookPages = async () => {
         try {
             const pages = await callEndpoint(getFacebookPagesApi());
-            setPages(pages);
-            setFilteredPages(pages);
+            const pagesWithPlatform = pages.map(page => ({
+                ...page,
+                platform: "facebook"
+            }));
+            setPages(pagesWithPlatform);
+            setFilteredPages(pagesWithPlatform);
             setError(false);
         } catch (err) {
             setError(true);
@@ -68,11 +86,45 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
 
     useEffect(() => { getFacebookPages(); }, []);
 
-    
+
     const handleTogglePage = (page) => {
-        if (!isEditing) return;  
-        const alreadySelected = tempSelected.some(r => r.id === page.id);
-        setTempSelected(alreadySelected ? [] : [page]); 
+        if (!isEditing) return;
+
+        let newTempSelected = null;
+
+        if (tempSelected?.id === page.id) {
+            newTempSelected = null;
+        } else {
+            newTempSelected = page;
+        }
+
+        console.log("temp", tempSelected);
+        console.log("New temp", newTempSelected);
+
+        setTempSelected(newTempSelected);
+
+        let intAnadidos = [];
+        let intEliminados = [];
+
+        const initialSelected = initialSelectedRef.current
+
+        if (initialSelected === null) {
+            if (newTempSelected !== null) {
+                intAnadidos.push(newTempSelected);
+            }
+        } else {
+            if (newTempSelected === null) {
+                intEliminados.push(initialSelected);
+            } else {
+                if (newTempSelected.id === initialSelected.id) {
+                    intEliminados = [];
+                } else {
+                    intAnadidos.push(newTempSelected);
+                    intEliminados.push(initialSelected);
+                }
+            }
+        }
+        onChange({ intAnadidos, intEliminados });
     };
 
     const handleContextMenu = (e, page) => {
@@ -93,11 +145,11 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
             {/* Header */}
             <Box sx={{ display: "flex", gap: 2, alignItems: "center", justifyContent: "space-between", height: '10%' }}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                <FacebookIcon sx={{ fontSize: 40, color }} />
-                <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
+                    <FacebookIcon sx={{ fontSize: 40, color }} />
+                    <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
                 </Box>
-            
-                {!error && !loading &&
+
+                {!error && !loading && pages.length !== 0 &&
                     <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
                         <IconButton size="small" onClick={handleEditToggle}>
                             {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
@@ -106,7 +158,6 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                 }
             </Box>
 
-            {/* Loading / Error / No Results */}
             {loading ? (
                 <SpinnerLoading text="Obteniendo las páginas de Facebook..." size={30} sx={{ height: "90%" }} />
             ) : error ? (
@@ -117,10 +168,10 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                 <Box sx={{ minHeight: "90%", display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'space-between' }}>
                     {/* Selected Pages Chips */}
                     <Box sx={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
-                        {selectedPages.length > 0 ? (
+                        {tempSelected !== null ? (
                             <Stack
                                 direction="row"
-                                gap={1} 
+                                gap={1}
                                 alignItems="center"
                                 justifyContent="flex-start"
                                 sx={{
@@ -133,16 +184,14 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                                     pb: 1
                                 }}
                             >
-                                {selectedPages.map(page => (
-                                    <Chip
-                                        disabled={!isEditing}
-                                        key={page.id}
-                                        label={page.name}
-                                        onDelete={() => handleTogglePage(page)}
-                                        color="primary"
-                                        variant="outlined"
-                                    />
-                                ))}
+                                <Chip
+                                    disabled={!isEditing}
+                                    label={tempSelected?.name}
+                                    onDelete={() => handleTogglePage(tempSelected)}
+                                    color="primary"
+                                    variant="outlined"
+                                />
+
                             </Stack>
                         ) : (
                             <Typography
@@ -177,8 +226,6 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                                 "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark }
                             }}>
                                 {filteredPages.map(page => {
-                                    const checked = selectedPages.some(r => String(r.id) === String(page.id));
-
                                     const handleOpenPage = (e) => { e.stopPropagation(); window.open(page.url, "_blank"); };
 
                                     return (
@@ -205,7 +252,11 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                                             />
 
                                             <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
-                                                <Checkbox edge="end" checked={checked} tabIndex={-1} disableRipple />
+                                                <Checkbox edge="end"
+                                                    checked={tempSelected ? String(tempSelected.id) === String(page.id) : false}
+                                                    tabIndex={-1}
+                                                    disableRipple
+                                                />
                                             </ListItemIcon>
                                         </ListItemButton>
                                     );

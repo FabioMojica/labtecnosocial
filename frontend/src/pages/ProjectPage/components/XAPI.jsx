@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { IconButton } from "@mui/material";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetchAndLoad } from "../../../hooks";
 import { integrationsConfig } from "../../../utils";
 import EditIcon from "@mui/icons-material/Edit";
@@ -31,42 +31,59 @@ import {
 import { useHeaderHeight } from "../../../contexts";
 import { getXAccountsApi } from "../../../api";
 
-export const XApi = ({ panelHeight, selected = [], onChange }) => {
+export const XApi = ({ panelHeight, xIntegration, onChange, resetTrigger }) => {
     const { icon: XIcon, label, color } = integrationsConfig.x;
     const theme = useTheme();
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [error, setError] = useState(false);
 
-    const [tempSelected, setTempSelected] = useState(selected);
-
-    const [isEditing, setIsEditing] = useState(false);
-    const selectedAccounts = isEditing ? tempSelected : selected;
     const [accounts, setAccounts] = useState([]);
     const [filteredAccounts, setFilteredAccounts] = useState([]);
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempSelected, setTempSelected] = useState(null);
+    const initialSelectedRef = useRef([]);
 
     const [tooltipContent, setTooltipContent] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
 
     useEffect(() => {
-        setTempSelected(selected);
-    }, [selected]);
+        let xIntegrationInitial = xIntegration;
+        if (xIntegration == undefined) {
+            xIntegrationInitial = null;
+        }
+        setTempSelected(xIntegrationInitial);
+        initialSelectedRef.current = xIntegrationInitial;
+    }, [xIntegration]);
 
     const handleEditToggle = () => {
         if (isEditing) {
-            setTempSelected(selected);
+            setTempSelected(initialSelectedRef.current);
             setIsEditing(false);
+            onChange({ intAnadidos: [], intEliminados: [] });
         } else {
             setIsEditing(true);
         }
     };
 
+    useEffect(() => {
+        setTempSelected(initialSelectedRef.current);
+        setIsEditing(false);
+        onChange({ intAnadidos: [], intEliminados: [] });
+    }, [resetTrigger]);
+
+
 
     const getXAccounts = async () => {
         try {
             const accounts = await callEndpoint(getXAccountsApi());
-            setAccounts(accounts);
-            setFilteredAccounts(accounts);
+            const accountsWithPlatform = accounts.map(account => ({
+                ...account,
+                platform: "x"
+            }));
+            setAccounts(accountsWithPlatform);
+            setFilteredAccounts(accountsWithPlatform);
             setError(false);
         } catch (error) {
             setError(true);
@@ -78,10 +95,41 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
     }, []);
 
 
-    const handleToggleAccounts = (account) => {
-        const alreadySelected = selected.some(r => r.id === account.id);
-        // Si ya está seleccionado, lo borramos; si no, lo seleccionamos
-        onChange?.(alreadySelected ? [] : [account]);
+    const handleToggleAccount = (account) => {
+        if (!isEditing) return;
+
+        let newTempSelected = null;
+
+        if (tempSelected?.id === account.id) {
+            newTempSelected = null;
+        } else {
+            newTempSelected = account;
+        }
+
+        setTempSelected(newTempSelected);
+
+        let intAnadidos = [];
+        let intEliminados = [];
+
+        const initialSelected = initialSelectedRef.current
+
+        if (initialSelected === null) {
+            if (newTempSelected !== null) {
+                intAnadidos.push(newTempSelected);
+            }
+        } else {
+            if (newTempSelected === null) {
+                intEliminados.push(initialSelected);
+            } else {
+                if (newTempSelected.id === initialSelected.id) {
+                    intEliminados = [];
+                } else {
+                    intAnadidos.push(newTempSelected);
+                    intEliminados.push(initialSelected);
+                }
+            }
+        }
+        onChange({ intAnadidos, intEliminados });
     };
 
     const handleContextMenu = (e, accounts) => {
@@ -119,7 +167,7 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                 </Box>
 
                 {/* NUEVO: Botón Edit/Close */}
-                {!error && !loading &&
+                {!error && !loading && accounts?.length !== 0 &&
                     <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
                         <IconButton size="small" onClick={handleEditToggle}>
                             {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
@@ -143,10 +191,10 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                 />
             ) : !accounts || accounts.length === 0 ? (
                 <NoResultsScreen message="No tienes cuentas en X" />
-            ) : (
+            ) : ( 
                 <Box sx={{ minHeight: "90%", display: "flex", flexDirection: 'column', gap: 1, justifyContent: 'space-between' }}>
                     <Box sx={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
-                        {selectedAccounts.length > 0 ? (
+                        {tempSelected !== null ? (
                             <Stack
                                 direction="column"
                                 gap={1}
@@ -174,16 +222,13 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                                     pb: 1
                                 }}
                             >
-                                {selectedAccounts.map((accounts) => (
                                     <Chip
-                                        key={accounts.id}
                                         disabled={!isEditing}
-                                        label={accounts.name}
-                                        onDelete={() => handleToggleAccounts(accounts)}
+                                        label={tempSelected?.name}
+                                        onDelete={() => handleToggleAccount(tempSelected)}
                                         color="primary"
                                         variant="outlined"
                                     />
-                                ))}
                             </Stack>
                         ) : (
                             <Typography
@@ -238,8 +283,6 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                                         pb: 6
                                     }}>
                                     {filteredAccounts.map((account) => {
-                                        const checked = selectedAccounts.some(r => String(r.id) === String(account.id));
-
                                         const handleOpenAccounts = (e) => {
                                             e.stopPropagation();
                                             window.open(accounts.url, "_blank");
@@ -250,7 +293,7 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                                                 disabled={!isEditing}
                                                 key={account.id}
                                                 onContextMenu={(e) => handleContextMenu(e, account)}
-                                                onClick={() => handleToggleAccounts(account)}
+                                                onClick={() => handleToggleAccount(account)}
                                                 sx={{
                                                     "&:hover": { backgroundColor: "action.hover" },
                                                     display: 'flex',
@@ -300,7 +343,7 @@ export const XApi = ({ panelHeight, selected = [], onChange }) => {
                                                 <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
                                                     <Checkbox
                                                         edge="end"
-                                                        checked={checked}
+                                                        checked={tempSelected ? String(tempSelected.id) === String(account.id) : false}
                                                         tabIndex={-1}
                                                         disableRipple
                                                     />

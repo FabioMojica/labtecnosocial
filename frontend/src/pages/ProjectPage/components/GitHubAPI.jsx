@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { IconButton } from "@mui/material";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetchAndLoad } from "../../../hooks";
 import { integrationsConfig } from "../../../utils";
 import {
@@ -32,7 +32,7 @@ import { getGitHubRepositoriesApi } from "../../../api";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 
-export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
+export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigger }) => {
     const { icon: GitHubIcon, label, color } = integrationsConfig.github;
     const theme = useTheme();
     const { headerHeight } = useHeaderHeight();
@@ -46,20 +46,49 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
 
     const [isEditing, setIsEditing] = useState(false);
-    const [tempSelected, setTempSelected] = useState(selected);
+    const [tempSelected, setTempSelected] = useState(null);
+    const initialSelectedRef = useRef([]);
 
     useEffect(() => {
-        setTempSelected(selected);
-    }, [selected]);
+        let gitHubIntegrationInitial = gitHubIntegration;
+        if(gitHubIntegration == undefined) {
+            gitHubIntegrationInitial = null;
+        } 
+        setTempSelected(gitHubIntegrationInitial);
+        initialSelectedRef.current = gitHubIntegrationInitial;
+    }, [gitHubIntegration]);
+
+    const handleEditToggle = () => {
+        if (isEditing) {
+            setTempSelected(initialSelectedRef.current);
+            setIsEditing(false);
+            onChange({ intAnadidos: [], intEliminados: [] });
+        } else {
+            setIsEditing(true);
+        }
+    };
+
+    useEffect(() => {
+        setTempSelected(initialSelectedRef.current);
+        setIsEditing(false);
+        onChange({ intAnadidos: [], intEliminados: [] });
+    }, [resetTrigger]);
 
     const getGitHubRepositories = async () => {
         try {
             const repos = await callEndpoint(getGitHubRepositoriesApi());
-            setRepos(repos);
-            setFilteredRepos(repos);
+
+            const reposWithPlatform = repos.map(repo => ({
+                ...repo,
+                platform: "github"
+            }));
+
+            setRepos(reposWithPlatform);
+            setFilteredRepos(reposWithPlatform);
             setError(false);
         } catch (error) {
             setError(true);
+            console.error(error);
         }
     };
 
@@ -67,6 +96,47 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
         getGitHubRepositories();
     }, []);
 
+
+    const handleToggleRepo = (repo) => {
+        if (!isEditing) return;
+
+        let newTempSelected = null;
+
+        if (tempSelected?.id === repo.id) {
+            newTempSelected = null;
+        } else {
+            newTempSelected = repo;
+        }
+
+        setTempSelected(newTempSelected);
+
+        let intAnadidos = [];
+        let intEliminados = [];
+
+        const initialSelected = initialSelectedRef.current
+
+        // No hay integracion inicial
+        if(initialSelected === null) { 
+            if(newTempSelected !== null) {
+                intAnadidos.push(newTempSelected); 
+            }
+        } else {
+            // Hay integracion 
+            // caso borrar repo
+            if(newTempSelected === null) {
+                intEliminados.push(initialSelected);
+            } else {
+                // Hay repo pero lo seleccione y lo deseleccione CAMBIOS FALSE
+                if(newTempSelected.id === initialSelected.id){
+                    intEliminados=[];
+                } else {
+                    intAnadidos.push(newTempSelected);
+                    intEliminados.push(initialSelected);
+                }
+            }
+        }
+        onChange({ intAnadidos, intEliminados });
+    };
 
     const handleContextMenu = (e, repo) => {
         e.preventDefault();
@@ -84,23 +154,6 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
         }, 3000);
     };
 
-    const handleToggleRepo = (repo) => {
-        if (!isEditing) return; 
-        const alreadySelected = tempSelected.some(r => r.id === repo.id);
-        setTempSelected(alreadySelected ? [] : [repo]); 
-    };
-    
-
-    const handleEditToggle = () => {
-        if (isEditing) {
-            setTempSelected(selected);
-            setIsEditing(false);
-        } else {
-            setIsEditing(true);
-        }
-    };
-
-    const selectedRepos = isEditing ? tempSelected : selected;
 
     return (
         <Paper elevation={3} sx={{ height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 16px)`, justifyContent: 'space-between', display: 'flex', flexDirection: 'column', p: 0.5 }}>
@@ -121,7 +174,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                     </Typography>
                 </Box>
 
-                 {!error && !loading &&
+                {!error && !loading && repos.length !== 0 &&
                     <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
                         <IconButton size="small" onClick={handleEditToggle}>
                             {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
@@ -148,7 +201,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
             ) : (
                 <Box sx={{ minHeight: "90%", display: "flex", flexDirection: 'column', gap: 1, justifyContent: 'space-between' }}>
                     <Box sx={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
-                        {selectedRepos.length > 0 ? (
+                        {tempSelected !== null ? (
                             <Stack
                                 direction="column"
                                 gap={1}
@@ -176,16 +229,13 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                     pb: 1
                                 }}
                             >
-                                {selectedRepos.map((repo) => (
-                                    <Chip
-                                        key={repo.id}
-                                        label={repo.name}
-                                        onDelete={() => handleToggleRepo(repo)}
-                                        color="primary"
-                                        variant="outlined"
-                                        disabled={!isEditing}
-                                    />
-                                ))}
+                                <Chip
+                                    label={tempSelected?.name}
+                                    onDelete={() => handleToggleRepo(tempSelected)}
+                                    color="primary"
+                                    variant="outlined"
+                                    disabled={!isEditing}
+                                />
                             </Stack>
                         ) : (
                             <Typography
@@ -207,7 +257,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
 
 
                     <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        {/* Search */}
+
                         <SearchBar
                             data={repos}
                             fields={["name", "url"]}
@@ -240,8 +290,6 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                         pb: 6
                                     }}>
                                     {filteredRepos.map((repo) => {
-                                        const checked = selectedRepos.some(r => String(r.id) === String(repo.id));
-
                                         const handleOpenRepo = (e) => {
                                             e.stopPropagation();
                                             window.open(repo.url, "_blank");
@@ -252,7 +300,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                                 key={repo.id}
                                                 disabled={!isEditing}
                                                 onContextMenu={(e) => handleContextMenu(e, repo)}
-                                                onClick={() => handleToggleRepo(repo)}
+                                                onClick={() => { }}
                                                 sx={{
                                                     "&:hover": { backgroundColor: "action.hover" },
                                                     display: 'flex',
@@ -302,16 +350,16 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                                 <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
                                                     <Checkbox
                                                         edge="end"
-                                                        checked={checked}
+                                                        checked={tempSelected ? String(tempSelected.id) === String(repo.id) : false}
                                                         tabIndex={-1}
                                                         disableRipple
+                                                        onClick={() => handleToggleRepo(repo)}
                                                     />
                                                 </ListItemIcon>
                                             </ListItemButton>
                                         );
                                     })}
 
-                                    {/* Tooltip global */}
                                     {tooltipContent && (
                                         <Tooltip
                                             open

@@ -209,7 +209,7 @@ export const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
     const { id: userId, role } = req.user;
-    
+
     const projectRepository = AppDataSource.getRepository(OperationalProject);
     const userRepository = AppDataSource.getRepository(User);
 
@@ -232,7 +232,7 @@ export const getProjectById = async (req, res) => {
     if (!project) {
       return res.status(404).json({ message: "Proyecto no encontrado" });
     }
-    
+
     const hasAccess = await canAccessProject({
       projectId: project.id,
       userId,
@@ -311,7 +311,7 @@ export const getProjectById = async (req, res) => {
             }
             : null,
         }
-        : null,
+        : null, 
       integrations: project.integrations.map((i) => ({
         id: i.integration_id,
         name: i.name,
@@ -353,7 +353,7 @@ export const updateOperationalProject = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { name, description, program_id, preEliminados, preAnadidos } = req.body;
+    const { name, description, program_id, preEliminados, preAnadidos, intEliminados, intAnadidos } = req.body;
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -362,6 +362,7 @@ export const updateOperationalProject = async (req, res) => {
     const programRepository = queryRunner.manager.getRepository(Program);
     const userRepository = queryRunner.manager.getRepository(User);
     const responsibleRepository = queryRunner.manager.getRepository(ProjectResponsible);
+    const integrationRepository = queryRunner.manager.getRepository(ProjectIntegration);
 
     // Buscar el proyecto
     const project = await projectRepository.findOne({
@@ -417,10 +418,14 @@ export const updateOperationalProject = async (req, res) => {
     // 🔍 Parsear JSON de responsables
     let parsedPreAnadidos = [];
     let parsedPreEliminados = [];
+    let parsedIntEliminados = [];
+    let parsedIntAnadidos = [];
 
     try {
       if (preAnadidos) parsedPreAnadidos = JSON.parse(preAnadidos);
       if (preEliminados) parsedPreEliminados = JSON.parse(preEliminados);
+      if (intEliminados) parsedIntEliminados = JSON.parse(intEliminados);
+      if (intAnadidos) parsedIntAnadidos = JSON.parse(intAnadidos);
     } catch (e) {
       console.error("❌ Error al parsear preAnadidos o preEliminados:", e.message);
     }
@@ -444,6 +449,37 @@ export const updateOperationalProject = async (req, res) => {
           operationalProject: project,
         });
         await responsibleRepository.save(newResponsible);
+      }
+    }
+
+    if (Array.isArray(parsedIntEliminados) && parsedIntEliminados.length > 0) {
+      for (const i of parsedIntEliminados) {
+        const integration = await integrationRepository.findOne({
+          where: {
+            integration_id: i.id,
+            project: { id: project.id },
+          },
+          relations: ["project"]
+        });
+        if (integration) {
+          await integrationRepository.remove(integration);
+          console.log("Eliminada integración:", integration.integration_id);
+        }
+      }
+    }
+
+    if (Array.isArray(parsedIntAnadidos) && parsedIntAnadidos.length > 0) {
+      for (const i of parsedIntAnadidos) {
+        console.log("anadidos", parsedIntAnadidos);
+        const newIntegration = integrationRepository.create({
+          platform: i.platform,
+          integration_id: i.id, 
+          name: i.name,
+          url: i.url,
+          project: project
+        });
+        await integrationRepository.save(newIntegration);
+        console.log("Añadida integración:", newIntegration);
       }
     }
 

@@ -23,16 +23,14 @@ export const ProjectPage = () => {
     const [tabsHeight, setTabsHeight] = useState(0);
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
-    const theme = useTheme();
     const location = useLocation();
     const id = location.state?.id;
-    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
     const navigate = useNavigate();
 
     const projectId = id;
 
-    const [resetResponsiblesTrigger, setResetResponsiblesTrigger] = useState(0);
+    const [resetTrigger, setResetTrigger] = useState(0);
     const [isDirty, setIsDirty] = useState(false);
     const [questionModalOpen, setQuestionModalOpen] = useState(false);
     const [error, setError] = useState(false);
@@ -84,10 +82,9 @@ export const ProjectPage = () => {
 
         const newUpdatedProject = { ...updatedProject, ...changes };
 
-        console.log("proyecto actualizado", updatedProject);
-
-
         setUpdatedProject(newUpdatedProject);
+
+        console.log(newUpdatedProject);
 
         const original = project;
 
@@ -97,12 +94,14 @@ export const ProjectPage = () => {
                 newUpdatedProject.name !== original.name ||
                 newUpdatedProject.description !== original.description ||
                 newUpdatedProject.image_url !== original.image_url ||
-                newUpdatedProject.image_file !== original.image_file ||
+                newUpdatedProject.image_file !== original.image_file || 
                 (newUpdatedProject.preEliminados?.length ?? 0) > 0 ||
-                (newUpdatedProject.preAnadidos?.length ?? 0) > 0
+                (newUpdatedProject.preAnadidos?.length ?? 0) > 0 ||
+                (newUpdatedProject.intEliminados?.length ?? 0) > 0 ||
+                (newUpdatedProject.intAnadidos?.length ?? 0) > 0 
             );
 
-        setIsDirty(Boolean(dirty)); 
+        setIsDirty(Boolean(dirty));
     };
 
     const handleSave = async () => {
@@ -116,17 +115,19 @@ export const ProjectPage = () => {
 
             const resp = await updateProjectApi(updatedProject.id, formData);
 
-            setProject(resp);
-            setUpdatedProject(resp)
+            const cloneProject = (data) => structuredClone(data);
+
+            setProject(cloneProject(resp)); 
+            setUpdatedProject(cloneProject(resp));
 
             setIsDirty(false);
 
             notify("Proyecto actualizado exitosamente.", "success");
             setProjectErrors({ name: "", description: "" });
-            setResetResponsiblesTrigger(prev => prev + 1);
+            setResetTrigger(prev => prev + 1);
         } catch (err) {
             notify("Ocurrió un error inesperado al actualizar el proyecto. Inténtalo de nuevo más tarde.", "error");
-        } finally {
+        } finally { 
             setLoadingUpdatedProject(false)
         }
     };
@@ -134,15 +135,13 @@ export const ProjectPage = () => {
     const handleCancelChanges = () => setQuestionModalOpen(true);
 
     const handleConfirmCancelModal = () => {
-        setUpdatedProject(project)
+        setUpdatedProject(structuredClone(project)); 
         setIsDirty(false);
         setQuestionModalOpen(false);
         setProjectErrors({ name: "", description: "" });
-        setResetResponsiblesTrigger(prev => prev + 1);
+        setResetTrigger(prev => prev + 1);
         notify("Cambios descartados correctamente.", "info");
     };
-
-
 
     if (loading) return <FullScreenProgress text="Obteniendo el proyecto" />;
     if (error) return <ErrorScreen message="Ocurrió un error inesperado al obtener el proyecto" buttonText="Intentar de nuevo" onButtonClick={() => fetchProjectById()} />
@@ -151,7 +150,7 @@ export const ProjectPage = () => {
     return (
         <>
             {project &&
-                <> 
+                <>
                     <TabButtons
                         labels={["Información del proyecto", "Responsables", "Integraciones con apis", "Más"]}
                         onTabsHeightChange={(height) => setTabsHeight(height)}
@@ -161,26 +160,30 @@ export const ProjectPage = () => {
                             panelHeight={tabsHeight}
                             project={updatedProject}
                             onErrorsChange={(errs) => setProjectErrors(errs)}
-                            resetTrigger={resetResponsiblesTrigger}
+                            resetTrigger={resetTrigger}
                         />
-
+ 
                         <ResponsiblesPanel
                             panelHeight={tabsHeight}
                             responsibles={updatedProject?.projectResponsibles || []}
-                            resetTrigger={resetResponsiblesTrigger}
+                            resetTrigger={resetTrigger}
                             onChange={(updatedData) =>
                                 handleProjectChange({
                                     preEliminados: updatedData.preEliminados,
                                     preAnadidos: updatedData.preAnadidos
                                 })
-                            }
+                            } 
                         />
-
-                        <ProjectIntegrationsWithApisPanel
+ 
+                        <ProjectIntegrationsWithApisPanel 
                             panelHeight={tabsHeight}
                             integrations={updatedProject?.integrations || []}
-                            onChange={(newIntegrations) => handleProjectChange({ integrations: newIntegrations })}
-                        />
+                            onChange={(updatedData) => handleProjectChange({
+                                intEliminados: updatedData.intEliminados,
+                                intAnadidos: updatedData.intAnadidos 
+                            })}
+                            resetTrigger={resetTrigger}
+                        /> 
 
                         <MorePanel project={project} panelHeight={tabsHeight}></MorePanel>
                     </TabButtons>
@@ -191,7 +194,7 @@ export const ProjectPage = () => {
                         onCancel={() => setQuestionModalOpen(false)}
                         onConfirm={handleConfirmCancelModal}
                     />
- 
+
                     <FloatingActionButtons
                         loading={loadingupdateProject}
                         visible={isDirty}

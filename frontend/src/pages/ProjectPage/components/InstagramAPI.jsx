@@ -16,7 +16,7 @@ import {
     IconButton,
 } from "@mui/material";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetchAndLoad } from "../../../hooks";
 import { integrationsConfig } from "../../../utils";
 import {
@@ -30,7 +30,7 @@ import { getInstagramPagesApi } from "../../../api";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 
-export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
+export const InstagramApi = ({ panelHeight, instagramIntegration, onChange, resetTrigger }) => {
     const { icon: InstagramIcon, label, color } = integrationsConfig.instagram;
     const theme = useTheme();
     const { headerHeight } = useHeaderHeight();
@@ -39,34 +39,51 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
 
     const [pages, setPages] = useState([]);
     const [filteredPages, setFilteredPages] = useState([]);
+
     const [isEditing, setIsEditing] = useState(false);
-    const [tempSelected, setTempSelected] = useState(selected);
-    const selectedPages = isEditing ? tempSelected : selected;
+    const [tempSelected, setTempSelected] = useState(null);
+    const initialSelectedRef = useRef([]);
 
     // Tooltip global
     const [tooltipContent, setTooltipContent] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
 
     useEffect(() => {
-        setTempSelected(selected);
-    }, [selected]);
+        let instagramIntegrationInitial = instagramIntegration;
+        if (instagramIntegration == undefined) {
+            instagramIntegrationInitial = null;
+        }
+        setTempSelected(instagramIntegrationInitial);
+        initialSelectedRef.current = instagramIntegrationInitial;
+    }, [instagramIntegration]);
 
     const handleEditToggle = () => {
         if (isEditing) {
-            setTempSelected(selected);
+            setTempSelected(initialSelectedRef.current);
             setIsEditing(false);
+            onChange({ intAnadidos: [], intEliminados: [] });
         } else {
             setIsEditing(true);
         }
     };
+
+    useEffect(() => {
+        setTempSelected(initialSelectedRef.current);
+        setIsEditing(false);
+        onChange({ intAnadidos: [], intEliminados: [] });
+    }, [resetTrigger]);
 
 
     // Fetch pages
     const getInstagramPages = async () => {
         try {
             const pages = await callEndpoint(getInstagramPagesApi());
-            setPages(pages);
-            setFilteredPages(pages);
+            const pagesWithPlatform = pages.map(page => ({
+                ...page,
+                platform: "instagram"
+            }));
+            setPages(pagesWithPlatform);
+            setFilteredPages(pagesWithPlatform);
             setError(false);
         } catch (err) {
             setError(true);
@@ -77,24 +94,46 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
         getInstagramPages();
     }, []);
 
-    // const handleTogglePage = (page) => {
-    //     const alreadySelected = selectedPages.some((r) => r.id === page.id);
+     const handleTogglePage = (page) => {
+        if (!isEditing) return;
 
-    //     let newSelected;
-    //     if (alreadySelected) {
-    //         newSelected = selectedPages.filter(r => r.id !== page.id);
-    //     } else {
-    //         newSelected = [...selectedPages, page];
-    //     }
+        let newTempSelected = null;
 
-    //     onChange?.(newSelected);
-    // };
+        if (tempSelected?.id === page.id) {
+            newTempSelected = null;
+        } else {
+            newTempSelected = page;
+        }
 
-    const handleTogglePage = (page) => {
-        const alreadySelected = selected.some(r => r.id === page.id);
-        // Si ya está seleccionado, lo borramos; si no, lo seleccionamos
-        onChange?.(alreadySelected ? [] : [page]);
+        console.log("temp", tempSelected);
+        console.log("New temp", newTempSelected);
+
+        setTempSelected(newTempSelected);
+
+        let intAnadidos = [];
+        let intEliminados = [];
+
+        const initialSelected = initialSelectedRef.current
+
+        if (initialSelected === null) {
+            if (newTempSelected !== null) {
+                intAnadidos.push(newTempSelected);
+            }
+        } else {
+            if (newTempSelected === null) {
+                intEliminados.push(initialSelected);
+            } else {
+                if (newTempSelected.id === initialSelected.id) {
+                    intEliminados = [];
+                } else {
+                    intAnadidos.push(newTempSelected);
+                    intEliminados.push(initialSelected);
+                }
+            }
+        }
+        onChange({ intAnadidos, intEliminados });
     };
+
 
     // Tooltip en context menu
     const handleContextMenu = (e, page) => {
@@ -118,8 +157,8 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                     <InstagramIcon sx={{ fontSize: 40, color }} />
                     <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
                 </Box>
-                
-                {!error && !loading &&
+
+                {!error && !loading && pages.length !== 0 &&
                     <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
                         <IconButton size="small" onClick={handleEditToggle}>
                             {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
@@ -143,7 +182,7 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                 <Box sx={{ minHeight: "90%", display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'space-between' }}>
                     {/* Chips de seleccionadas */}
                     <Box sx={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
-                        {selectedPages.length > 0 ? (
+                        {tempSelected !== null ? (
                             <Stack
                                 direction="row"
                                 gap={1}
@@ -159,16 +198,14 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                                     pb: 1
                                 }}
                             >
-                                {selectedPages.map(page => (
                                     <Chip
-                                        disabled={!isEditing}
-                                        key={page.id}
-                                        label={page.name}
-                                        onDelete={() => handleTogglePage(page)}
-                                        color="primary"
-                                        variant="outlined"
+                                    disabled={!isEditing}
+                                    label={tempSelected?.name}
+                                    onDelete={() => handleTogglePage(tempSelected)}
+                                    color="primary"
+                                    variant="outlined"
                                     />
-                                ))}
+                                
                             </Stack>
                         ) : (
                             <Typography
@@ -210,8 +247,7 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                                 pb: 6
                             }}>
                                 {filteredPages.map(page => {
-                                    const checked = selectedPages.some(r => String(r.id) === String(page.id));
-
+                                
                                     const handleOpenPage = (e) => {
                                         e.stopPropagation();
                                         window.open(page.url, "_blank");
@@ -254,7 +290,12 @@ export const InstagramApi = ({ panelHeight, selected = [], onChange }) => {
                                             />
 
                                             <ListItemIcon sx={{ alignContent: 'center', justifyContent: 'center' }}>
-                                                <Checkbox edge="end" checked={checked} tabIndex={-1} disableRipple />
+                                                <Checkbox 
+                                                    edge="end" 
+                                                    checked={tempSelected ? String(tempSelected.id) === String(page.id) : false}
+                                                    tabIndex={-1} 
+                                                    disableRipple 
+                                                />
                                             </ListItemIcon>
                                         </ListItemButton>
                                     );

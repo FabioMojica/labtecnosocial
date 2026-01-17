@@ -9,11 +9,11 @@ export function updateProjectFormData(projectData) {
     if (projectData.program?.id) formData.append("program_id", projectData.program.id);
 
     if (projectData.image_file instanceof File) {
-        formData.append("file", projectData.image_file); 
+        formData.append("file", projectData.image_file);
     } else if (projectData.image_url === "" || projectData.image_url === null) {
-        formData.append("image_url", ""); 
-    } 
-  
+        formData.append("image_url", "");
+    }
+
     if (Array.isArray(projectData.preEliminados) && projectData.preEliminados.length > 0) {
         formData.append("preEliminados", JSON.stringify(projectData.preEliminados));
     }
@@ -21,5 +21,14 @@ export function updateProjectFormData(projectData) {
     if (Array.isArray(projectData.preAnadidos) && projectData.preAnadidos.length > 0) {
         formData.append("preAnadidos", JSON.stringify(projectData.preAnadidos));
     }
+
+    if (Array.isArray(projectData.intAnadidos) && projectData.intAnadidos.length > 0) {
+    formData.append("intAnadidos", JSON.stringify(projectData.intAnadidos));
+    }
+
+    if (Array.isArray(projectData.intEliminados) && projectData.intEliminados.length > 0) {
+        formData.append("intEliminados", JSON.stringify(projectData.intEliminados));
+    }    
+
     return formData;
 }

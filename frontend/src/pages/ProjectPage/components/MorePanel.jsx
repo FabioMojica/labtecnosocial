@@ -205,24 +205,7 @@ export const MorePanel = ({ project, panelHeight }) => {
                     </Box>
 
                     <Box sx={{ display: 'flex', alignSelf: 'self-end', justifyContent: 'flex-end', gap: 1, height: 55 }}>
-                        <Button
-                            sx={{
-                                width: {
-                                    xs: 100,
-                                    lg: 170},
-                                fontSize: {
-                                    xs: '0.9rem',
-                                    sm: '0.9rem',
-                                    lg: '0.9rem'
-                                }
-                            }}
-                            variant="contained"
-                            color="success"
-                            onClick={() => setInputName('')}
-                            disabled={loading}
-                        >
-                            Cancelar
-                        </Button>
+                        
                         <ButtonWithLoader
                             loading={loading}
                             onClick={handleDelete}

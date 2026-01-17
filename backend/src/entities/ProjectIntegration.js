@@ -6,7 +6,7 @@ export const ProjectIntegration = new EntitySchema({
   columns: {
     id: { type: Number, primary: true, generated: 'increment' },
     platform: { type: String, nullable: false }, 
-    integration_id: { type: String, nullable: false },
+    integration_id: { type: String, nullable: false },  
     name: { type: String, nullable: true },
     url: { type: String, nullable: true },
     created_at: { type: 'timestamp', createDate: true, default: () => 'NOW()' },

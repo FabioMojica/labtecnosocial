@@ -2,8 +2,8 @@ export const normalizeGetAPIsData = (platform, data) => {
   switch (platform) {
     case 'github':
       return (Array.isArray(data) ? data : []).map((repo) => ({
-        id: repo.id,
-        name: repo.name,
+        id: String(repo.id),
+        name: repo.name, 
         url: `https://github.com/${repo.full_name || repo.name}`,
         image_url: repo.owner?.avatar_url
       }));

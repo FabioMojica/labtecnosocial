@@ -43,7 +43,7 @@ export const OperationalProject = new EntitySchema({
     },
     operationalPlan_created_at: {
       type: 'timestamp',
-      nullable: true, 
+      nullable: true,  
     },
     operationalPlan_updated_at: {
       type: 'timestamp',

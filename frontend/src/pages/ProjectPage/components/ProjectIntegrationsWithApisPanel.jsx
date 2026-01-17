@@ -1,78 +1,92 @@
 import { Grid } from "@mui/material";
 
-import { GithubApi } from './GitHubAPI'; 
+import { GithubApi } from './GitHubAPI';
 import { FacebookApi } from './FacebookAPI';
 import { InstagramApi } from './InstagramAPI';
 import { XApi } from "./XAPI";
-import { useRef, useState } from "react";
- 
-export const ProjectIntegrationsWithApisPanel = ({ panelHeight, integrations, onChange }) => {
-    console.log("selected integrations", integrations)
+import { useEffect, useRef, useState } from "react";
 
-    const normalized = integrations.map(i => ({
-        type: i.type || i.platform, 
-        data: i.data || i, 
-    }));
-  
-    const initialRef = useRef(normalized);
 
-    const [selectedIntegrations, setSelectedIntegrations] = useState(normalized);
+export const ProjectIntegrationsWithApisPanel = ({ panelHeight, integrations, onChange, resetTrigger }) => {
+    console.log("integraciones llegando desde el padre", integrations);
+    const initialIntegrationsRef = useRef(integrations);
 
-    const githubSelected = selectedIntegrations.filter(i => i.type === 'github').map(i => i.data);
-    const facebookSelected = selectedIntegrations.filter(i => i.type === 'facebook').map(i => i.data);
-    const instagramSelected = selectedIntegrations.filter(i => i.type === 'instagram').map(i => i.data);
-    const xSelected = selectedIntegrations.filter(i => i.type === 'x').map(i => i.data);
+    const gitHubIntegration = initialIntegrationsRef.current.find(i => i.platform === 'github');
+    const facebookIntegration = initialIntegrationsRef.current.find(i => i.platform === 'facebook');
+    const instagramIntegration = initialIntegrationsRef.current.find(i => i.platform === 'instagram');
+    const xIntegration = initialIntegrationsRef.current.find(i => i.platform === 'x');
 
-    const handleChange = (type, items = []) => {
-        const others = selectedIntegrations.filter(i => i.type !== type);
-        const newItem = items[0] ? { type, data: items[0] } : null;
-        const newIntegrations = newItem ? [...others, newItem] : others;
+    useEffect(() => {
+        initialIntegrationsRef.current = integrations;
+    }, [resetTrigger]);
 
-        setSelectedIntegrations(newIntegrations);
+    const [platformChanges, setPlatformChanges] = useState({
+        github: { intAnadidos: [], intEliminados: [] },
+        facebook: { intAnadidos: [], intEliminados: [] },
+        instagram: { intAnadidos: [], intEliminados: [] },
+        x: { intAnadidos: [], intEliminados: [] },
+    });
 
-        // Comparación profunda: solo notificamos si cambia
-        const isEqual = newIntegrations.length === initialRef.current.length &&
-            newIntegrations.every(ni =>
-                initialRef.current.some(ii => ii.type === ni.type && ii.data === ni.data)
-            );
+    const handleChangePlatform = (platform) => ({
+        intAnadidos = [],
+        intEliminados = []
+    }) => {
+        setPlatformChanges(prev => {
+            const updated = {
+                ...prev,
+                [platform]: { intAnadidos, intEliminados }
+            };
 
-        if (!isEqual) {
-            onChange?.(newIntegrations);
-        }
+            // 🔥 construir arrays globales
+            const allAdded = Object.values(updated)
+                .flatMap(p => p.intAnadidos);
+
+            const allRemoved = Object.values(updated)
+                .flatMap(p => p.intEliminados);
+
+            onChange({
+                intAnadidos: allAdded,
+                intEliminados: allRemoved
+            });
+
+            return updated;
+        });
     };
 
- 
     return (
         <Grid container spacing={1} columns={4} sx={{ width: "100%", p: 1 }}>
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
                 <GithubApi
                     panelHeight={panelHeight}
-                    selected={githubSelected}
-                    onChange={(items) => handleChange('github', items)}
+                    gitHubIntegration={gitHubIntegration}
+                    onChange={handleChangePlatform('github')}
+                    resetTrigger={resetTrigger}
                 />
             </Grid>
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
                 <FacebookApi
-                    panelHeight={panelHeight} 
-                    selected={facebookSelected}
-                    onChange={(items) => handleChange('facebook', items)}
-                    />
+                    panelHeight={panelHeight}
+                    facebookIntegration={facebookIntegration}
+                    onChange={handleChangePlatform('facebook')}
+                    resetTrigger={resetTrigger}
+                />
             </Grid>
 
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
-                <InstagramApi
+                <InstagramApi 
                     panelHeight={panelHeight}
-                    selected={instagramSelected}
-                    onChange={(items) => handleChange('instagram', items)}
+                    instagramIntegration={instagramIntegration}
+                    onChange={handleChangePlatform('instagram')}
+                    resetTrigger={resetTrigger}
                     />
             </Grid>
-
-
+  
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
                 <XApi
                     panelHeight={panelHeight}
-                    selected={xSelected}
-                    onChange={(items) => handleChange('x', items)}
+                    xIntegration={xIntegration}
+                    onChange={handleChangePlatform('x')}
+                    resetTrigger={resetTrigger}
                 />
             </Grid> 
         </Grid>
