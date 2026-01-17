@@ -291,6 +291,7 @@ export const getProjectById = async (req, res) => {
       updated_at: project.updated_at,
       image_url: project.image_url,
       projectResponsibles: responsiblesWithCount,
+      operationalPlanVersion: project.operationalPlan_version,
       program: project.program
         ? {
           id: project.program.id,
