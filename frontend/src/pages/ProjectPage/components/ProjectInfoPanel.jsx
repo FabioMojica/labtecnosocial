@@ -181,8 +181,9 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
             >
                 <ProjectImageDates
                     overlay
-                    overlayText={overlayText}
+                    overlayText={overlayText} 
                     project={project}
+                    fallbackLetter={(project.name)?.trim().charAt(0)?.toUpperCase()}
                     sx={{
                         width: {
                             xs: 250,

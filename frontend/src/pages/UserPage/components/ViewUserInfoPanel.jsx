@@ -14,13 +14,13 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth, useHeaderHeight, useNotification } from "../../../contexts";
 
 import {
-  ActionBarButtons,
   FullScreenProgress,
   UserImageDates,
 } from "../../../generalComponents";
 import { roleConfig, stateConfig } from "../../../utils";
 import { updateUserApi } from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
+import { FloatingActionButtons } from "../../../generalComponents/FloatingActionButtons";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
@@ -159,37 +159,6 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
   };
 
 
-
-  const actionButtons = [
-    {
-      label: "Cancelar",
-      color: "inherit",
-      onClick: () => {
-        if (originalUserRef.current.image_file instanceof File) {
-          setPreviewImage(URL.createObjectURL(originalUserRef.current.image_file));
-        } else if (originalUserRef.current.image_url) {
-          setPreviewImage(`${API_UPLOADS}${encodeURI(originalUserRef.current.image_url)}`);
-        } else {
-          setPreviewImage(null);
-        }
-        onChange?.({
-          image_file: originalUserRef.current.image_file ?? null,
-          image_url: originalUserRef.current.image_url ?? null,
-        });
-
-        setIsDirty(false);
-      },
-    },
-    {
-      label: "Guardar",
-      variant: "contained",
-      color: "primary",
-      disabled: !canSave,
-      onClick: saveChangesUser,
-    }
-
-  ];
-
   if (loadingUpdateUser) return <FullScreenProgress text={'Guardando cambios en el usuario...'} />
 
   const canNavigateToProject = () => {
@@ -210,7 +179,7 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
       }}
     >
       <Grid size={{ xs: 12, md: 5 }} sx={{ width: '100%', height: { xs: '50%', lg: '100%' }, maxHeight: '1000px', display: 'flex', flexDirection: 'column' }}>
-        <UserImageDates
+        <UserImageDates 
           overlay
           overlayText={overlayText}
           sx={{
@@ -393,12 +362,28 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
         </Box>
       </Grid>
 
-      <ActionBarButtons
+      <FloatingActionButtons
+        text="Cambios sin guardar en el usuario"
+        loading={loadingUpdateUser}
         visible={isDirty}
-        buttons={actionButtons}
-        position={{ bottom: 20, right: 20 }}
-      />
+        onSave={saveChangesUser}
+        onCancel={() => {
+          if (originalUserRef.current.image_file instanceof File) {
+            setPreviewImage(URL.createObjectURL(originalUserRef.current.image_file));
+          } else if (originalUserRef.current.image_url) {
+            setPreviewImage(`${API_UPLOADS}${encodeURI(originalUserRef.current.image_url)}`);
+          } else {
+            setPreviewImage(null);
+          }
+          onChange?.({
+            image_file: originalUserRef.current.image_file ?? null,
+            image_url: originalUserRef.current.image_url ?? null,
+          });
 
+          setIsDirty(false);
+        }}
+        saveDisabled={!canSave}
+      />
 
       <input
         type="file"

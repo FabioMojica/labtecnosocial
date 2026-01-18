@@ -170,7 +170,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                         width: {
                             xs: 250,
                             sm: 300,
-                            lg: '100%' 
+                            lg: '100%'  
                         },
                         height: "100%",
                         maxHeight: 500,

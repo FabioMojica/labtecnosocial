@@ -1,8 +1,9 @@
-import { Avatar, Box, Divider, Paper, Toolbar, Typography } from "@mui/material";
+import { Avatar, Box, Divider, Paper, Toolbar, Typography, useTheme } from "@mui/material";
 import { Grid } from "@mui/material";
 import { UserProfileImage, NoResultsScreen } from "../../../generalComponents";
 import { useNavigate } from "react-router-dom";
 import { roleConfig, stateConfig } from "../../../utils";
+import { formatDate, formatDateParts } from "../../../utils/formatDate";
 
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
@@ -10,6 +11,7 @@ const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 export const ViewUserDrawer = ({ user }) => {
     if (!user) return;
     const navigate = useNavigate();
+    const theme = useTheme();
 
     return (
         <>
@@ -17,12 +19,13 @@ export const ViewUserDrawer = ({ user }) => {
             <Box sx={{
                 width: '100%',
                 height: '100%',
-                p: 1,
+                p: 1, 
                 overflowY: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
+                maxHeight: 1000
             }}>
                 <Box
                     sx={{
@@ -32,16 +35,19 @@ export const ViewUserDrawer = ({ user }) => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        borderTopLeftRadius: 2,
-                        borderTopRightRadius: 2,
-                        pb: 0.5,
+                        borderRadius: 2,
+                        width: '75%',
+                        boxShadow:
+                            theme.palette.mode === 'light'
+                                ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                : '0 0 0 1px rgba(255,255,255,0.3)',
                     }}
-                    onClick={() => navigate(`/usuario/${encodeURIComponent(user.email)}`)}
                 >
                     <Box
+                        onClick={() => navigate(`/usuario/${encodeURIComponent(user.email)}`)}
                         sx={{
                             position: "relative",
-                            width: "75%",
+                            width: "100%",
                             height: "100%",
                             borderTopLeftRadius: 2,
                             borderTopRightRadius: 2,
@@ -52,10 +58,10 @@ export const ViewUserDrawer = ({ user }) => {
                             },
                         }}
                     >
-                        <UserProfileImage
+                        <UserProfileImage  
                             user={user}
                             sx={{
-                                width: '100%',
+                                width: '100%', 
                                 height: '100%',
                                 objectFit: 'cover',
                                 borderTopLeftRadius: 8,
@@ -84,20 +90,20 @@ export const ViewUserDrawer = ({ user }) => {
                         >
                             Ir al perfil
                         </Box>
-                    </Box>
+                    </Box> 
 
+                    <Divider sx={{width: '100%'}}/>
 
                     <Paper
                         elevation={3}
                         sx={{
-                            width: '75%',
+                            width: '100%',
                             display: 'flex',
                             flexDirection: 'row',
                             borderBottomLeftRadius: 8,
                             borderBottomRightRadius: 8,
                             borderTopRightRadius: 0,
                             borderTopLeftRadius: 0,
-                            p: 1.5,
                             gap: 2,
                         }}
                     >
@@ -110,9 +116,10 @@ export const ViewUserDrawer = ({ user }) => {
                                     transform: 'scale(1.05)',
                                 },
                             }}
-                        >
+                        > 
                             <Typography variant="subtitle2" color="textSecondary">Creado</Typography>
-                            <Typography variant="body2">{new Date(user.created_at).toLocaleDateString()}</Typography>
+                            <Typography variant="body2">{formatDateParts(user?.created_at).date}</Typography>
+                            <Typography variant="body2">{formatDateParts(user?.created_at).time}</Typography>
                         </Box>
 
                         <Divider orientation="vertical" flexItem color="primary" />
@@ -128,7 +135,8 @@ export const ViewUserDrawer = ({ user }) => {
                             }}
                         >
                             <Typography variant="subtitle2" color="textSecondary">Actualizado</Typography>
-                            <Typography variant="body2">{new Date(user.updated_at).toLocaleDateString()}</Typography>
+                            <Typography variant="body2">{formatDateParts(user?.updated_at).date}</Typography>
+                            <Typography variant="body2">{formatDateParts(user?.updated_at).time}</Typography>
                         </Box>
 
                     </Paper>
@@ -279,7 +287,9 @@ export const ViewUserDrawer = ({ user }) => {
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 position: 'relative',
-                                                boxShadow: 1,
+                                                boxShadow: theme.palette.mode === 'light'
+                                                    ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                                    : '0 0 0 1px rgba(255,255,255,0.3)',
                                             }}
                                         >
                                             <Avatar

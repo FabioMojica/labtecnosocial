@@ -32,9 +32,12 @@ const RightStat = ({ icon, value, label }) => (
 export const ProjectItem = ({ project, onClick }) => {
   const theme = useTheme();
 
-  const imageSrc = project.image_url
-    ? `${API_UPLOADS}${project.image_url}` 
-    : undefined;
+  const imageSrc =
+    (project.image_url
+      ? project.image_url.startsWith("http")
+        ? project.image_url
+        : `${API_UPLOADS}${project.image_url}` 
+      : undefined);
 
   return (
     <Item

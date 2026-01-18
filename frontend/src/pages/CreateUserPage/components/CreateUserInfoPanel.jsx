@@ -287,13 +287,14 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           sx={{
             display: 'flex',
             justifyContent: 'center',
-            width: '100%',
+            width: '100%', 
             height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
             maxHeight: {
               xs: 250,
               sm: 300,
               lg: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
             },
+            pointerEvents: loading && 'none'
           }}>
           <UserImageDates 
             overlay 
@@ -472,7 +473,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                   error={!!errors.lastName}
                   onChange={(e) => {
                     const value = e.target.value;
-                    handleUserChange?.({ lastName: value });
+                    handleUserChange?.({ lastName: value }); 
                     validateField("lastName", value);
                   }}
                   onBlur={(e) => {
@@ -565,7 +566,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
-              }}>
+              }}> 
                 <EmailIcon sx={{
 
                 }} />
@@ -828,7 +829,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           <Grid size={12}>
             <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
               <SelectComponent
-                label="Rol"
+                label="Rol" 
                 disabled={loading}
                 options={roleOptions}
                 value={user?.role}

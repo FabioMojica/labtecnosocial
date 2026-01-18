@@ -3,6 +3,7 @@ import { FormControl, MenuItem, Select, Box, Typography, InputLabel } from "@mui
 import { useState } from "react";
 
 export const SelectComponent = ({
+  disabled = false,
   label,
   options,
   value,
@@ -26,6 +27,7 @@ export const SelectComponent = ({
   return (
     <FormControl 
       sx={{ width: fullWidth ? "100%" : "auto", height, ...sx }}
+      disabled={disabled}
     >
       <InputLabel id="select-label">{label ? label : null}</InputLabel>
       <Select

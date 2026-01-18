@@ -1,7 +1,7 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { Box, Button, Typography, useTheme } from "@mui/material";
-import { ButtonWithLoader } from "../../../generalComponents";
+import { ButtonWithLoader } from ".";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -31,6 +31,7 @@ const panelVariants = {
 };
 
 export const FloatingActionButtons = ({
+    text = "Tienes cambios pendientes",
     visible,
     onSave,
     onCancel,
@@ -90,7 +91,7 @@ export const FloatingActionButtons = ({
                             sx={{
                                 width: PANEL_WIDTH,
                                 px: 3,
-                                py: 2,
+                                py: 2, 
                                 display: "flex",
                                 flexDirection: "column",
                                 gap: 1.5,
@@ -99,7 +100,7 @@ export const FloatingActionButtons = ({
                             }}
                         >
                             <Typography fontWeight="bold" fontSize="1rem" textAlign="center">
-                                Cambios sin guardar en el proyecto
+                                {text}
                             </Typography>
 
                             <ButtonWithLoader

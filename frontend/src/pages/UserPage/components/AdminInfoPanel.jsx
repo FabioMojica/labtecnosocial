@@ -17,9 +17,10 @@ import AutorenewIcon from "@mui/icons-material/Autorenew";
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useHeaderHeight, useNotification } from "../../../contexts";
 import _ from "lodash";
+import EditIcon from '@mui/icons-material/Edit';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 import {
-  ActionBarButtons,
   ButtonWithLoader,
   ErrorScreen,
   FullScreenProgress,
@@ -38,6 +39,7 @@ import { validateEmail, validatePassword } from "../../../utils";
 import { getUserByEmailApi, updateUserApi } from "../../../api";
 import { useAuthEffects, useFetchAndLoad } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
+import { FloatingActionButtons } from "../../../generalComponents/FloatingActionButtons";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
@@ -310,6 +312,40 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
     }
   };
 
+  const handleChangePassword = async () => {
+    try {
+      setLoadingChangePassword(true);
+
+      await updateUserApi(user.email, {
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      });
+
+      // Actualizamos el usuario localmente
+      setUser(prev => ({ ...prev }));
+      originalUserRef.current = structuredClone({ ...user });
+
+      notify("Contraseña cambiada correctamente.", "success");
+      handleClosePasswordModal();
+
+      if (isMyProfile && onUserChange) {
+        onUserChange({ ...user }, true);
+      }
+
+    } catch (err) {
+      if (err?.response?.data?.message) {
+        notify(err?.response?.data?.message, "error");
+      } else {
+        notify(
+          "Ocurrió un error inesperado al cambiar la contraseña. Inténtalo de nuevo más tarde.",
+          "error"
+        );
+      }
+    } finally {
+      setLoadingChangePassword(false);
+    }
+  }
+
   if (loading) return <FullScreenProgress text={'Obteniendo el usuario...'} />
   if (loadingUpdateUser) return <FullScreenProgress text={'Guardando cambios en el usuario...'} />
   if (error) return <ErrorScreen message="Hubo un error obteniendo el usuario" buttonText="Volver a intentar" onButtonClick={() => fetchUserByEmail(userEmail)} />
@@ -319,27 +355,6 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
     user?.lastName?.trim() &&
     user?.email?.trim() &&
     Object.values(errors).every((e) => !e);
-
-  const actionButtons = [
-    {
-      label: "Cancelar",
-      color: "inherit",
-      onClick: () => {
-        setUser(structuredClone(originalUserRef.current));
-        setIsDirty(false);
-        setErrors({});
-      },
-    },
-    {
-      label: "Guardar",
-      variant: "contained",
-      color: "primary",
-      disabled: !canSave,
-      onClick: () => {
-        saveChangesUser();
-      },
-    },
-  ];
 
   const canNavigateToProject = () => {
     return userSession?.role === "admin" || (userSession?.role === "coordinator" && isMyProfile);
@@ -359,10 +374,13 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
     >
       <Grid size={{ xs: 12, md: 5 }} sx={{ width: '100%', height: { xs: '50%', lg: '100%' }, maxHeight: '1000px', display: 'flex', flexDirection: 'column' }}>
         <UserImageDates
-          overlay
+          overlay 
           overlayText={overlayText}
           user={user}
-          sx={{ width: '100%', height: '100%' }}
+          sx={{
+            width: '100%', height: '100%', 
+          }} 
+          
           changeImage
           onChangeImage={handleOverlayClick}
           previewImage={previewImage ?? undefined}
@@ -375,7 +393,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
 
       <Grid
         container
-        spacing={2}
+        spacing={1}
         size={{ xs: 12, md: 7 }}
         sx={{
           height: "auto",
@@ -387,101 +405,280 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         {/* Nombre y Apellido */}
         <Grid container spacing={1}>
           <Grid size={{ xs: 12, md: 6 }}>
+
+
             <TextField
-              label="Nombre(s)*"
-              variant="filled"
+              id="first-name"
+              label={
+                user?.firstName !== "" ? null :
+                  <>
+                    Ingrese nombre para el usuario <span style={{ color: theme.palette.error.main }}>*</span>
+                  </>
+              }
+              disabled={loading}
+              variant="outlined"
               value={user?.firstName ?? ""}
+              error={!!errors.firstName}
               onChange={(e) => handleFieldChange("firstName", e.target.value)}
               onBlur={(e) => validateField("firstName", e.target.value)}
               maxLength={100}
-              error={!!errors.firstName}
-              labelFontSize="1.1rem"
-              valueFontSize="1.3rem"
+              inputProps={{ maxLength: 100 }}
+              size='small'
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  minHeight: {
+                    xs: 50,
+                    sm: 60
+                  },
+                  maxHeight: {
+                    xs: 50,
+                    sm: 60
+                  },
+                  width: '100%',
+                },
+                '& .MuiOutlinedInput-input': {
+                  padding: '8px 12px',
+                  fontSize: '0.95rem',
+                  lineHeight: '1.2',
+                }
+              }}
             />
-            {errors.firstName && (
-              <Typography color="error" variant="caption">
-                {errors.firstName}
+
+            {/* Error + contador */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                mt: 0.5,
+                px: 0.5,
+              }}
+            >
+              {/* Error a la izquierda */}
+              <Typography
+                variant="caption"
+                color="error"
+                sx={{
+                  visibility: errors.firstName ? "visible" : "hidden",
+                  fontSize: {
+                    xs: '0.6rem',
+                    sm: '0.65rem'
+                  }
+                }}
+              >
+                {errors.firstName || "placeholder"}
               </Typography>
-            )}
+
+              {/* Contador a la derecha */}
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  fontSize: {
+                    xs: '0.6rem'
+                  },
+                  height: 20,
+                }}
+              >
+                {(user?.firstName?.length ?? 0)} / 100
+              </Typography>
+            </Box>
           </Grid>
 
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
-              label="Apellido(s)*"
-              variant="filled"
-              value={user?.lastName ?? ""}
+              id="last-name"
+              label={
+                user?.lastName !== "" ? null :
+                  <>
+                    Ingrese apellidos para el usuario <span style={{ color: theme.palette.error.main }}>*</span>
+                  </>
+              }
               onChange={(e) => handleFieldChange("lastName", e.target.value)}
               onBlur={(e) => validateField("lastName", e.target.value)}
               maxLength={100}
+              disabled={loading}
+              variant="outlined"
+              value={user?.lastName ?? ""}
               error={!!errors.lastName}
-              labelFontSize="1.1rem"
-              valueFontSize="1.3rem"
+              inputProps={{ maxLength: 100 }}
+              size='small'
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  minHeight: {
+                    xs: 50,
+                    sm: 60
+                  },
+                  maxHeight: {
+                    xs: 50,
+                    sm: 60
+                  },
+                  width: '100%',
+                },
+                '& .MuiOutlinedInput-input': {
+                  padding: '8px 12px',
+                  fontSize: '0.95rem',
+                  lineHeight: '1.2',
+                },
+                width: '100%'
+              }}
             />
-            {errors.lastName && (
-              <Typography color="error" variant="caption">
-                {errors.lastName}
+
+            {/* Error + contador */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                mt: 0.5,
+                px: 0.5,
+                height: 20,
+              }}
+            >
+              {/* Error a la izquierda */}
+              <Typography
+                variant="caption"
+                color="error"
+                sx={{
+                  visibility: errors.lastName ? "visible" : "hidden",
+                  fontSize: {
+                    xs: '0.6rem',
+                    sm: '0.65rem',
+                  }
+                }}
+              >
+                {errors.lastName || "placeholder"}
               </Typography>
-            )}
+
+              {/* Contador a la derecha */}
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  fontSize: {
+                    xs: '0.6rem',
+                  }
+                }}
+              >
+                {(user?.lastName?.length ?? 0)} / 100
+              </Typography>
+            </Box>
           </Grid>
         </Grid>
 
         {/* Email */}
         <Grid size={12}>
           <TextField
-            label="Email del usuario*"
-            variant="filled"
+            id="new-email"
+            disabled={loading}
+            size='small'
+            label={
+              user?.email !== "" ? null :
+                <>
+                  Ingrese un correo electrónico para el usuario <span style={{ color: theme.palette.error.main }}>*</span>
+                </>
+            }
+            variant="outlined"
+            error={!!errors.email}
             value={user?.email ?? ""}
             onChange={(e) => handleFieldChange("email", e.target.value)}
             onBlur={(e) => validateField("email", e.target.value)}
-            maxLength={100}
-            error={!!errors.email}
+            inputProps={{ maxLength: 100 }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
+                    edge="end"
                     onClick={() => {
                       if (user?.email) {
                         navigator.clipboard.writeText(user.email);
-                        notify("Correo copiado al portapapeles", "success");
+                        notify("Correo copiado al portapapeles.", "info");
                       }
                     }}
+                    disabled={!!errors.email || !user?.email || loading}
                   >
                     <ContentCopyIcon fontSize="small" />
                   </IconButton>
                 </InputAdornment>
               ),
             }}
-            labelFontSize="1.1rem"
-            valueFontSize="1.3rem"
+            sx={{
+              flex: 1,
+              '& .MuiOutlinedInput-root': {
+                minHeight: {
+                  xs: 50,
+                  sm: 60
+                },
+                maxHeight: {
+                  xs: 50,
+                  sm: 60
+                },
+              },
+              '& .MuiOutlinedInput-input': {
+                padding: '8px 12px',
+                fontSize: '0.95rem',
+                lineHeight: '1.2',
+              },
+              width: '100%'
+            }}
           />
-          {errors.email && (
-            <Typography color="error" variant="caption">
-              {errors.email}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mt: 0.5,
+              px: 0.5,
+              minHeight: 20,
+            }}
+          >
+            {/* Error a la izquierda */}
+            <Typography
+              variant="caption"
+              color="error"
+              sx={{
+                visibility: errors.email ? "visible" : "hidden",
+                fontSize: {
+                  xs: '0.6rem',
+                  sm: '0.65rem'
+                }
+              }}
+            >
+              {errors.email || "placeholder"}
             </Typography>
-          )}
+
+            {/* Contador a la derecha */}
+            <Typography variant="caption" color="text.secondary"
+              sx={{
+                fontSize: {
+                  xs: '0.6rem',
+                }
+              }}
+            >
+              {user?.email?.length ?? 0} / 100
+            </Typography>
+          </Box>
         </Grid>
 
         {/* Role y Estado */}
         <Grid size={12}>
           <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
             <SelectComponent
+              label="Rol"
               options={roleOptions}
               value={user?.role}
               onChange={(newRole) => handleFieldChange("role", newRole)}
               fullWidth
             />
             <SelectComponent
+              label="Estado"
               options={stateOptions}
               value={user?.state}
-
               onChange={(newState) => handleFieldChange("state", newState)}
               fullWidth
             />
           </Box>
         </Grid>
 
-        <Grid size={12}>
-          <Button variant="outlined" onClick={handleOpenPasswordModal}>
+        <Grid size={12} sx={{ mt: 1 }}>
+          <Button disabled={isDirty} variant="outlined" onClick={handleOpenPasswordModal}>
             Cambiar contraseña
           </Button>
         </Grid>
@@ -542,7 +739,10 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
 
                       if (!canNavigateToProject()) return;
 
-                      navigate(`/proyecto/${project.id}?tab=Información del proyecto`);
+                      navigate(`/proyecto/${project?.name}`, {
+                        replace: true,
+                        state: { id: project?.id },
+                      });
                     }}
                   >
                     {project.name[0]}
@@ -577,7 +777,16 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
       {/* MODAL CAMBIO DE CONTRASEÑA */}
       <Modal
         open={openPasswordModal}
-        onClose={handleClosePasswordModal}
+        onClose={(event, reason) => {
+          if (loadingChangePassword) {
+            if (reason === 'backdropClick') {
+              return;
+            }
+            return;
+          }
+          handleClosePasswordModal();
+        }}
+        disableEscapeKeyDown={loadingChangePassword}
       >
         <Box
           sx={{
@@ -600,6 +809,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
             {/* OLD PASSWORD */}
             <TextField
               maxLength={8}
+              disabled={loadingChangePassword}
               label="Contraseña antigua"
               labelFontSize={{
                 xs: '1rem',
@@ -610,7 +820,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
               type={showOldPassword ? "text" : "password"}
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              variant="filled"
+              variant="outlined"
               fullWidth
               InputProps={{
                 endAdornment: (
@@ -626,6 +836,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
             {/* NEW PASSWORD */}
             <TextField
               maxLength={8}
+              disabled={loadingChangePassword}
               label="Nueva contraseña"
               labelFontSize={{
                 xs: '1rem',
@@ -636,7 +847,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
               type={showNewPassword ? "text" : "password"}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              variant="filled"
+              variant="outlined"
               fullWidth
               InputProps={{
                 endAdornment: (
@@ -667,6 +878,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
                         p: { xs: 0.2, sm: 1 },
                         fontSize: { xs: '1rem', sm: '1.25rem' }
                       }}
+                      disabled={loadingChangePassword}
                     >
                       <AutorenewIcon
                         sx={{
@@ -700,64 +912,51 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
             />
 
             <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 1 }}>
-              <Button variant="text" color="inherit" onClick={handleClosePasswordModal}>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={handleClosePasswordModal}
+                sx={{
+                  width: '100px'
+                }}
+                disabled={loadingChangePassword}
+              >
                 Cancelar
               </Button>
-
               <ButtonWithLoader
                 loading={loadingChangePassword}
-                disabled={!(oldPassword.length > 0 && !validatePassword(newPassword))}
-                sx={{ minWidth: '170px' }}
-                onClick={async () => {
-                  try {
-                    setLoadingChangePassword(true);
-
-                    await updateUserApi(user.email, {
-                      oldPassword: oldPassword,
-                      newPassword: newPassword,
-                    });
-
-                    // Actualizamos el usuario localmente
-                    setUser(prev => ({ ...prev }));
-                    originalUserRef.current = structuredClone({ ...user });
-
-                    notify("Contraseña cambiada correctamente", "success");
-                    handleClosePasswordModal();
-
-                    // Si es el propio perfil, avisamos al padre para que cierre sesión
-                    if (isMyProfile && onUserChange) {
-                      onUserChange({ ...user }, true); // sensitiveChanged = true
-                    }
-
-                  } catch (err) {
-                    if (err?.response?.data?.message) {
-                      notify(err?.response?.data?.message, "error");
-                    } else {
-                      notify(
-                        "Ocurrió un error inesperado al cambiar la contraseña. Inténtalo de nuevo más tarde.",
-                        "error"
-                      );
-                    }
-                  } finally {
-                    setLoadingChangePassword(false);
-                  }
+                onClick={handleChangePassword}
+                disabled={!(oldPassword.length > 0 && !validatePassword(newPassword)) || loadingChangePassword}
+                variant="contained"
+                backgroundButton={theme => theme.palette.success.main}
+                sx={{
+                  width: '100px',
+                  minHeight: 0,
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: theme => theme.palette.success.dark,
+                  },
                 }}
               >
-                Cambiar Contraseña
+                Confirmar
               </ButtonWithLoader>
-
-
             </Box>
           </Stack>
         </Box>
       </Modal>
 
-      <ActionBarButtons
+      <FloatingActionButtons
+        text="Cambios sin guardar en el usuario"
+        loading={loading}
         visible={isDirty}
-        buttons={actionButtons}
-        position={{ bottom: 20, right: 20 }}
+        onSave={saveChangesUser}
+        onCancel={() => {
+          setUser(structuredClone(originalUserRef.current));
+          setIsDirty(false);
+          setErrors({});
+        }}
+        saveDisabled={!canSave}
       />
-
     </Grid>
   );
 };

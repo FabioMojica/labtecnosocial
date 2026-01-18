@@ -5,9 +5,12 @@ import React, { memo, useEffect } from "react";
 
 
 const ProjectProfileImageComponent = ({ fallbackLetter, src, boxShadow= false, sx }) => {
+
+  console.log("xssssss", src);
+
   useEffect(() => {
       },[fallbackLetter]);
-  
+   
   return (
     <Box
       sx={{

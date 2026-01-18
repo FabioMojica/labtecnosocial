@@ -17,7 +17,7 @@ import { ProjectInfoPanel } from "./components/ProjectInfoPanel";
 import { getProjectByIdApi, updateProjectApi } from "../../api";
 import { updateProjectFormData } from "./utils/updateProjectFormData";
 import { ProjectIntegrationsWithApisPanel } from "./components/ProjectIntegrationsWithApisPanel";
-import { FloatingActionButtons } from "./components/FloatingActionButtons";
+import { FloatingActionButtons } from "../../generalComponents/FloatingActionButtons";
 
 export const ProjectPage = () => {
     const [tabsHeight, setTabsHeight] = useState(0);
@@ -196,6 +196,7 @@ export const ProjectPage = () => {
                     />
 
                     <FloatingActionButtons
+                        text="Cambios sin guardar en el proyecto"
                         loading={loadingupdateProject}
                         visible={isDirty}
                         onSave={handleSave}

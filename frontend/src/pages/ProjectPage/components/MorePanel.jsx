@@ -171,6 +171,7 @@ export const MorePanel = ({ project, panelHeight }) => {
                             justifyContent: 'center',
                             flex: 1,
                             minHeight: 150,
+                            pr: 10
                         }}
                     >
                         <DeleteOutlineIcon sx={{ fontSize: 200 }} /> {/* 🔹 Icono grande */}

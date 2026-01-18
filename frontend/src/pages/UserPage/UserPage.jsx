@@ -2,9 +2,8 @@ import { Box, Button } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth, useNotification } from "../../contexts";
-import { ActionBarButtons } from "../../generalComponents";
 
-import { useAuthEffects, useFetchAndLoad } from "../../hooks";
+import { useFetchAndLoad } from "../../hooks";
 import {
     ErrorScreen,
     FullScreenProgress,
@@ -73,33 +72,31 @@ export const UserPage = () => {
 
         if (sensitiveChanged) {
             notify(
-                'Se cerrará la sesión porque hiciste cambios en información sensible del perfil',
-                'warning'
+                'Se cerrará la sesión porque hiciste cambios en información sensible del perfil.',
+                'warning',
+                { persist: true }
             );
             setLoggingOut(true); 
-            setTimeout(() => {
-                logout();
+            setTimeout(() => { 
+                logout(); 
             }, 3000);
         }
     };
 
     if (loggingOut) return <FullScreenProgress text="Cerrando la sesión..." />;
-
-
-
-
+  
     if (isAdmin) {
-        if (isOwnProfile) {
+        if (isOwnProfile) { 
             content = <AdminTabButtons user={user} onUserChange={handleUserChange} />;
-        } else if (user?.role === 'coordinator') {
+        } else if (user?.role === 'coordinator') { 
             content = <AdminTabButtons />;
-        } else if (user?.role === 'admin') {
+        } else if (user?.role === 'admin') { 
             content = <ViewUserInfoPanel user={user} isEditable={false} />;
         }
     } else if (isCoordinator) {
         content = <ViewUserInfoPanel user={user} isEditable={isOwnProfile} />;
     }
-
-    return <>{content}</>;
+ 
+    return <>{content}</>;  
 }
 

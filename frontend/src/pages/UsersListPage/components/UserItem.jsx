@@ -1,4 +1,4 @@
-import React, { use } from "react";
+import React, { use, useEffect, useState } from "react";
 import { Avatar, Box, Divider, Typography, useTheme } from "@mui/material";
 import { Item } from "../../../generalComponents";
 import { roleConfig, stateConfig } from "../../../utils";
@@ -10,7 +10,6 @@ import { formatDate } from "../../../utils/formatDate";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
-// Mini componente para cada estadística a la derecha
 const RightStat = ({ icon, value, label }) => (
     <Box
         sx={{
@@ -33,6 +32,14 @@ const RightStat = ({ icon, value, label }) => (
 
 export const UserItem = ({ user, onClick }) => {
     const theme = useTheme();
+    const [imgError, setImgError] = useState(false);
+
+     const finalSrc =
+        (user.image_url ? `${API_UPLOADS}${user.image_url}` : null);
+    
+      useEffect(() => {
+        setImgError(false);
+      }, [finalSrc]);
 
     const roleData = roleConfig[user.role] ?? {
         icon: QuestionMarkRoundedIcon,
@@ -45,17 +52,13 @@ export const UserItem = ({ user, onClick }) => {
         color: "error.main",
     };
 
-    const imageSrc = user.image_url
-        ? `${API_UPLOADS}${user.image_url}`
-        : undefined;
-
     return (
         <Item
             leftComponents={[
                 <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <Avatar
-                            src={imageSrc ?? undefined} 
+                            src={finalSrc ?? undefined} 
                             sx={{
                                 width: 56,
                                 height: 56,

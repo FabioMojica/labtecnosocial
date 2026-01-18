@@ -1,24 +1,26 @@
-import { Box, Divider, Paper, Typography } from "@mui/material";
+import { Box, Divider, Paper, Typography, useTheme } from "@mui/material";
 import { UserProfileImage } from "./UserProfileImage";
 import { useHeaderHeight } from "../contexts";
+import { formatDate } from '../utils/formatDate'
 
 export const UserImageDates = ({
   user,
   sx,
   overlay = false,
-  overlayText = "Ver usuario", 
+  overlayText = "Ver usuario",
   changeImage = false,
   onChangeImage,
-  previewImage, 
+  previewImage,
   ...rest
 }) => {
   if (!user) return null;
   const { headerHeight } = useHeaderHeight();
+  const theme = useTheme();
 
   return (
     <Box
       {...rest}
-      sx={{ 
+      sx={{
         display: "flex",
         flexDirection: "column",
         width: "100%",
@@ -30,6 +32,11 @@ export const UserImageDates = ({
         "&:hover .overlay": {
           opacity: 1,
         },
+        boxShadow:
+          theme.palette.mode === 'light'
+            ? '0 0 0 1px rgba(0,0,0,0.3)'
+            : '0 0 0 1px rgba(255,255,255,0.3)',
+        borderRadius: 2,
         ...sx,
       }}
     >
@@ -45,6 +52,7 @@ export const UserImageDates = ({
           overflow: "hidden",
           cursor: overlay ? "pointer" : "default",
           ...sx,
+
         }}
       >
         <UserProfileImage
@@ -59,7 +67,7 @@ export const UserImageDates = ({
         />
 
         {/* Overlay solo sobre la imagen */}
-        {overlay && changeImage && ( 
+        {overlay && changeImage && (
           <Box
             sx={{
               position: "absolute",
@@ -117,7 +125,7 @@ export const UserImageDates = ({
               Creado
             </Typography>
             <Typography variant="body2">
-              {new Date(user.created_at ?? Date.now()).toLocaleDateString()}
+              {formatDate(user?.created_at)}
             </Typography>
           </Box>
 
@@ -137,7 +145,7 @@ export const UserImageDates = ({
               Actualizado
             </Typography>
             <Typography variant="body2">
-              {new Date(user.updated_at ?? Date.now()).toLocaleDateString()}
+              {formatDate(user?.updated_at)}
             </Typography>
           </Box>
         </Paper>

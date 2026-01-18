@@ -12,7 +12,7 @@ import { AdminInfoPanel } from "./AdminInfoPanel";
 export const AdminTabButtons = ({
     user,
     onUserChange
-}) => {
+}) => { 
     const [tabsHeight, setTabsHeight] = useState(0);
     const { email } = useParams();
 
@@ -23,16 +23,15 @@ export const AdminTabButtons = ({
 
     return (
         <>
-            <TabButtons
+            <TabButtons 
                 labels={["Información del usuario", "Más"]}
-                paramsLabels={["Información del usuario", "Más"]}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
                 onChange={(newTab) => setActiveTab(newTab)}
             >
-                <AdminInfoPanel
-                    panelHeight={tabsHeight}
+                <AdminInfoPanel 
+                    panelHeight={tabsHeight} 
                     userEmail={userEmail}
-                    onUserChange={onUserChange}
+                    onUserChange={onUserChange} 
                 />
 
                 <MorePanel 
