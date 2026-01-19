@@ -10,21 +10,63 @@ export const me = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) return res.status(401).json({ message: "Token no proveído" });
+    if (!authHeader) {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.TOKEN_MISSING,
+          'Token no proveido.',
+          401,
+        )
+      );
+    };
 
     const token = authHeader.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "Formato de token inválido" });
+    if (!token) {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.TOKEN_INVALID,
+          'Token inválido.',
+          401,
+        )
+      );
+    };
 
     const decoded = jwt.verify(token, SECRET_KEY);
 
     const userRepo = AppDataSource.getRepository(User);
     const user = await userRepo.findOneBy({ id: decoded.id });
 
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    if (!user) {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_NOT_FOUND,
+          'Usuario no encontrado en el sistema.',
+          404,
+        )
+      );
+    }
+ 
+    return (
+      successResponse(
+        res,
+        { user },
+        'Verificación exitosa',
+        200
+      )
+    );
 
-    return res.json({ user });
   } catch (err) {
-    return res.status(401).json({ message: "Token inválido o expirado" });
+    return (
+      errorResponse(
+        res,
+        ERROR_CODES.TOKEN_INVALID,
+        'Token inválido o expirado.',
+        401,
+      )
+    );
   }
 };
 
@@ -53,7 +95,7 @@ export const refresh = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
- 
+
   if (!email || !password) {
     return (
       errorResponse(
@@ -74,7 +116,7 @@ export const login = async (req, res) => {
         errorResponse(
           res,
           ERROR_CODES.USER_NOT_FOUND,
-          'Usuario no encontrado en el sistema.', 
+          'Usuario no encontrado en el sistema.',
           401,
         )
       );
@@ -85,7 +127,7 @@ export const login = async (req, res) => {
         errorResponse(
           res,
           ERROR_CODES.USER_DISABLED,
-          'Cuenta deshabilitada.', 
+          'Cuenta deshabilitada.',
           403,
         )
       );
@@ -98,7 +140,7 @@ export const login = async (req, res) => {
         errorResponse(
           res,
           ERROR_CODES.INVALID_CREDENTIALS,
-          'Credenciales incorrectas.', 
+          'Credenciales incorrectas.',
           401,
         )
       );
@@ -131,15 +173,16 @@ export const login = async (req, res) => {
       secure: false,
       sameSite: 'lax',
     });
+
     return (
       successResponse(
         res,
-        {user, accessToken},
+        { user, accessToken },
         'Inicio de sesión exitoso',
         200
-      ) 
+      )
     );
- 
+
   } catch (error) {
     return error(
       res,
@@ -156,5 +199,13 @@ export const logout = (req, res) => {
     secure: false,
     sameSite: 'lax',
   });
-  return res.json({ message: 'Logout exitoso' });
+
+  return (
+    successResponse(
+      res,
+      {},
+      'Logout exitoso.',
+      200,
+    )
+  );
 };

@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
     const validate = async () => {
       clearAllSessionSnackbars();
       setLoadingContext(true);
-      try {
+      try { 
         const session = await authService.validateSession();
 
         if (session?.user) {

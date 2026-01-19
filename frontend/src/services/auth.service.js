@@ -39,7 +39,8 @@ export const authService = {
     }
 
     try {
-      const me = await meApi();
+      const me = await meApi(); 
+      console.log(me)
       if (me.user) {
         if (me.token) saveSession(me.token, me.user);
         return me;

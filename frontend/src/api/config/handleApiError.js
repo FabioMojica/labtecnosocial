@@ -10,6 +10,13 @@ export const handleApiError = (error, defaultMessage) => {
     };
   }
 
+  if (error.code === 'ERR_NETWORK') {
+    throw {
+      code: 'ERR_NETWORK',
+      message: 'No hubo respuesta del servidor. Inténtalo nuevamente más tarde.',
+    };
+  }
+
   if (error.response?.data) {
       const apiError = error.response.data;
       if (apiError.success === false) {
