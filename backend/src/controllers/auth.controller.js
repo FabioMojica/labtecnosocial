@@ -11,7 +11,7 @@ export const me = async (req, res) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      return (
+      return ( 
         errorResponse(
           res,
           ERROR_CODES.TOKEN_MISSING,
@@ -48,7 +48,7 @@ export const me = async (req, res) => {
         )
       );
     }
- 
+
     return (
       successResponse(
         res,
@@ -59,12 +59,21 @@ export const me = async (req, res) => {
     );
 
   } catch (err) {
+    if (err instanceof jwt.JsonWebTokenError) {
+      return errorResponse(
+        res,
+        ERROR_CODES.INVALID_TOKEN,
+        'Token inválido o expirado.',
+        401
+      );
+    }
+
     return (
       errorResponse(
         res,
-        ERROR_CODES.TOKEN_INVALID,
-        'Token inválido o expirado.',
-        401,
+        ERROR_CODES.SERVER_ERROR,
+        'Error del servidor.',
+        500,
       )
     );
   }
@@ -72,24 +81,59 @@ export const me = async (req, res) => {
 
 export const refresh = async (req, res) => {
   const token = req.cookies.refreshToken;
-  if (!token) return res.status(401).json({ message: "No refresh token" });
-
+  if (!token) {
+    return (
+    errorResponse(
+      res,
+      ERROR_CODES.TOKEN_MISSING,
+      'Refresh Token no proveido.',
+      401,
+    ));
+  }
+ 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
-
     const userRepo = AppDataSource.getRepository(User);
     const user = await userRepo.findOneBy({ id: decoded.id });
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-
+    if (!user) {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_NOT_FOUND,
+          'Usuario no encontrado en el sistema.',
+          404,
+        )
+      );
+    }
     const newToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role, sessionVersion: user.session_version },
       SECRET_KEY,
-      { expiresIn: "1h" }
+      { expiresIn: "20s" }
     );
-
-    return res.json({ token: newToken, user });
+    return (
+      successResponse(
+        res,
+        { token: newToken, user },
+        'Sesión refrescada exitosamente.',
+        200
+      )
+    );
   } catch (err) {
-    return res.status(401).json({ message: "Refresh inválido o expirado" });
+    if (err instanceof jwt.JsonWebTokenError) {
+      return errorResponse(
+        res,
+        ERROR_CODES.INVALID_TOKEN,
+        'Token inválido o expirado.',
+        401
+      );
+    }
+
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
 
@@ -154,7 +198,7 @@ export const login = async (req, res) => {
         sessionVersion: user.session_version,
       },
       SECRET_KEY,
-      { expiresIn: '1h' }
+      { expiresIn: '20s' }
     );
 
     const refreshToken = jwt.sign(
@@ -184,7 +228,7 @@ export const login = async (req, res) => {
     );
 
   } catch (error) {
-    return error(
+    return errorResponse(
       res,
       ERROR_CODES.SERVER_ERROR,
       'Error del servidor',

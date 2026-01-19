@@ -15,11 +15,9 @@ export const authService = {
           saveSession(refreshed.token, refreshed.user);
           return refreshed;
         }
-        console.log("1 logout")
         clearSession();
         return null;
       } catch (error) {
-        console.log("2 logout")
         clearSession();
         return null;
       }
@@ -29,11 +27,9 @@ export const authService = {
 
       const refreshed = await refreshApi();
       if (refreshed?.token) {
-
         saveSession(refreshed.token, refreshed.user);
         return refreshed;
       }
-      console.log("3 logout")
       clearSession();
       return null;
     }

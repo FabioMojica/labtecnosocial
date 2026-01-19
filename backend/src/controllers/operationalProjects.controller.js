@@ -680,7 +680,6 @@ export const getSummaryData = async (req, res) => {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    // 🟢 Caso 1: ADMIN → devuelve todo el resumen
     if (user.role === "admin") {
       const strategicPlanRepository = AppDataSource.getRepository(StrategicPlan);
       const operationalPlanRepository = AppDataSource.getRepository(Program);

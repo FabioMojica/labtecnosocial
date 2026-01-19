@@ -79,31 +79,25 @@ export const refreshApi = async () => {
   const controller = loadAbort();
 
   try {
-    const response = await axiosInstance.post(
+    const { data } = await axiosInstance.post(
       Routes.TOKEN_REFRESH,
       {},
       { withCredentials: true, signal: controller.signal }
     );
 
-    if (response.status === 200) return response.data;
-    return null;
+    console.log(data)
+
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+
+    return data?.data;
   } catch (error) {
-
-    if (error.code === 'ECONNABORTED') {
-      throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
-    }
-
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-      return null;
-    }
-
-    if (error.response) {
-      console.warn("Refresh token failed:", error.response.data.message);
-      return null;
-    }
-
     console.warn("Refresh token failed:", error.message);
-    return null;
+    throw handleApiError(error, 'Ocurrió un error inesperado al refrescar la sesión. Inténtalo de nuevo más tarde.');
   }
 };
 
