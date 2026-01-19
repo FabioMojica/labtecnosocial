@@ -76,7 +76,7 @@ export const meApi = async () => {
 };
 
 export const refreshApi = async () => {
-  const controller = loadAbort();
+  const controller = loadAbort();  
 
   try {
     const { data } = await axiosInstance.post(
@@ -84,8 +84,6 @@ export const refreshApi = async () => {
       {},
       { withCredentials: true, signal: controller.signal }
     );
-
-    console.log(data)
 
     if (data?.success !== true) {
       throw {
@@ -105,30 +103,21 @@ export const getSummaryDataApi = async (user) => {
   const controller = loadAbort();
 
   try {
-    const response = await axiosInstance.get(
+    const { data } = await axiosInstance.get(
       `${Routes.GET_SUMMARY_DATA}/${user.id}`,
       { signal: controller.signal }
     );
 
-    if (response.status === 200) {
-      return response.data;
-    } else {
-      return null;
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
     }
+
+    return data?.data;
+     
   } catch (error) {
-
-    if (error.code === 'ECONNABORTED') {
-      throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
-    }
-
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-      return null;
-    }
-
-    if (error.response) {
-      throw new Error(error.response.data.message || "Error al obtener el resumen de datos");
-    }
-
-    throw new Error("Error al intentar obtener el resumen de datos");
+    throw handleApiError(error, 'Ocurrió un error inesperado al obtener el resumen de datos del sistema.');
   }
 };

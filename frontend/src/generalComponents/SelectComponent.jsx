@@ -13,14 +13,11 @@ export const SelectComponent = ({
   height = "74%",
   optionFontSize = "1rem", 
 }) => {
-  const [internalValue, setInternalValue] = useState(value ?? "");
 
   const handleChange = (event) => {
     const rawValue = event.target.value;
     const option = options.find((o) => String(o.value) === rawValue);
     const newValue = option ? option.value : rawValue;
-
-    setInternalValue(newValue);
     onChange?.(newValue);
   };
 
@@ -31,8 +28,8 @@ export const SelectComponent = ({
     >
       <InputLabel id="select-label">{label ? label : null}</InputLabel>
       <Select
-        value={String(value ?? internalValue)}
-        onChange={handleChange}
+        value={String(value ?? "")}
+        onChange={handleChange} 
         label={label ? label : null}
         sx={{
           width: "100%",
@@ -56,7 +53,7 @@ export const SelectComponent = ({
                 {Icon && <Icon sx={{ color: option.color ?? "inherit" }} />}
                 <Typography sx={{ fontSize: optionFontSize }}>{option.label}</Typography>
               </Box>
-            </MenuItem>
+            </MenuItem> 
           );
         })}
       </Select>

@@ -25,6 +25,7 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { UserProfileImage } from './UserProfileImage';
 import { useNavigationGuard } from '../hooks/useBlockNavigation';
 import { useDirty } from '../contexts/DirtyContext';
+import { roleConfig } from '../utils';
 
 export const Header = () => {
     const { user, logout } = useAuth();
@@ -38,7 +39,7 @@ export const Header = () => {
     const toggleNav = () => setIsOpen(!open);
     const navigate = useNavigate();
     const { handleNavigate } = useNavigationGuard();
-    const [ loadingLogout, setLoadingLogout ] = useState(false);
+    const [loadingLogout, setLoadingLogout] = useState(false);
 
     useEffect(() => {
         const updateHeight = () => {
@@ -69,7 +70,7 @@ export const Header = () => {
             setLoadingLogout(true);
             const resp = await logout(false, true, false);
             setAnchorEl(null);
-        } catch (err) { 
+        } catch (err) {
             console.log(err);
             notify("Sesión cerrada de emergencia por error en la red.", "error");
         } finally {
@@ -84,7 +85,7 @@ export const Header = () => {
     };
 
     return (
-        <Box sx={{ flexGrow: 1, mb: 1 }}> 
+        <Box sx={{ flexGrow: 1, mb: 1 }}>
             {user && (
                 <>
                     <AppBar
@@ -147,7 +148,7 @@ export const Header = () => {
                                             sx={{
                                                 width: 40,
                                                 height: 40,
-                                                borderRadius: 2, 
+                                                borderRadius: 2,
                                                 boxShadow:
                                                     theme.palette.mode === "light"
                                                         ? "0 0 0 1px rgba(0,0,0,0.3)"
@@ -210,18 +211,25 @@ export const Header = () => {
                                                         </Typography>
                                                     </Box>
                                                     <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                                                        {user.role === "admin" ? (
-                                                            <>
-                                                                <AdminPanelSettingsIcon fontSize="large" color="primary" />
-                                                                <Typography fontSize={8}>Administrador</Typography>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <PersonIcon fontSize="large" color="primary" />
-                                                                <Typography fontSize={8}>Coordinador</Typography>
-                                                            </>
-                                                        )}
-                                                    </Box>
+                                                        {(() => {
+                                                            const config = Object.values(roleConfig).find(r => r.value === user.role);
+
+                                                            if (!config) return null; 
+
+                                                            const IconComponent = config.icon;
+
+                                                            return (
+                                                                <> 
+                                                                    <IconComponent fontSize="large" color="primary" />
+                                                                    <Typography variant='caption' sx={{
+                                                                        whiteSpace: 'wrap',
+                                                                        textAlign: 'center',
+                                                                        fontSize: '0.6rem'
+                                                                    }}>{config.label}</Typography>
+                                                                </>
+                                                            );
+                                                        })()}
+                                                    </Box> 
                                                 </Box>
 
                                                 <Typography variant='body2' sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -257,8 +265,8 @@ export const Header = () => {
                             </Toolbar>
                         </Box>
                     </AppBar>
-                    
-            
+
+
                     <DrawerNavBar open={open} onClose={handleCloseDrawer} />
                 </>
             )}

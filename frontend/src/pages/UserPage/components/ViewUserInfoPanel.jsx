@@ -17,10 +17,11 @@ import {
   FullScreenProgress,
   UserImageDates,
 } from "../../../generalComponents";
-import { roleConfig, stateConfig } from "../../../utils";
+import { roleConfig, roleConfigWithoutSA, stateConfig } from "../../../utils";
 import { updateUserApi } from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { FloatingActionButtons } from "../../../generalComponents/FloatingActionButtons";
+import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
@@ -131,10 +132,16 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
   };
   const handleTouchEnd = () => clearTimeout(longPressTimer);
 
-  const RoleIcon = roleConfig[user.role]?.icon;
+  const roleData = Object.values(roleConfig).find(r => r.value === user.role);
+  const RoleIcon = roleData?.icon ?? QuestionMarkRoundedIcon;
+
+  const roleLabel =
+    Object.values(roleConfig).find(r => r.value === user.role) ?? {
+      label: user.role,  
+    };
 
   const canSave = isDirty;
-
+ 
 
   const saveChangesUser = async () => {
     if (!isDirty) return;
@@ -222,7 +229,9 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
       >
         <Box sx={{ width: '100%' }}>
           <Typography variant="h6" fontWeight="bold">
-            Datos del usuario
+            {
+              isMyProfile ? "Tus datos personales" : "Datos del usuario"
+            }
           </Typography>
           <Typography
             variant="h4"
@@ -263,7 +272,7 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
                 alignItems: "center",
                 gap: 0.8,
                 px: 1.5,
-                py: 0.6,
+                py: 0.6, 
                 borderRadius: 2,
                 bgcolor: "primary.main",
                 color: "primary.contrastText",
@@ -272,7 +281,7 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
               }}
             >
               {RoleIcon && <RoleIcon sx={{ fontSize: 18 }} />}
-              {roleConfig[user.role]?.role}
+              {roleLabel.label}
             </Box>
             <Box
               sx={{

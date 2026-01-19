@@ -4,7 +4,6 @@ import { CreateUserInfoPanel } from "./components/CreateUserInfoPanel";
 
 
 // 5. Servicios / UseCases
-import { createUserApi } from "../../api";
 import { Box, Divider, Typography } from "@mui/material";
 
 

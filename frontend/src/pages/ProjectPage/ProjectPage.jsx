@@ -53,10 +53,12 @@ export const ProjectPage = () => {
 
             setError(false);
         } catch (err) {
+            console.log(err)
             const errorMessage =
                 err?.message ||
                 err?.response?.data?.message ||
                 "";
+
             if (errorMessage.includes("No tienes permisos para acceder a este proyecto")) {
                 navigate("/404", { replace: true });
                 return;

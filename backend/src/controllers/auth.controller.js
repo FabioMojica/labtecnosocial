@@ -3,8 +3,12 @@ import { User } from '../entities/User.js';
 import jwt from 'jsonwebtoken';
 import { comparePassword } from '../utils/passwordUtils.js';
 import { ERROR_CODES, errorResponse, successResponse } from '../utils/apiResponse.js';
+import { ALLOWED_ROLES, ALLOWED_STATES } from '../config/allowedStatesAndRoles.js';
+import dotenv from "dotenv";
 
-const SECRET_KEY = 'tu_secreto_super_seguro';
+dotenv.config();
+
+const SECRET_KEY = process.env.JWT_SECRET;
 
 export const me = async (req, res) => {
   try {
@@ -15,7 +19,7 @@ export const me = async (req, res) => {
         errorResponse(
           res,
           ERROR_CODES.TOKEN_MISSING,
-          'Token no proveido.',
+          'Token no proveído.',
           401,
         )
       );
@@ -86,7 +90,7 @@ export const refresh = async (req, res) => {
     errorResponse(
       res,
       ERROR_CODES.TOKEN_MISSING,
-      'Refresh Token no proveido.',
+      'Refresh Token no proveído.',
       401,
     ));
   }
@@ -108,7 +112,7 @@ export const refresh = async (req, res) => {
     const newToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role, sessionVersion: user.session_version },
       SECRET_KEY,
-      { expiresIn: "20s" }
+      { expiresIn: "1h" }
     );
     return (
       successResponse(
@@ -166,7 +170,7 @@ export const login = async (req, res) => {
       );
     }
 
-    if (user.state === 'deshabilitado' && user.role !== 'admin') {
+    if (user.state === ALLOWED_STATES.disabled && user.role !== ALLOWED_ROLES.superAdmin) {
       return (
         errorResponse(
           res,
@@ -198,7 +202,7 @@ export const login = async (req, res) => {
         sessionVersion: user.session_version,
       },
       SECRET_KEY,
-      { expiresIn: '20s' }
+      { expiresIn: '1h' }
     );
 
     const refreshToken = jwt.sign(
@@ -228,6 +232,7 @@ export const login = async (req, res) => {
     );
 
   } catch (error) {
+    console.log(error);
     return errorResponse(
       res,
       ERROR_CODES.SERVER_ERROR,

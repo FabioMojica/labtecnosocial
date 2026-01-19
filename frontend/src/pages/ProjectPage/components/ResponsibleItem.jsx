@@ -7,7 +7,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 
 export const ResponsibleItem = ({ responsible, onClick  }) => {
-    const roleIcon = responsible.role === "admin" ? AdminPanelSettingsIcon : PersonIcon;
+    const roleIcon = (responsible.role === "admin" || responsible.role === "super-admin") ? AdminPanelSettingsIcon : PersonIcon;
     const stateIcon = responsible.state === "habilitado" ? CheckCircleIcon : CancelIcon;
 
     return (

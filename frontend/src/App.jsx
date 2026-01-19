@@ -35,8 +35,12 @@ import { LayoutProvider } from './contexts/LayoutContext';
 import { useLayoutOffsets } from './hooks/useLayoutOffsets';
 
 export const ROLES = {
+  SUPER_ADMIN: "super-admin",
   ADMIN: "admin",
   COORDINATOR: "coordinator",
+
+  ALL_ROLES: ["super-admin", "admin", "coordinator"],
+  ONLY_ADMINS: ["super-admin", "admin"]
 };
 
 export const PublicRoute = ({ element }) => {
@@ -54,23 +58,23 @@ const AppContent = () => {
 
   return (
     <>
-      {isAuthenticated && <Header />}
-      {isAuthenticated && <Toolbar />}
+      {isAuthenticated && <Header />} 
+      {isAuthenticated && <Toolbar />} 
 
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} /> 
         <Route path="/login" element={<PublicRoute element={<LoginPage />} />} />
-        <Route path="/inicio" element={<PrivateRoute element={<HomePage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/usuarios" element={<PrivateRoute element={<UsersListPage />} allowedRoles={[ROLES.ADMIN]} />} />
-        <Route path="/usuarios/crear" element={<PrivateRoute element={<CreateUserPage />} allowedRoles={[ROLES.ADMIN]} />} />
-        <Route path="/usuario/:email" element={<PrivateRoute element={<UserPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/proyectos" element={<PrivateRoute element={<ProjectsListPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/proyectos/crear" element={<PrivateRoute element={<CreateProjectPage />} allowedRoles={[ROLES.ADMIN]} />} />
-        <Route path="/proyecto/:name" element={<PrivateRoute element={<ProjectPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/planificacion-estrategica/:year" element={<PrivateRoute element={<StrategicPlanningDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/planificacion-operativa/:name?" element={<PrivateRoute element={<OperationalPlanningDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/dashboard" element={<PrivateRoute element={<APIsDashboardPage />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
-        <Route path="/reportes/crear/:nombre/:id" element={<PrivateRoute element={<ReportEditor />} allowedRoles={[ROLES.ADMIN, ROLES.COORDINATOR]} />} />
+        <Route path="/inicio" element={<PrivateRoute element={<HomePage />} allowedRoles={ROLES.ALL_ROLES} />} />
+        <Route path="/usuarios" element={<PrivateRoute element={<UsersListPage />} allowedRoles={ROLES.ONLY_ADMINS} />} />
+        <Route path="/usuarios/crear" element={<PrivateRoute element={<CreateUserPage />} allowedRoles={ROLES.ONLY_ADMINS} />} />
+        <Route path="/usuario/:email" element={<PrivateRoute element={<UserPage />} allowedRoles={ROLES.ALL_ROLES} />} />
+        <Route path="/proyectos" element={<PrivateRoute element={<ProjectsListPage />} allowedRoles={ROLES.ALL_ROLES} />} />
+        <Route path="/proyectos/crear" element={<PrivateRoute element={<CreateProjectPage />} allowedRoles={ROLES.ONLY_ADMINS} />} />
+        <Route path="/proyecto/:name" element={<PrivateRoute element={<ProjectPage />} allowedRoles={ROLES.ALL_ROLES} />} />
+        <Route path="/planificacion-estrategica/:year" element={<PrivateRoute element={<StrategicPlanningDashboardPage />} allowedRoles={ROLES.ALL_ROLES} />} />
+        <Route path="/planificacion-operativa/:name?" element={<PrivateRoute element={<OperationalPlanningDashboardPage />} allowedRoles={ROLES.ALL_ROLES} />} />
+        <Route path="/dashboard" element={<PrivateRoute element={<APIsDashboardPage />} allowedRoles={ROLES.ALL_ROLES} />} />
+        <Route path="/reportes/crear/:nombre/:id" element={<PrivateRoute element={<ReportEditor />} allowedRoles={ROLES.ADMIN.ALL_ROLES} />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>

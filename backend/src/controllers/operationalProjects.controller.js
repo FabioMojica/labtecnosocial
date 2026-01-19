@@ -11,6 +11,8 @@ import { OperationalRow } from '../entities/OperationalRow.js';
 import fs from 'fs';
 import path from 'path';
 import { canAccessProject } from '../utils/canAccessProject.js';
+import { ERROR_CODES, successResponse } from '../utils/apiResponse.js';
+import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
 
 export const createOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
@@ -81,7 +83,7 @@ export const getAllOperationalProjects = async (req, res) => {
 
     let projects;
 
-    if (role === 'admin') {
+    if (role === ALLOWED_ROLES.admin || role === ALLOWED_ROLES.superAdmin) {
       projects = await projectRepository.find({
         relations: {
           program: {
@@ -149,7 +151,7 @@ export const getAllOperationalProjects = async (req, res) => {
         } : null,
       };
 
-      if (role === "admin") {
+      if (role === ALLOWED_ROLES.admin || role === ALLOWED_ROLES.superAdmin) {
         base.integrations = project.integrations.map((i) => ({
           id: i.id,
           platform: i.platform,
@@ -234,7 +236,7 @@ export const getProjectById = async (req, res) => {
     }
 
     const hasAccess = await canAccessProject({
-      projectId: project.id,
+      projectId: project.id, 
       userId,
       role,
     });
@@ -311,7 +313,7 @@ export const getProjectById = async (req, res) => {
             }
             : null,
         }
-        : null, 
+        : null,
       integrations: project.integrations.map((i) => ({
         id: i.integration_id,
         name: i.name,
@@ -473,7 +475,7 @@ export const updateOperationalProject = async (req, res) => {
         console.log("anadidos", parsedIntAnadidos);
         const newIntegration = integrationRepository.create({
           platform: i.platform,
-          integration_id: i.id, 
+          integration_id: i.id,
           name: i.name,
           url: i.url,
           project: project
@@ -680,7 +682,7 @@ export const getSummaryData = async (req, res) => {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    if (user.role === "admin") {
+    if (user.role === ALLOWED_ROLES.admin || ALLOWED_ROLES.superAdmin) {
       const strategicPlanRepository = AppDataSource.getRepository(StrategicPlan);
       const operationalPlanRepository = AppDataSource.getRepository(Program);
       const projectRepository = AppDataSource.getRepository(OperationalProject);
@@ -707,10 +709,16 @@ export const getSummaryData = async (req, res) => {
         { clave: "Proyectos integrados con plataformas", valor: integratedProjectCount },
       ];
 
-      return res.status(200).json(summary);
+      return (
+        successResponse(
+          res,
+          summary,
+          'Obtención de resumen de datos exitosa',
+          200
+        )); 
     }
 
-    if (user.role === "coordinator") {
+    if (user.role === ALLOWED_ROLES.coordinator) {
       const strategicPlanRepository = AppDataSource.getRepository(StrategicPlan);
 
       // Contar planes estratégicos registrados
@@ -726,15 +734,21 @@ export const getSummaryData = async (req, res) => {
         { clave: "Proyectos asignados", valor: assignedProjects },
       ];
 
-      return res.status(200).json(summary);
+      return (
+        successResponse(
+          res,
+          summary,
+          'Obtención de resumen de datos exitosa',
+          200
+        ));
     }
-
-    // 🚨 Si llega aquí, el rol es inválido
-    return res.status(400).json({ message: "Rol inválido" });
-
   } catch (error) {
-    console.error("Error al obtener resumen de datos:", error);
-    res.status(500).json({ message: "Error interno del servidor" });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor',
+      500
+    );
   }
 };
 
@@ -808,6 +822,8 @@ export const getOperationalProjectsWithIntegrations = async (req, res) => {
         image_url: r.user.image_url,
       })),
     }));
+
+    console.log("holaaaaaaaaaaaaa")
 
     return res.status(200).json({ projects: formattedProjects });
   } catch (error) {

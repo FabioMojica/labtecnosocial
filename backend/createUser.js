@@ -12,8 +12,8 @@ export async function createUser() {
   const lastName = 'Mojica Armaza';
   const email = 'fabioadmin@gmail.com';
   const password = 'fabio1A@';
-  const role = 'admin';
-  const state = 'habilitado';
+  const role = 'super-admin';
+  const state = 'enabled';
   const image_url = 'https://i.pravatar.cc/150?img=12'; 
 
   const existingUser = await userRepository.findOneBy({ email });

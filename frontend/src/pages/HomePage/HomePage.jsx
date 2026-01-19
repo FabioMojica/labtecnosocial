@@ -16,6 +16,8 @@ export const HomePage = () => {
   switch (user.role) {
     case "admin":
         return <AdminLayout />;
+    case "super-admin":
+        return <AdminLayout />;
     case "coordinator":
         return <CoordinatorLayout />;
     default:

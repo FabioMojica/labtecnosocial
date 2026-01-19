@@ -6,14 +6,16 @@ import {
   deleteStrategicPlanByYear,
 } from '../controllers/strategicPlan.controller.js';
 import { verifyJwt } from '../middlewares/verifyJwt.js';
+import { authorizeRole } from '../middlewares/authorizedRole.js';
+import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
 
 const strategicPlanRoutes = Router();
 
-strategicPlanRoutes.use(verifyJwt);
+strategicPlanRoutes.use(verifyJwt); 
+   
+strategicPlanRoutes.get('/', authorizeRole(), getAllStrategicPlans);
+strategicPlanRoutes.get('/:year', authorizeRole(), getStrategicPlanByYear);
+strategicPlanRoutes.put('/:year', authorizeRole(ALLOWED_ROLES.onlyAdmins), updateStrategicPlan);
+strategicPlanRoutes.delete("/deleteStrategicPlan/:year", authorizeRole(ALLOWED_ROLES.superAdmin), deleteStrategicPlanByYear);
 
-strategicPlanRoutes.get('/', getAllStrategicPlans);
-strategicPlanRoutes.get('/:year', getStrategicPlanByYear);
-strategicPlanRoutes.put('/:year', updateStrategicPlan);
-strategicPlanRoutes.delete("/deleteStrategicPlan/:year", deleteStrategicPlanByYear);
-
-export default strategicPlanRoutes;
+export default strategicPlanRoutes; 

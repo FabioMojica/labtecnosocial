@@ -183,7 +183,7 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile }) => {
                         <TextField
                             type="email"
                             autoComplete="new-email"
-                            label="Email del usuario a eliminar"
+                            label="Ingrese el email"
                             value={inputEmail}
                             onChange={(e) => setInputEmail(e.target.value)}
                             fullWidth
@@ -193,7 +193,7 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile }) => {
                     </form>
                     <form autoComplete="off">
                         <TextField
-                            label="Contraseña del usuario a eliminar"
+                            label="Ingrese la contraseña"
                             placeholder="Contraseña"
                             autoComplete="new-password"
                             type={showPassword ? "text" : "password"}

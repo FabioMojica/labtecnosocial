@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
 import { comparePassword, hashPassword } from '../utils/passwordUtils.js';
+import { ALLOWED_ROLES, ALLOWED_STATES } from '../config/allowedStatesAndRoles.js';
 
 export const createUser = async (req, res) => {
   try {
@@ -28,9 +29,7 @@ export const createUser = async (req, res) => {
     if (req.file) {
       imageUrl = `/uploads/${req.file.filename}`;
     }
-    const allowedStates = ['habilitado', 'deshabilitado', 'eliminado'];
-
-    const validatedState = allowedStates.includes(state) ? state : 'deshabilitado';
+    const validatedState = ALLOWED_STATES.statesArray.includes(state) ? state : 'disabled';
 
     const newUser = userRepository.create({
       firstName,
@@ -38,7 +37,7 @@ export const createUser = async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      state: validatedState,
+      state: validatedState, 
       image_url: imageUrl,
     });
 
@@ -124,7 +123,7 @@ export const getUserByEmail = async (req, res) => {
     const user = await userRepository.findOne({
       where: {
         email: decodedEmail,
-        role: In(['coordinator', 'admin']),
+        role: In(ALLOWED_ROLES.rolesArray),
       },
       relations: {
         projectResponsibles: {
@@ -134,6 +133,7 @@ export const getUserByEmail = async (req, res) => {
     });
 
     if (!user) {
+      console.log("no hay usauro");
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
@@ -170,6 +170,8 @@ export const updateUser = async (req, res) => {
       oldPassword,
     } = req.body;
 
+    console.log("estado", state)
+
     const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOneBy({ email: originalEmail });
 
@@ -177,23 +179,23 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    const allowedRoles = ['admin', 'coordinator'];
     const requester = req.user;
 
-
-    if (!allowedRoles.includes(requester.role)) {
+    if (!ALLOWED_ROLES.rolesArray.includes(requester.role)) { 
       return res.status(403).json({ message: 'Rol no válido para esta acción' });
     }
 
     // CONTROL DE PERMISOS
-    const isAdmin = requester.role === 'admin';
+    const isAdmin = requester.role === ALLOWED_ROLES.admin;
+    const isSuperAdmin = requester.role === ALLOWED_ROLES.superAdmin;
+    const isCoordinator = requester.role === ALLOWED_ROLES.coordinator;
     const isOwnProfile = requester.email === user.email;
 
-    if (!isAdmin && !isOwnProfile) {
+    if (!isAdmin && !isSuperAdmin && !isOwnProfile) {
       return res.status(403).json({ message: 'No puedes modificar este perfil' });
     }
 
-    if (!isAdmin && isOwnProfile) {
+    if (isCoordinator && isOwnProfile) {
       // coordinador solo puede actualizar su foto
       if (firstName || lastName || role || state || newEmail || password) {
         return res.status(403).json({ message: 'Coordinador solo puede actualizar su foto' });
@@ -201,14 +203,14 @@ export const updateUser = async (req, res) => {
     }
 
     // VALIDAR ROL NUEVO SI SE INTENTA CAMBIAR
-    if (role && !allowedRoles.includes(role)) {
+    if (role && !ALLOWED_ROLES.rolesArray.includes(role)) {
       return res.status(400).json({ message: 'Rol no válido' });
     }
 
     let sessionShouldInvalidate = false;
 
     // SOLO ADMIN PUEDE MODIFICAR ESTOS CAMPOS
-    if (isAdmin) {
+    if (isAdmin || isSuperAdmin) {
       if (newEmail && newEmail !== user.email) {
         const existingEmailUser = await userRepository.findOneBy({ email: newEmail });
         if (existingEmailUser) {
@@ -226,7 +228,8 @@ export const updateUser = async (req, res) => {
         sessionShouldInvalidate = true;
       }
 
-      if (state && ['habilitado', 'deshabilitado'].includes(state)) {
+      if (state && ALLOWED_STATES.statesArray.includes(state)) {
+        console.log("state", state)
         if (state !== user.state) {
           user.state = state;
           sessionShouldInvalidate = true;

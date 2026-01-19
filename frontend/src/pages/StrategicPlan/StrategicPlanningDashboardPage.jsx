@@ -17,7 +17,7 @@ import DeleteStrategicPlanDialog from "./components/DeleteStrategicPlanDialog";
 import StrategicPlanningColumnsView from "./StrategicPlanningColumnsView";
 import StrategicPlanningTreeView from "./StrategicPlanningTreeView";
 import { getAllStrategicPlansApi, getStrategicPlanByYearApi } from "../../api/strategicPlan";
-import { useAuth } from "../../contexts";
+import { useAuth, useNotification } from "../../contexts";
 import { normalizePlanData } from "./utils/normalizePlanData";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFetchAndLoad } from "../../hooks/useFetchAndLoad.js";
@@ -25,11 +25,13 @@ import { SelectYear } from "./components/SelectYear";
 import { NoResultsScreen } from "../../generalComponents/NoResultsScreen";
 import { FullScreenProgress } from "../../generalComponents/FullScreenProgress.jsx";
 import { ErrorScreen } from "../../generalComponents/ErrorScreen.jsx";
+import { roleConfig } from "../../utils/index.js";
 
 const StrategicPlanningDashboardPage = () => {
   const { year } = useParams();
   const [selectedYear, setSelectedYear] = useState(null);
   const { user } = useAuth();
+  console.log("user", user)
   const { loading, callEndpoint } = useFetchAndLoad();
   const [selectedView, setSelectedView] = useState("Columna");
   const [allPlans, setAllPlans] = useState([]);
@@ -60,7 +62,7 @@ const StrategicPlanningDashboardPage = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [isChildDirty]);
-
+ 
   useEffect(() => {
     if (!year) {
       setSelectedYear(currentYear);
@@ -71,7 +73,7 @@ const StrategicPlanningDashboardPage = () => {
   }, [year, navigate]);
 
   useEffect(() => {
-    if (user?.role === "coordinator") {
+    if (user?.role === roleConfig.coordinator.value) {
       setSelectedView("Documento");
     }
   }, [user]);
@@ -87,6 +89,7 @@ const StrategicPlanningDashboardPage = () => {
       const res = await callEndpoint(getAllStrategicPlansApi());
       setAllPlans(res);
     } catch (error) {
+      notify(error.message, "error");
       setErrorPlans(true);
     }
   };
@@ -144,7 +147,7 @@ const StrategicPlanningDashboardPage = () => {
   };
 
   const handleViewChange = (event) => {
-    if (user?.role !== "admin") return;
+  if (user?.role !== roleConfig.admin.value || user?.role !== roleConfig.superAdmin.value) return;
     setIsChildDirty(false);
     setSelectedView(event.target.value);
   };
@@ -208,12 +211,11 @@ const StrategicPlanningDashboardPage = () => {
             gap: 2,
           }}>
             <SelectYear
-              selectedYear={selectedYear}
+              selectedYear={selectedYear} 
               disabled={isChildDirty}
               availableYears={allPlans.map(p => p.year)}
               onChange={(newYear) => {
                 if (newYear === selectedYear) return;
-                console.log("Cahuuu",)
                 setIsCreatingNewPlan(false);
                 setIsChildDirty(false);
                 setSelectedYear(newYear);
@@ -223,7 +225,7 @@ const StrategicPlanningDashboardPage = () => {
               }}
             />
 
-            {user?.role === "admin" && planData?.id && (
+            {(user?.role === roleConfig.admin.value || user?.role === roleConfig.superAdmin.value) && planData?.id && (
               <FormControl sx={{ minWidth: 150 }} variant="outlined" size="small">
                 <InputLabel>Seleccionar Vista</InputLabel>
                 <Select value={selectedView} onChange={handleViewChange} label="Seleccionar Vista" disabled={isChildDirty}>
@@ -231,9 +233,9 @@ const StrategicPlanningDashboardPage = () => {
                   <MenuItem value="Documento">Documento</MenuItem>
                 </Select>
               </FormControl>
-            )}
+            )} 
 
-            {planData?.id && selectedView === "Columna" && user.role === "admin" && (
+            {planData?.id && selectedView === "Columna" && (user.role === roleConfig.superAdmin.value) && (
               <Box
                 sx={{
                   display: 'flex',
@@ -266,16 +268,16 @@ const StrategicPlanningDashboardPage = () => {
 
       {!planData && hasFetchedPlan && (
         <>
-          <Divider sx={{ mr: 1, ml: { xs: 1 } }} />
+          <Divider sx={{ mr: 1, ml: { xs: 1 } }} /> 
           <NoResultsScreen
             message='Año sin plan estratégico registrado'
             buttonText={
-              user?.role === "admin"
+              (user?.role === roleConfig.admin.value || user?.role == roleConfig.superAdmin.value)
                 ? "Crear Plan Estratégico"
-                : null
+                : null 
             }
             onButtonClick={
-              user?.role === "admin"
+              (user?.role === roleConfig.admin.value || user?.role == roleConfig.superAdmin.value)
                 ? onChangeToColumnsView
                 : undefined
             }

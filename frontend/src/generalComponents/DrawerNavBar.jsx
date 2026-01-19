@@ -9,7 +9,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { useAuth } from '../contexts';
-import { navBarOptionsConfig } from '../utils/generalConfig';
+import { navBarOptionsConfig, roleConfig } from '../utils/generalConfig';
 import { Tooltip } from '@mui/material';
 import { useNavigationGuard } from '../hooks/useBlockNavigation';
 import { useLayout } from '../contexts/LayoutContext';
@@ -78,8 +78,18 @@ export const DrawerNavBar = ({ open, onClose }) => {
   if (!user) return null;
   const { left } = useLayout();
 
-  const role = user?.role ?? 'guest';
-  const menuItems = navBarOptionsConfig[role] || [];
+  const role = user?.role;
+
+  const roleUser = Object.values(roleConfig).find(item => item.value === role);
+
+
+  if (!roleUser) return null;
+
+  const menuItemsObj = Object.values(navBarOptionsConfig).find(
+    item => item.label === roleUser.value
+  );
+
+  const menuItems = menuItemsObj?.options || [];
 
   return (
     <Box
@@ -99,7 +109,7 @@ export const DrawerNavBar = ({ open, onClose }) => {
             left: 0,
             width: '100vw',
             height: '100vh',
-            backgroundColor: 'rgba(0,0,0,0.4)', 
+            backgroundColor: 'rgba(0,0,0,0.4)',
             zIndex: theme.zIndex.drawer - 1,
           }}
         />

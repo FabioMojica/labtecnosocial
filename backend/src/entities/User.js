@@ -21,7 +21,7 @@ export const User = new EntitySchema({
     },
     role: {
       type: 'enum',
-      enum: ['admin', 'coordinator'],
+      enum: ['super-admin', 'admin', 'coordinator'],
       nullable: false,
     },
     email: {
@@ -40,8 +40,8 @@ export const User = new EntitySchema({
     },
     state: {
       type: 'enum',
-      enum: ['habilitado', 'deshabilitado', 'eliminado'],
-      default: 'habilitado',
+      enum: ['enabled', 'disabled'],
+      default: 'enabled',
     },
     created_at: {
       type: 'timestamp',

@@ -464,8 +464,9 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
         if (!autoSave) notify('Plan estratégico guardado correctamente.', 'success');
       }
     } catch (error) {
+      console.log(error); 
       console.error('Error guardando plan:', error);
-
+ 
       if (error.message?.includes('asegúrate de estar trabajando sobre la última versión del plan')) {
         if (!autoSave) notify('No se actualizó el plan estratégico por que no estás trabajando sobre su última versión.', 'error', { persist: true });
       } else {
@@ -474,7 +475,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             "Ocurrió un error inesperado al guardar el plan estratégico. Inténtalo de nuevo más tarde.",
             'error'
           );
-      }
+      } 
     }
   };
 

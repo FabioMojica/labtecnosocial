@@ -24,6 +24,7 @@ import { ViewProjectDrawer } from './components/ViewProjectDrawer';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import { getAllOperationalProjectsApi } from '../../api';
 import { useLayout } from '../../contexts/LayoutContext';
+import { roleConfig } from '../../utils';
 
 
 const drawerWidth = 400;
@@ -97,10 +98,12 @@ export function ProjectsListPage() {
     const [sortBy, setSortBy] = useState("name_asc");
     const { right } = useLayout();
 
-    const displayedTitle = () => {
-        if (user.role === 'admin') {
-            return "Lista de proyectos"
-        } else if (user.role === 'coordinator') {
+    console.log(user)
+
+    const displayedTitle = () => { 
+        if (user?.role === roleConfig.admin.value || user?.role === roleConfig.superAdmin.value) {
+            return "Lista de proyectos" 
+        } else if (user.role === roleConfig.coordinator.value) {
             return "Proyectos asignados"
         } else {
             notify("Rol no encontrado, se cerrará la sesión", "error");
@@ -192,7 +195,8 @@ export function ProjectsListPage() {
 
     if (!loading && projects.length === 0 && !error) {
         switch (user?.role) {
-            case "admin":
+            case roleConfig.superAdmin.value:
+            case roleConfig.admin.value:
                 return <NoResultsScreen
                     message='Aún no tienes proyectos registrados'
                     buttonText="Crear Proyecto"
@@ -201,7 +205,7 @@ export function ProjectsListPage() {
                         backgroundColor: "primary.main",
                         color: "primary.contrastText",
                         "&:hover": {
-                            backgroundColor: "primary.dark",
+                            backgroundColor: "primary.dark", 
                         },
                         "&.Mui-disabled": {
                             backgroundColor: "action.disabledBackground",
@@ -209,7 +213,7 @@ export function ProjectsListPage() {
                         },
                     }}
                 />;
-            case "coordinator":
+            case roleConfig.coordinator.value:
                 return <NoResultsScreen
                     message='Aún no tienes proyectos asignados'
                     buttonText="Ir al inicio"

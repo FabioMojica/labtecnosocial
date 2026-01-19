@@ -30,11 +30,11 @@ import {
   validateTextLength,
   validateOnlyLetters,
 } from "../../../utils/textUtils";
-import { generateSecurePassword, roleConfig, stateConfig } from "../../../utils";
+import { generateSecurePassword, roleConfigWithoutSA, stateConfig } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
 import { useNavigate } from "react-router-dom";
 
-// 2. Hooks personalizados
+// 2. Hooks personalizados 
 import { useFetchAndLoad } from "../../../hooks";
 
 // 3. Utilidades / helpers 
@@ -62,9 +62,10 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
     password: '',
     image_file: null,
     image_url: null,
-    role: 'coordinator', 
-    state: 'habilitado',
+    role: roleConfigWithoutSA.coordinator.value,
+    state: stateConfig.enabled.value,
   };
+
   const [user, setUser] = useState({ ...initialUser });
   const [isDirty, setIsDirty] = useState(false);
   const [questionModalOpen, setQuestionModalOpen] = useState(false);
@@ -88,10 +89,13 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
         role: user.role,
         state: user.state,
       };
+ 
+      console.log(userToSend); 
 
       const formData = createUserFormData(userToSend);
       const newUser = await callEndpoint(createUserApi(formData));
       console.log(newUser);
+      
       notify("Usuario creado correctamente", "success");
       navigate(`/usuario/${encodeURIComponent(newUser?.email)}`)
 
@@ -103,6 +107,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
       });
 
     } catch (error) {
+      console.log("errr", error)
       if (error?.response?.status === 413) {
         notify(error.response.data.message || "La imagen supera el tamaño máximo permitido (2MB)", "error");
         return;
@@ -161,7 +166,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
   };
 
   useEffect(() => {
-    setOverlayText( 
+    setOverlayText(
       previewImage
         ? window.matchMedia("(hover: hover)").matches
           ? "Cambiar imagen (click izquierdo), borrar imagen (click derecho)"
@@ -176,28 +181,28 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
 
   const handleOverlayClick = () => fileInputRef.current?.click();
 
-   const handleFileChange = (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-        if (!file.type.startsWith("image/")) {
-            notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
-            return;
-        }
+    if (!file.type.startsWith("image/")) {
+      notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
+      return;
+    }
 
-        const MAX_SIZE_MB = 2;
-        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+    const MAX_SIZE_MB = 2;
+    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
-        if (file.size > MAX_SIZE_BYTES) {
-            notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_SIZE_MB}MB`, "warning");
-            return;
-        }
+    if (file.size > MAX_SIZE_BYTES) {
+      notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_SIZE_MB}MB`, "warning");
+      return;
+    }
 
-        const previewUrl = URL.createObjectURL(file);
-        setPreviewImage(previewUrl);
-        handleUserChange?.({ image_file: file, image_url: previewUrl });
-        event.target.value = "";
-    };
+    const previewUrl = URL.createObjectURL(file);
+    setPreviewImage(previewUrl);
+    handleUserChange?.({ image_file: file, image_url: previewUrl });
+    event.target.value = "";
+  };
 
   const handleRemoveImage = () => {
     if (!previewImage) return;
@@ -217,18 +222,21 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
   const handleTouchEnd = () => clearTimeout(longPressTimer);
 
 
-  const roleOptions = Object.entries(roleConfig).map(([key, value]) => ({
-    value: key,
-    label: value.role,
+  const roleOptions = Object.values(roleConfigWithoutSA).map((value) => ({
+    value: value.value,
+    label: value.label,
     icon: value.icon,
   }));
 
-  const stateOptions = Object.entries(stateConfig).map(([key, value]) => ({
-    value: key,
-    label: value.label,
-    icon: value.icon,
-    color: value.color,
-  }));
+  const stateOptions = Object.entries(stateConfig).map(
+    ([key, config]) => ({ 
+      value: config.value,
+      label: config.label,
+      icon: config.icon,
+      color: config.color,
+    })
+  );
+
 
   const validateField = (field, value) => {
     const cleaned = value;
@@ -272,7 +280,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
       <Grid
         container
         spacing={2}
-        sx={{  
+        sx={{
           width: "100%",
           height: {
             xs: 'auto',
@@ -288,12 +296,12 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           },
         }}
       >
-        <Grid 
+        <Grid
           size={{ xs: 12, md: 4.5 }}
           sx={{
             display: 'flex',
             justifyContent: 'center',
-            width: '100%', 
+            width: '100%',
             height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 24px)`,
             maxHeight: {
               xs: 250,
@@ -302,11 +310,11 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
             },
             pointerEvents: loading && 'none'
           }}>
-          <UserImageDates 
-            overlay 
+          <UserImageDates
+            overlay
             overlayText={overlayText}
             user={user}
-            sx={{ 
+            sx={{
               width: {
                 xs: 250,
                 sm: 300,
@@ -330,7 +338,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
         </Grid>
 
         <Grid
-          container 
+          container
           spacing={1}
           size={{ xs: 12, md: 7.5 }}
           sx={{ display: "flex", flexDirection: "column" }}
@@ -338,7 +346,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           <Grid container spacing={1}>
             <Box sx={{
               display: 'flex',
-              alignItems: 'center', 
+              alignItems: 'center',
               width: '100%',
               gap: 1,
               flexDirection: {
@@ -387,7 +395,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     <>
                       Nombre <span style={{ color: theme.palette.error.main }}>*</span>
                     </>
-                  } 
+                  }
                   disabled={loading}
                   variant="outlined"
                   value={user?.firstName ?? ""}
@@ -401,7 +409,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     const cleaned = cleanExtraSpaces(e.target.value);
                     handleUserChange?.({ firstName: cleaned });
                     validateField("firstName", cleaned);
-                  }} 
+                  }}
                   inputProps={{ maxLength: 100 }}
                   size='small'
                   sx={{
@@ -480,7 +488,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                   error={!!errors.lastName}
                   onChange={(e) => {
                     const value = e.target.value;
-                    handleUserChange?.({ lastName: value }); 
+                    handleUserChange?.({ lastName: value });
                     validateField("lastName", value);
                   }}
                   onBlur={(e) => {
@@ -573,7 +581,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
-              }}> 
+              }}>
                 <EmailIcon sx={{
 
                 }} />
@@ -586,10 +594,10 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     size='small'
                     value={user?.email ?? ""}
                     label={
-                    <>
-                      Correo electrónico <span style={{ color: theme.palette.error.main }}>*</span>
-                    </>
-                  }
+                      <>
+                        Correo electrónico <span style={{ color: theme.palette.error.main }}>*</span>
+                      </>
+                    }
                     variant="outlined"
                     error={!!errors.email}
                     onChange={(e) => {
@@ -833,7 +841,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           <Grid size={12}>
             <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
               <SelectComponent
-                label="Rol" 
+                label="Rol"
                 disabled={loading}
                 options={roleOptions}
                 value={user?.role}
@@ -859,7 +867,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
-        <Box sx={{ 
+        <Box sx={{
           mt: {
             xs: 5,
             sm: 5,

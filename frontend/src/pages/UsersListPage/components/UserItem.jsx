@@ -21,7 +21,16 @@ const RightStat = ({ icon, value, label }) => (
         }}
     >
         {icon}
-        <Typography variant="caption" fontWeight={600}>
+        <Typography
+            sx={{
+                whiteSpace: 'normal',      
+                wordBreak: 'break-word',    
+                overflowWrap: 'break-word', 
+                width: 100
+            }}
+            variant="caption"
+            fontWeight={600}
+        >
             {value}
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
@@ -34,17 +43,18 @@ export const UserItem = ({ user, onClick }) => {
     const theme = useTheme();
     const [imgError, setImgError] = useState(false);
 
-     const finalSrc =
+    const finalSrc =
         (user.image_url ? `${API_UPLOADS}${user.image_url}` : null);
-    
-      useEffect(() => {
-        setImgError(false);
-      }, [finalSrc]);
 
-    const roleData = roleConfig[user.role] ?? {
-        icon: QuestionMarkRoundedIcon,
-        role: user.role,
-    };
+    useEffect(() => {
+        setImgError(false);
+    }, [finalSrc]);
+
+    const roleData =
+        Object.values(roleConfig).find(r => r.value === user.role) ?? {
+            icon: QuestionMarkRoundedIcon,
+            label: user.role,
+        };
 
     const stateData = stateConfig[user.state] ?? {
         icon: QuestionMarkRoundedIcon,
@@ -58,7 +68,7 @@ export const UserItem = ({ user, onClick }) => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <Avatar
-                            src={finalSrc ?? undefined} 
+                            src={finalSrc ?? undefined}
                             sx={{
                                 width: 56,
                                 height: 56,
@@ -111,7 +121,7 @@ export const UserItem = ({ user, onClick }) => {
                                     overflowWrap: "break-word",
                                 }}
                             >
-                                {user.email} 
+                                {user.email}
                             </Typography>
                         </Box>
                     </Box>
@@ -139,16 +149,16 @@ export const UserItem = ({ user, onClick }) => {
                         gap: 2,
                         flexWrap: "wrap",
                     }}
-                >
+                > 
                     <RightStat
                         icon={<FolderCopyRoundedIcon fontSize="small" />}
                         value={user.projectCount ?? 0}
                         label="Proyectos asignados"
-                    />
+                    /> 
 
                     <RightStat
                         icon={React.createElement(roleData.icon, { fontSize: "small" })}
-                        value={roleData.role}
+                        value={roleData.label}
                         label="Rol"
                     />
 

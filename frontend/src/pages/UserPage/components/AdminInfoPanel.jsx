@@ -36,12 +36,12 @@ import {
   validateTextLength,
   validateOnlyLetters,
 } from "../../../utils/textUtils";
-import { roleConfig, stateConfig } from "../../../utils";
+import { roleConfig, roleConfigWithoutSA, stateConfig } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
 import { getUserByEmailApi, updateUserApi } from "../../../api";
 import { useFetchAndLoad } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
-import { FloatingActionButtons } from "../../../generalComponents/FloatingActionButtons";
+import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
@@ -76,6 +76,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
     try {
       setError(false)
       const resp = await callEndpoint(getUserByEmailApi(userEmail));
+      console.log(resp);
       setUser(resp);
 
       originalUserRef.current = structuredClone({
@@ -201,11 +202,35 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
     onChange?.({ newPassword: password, passwordsValid: true });
   };
 
-  const roleOptions = Object.entries(roleConfig).map(([key, value]) => ({
-    value: key,
-    label: value.role,
+
+  let roleOptions = Object.values(roleConfigWithoutSA).map((value) => ({
+    value: value.value,
+    label: value.label,
     icon: value.icon,
   }));
+
+  if (isMyProfile && userSession.role === roleConfig.superAdmin.value) {
+    roleOptions =
+      Object.values(roleConfig).map((value) => ({
+        value: value.value,
+        label: value.label,
+        icon: value.icon,
+      }));
+  }
+
+  const roleData = Object.values(roleConfig).find(r => r.value === user?.role);
+  const RoleIcon = roleData?.icon ?? QuestionMarkRoundedIcon; 
+
+  const roleLabel =
+    Object.values(roleConfig).find(r => r.value === user?.role) ?? {
+      label: user?.role,  
+    }; 
+
+  const stateData = Object.values(stateConfig).find(r => r.value === user?.state);
+  const stateLabel = stateData?.label;
+  const stateColor = stateData?.color;
+
+
 
   const stateOptions = Object.entries(stateConfig).map(([key, value]) => ({
     value: key,
@@ -281,7 +306,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
     const resp = await updateUserApi(originalUserRef.current.originalEmail, user);
     console.log(resp);
     return resp;
-  }
+  } 
 
   const saveChangesUser = async () => {
     setLoadingUpdateUser(true);
@@ -417,7 +442,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         />
       </Grid>
 
- 
+
       <Grid
         container
         spacing={1}
@@ -434,12 +459,12 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
           <Typography variant="h6" fontWeight="bold">
             Datos del usuario
           </Typography>
-          <Tooltip 
+          <Tooltip
             title={
-              isMyProfile ? 
-              "Si editas el email, contraseña, rol o estado de tu cuenta se cerrará tu sesión automáticamente."
-              :
-              "Si editas el email, contraseña, rol o estado de este usario se cerrará la sesión activa de su cuenta automáticamente."
+              isMyProfile ?
+                "Si editas el email o contraseña de tu cuenta se cerrará tu sesión automáticamente."
+                :
+                "Si editas el email, contraseña, rol o estado de este usario se cerrará la sesión activa de su cuenta automáticamente."
             } arrow>
             <IconButton size="small">
               <InfoIcon color="info" fontSize="small" />
@@ -718,6 +743,40 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
 
         {/* Role y Estado */}
         <Grid size={12}>
+          {isMyProfile && (userSession.role === roleConfig.superAdmin.value || userSession.role === roleConfig.admin.value) ? (
+            <Stack direction="row" spacing={1}>
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.8,
+                  px: 1.5,
+                  py: 0.6,
+                  borderRadius: 2,
+                  bgcolor: "primary.main",
+                  color: "primary.contrastText",
+                  fontWeight: 500,
+                  fontSize: "0.85rem",
+                }}
+              >
+                {RoleIcon && <RoleIcon sx={{ fontSize: 18 }} />}
+                {roleLabel.label}
+              </Box>
+              <Box
+                sx={{
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 2,
+                  bgcolor: stateColor,
+                  color: "#fff",
+                  fontWeight: 500,
+                  fontSize: "0.85rem",
+                }} 
+              >
+                {stateLabel}
+              </Box>
+            </Stack>
+          ) : (
           <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
             <SelectComponent
               label="Rol"
@@ -736,6 +795,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
               fullWidth
             />
           </Box>
+          )}
         </Grid>
 
         {editProfile &&

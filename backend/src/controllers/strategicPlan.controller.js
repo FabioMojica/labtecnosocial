@@ -4,6 +4,7 @@ import { OperationalProject } from '../entities/OperationalProject.js';
 import { Objective } from '../entities/Objetive.js';
 import { Indicator } from '../entities/Indicator.js';
 import { Program } from '../entities/Program.js';
+import { ERROR_CODES, errorResponse, successResponse } from '../utils/apiResponse.js';
 
 export const getAllStrategicPlans = async (req, res) => {
   try {
@@ -17,9 +18,21 @@ export const getAllStrategicPlans = async (req, res) => {
         year: 'ASC',
       },
     });
-    res.json(plans);
+    return (
+      successResponse(
+        res,
+        plans,
+        'Planes estratégicos obtenidos correctemente.',
+        200
+      )
+    );
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo planes estratégicos', error });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
 
@@ -27,7 +40,12 @@ export const getStrategicPlanByYear = async (req, res) => {
   try {
     const year = parseInt(req.params.year);
     if (isNaN(year)) {
-      return res.status(400).json({ message: 'Año inválido' });
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'Año inválido.',
+        400
+      );
     }
 
     const repo = AppDataSource.getRepository(StrategicPlan);
@@ -42,7 +60,12 @@ export const getStrategicPlanByYear = async (req, res) => {
       .getOne();
 
     if (!plan) {
-      return res.status(404).json({ message: 'No se encontró plan estratégico para ese año' });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'No se encontró plan estratégico para ese año.',
+        404
+      );
     }
 
     plan.objectives.forEach(objetivo => {
@@ -56,11 +79,22 @@ export const getStrategicPlanByYear = async (req, res) => {
       });
     });
 
-    res.json(plan);
+    return (
+      successResponse(
+        res,
+        plan,
+        'Planes estratégicos obtenidos correctemente.',
+        200
+      )
+    );
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error obteniendo el plan estratégico para ese año', error });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
 
@@ -68,14 +102,19 @@ export const updateStrategicPlan = async (req, res) => {
   try {
     const year = parseInt(req.params.year);
     if (isNaN(year)) {
-      return res.status(400).json({ message: 'Año inválido' });
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'Año inválido.',
+        400
+      );
     }
 
     const { mission, objectives, plan_version: clientVersion } = req.body;
     const repo = AppDataSource.getRepository(StrategicPlan);
 
     let planTouched = false;
- 
+
     let plan = await repo.findOne({
       where: { year },
       relations: [
@@ -91,10 +130,12 @@ export const updateStrategicPlan = async (req, res) => {
       planTouched = true;
     } else {
       if (plan.plan_version > clientVersion) {
-        return res.status(409).json({
-          message: "Error al actualizar el plan estratégico: asegúrate de estar trabajando sobre la última versión del plan refrescando la página.",
-          currentVersion: plan.plan_version,
-        });
+        return errorResponse(
+          res,
+          ERROR_CODES.VERSION_ERROR,
+          'Error al actualizar el plan estratégico: asegúrate de estar trabajando sobre la última versión del plan refrescando la página.',
+          409
+        );
       }
 
       plan.mission = mission;
@@ -241,15 +282,19 @@ export const updateStrategicPlan = async (req, res) => {
 
           if (project) {
             if (project.program && project.program.id !== program.id) {
-              return res.status(400).json({
-                message: 'El proyecto ya está asignado a un programa diferente.',
-                projectName: project.name || project.title || 'Nombre no disponible',
-                assignedProgramName:
-                  project.program.description || project.program.name || 'Nombre programa no disponible',
-                year,
-              });
+              return errorResponse(
+                res,
+                ERROR_CODES.RESOURCE_ERROR,
+                {
+                  message: 'El proyecto ya está asignado a un programa diferente.',
+                  projectName: project.name || project.title || 'Nombre no disponible',
+                  assignedProgramName:
+                    project.program.description || project.program.name || 'Nombre programa no disponible',
+                  year,
+                },
+                400
+              );
             }
-
             project.program = program;
             await projectRepo.save(project);
             planTouched = true;
@@ -279,17 +324,32 @@ export const updateStrategicPlan = async (req, res) => {
 
     if (planIsEmpty) {
       await repo.delete(plan.id);
-      return res.status(200).json(null);
+      return (
+        successResponse(
+          res,
+          null,
+          'El plan se ha vaciado correctamente.',
+          200
+        )
+      );
     }
 
-    return res.status(200).json({
-      ...updatedPlan,
-      plan_version: updatedPlan.plan_version
-    });
+    return (
+      successResponse(
+        res,
+        { ...updatedPlan, plan_version: updatedPlan.plan_version },
+        'Plan estratégico actualizado correctemente.',
+        200
+      )
+    );
 
-  } catch (error) { 
-    console.error('Error al actualizar plan estratégico:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+  } catch (error) {
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
 
@@ -310,7 +370,12 @@ export const deleteStrategicPlanByYear = async (req, res) => {
     });
 
     if (!plan) {
-      return res.status(404).json({ message: 'Plan estratégico no encontrado' });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Plan estratégico no encontrado.',
+        404
+      );
     }
 
     for (const objective of plan.objectives || []) {
@@ -324,7 +389,16 @@ export const deleteStrategicPlanByYear = async (req, res) => {
 
     await AppDataSource.getRepository(StrategicPlan).remove(plan);
 
-    return res.status(200).json({ message: 'Plan estratégico eliminado exitosamente' });
+    // return res.status(200).json({ message: 'Plan estratégico eliminado exitosamente' });
+
+    return (
+      successResponse(
+        res,
+        null,
+        'Plan estratégico eliminado exitosamente.',
+        200
+      )
+    );
   } catch (error) {
     console.error('Error al eliminar el plan estratégico:', error);
     return res.status(500).json({ message: 'Error interno del servidor' });

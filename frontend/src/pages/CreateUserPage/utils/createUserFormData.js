@@ -12,5 +12,5 @@ export function createUserFormData(userData) {
     formData.append("file", userData.image_file);
   }
   return formData; 
-}
+} 
   

@@ -2,14 +2,17 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 
 export const stateConfig = {
-  habilitado: {
+  enabled: {
     icon: CheckCircleIcon,
+    value: "enabled",
     label: "Habilitado",
     color: "success.main",
   },
-  deshabilitado: {
+  disabled: {
     icon: CancelIcon,
+    value: "disabled",
     label: "Deshabilitado",
     color: "error.main",
   },
 };
+ 
