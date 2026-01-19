@@ -7,11 +7,9 @@ import WarningIcon from '@mui/icons-material/Warning';
 export const SessionExpirationModal = () => {
   const {
     showSessionModal,
-    setShowSessionModal,
     expiresAt,
     logout,
     refreshSession,
-    loading
   } = useAuth();
   const theme = useTheme();
 
@@ -39,11 +37,8 @@ export const SessionExpirationModal = () => {
 
   const handleLogoutClick = async () => {
     setLoadingButton('logout');
-    try {
-      await logout(true, true);
-    } finally {
-      setLoadingButton(null);
-    }
+    await logout(true, true);
+    setLoadingButton(null);
   };
 
   const handleRefreshClick = async () => {

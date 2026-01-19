@@ -27,7 +27,6 @@ export const UserPage = () => {
     const [error, setError] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
 
-
     const fetchUserByEmail = async () => {
         try {
             const resp = await callEndpoint(getUserByEmailApi(userEmail));
@@ -50,13 +49,6 @@ export const UserPage = () => {
     }, [userEmail]);
 
 
-    useEffect(() => {
-        const urlTab = new URLSearchParams(window.location.search).get("tab");
-        if (!urlTab) {
-            navigate(`/usuario/${email}?tab=Información del usuario`, { replace: true });
-        }
-    }, [userEmail, navigate]);
-
     if (!user) return <FullScreenProgress text="Obteniendo el usuario" />;
     if (loading) return <FullScreenProgress text="Obteniendo el usuario" />;
     if (error) return <ErrorScreen message="Ocurrió un error inesperado al obtener el usuario" buttonText="Intentar de nuevo" onButtonClick={() => fetchUserByEmail()} />
@@ -67,36 +59,46 @@ export const UserPage = () => {
 
     let content = null;
 
-    const handleUserChange = (updatedUser, sensitiveChanged) => {
+    const handleUserChange = (updatedUser, meta = {}) => {
         setUser(updatedUser);
 
-        if (sensitiveChanged) {
+        if (meta.roleChanged) {
             notify(
-                'Se cerrará la sesión porque hiciste cambios en información sensible del perfil.',
-                'warning',
+                "El rol del usuario cambió. Actualizando vista.",
+                "info"
+            );
+        } 
+
+        if (meta.sensitiveChanged) {
+            notify(
+                "Se cerrará la sesión porque hiciste cambios en información sensible en tu perfil.",
+                "warning",
                 { persist: true }
             );
-            setLoggingOut(true); 
-            setTimeout(() => { 
-                logout(); 
-            }, 3000);
+            setLoggingOut(true);
+            setTimeout(() => logout(), 2000);
         }
     };
 
+
     if (loggingOut) return <FullScreenProgress text="Cerrando la sesión..." />;
-  
+
     if (isAdmin) {
         if (isOwnProfile) { 
-            content = <AdminTabButtons user={user} onUserChange={handleUserChange} />;
-        } else if (user?.role === 'coordinator') { 
-            content = <AdminTabButtons />;
-        } else if (user?.role === 'admin') { 
+            console.log("admin viendo a su perfil")
+            content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} />;
+        } else if (user?.role === 'coordinator') {
+            console.log("admin viendo a coordindador")
+            content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} />;
+        } else if (user?.role === 'admin') {
+            console.log("admin viendo a admin")
             content = <ViewUserInfoPanel user={user} isEditable={false} />;
         }
     } else if (isCoordinator) {
+        console.log("coordinador viendo")
         content = <ViewUserInfoPanel user={user} isEditable={isOwnProfile} />;
     }
- 
-    return <>{content}</>;  
+
+    return <>{content}</>;
 }
 

@@ -6,7 +6,7 @@ import {
     Divider
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useAuthEffects, useFetchAndLoad } from '../../hooks';
+import { useFetchAndLoad } from '../../hooks';
 import { useAuth, useNotification } from '../../contexts';
 
 import {

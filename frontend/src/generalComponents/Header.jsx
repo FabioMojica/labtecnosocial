@@ -27,7 +27,7 @@ import { useNavigationGuard } from '../hooks/useBlockNavigation';
 import { useDirty } from '../contexts/DirtyContext';
 
 export const Header = () => {
-    const { user, logout, loading } = useAuth();
+    const { user, logout } = useAuth();
     const { notify } = useNotification();
     const [anchorEl, setAnchorEl] = useState(null);
     const theme = useTheme();
@@ -38,7 +38,7 @@ export const Header = () => {
     const toggleNav = () => setIsOpen(!open);
     const navigate = useNavigate();
     const { handleNavigate } = useNavigationGuard();
-    const { isDirty } = useDirty();
+    const [ loadingLogout, setLoadingLogout ] = useState(false);
 
     useEffect(() => {
         const updateHeight = () => {
@@ -66,11 +66,14 @@ export const Header = () => {
 
     const handleClickLogout = async () => {
         try {
-            const resp = await logout(false, true);
+            setLoadingLogout(true);
+            const resp = await logout(false, true, false);
             setAnchorEl(null);
-        } catch (err) {
+        } catch (err) { 
             console.log(err);
             notify("Sesión cerrada de emergencia por error en la red.", "error");
+        } finally {
+            setLoadingLogout(false)
         }
     };
 
@@ -239,8 +242,8 @@ export const Header = () => {
                                             }}>
                                             <ButtonWithLoader
                                                 backgroundButton='transparent'
-                                                loading={loading}
-                                                disabled={loading}
+                                                loading={loadingLogout}
+                                                disabled={loadingLogout}
                                                 variant="outlined"
                                                 fullWidth
                                                 sx={{ gap: 2 }}

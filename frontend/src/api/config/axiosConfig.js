@@ -1,5 +1,5 @@
 import axios from "axios";
-import { authManager } from "../../utils/authManager";
+import { triggerLogout } from "../../services/callLogout";
 
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL, 
@@ -24,7 +24,7 @@ axiosInstance.interceptors.response.use(
     const message = error.response?.data?.message;
 
     if (message === 'Sesión expirada por cambios en el perfil. Por favor vuelve a iniciar sesión.') {
-      authManager.logout(true, 'profileChanged');
+      triggerLogout();
     }
 
     return Promise.reject(error);

@@ -75,13 +75,24 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
 
   const handleOverlayClick = () => fileInputRef.current?.click();
 
+
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
     if (!file.type.startsWith("image/")) {
       notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
       return;
     }
+
+    const MAX_SIZE_MB = 2;
+    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+    if (file.size > MAX_SIZE_BYTES) {
+      notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_SIZE_MB}MB`, "warning");
+      return;
+    }
+
     const previewUrl = URL.createObjectURL(file);
 
     const updatedUser = { ...localUser, image_file: file, image_url: previewUrl };
@@ -179,7 +190,7 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
       }}
     >
       <Grid size={{ xs: 12, md: 5 }} sx={{ width: '100%', height: { xs: '50%', lg: '100%' }, maxHeight: '1000px', display: 'flex', flexDirection: 'column' }}>
-        <UserImageDates 
+        <UserImageDates
           overlay
           overlayText={overlayText}
           sx={{

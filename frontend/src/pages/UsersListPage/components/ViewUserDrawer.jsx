@@ -19,7 +19,7 @@ export const ViewUserDrawer = ({ user }) => {
             <Box sx={{
                 width: '100%',
                 height: '100%',
-                p: 1, 
+                p: 1,
                 overflowY: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
@@ -58,10 +58,10 @@ export const ViewUserDrawer = ({ user }) => {
                             },
                         }}
                     >
-                        <UserProfileImage  
+                        <UserProfileImage
                             user={user}
                             sx={{
-                                width: '100%', 
+                                width: '100%',
                                 height: '100%',
                                 objectFit: 'cover',
                                 borderTopLeftRadius: 8,
@@ -90,9 +90,9 @@ export const ViewUserDrawer = ({ user }) => {
                         >
                             Ir al perfil
                         </Box>
-                    </Box> 
+                    </Box>
 
-                    <Divider sx={{width: '100%'}}/>
+                    <Divider sx={{ width: '100%' }} />
 
                     <Paper
                         elevation={3}
@@ -116,7 +116,7 @@ export const ViewUserDrawer = ({ user }) => {
                                     transform: 'scale(1.05)',
                                 },
                             }}
-                        > 
+                        >
                             <Typography variant="subtitle2" color="textSecondary">Creado</Typography>
                             <Typography variant="body2">{formatDateParts(user?.created_at).date}</Typography>
                             <Typography variant="body2">{formatDateParts(user?.created_at).time}</Typography>
@@ -270,66 +270,72 @@ export const ViewUserDrawer = ({ user }) => {
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
-                                            width: 90,
+                                            width: 90, 
                                             cursor: 'pointer',
                                             transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                                             '&:hover': { transform: 'scale(1.1)' },
                                         }}
-                                        onClick={() => navigate(`/proyecto/${project.id}`)}
+                                        onClick={
+                                            () => {
+                                            navigate(`/proyecto/${project?.name}`, {
+                                                replace: true,
+                                                state: { id: project?.id },
+                                            });
+                                        }}
                                     >
-                                        <Box
-                                            sx={{
-                                                width: '100%',
-                                                aspectRatio: '1 / 1',
-                                                borderRadius: 2,
-                                                overflow: 'hidden',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                position: 'relative',
-                                                boxShadow: theme.palette.mode === 'light'
-                                                    ? '0 0 0 1px rgba(0,0,0,0.3)'
-                                                    : '0 0 0 1px rgba(255,255,255,0.3)',
-                                            }}
-                                        >
-                                            <Avatar
-                                                src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
-                                                alt={project.name}
-                                                sx={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    objectFit: 'cover',
-                                                    borderRadius: 0,
-                                                    fontWeight: 'bold',
-                                                }}
-                                            >
-                                                {project.name[0]}
-                                            </Avatar>
-                                        </Box>
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        aspectRatio: '1 / 1',
+                                        borderRadius: 2,
+                                        overflow: 'hidden',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        position: 'relative',
+                                        boxShadow: theme.palette.mode === 'light'
+                                            ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                            : '0 0 0 1px rgba(255,255,255,0.3)',
+                                    }}
+                                >
+                                    <Avatar
+                                        src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                                        alt={project.name}
+                                        sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            borderRadius: 0,
+                                            fontWeight: 'bold',
+                                        }}
+                                    >
+                                        {project.name[0]}
+                                    </Avatar>
+                                </Box>
 
-                                        <Typography
-                                            variant="body2"
-                                            align="center"
-                                            sx={{
-                                                mt: 0.5,
-                                                fontSize: '0.7rem',
-                                                color: 'text.secondary',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                                width: '100%',
-                                            }}
-                                        >
-                                            {project.name}
-                                        </Typography>
-                                    </Box>
-                                ))}
+                                <Typography
+                                    variant="body2"
+                                    align="center"
+                                    sx={{
+                                        mt: 0.5,
+                                        fontSize: '0.7rem',
+                                        color: 'text.secondary',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        width: '100%',
+                                    }}
+                                >
+                                    {project.name}
+                                </Typography>
                             </Box>
-                        </>
+                                ))}
+                        </Box>
+                </>
                     )}
-                </Paper>
+            </Paper>
 
-            </Box>
+        </Box >
         </>
     );
 }

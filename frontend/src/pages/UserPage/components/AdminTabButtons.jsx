@@ -11,20 +11,26 @@ import { AdminInfoPanel } from "./AdminInfoPanel";
 
 export const AdminTabButtons = ({
     user,
-    onUserChange
+    onUserChange,
+    isOwnProfile
 }) => { 
     const [tabsHeight, setTabsHeight] = useState(0);
     const { email } = useParams();
+    console.log("iswoma", isOwnProfile)
 
     const navigate = useNavigate();
     if (!email) return <ErrorScreen message="Usuario no encontrado" buttonText="Volver a usuarios" onButtonClick={() => navigate('/usuarios')} />;
     const userEmail = email;
-    const [activeTab, setActiveTab] = useState("Información del usuario");
+
+    const lables = isOwnProfile ? 
+    ["Tu perfil", "Más"]
+    :
+    ["Información del usuario", "Más"];
 
     return (
         <>
             <TabButtons 
-                labels={["Información del usuario", "Más"]}
+                labels={lables}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
                 onChange={(newTab) => setActiveTab(newTab)}
             >
@@ -32,12 +38,14 @@ export const AdminTabButtons = ({
                     panelHeight={tabsHeight} 
                     userEmail={userEmail}
                     onUserChange={onUserChange} 
+                    isOwnProfile
                 />
 
-                <MorePanel 
+                <MorePanel  
                 user={user} 
                 panelHeight={tabsHeight} 
-                />
+                isOwnProfile={isOwnProfile}
+                /> 
             </TabButtons>
         </>
     );

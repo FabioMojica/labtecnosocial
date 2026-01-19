@@ -10,7 +10,7 @@ export const verifyJwt = async (req, res, next) => {
   if (!token) {
     return res.status(403).json({ message: 'Token requerido' });
   }
-
+ 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
     const userRepo = AppDataSource.getRepository(User);

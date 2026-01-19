@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 // 2. Hooks personalizados
-import { useAuthEffects, useFetchAndLoad } from "../../hooks";
+import { useFetchAndLoad } from "../../hooks";
 import { useNotification } from "../../contexts";
 
 // 3. Utilidades / helpers

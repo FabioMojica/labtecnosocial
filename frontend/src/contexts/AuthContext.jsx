@@ -1,4 +1,4 @@
-import { useContext, createContext, useState, useEffect } from "react";
+import { useContext, createContext, useState, useEffect, useRef } from "react";
 import { authService } from "../services";
 import { useFetchAndLoad } from "../hooks";
 import { loginUserApi, logoutUserApi, refreshApi } from "../api";
@@ -13,6 +13,7 @@ import {
 } from "../utils/sessionWarningStorage";
 import { jwtDecode } from "jwt-decode";
 import { useDirty } from "./DirtyContext";
+import { setLogoutCallback } from "../services/callLogout";
 
 
 const AuthContext = createContext();
@@ -126,7 +127,7 @@ export const AuthProvider = ({ children }) => {
           const key = notify("Tu sesión ha expirado.", "info", { persist: true });
           addSessionSnackbarKey(key);
           console.log("dirtyContext del login", isDirtyContext)
-          logout(); 
+          logout();
         },
       });
       notify("Iniciaste sesión.", "info");
@@ -136,13 +137,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async (modal = false, showNotify = false) => {
+  const isLoggingOutRef = useRef(false);
+
+  const localLogout = () => {
+    sessionTimer.clear();
+    authService.logout();
+    setUser(null);
+    setIsAuthenticated(false);
+    setLoadingContext(false);
+    setShowSessionModal(false);
+    setIsDirtyContext(false);
+  };
+
+  const logout = async (modal = false, showNotify = false, trigger = false) => {
+    if (isLoggingOutRef.current) return;
+    isLoggingOutRef.current = true;
+
     try {
-      console.log("Dirty REAL:", isDirtyRef.current);
-       
       if (isDirtyRef.current) {
         const token = sessionStorage.getItem("token");
         const now = Date.now();
+
+        console.log("holaaaaa");
 
         if (token) {
           const decoded = jwtDecode(token);
@@ -152,32 +168,39 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
-        await runAutoSave();
-   
+        try {
+          await runAutoSave();
+        } catch {
+          console.warn("Autosave falló, se continúa logout");
+        }
+
       } else {
         console.log("No hay cambios pendientes, se omite refresh y autosave.");
       }
 
-      await callEndpoint(logoutUserApi());
-    } catch (error) {
-      console.log("logout error", error);
-      authService.logout();
-      setUser(null);
-      setIsAuthenticated(false);
-      setLoadingContext(false);
-      throw error;
+      callEndpoint(logoutUserApi()).catch(() => {
+        console.warn("Backend logout falló");
+      });
+
     } finally {
-      if (showNotify) { notify("Cerraste sesión.", "info") };
       sessionTimer.clear();
       authService.logout();
-      setUser(null);
-      setIsAuthenticated(false);
-      setLoadingContext(false);
-      setShowSessionModal(false);
+      localLogout();
+      setIsDirtyContext(false);
+      isLoggingOutRef.current = false;
+
+      if (showNotify) {
+        console.log("holaaaaa");
+        notify("Cerraste sesión.", "info")
+      };
+
+      if (trigger) {
+        notify("Se cerró la sesión por que alguien modificó tu perfil.", "warning", { persist: true })
+      }
+
       if (modal) {
         clearAllSessionSnackbars();
       }
-      setIsDirtyContext(false);
     }
   };
 
@@ -187,7 +210,7 @@ export const AuthProvider = ({ children }) => {
 
       if (!resp?.token) throw new Error("No token returned");
 
-      const { token, user } = resp; 
+      const { token, user } = resp;
 
       authService.login(token, user);
 
@@ -219,18 +242,24 @@ export const AuthProvider = ({ children }) => {
 
       setShowSessionModal(false);
 
-      if(showNotify){
+      if (showNotify) {
         notify("Sesión refrescada correctamente.", "success");
       }
 
     } catch (error) {
       console.error("Refresh failed", error);
-      
+
       notify("No se pudo refrescar la sesión y se cerró de emergencia.", "error", { persist: true });
-      
+
       logout();
+      authService.logout();
     }
   };
+
+  useEffect(() => {
+    setLogoutCallback(() => logout(false, false, true));
+  }, [true]);
+
 
   return (
     <AuthContext.Provider

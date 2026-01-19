@@ -50,21 +50,17 @@ export const authService = {
       if (stored) return { user: JSON.parse(stored) };
       return null;
     } catch (error) {
-      console.log("xxx", error)
-      console.log("4 logout")
       clearSession();
       return null;
     }
   },
 
   login(token, user) {
-    console.log(token, user)
     saveSession(token, user);
     return { token, user };
   },
 
   logout() {
-    console.log("5 logout")
     clearSession();
   },
 };

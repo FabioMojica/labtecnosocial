@@ -1,9 +1,8 @@
-import { Box, Grid, IconButton, InputAdornment, Tooltip, Typography, useTheme } from "@mui/material";
+import { Box, Grid, IconButton, InputAdornment, Tooltip, Typography, useTheme, TextField } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import {
     ProjectImageDates,
-    TextField,
     TextFieldMultiline,
 } from "../../../generalComponents";
 import { cleanExtraSpaces, validateRequiredText, validateTextLength } from "../../../utils/textUtils";
@@ -26,7 +25,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
     const [originalDescription, setOriginalDescription] = useState("");
     const { notify } = useNotification();
     const { headerHeight } = useHeaderHeight();
- 
+
     useEffect(() => {
         console.log("trigger", resetTrigger)
         setIsEditingName(false);
@@ -97,10 +96,20 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
     const handleFileChange = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
+
         if (!file.type.startsWith("image/")) {
             notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
             return;
         }
+
+        const MAX_SIZE_MB = 2;
+        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+        if (file.size > MAX_SIZE_BYTES) {
+            notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_SIZE_MB}MB`, "warning");
+            return;
+        }
+
         const previewUrl = URL.createObjectURL(file);
         setPreviewImage(previewUrl);
         onChange?.({ image_file: file, image_url: previewUrl });
@@ -181,7 +190,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
             >
                 <ProjectImageDates
                     overlay
-                    overlayText={overlayText} 
+                    overlayText={overlayText}
                     project={project}
                     fallbackLetter={(project.name)?.trim().charAt(0)?.toUpperCase()}
                     sx={{

@@ -55,7 +55,7 @@ app.use(morgan('dev'));
 app.use('/api/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/projects', operationalProjectRoutes); 
+app.use('/api/projects', operationalProjectRoutes);  
 app.use('/api/strategic-plans', strategicPlanRoutes);
 app.use('/api/operational-plans', operationalPlanRoutes);
 app.use('/api/apis/github', githubRouter);
@@ -70,8 +70,8 @@ app.use((err, req, res, next) => {
       return res.status(413).json({
         message: 'La imagen es demasiado pesada. Máximo permitido: 2MB'
       });
-    }
-
+    } 
+    
     return res.status(400).json({
       message: `Error al subir archivo: ${err.message}`
     });

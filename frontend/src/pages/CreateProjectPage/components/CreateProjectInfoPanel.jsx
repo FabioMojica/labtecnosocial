@@ -1,13 +1,12 @@
-import { Box, Grid, Typography, useTheme } from "@mui/material";
+import { Box, Grid, Typography, useTheme, TextField } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import {
     ProjectImageDates,
-    TextField,
     TextFieldMultiline,
 } from "../../../generalComponents";
 import {
-    cleanExtraSpaces,
+    cleanExtraSpaces, 
     validateRequiredText,
     validateTextLength,
 } from "../../../utils/textUtils";
@@ -63,8 +62,17 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
     const handleFileChange = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
+
         if (!file.type.startsWith("image/")) {
             notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
+            return;
+        }
+
+        const MAX_SIZE_MB = 2;
+        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+        if (file.size > MAX_SIZE_BYTES) {
+            notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_SIZE_MB}MB`, "warning");
             return;
         }
 
@@ -103,7 +111,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
     const handleNameBlur = () => {
         const cleaned = cleanExtraSpaces(localName);
         setLocalName(cleaned);
-        onChange?.({ name: cleaned }); 
+        onChange?.({ name: cleaned });
         debouncedChange.current({ name: cleaned });
     };
 
@@ -166,11 +174,11 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                     overlay
                     overlayText={overlayText}
                     project={project}
-                    sx={{ 
+                    sx={{
                         width: {
                             xs: 250,
                             sm: 300,
-                            lg: '100%'  
+                            lg: '100%'
                         },
                         height: "100%",
                         maxHeight: 500,
@@ -196,7 +204,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                 size={{ xs: 12, md: 7.5 }}
                 sx={{ display: "flex", flexDirection: "column" }}
             >
-                <Grid sx={{display: 'flex', flexDirection: 'column'}}>
+                <Grid sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -215,7 +223,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                         </Typography>
                     </Box>
                     <TextField
-                        label={
+                        label={ 
                             <>
                                 Ingrese un nombre para el proyecto <span style={{ color: theme.palette.error.main }}>*</span>
                             </>
@@ -229,7 +237,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                         inputProps={{ maxLength: 100 }}
                         size='small'
                         sx={{
-                            '& .MuiOutlinedInput-root': { 
+                            '& .MuiOutlinedInput-root': {
                                 minHeight: {
                                     xs: 50,
                                     sm: 60
@@ -289,8 +297,8 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                     </Box>
                 </Grid>
 
-                <Grid 
-                    sx={{display: 'flex', flexDirection: 'column'}}
+                <Grid
+                    sx={{ display: 'flex', flexDirection: 'column' }}
                 >
                     <Box sx={{
                         display: 'flex',
@@ -329,7 +337,7 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                             '& .MuiOutlinedInput-input': {
                                 padding: '8px 12px',
                                 fontSize: '0.95rem',
-                                lineHeight: '1.2', 
+                                lineHeight: '1.2',
                                 textAlign: 'justify'
                             }
                         }}

@@ -55,11 +55,11 @@ export const UserImageDates = ({
 
         }}
       >
-        <UserProfileImage
+        <UserProfileImage 
           user={user}
           src={(previewImage || user?.image_url) ?? undefined}
           sx={{
-            width: "100%",
+            width: "100%", 
             height: "100%",
             objectFit: "cover",
             maxHeight: "100%",

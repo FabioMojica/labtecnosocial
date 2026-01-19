@@ -3,8 +3,6 @@ import { useState } from "react";
 import { Box, Container, Typography, useTheme } from "@mui/material";
 
 // 2. Hooks personalizados
-import { useFetchAndLoad } from "../../hooks/useFetchAndLoad";
-import { useAuthEffects } from "../../hooks";
 import { useAuth, useNotification } from "../../contexts";
 
 // 3. Utilidades / helpers
@@ -41,6 +39,7 @@ export const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState({ email: "" });
+    const [ loginLoading, setLoginLoading ] = useState(false); 
 
 
     const handleClickLogin = async (e) => {
@@ -55,9 +54,12 @@ export const LoginPage = () => {
         setErrors({ email: "" });
 
         try {
+            setLoginLoading(true);
             const resp = await login(email, password);
         } catch (err) {
             notify(err?.message, "error");
+        } finally {
+            setLoginLoading(false)
         }
     };
 
@@ -110,7 +112,7 @@ export const LoginPage = () => {
                     type="submit"
                     triggerOnEnter
                     onClick={handleClickLogin}
-                    loading={loading}
+                    loading={loginLoading}
                     disabled={isDisabled}
                     variant="outlined"
                     fullWidth

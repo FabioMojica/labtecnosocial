@@ -6,6 +6,7 @@ import {
   InputAdornment,
   useTheme,
   Button,
+  TextField
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -20,7 +21,6 @@ import KeyIcon from '@mui/icons-material/Key';
 import {
   QuestionModal,
   SelectComponent,
-  TextField,
   UserImageDates,
   ButtonWithLoader,
 } from "../../../generalComponents";
@@ -33,10 +33,6 @@ import {
 import { generateSecurePassword, roleConfig, stateConfig } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
 import { useNavigate } from "react-router-dom";
-
-// 1. Librerías externas
-import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
-import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRounded';
 
 // 2. Hooks personalizados
 import { useFetchAndLoad } from "../../../hooks";
@@ -180,18 +176,28 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
 
   const handleOverlayClick = () => fileInputRef.current?.click();
 
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      notify("Solo se permiten archivos de imagen (jpg, png).", "warning");
-      return;
-    }
-    const previewUrl = URL.createObjectURL(file);
-    setPreviewImage(previewUrl);
-    handleUserChange?.({ image_file: file, image_url: previewUrl });
-    event.target.value = "";
-  };
+   const handleFileChange = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
+            return;
+        }
+
+        const MAX_SIZE_MB = 2;
+        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+        if (file.size > MAX_SIZE_BYTES) {
+            notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_SIZE_MB}MB`, "warning");
+            return;
+        }
+
+        const previewUrl = URL.createObjectURL(file);
+        setPreviewImage(previewUrl);
+        handleUserChange?.({ image_file: file, image_url: previewUrl });
+        event.target.value = "";
+    };
 
   const handleRemoveImage = () => {
     if (!previewImage) return;
@@ -381,7 +387,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     <>
                       Nombre <span style={{ color: theme.palette.error.main }}>*</span>
                     </>
-                  }
+                  } 
                   disabled={loading}
                   variant="outlined"
                   value={user?.firstName ?? ""}
@@ -395,7 +401,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     const cleaned = cleanExtraSpaces(e.target.value);
                     handleUserChange?.({ firstName: cleaned });
                     validateField("firstName", cleaned);
-                  }}
+                  }} 
                   inputProps={{ maxLength: 100 }}
                   size='small'
                   sx={{
@@ -414,7 +420,8 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                       padding: '8px 12px',
                       fontSize: '0.95rem',
                       lineHeight: '1.2',
-                    }
+                    },
+                    width: '100%',
                   }}
                 />
 
@@ -591,13 +598,10 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                       validateField("email", value);
                     }}
                     onBlur={(e) => {
-                      console.log("anyes on blute", e.target.value)
                       const cleaned = cleanExtraSpaces(e.target.value);
-                      console.log("cleaness", cleaned, "xs")
                       handleUserChange?.({ email: cleaned });
                       validateField("email", cleaned);
                     }}
-
                     inputProps={{ maxLength: 100 }}
                     InputProps={{
                       endAdornment: (

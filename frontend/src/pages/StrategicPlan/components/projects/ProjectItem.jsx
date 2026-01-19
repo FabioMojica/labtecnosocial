@@ -55,7 +55,7 @@ const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
         cursor: 'pointer',
         border: theme.palette.mode === "light"
           ? `1px solid #b9c0b3ff`
-          : "1px solid #e0e0e0",
+          : "1px solid #e0e0e0", 
         boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
         position: 'relative'
       }}

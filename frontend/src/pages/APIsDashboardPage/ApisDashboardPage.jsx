@@ -7,7 +7,7 @@ import {
 } from '@mui/material'
 import { SelectProjectModal } from '../../generalComponents/SelectProjectModal';
 import { useEffect, useState } from 'react';
-import { useAuthEffects, useFetchAndLoad } from '../../hooks';
+import { useFetchAndLoad } from '../../hooks';
 import { useAuth, useNotification } from '../../contexts';
 import { ErrorScreen, FullScreenProgress, NoResultsScreen } from '../../generalComponents';
 import { getOperationalProjectsWithIntegrationsApi } from '../../api';

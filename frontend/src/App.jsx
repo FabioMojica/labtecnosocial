@@ -2,7 +2,6 @@ import { Box, CssBaseline, Toolbar, useTheme } from '@mui/material';
 import { SnackbarProvider } from "notistack";
 
 import { AuthProvider, CustomThemeProvider, HeaderHeightProvider, useAuth } from './contexts';
-import { useAuthEffects } from './hooks';
 
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import {

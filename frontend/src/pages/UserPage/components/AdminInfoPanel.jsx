@@ -8,7 +8,10 @@ import {
   useTheme,
   Stack,
   Avatar,
-  Modal
+  Modal,
+  TextField,
+  Divider,
+  Tooltip
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -16,16 +19,15 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useHeaderHeight, useNotification } from "../../../contexts";
-import _ from "lodash";
+import _, { replace } from "lodash";
 import EditIcon from '@mui/icons-material/Edit';
-import CancelIcon from '@mui/icons-material/Cancel';
+import InfoIcon from '@mui/icons-material/Info';
 
 import {
   ButtonWithLoader,
   ErrorScreen,
   FullScreenProgress,
   SelectComponent,
-  TextField,
   UserImageDates,
 } from "../../../generalComponents";
 import {
@@ -37,7 +39,7 @@ import {
 import { roleConfig, stateConfig } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
 import { getUserByEmailApi, updateUserApi } from "../../../api";
-import { useAuthEffects, useFetchAndLoad } from "../../../hooks";
+import { useFetchAndLoad } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
 import { FloatingActionButtons } from "../../../generalComponents/FloatingActionButtons";
 
@@ -68,6 +70,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
   const [loadingChangePassword, setLoadingChangePassword] = useState(false);
   const navigate = useNavigate();
   const isMyProfile = userSession?.email === userEmail;
+  const [editProfile, setEditProfile] = useState(false);
 
   const fetchUserByEmail = async () => {
     try {
@@ -138,10 +141,20 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
     if (!file.type.startsWith("image/")) {
       notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
       return;
     }
+
+    const MAX_SIZE_MB = 2;
+    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+    if (file.size > MAX_SIZE_BYTES) {
+      notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_SIZE_MB}MB`, "warning");
+      return;
+    }
+
     const previewUrl = URL.createObjectURL(file);
     setPreviewImage(previewUrl);
     handleFieldChange("image_file", file);
@@ -149,6 +162,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
 
     event.target.value = "";
   };
+
 
   const handleRemoveImage = () => {
     setPreviewImage(null);
@@ -263,7 +277,9 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
   };
 
   const updateUser = async () => {
+    console.log("userrrrrrr", user);
     const resp = await updateUserApi(originalUserRef.current.originalEmail, user);
+    console.log(resp);
     return resp;
   }
 
@@ -284,9 +300,15 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         isMyProfile &&
         (oldEmail !== newUser.email || oldRole !== newUser.role || oldState !== newUser.state);
 
+      const roleChanged = oldRole !== newUser.role;
+
       if (onUserChange) {
-        onUserChange(newUser, sensitiveChanged);
+        onUserChange(newUser, {
+          sensitiveChanged,
+          roleChanged,
+        });
       }
+
 
       originalUserRef.current = structuredClone({
         ...newUser,
@@ -294,6 +316,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
       });
 
       setIsDirty(false);
+      setEditProfile(false);
 
       if (sensitiveChanged) {
         return;
@@ -301,12 +324,14 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
 
       navigate(`/usuario/${encodeURIComponent(newUser?.email)}`);
       notify("Usuario actualizado correctamente", "success");
-    } catch (err) {
-      if (err?.response?.data?.message) {
-        notify(err?.response?.data?.message, "error");
-      } else {
-        notify("Ocurrió un error inesperado al actualizar el usuario. Inténtalo de nuevo más tarde.", "error");
+    } catch (error) {
+      console.log(error)
+      if (error?.response?.data?.message?.includes('Usuario no encontrado')) {
+        notify("El usuario no existe en el sistema.", "error");
+        navigate(`/usuarios`, { replace: true });
+        return;
       }
+      notify("Ocurrió un error inesperado al actualizar el usuario. Inténtalo de nuevo más tarde.", "error");
     } finally {
       setLoadingUpdateUser(false);
     }
@@ -321,7 +346,6 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         newPassword: newPassword,
       });
 
-      // Actualizamos el usuario localmente
       setUser(prev => ({ ...prev }));
       originalUserRef.current = structuredClone({ ...user });
 
@@ -329,9 +353,10 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
       handleClosePasswordModal();
 
       if (isMyProfile && onUserChange) {
-        onUserChange({ ...user }, true);
+        onUserChange(user, {
+          sensitiveChanged: true,
+        });
       }
-
     } catch (err) {
       if (err?.response?.data?.message) {
         notify(err?.response?.data?.message, "error");
@@ -370,17 +395,19 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
         maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
         p: 1,
+        position: 'relative'
       }}
     >
-      <Grid size={{ xs: 12, md: 5 }} sx={{ width: '100%', height: { xs: '50%', lg: '100%' }, maxHeight: '1000px', display: 'flex', flexDirection: 'column' }}>
+      <Grid size={{ xs: 12, md: 5 }} sx={{ width: '100%', height: { xs: '50%', lg: '100%' }, maxHeight: '1000px', display: 'flex', flexDirection: 'column', pointerEvents: !editProfile && 'none' }}>
         <UserImageDates
-          overlay 
+          overlay
           overlayText={overlayText}
           user={user}
           sx={{
-            width: '100%', height: '100%', 
-          }} 
-          
+            width: '100%',
+            height: '100%',
+          }}
+
           changeImage
           onChangeImage={handleOverlayClick}
           previewImage={previewImage ?? undefined}
@@ -390,7 +417,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         />
       </Grid>
 
-
+ 
       <Grid
         container
         spacing={1}
@@ -403,10 +430,25 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         }}
       >
         {/* Nombre y Apellido */}
+        <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h6" fontWeight="bold">
+            Datos del usuario
+          </Typography>
+          <Tooltip 
+            title={
+              isMyProfile ? 
+              "Si editas el email, contraseña, rol o estado de tu cuenta se cerrará tu sesión automáticamente."
+              :
+              "Si editas el email, contraseña, rol o estado de este usario se cerrará la sesión activa de su cuenta automáticamente."
+            } arrow>
+            <IconButton size="small">
+              <InfoIcon color="info" fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
         <Grid container spacing={1}>
           <Grid size={{ xs: 12, md: 6 }}>
-
-
             <TextField
               id="first-name"
               label={
@@ -415,12 +457,16 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
                     Ingrese nombre para el usuario <span style={{ color: theme.palette.error.main }}>*</span>
                   </>
               }
-              disabled={loading}
+              disabled={loading || !editProfile}
               variant="outlined"
               value={user?.firstName ?? ""}
               error={!!errors.firstName}
               onChange={(e) => handleFieldChange("firstName", e.target.value)}
-              onBlur={(e) => validateField("firstName", e.target.value)}
+              onBlur={(e) => {
+                const cleaned = cleanExtraSpaces(e.target.value);
+                handleFieldChange?.("firstName", cleaned);
+                validateField("firstName", cleaned);
+              }}
               maxLength={100}
               inputProps={{ maxLength: 100 }}
               size='small'
@@ -440,7 +486,8 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
                   padding: '8px 12px',
                   fontSize: '0.95rem',
                   lineHeight: '1.2',
-                }
+                },
+                width: '100%'
               }}
             />
 
@@ -494,9 +541,13 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
                   </>
               }
               onChange={(e) => handleFieldChange("lastName", e.target.value)}
-              onBlur={(e) => validateField("lastName", e.target.value)}
+              onBlur={(e) => {
+                const cleaned = cleanExtraSpaces(e.target.value);
+                handleFieldChange?.("lastName", cleaned);
+                validateField("lastName", cleaned);
+              }}
               maxLength={100}
-              disabled={loading}
+              disabled={loading || !editProfile}
               variant="outlined"
               value={user?.lastName ?? ""}
               error={!!errors.lastName}
@@ -568,7 +619,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
         <Grid size={12}>
           <TextField
             id="new-email"
-            disabled={loading}
+            disabled={loading || !editProfile}
             size='small'
             label={
               user?.email !== "" ? null :
@@ -580,7 +631,11 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
             error={!!errors.email}
             value={user?.email ?? ""}
             onChange={(e) => handleFieldChange("email", e.target.value)}
-            onBlur={(e) => validateField("email", e.target.value)}
+            onBlur={(e) => {
+              const cleaned = cleanExtraSpaces(e.target.value);
+              handleFieldChange?.("email", cleaned);
+              validateField("email", e.target.value)
+            }}
             inputProps={{ maxLength: 100 }}
             InputProps={{
               endAdornment: (
@@ -657,11 +712,16 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
           </Box>
         </Grid>
 
+        <Typography variant="h6" fontWeight="bold">
+          Rol y estado
+        </Typography>
+
         {/* Role y Estado */}
         <Grid size={12}>
           <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
             <SelectComponent
               label="Rol"
+              disabled={!editProfile}
               options={roleOptions}
               value={user?.role}
               onChange={(newRole) => handleFieldChange("role", newRole)}
@@ -669,6 +729,7 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
             />
             <SelectComponent
               label="Estado"
+              disabled={!editProfile}
               options={stateOptions}
               value={user?.state}
               onChange={(newState) => handleFieldChange("state", newState)}
@@ -677,94 +738,148 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
           </Box>
         </Grid>
 
-        <Grid size={12} sx={{ mt: 1 }}>
-          <Button disabled={isDirty} variant="outlined" onClick={handleOpenPasswordModal}>
-            Cambiar contraseña
-          </Button>
-        </Grid>
+        {editProfile &&
+          <Grid size={12} sx={{ mt: 1 }}>
+            <Button
+              disabled={isDirty}
+              variant="outlined"
+              onClick={handleOpenPasswordModal}
+            >
+              Cambiar contraseña
+            </Button>
+          </Grid>
+        }
 
-        <Box sx={{
-          width: '100%',
-          flex: 1,
-        }}>
-          <Box
-            sx={{
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-            }}
+        {!editProfile && !isDirty &&
+          <IconButton sx={{
+            position: 'absolute',
+            bottom: 10,
+            right: 20,
+          }}
+            onClick={() => setEditProfile(true)}
           >
-            <Typography variant="h6" fontWeight="bold">
-              Proyectos asignados
-              <Typography component="span" color="text.secondary">
-                {" "}({user?.projects?.length})
-              </Typography>
-            </Typography>
-
-            {user?.projects?.length > 0 ? (
-              <Box
-                display={'flex'}
-                flexWrap={'wrap'}
-                gap={1}
-                sx={{
-                  overflowY: "auto",
-                  maxHeight: {
-                    sm: '120px',
-                  },
-                  width: '100%',
-                  "&::-webkit-scrollbar": { width: "2px" },
-                  "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "8px" },
-                  "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "8px" },
-                  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark }
-                }}
-              >
-                {user?.projects?.map((project, index) => (
-                  <Avatar
-                    key={`${project.name}-${index}`}
-                    src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
-                    sx={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: 2,
-                      cursor: canNavigateToProject() ? 'pointer' : 'default',
-                      transition: "transform .2s",
-                      "&:hover": {
-                        transform: "scale(1.01)",
-                      },
-                      objectFit: 'cover',
-                    }}
-                    title={project.name}
-                    onClick={() => {
-
-                      if (!canNavigateToProject()) return;
-
-                      navigate(`/proyecto/${project?.name}`, {
-                        replace: true,
-                        state: { id: project?.id },
-                      });
-                    }}
-                  >
-                    {project.name[0]}
-                  </Avatar>
-                ))}
-              </Box>
-            ) : (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  color: "gray",
-                  fontStyle: "italic",
-                  fontSize: "0.9rem",
-                }}
-              >
-                Este usuario no tiene proyectos asignados
-              </Typography>
-            )}
+            <Tooltip title="Editar perfil">
+              <EditIcon></EditIcon>
+            </Tooltip>
+          </IconButton>
+        }
+        {
+          editProfile &&
+          <Box sx={{
+            position: 'absolute',
+            bottom: 10,
+            right: 20,
+            display: 'flex',
+            gap: 1,
+            justifyContent: 'flex-end',
+          }}>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => {
+                setUser(structuredClone(originalUserRef.current));
+                setIsDirty(false);
+                setErrors({});
+                setEditProfile(false)
+              }}
+            >
+              Descartar cambios
+            </Button>
+            <ButtonWithLoader
+              loading={loading}
+              onClick={saveChangesUser}
+              backgroundButton={theme => theme.palette.success.main}
+              disabled={!canSave}
+              sx={{
+                color: "white",
+                "&:hover": {
+                  backgroundColor: theme => theme.palette.success.dark,
+                },
+                width: 140,
+              }}
+            >
+              Guardar Cambios
+            </ButtonWithLoader>
           </Box>
-        </Box>
+        }
       </Grid>
+
+      <Divider sx={{ width: '100%', }} />
+
+      <Box sx={{
+        width: '100%',
+        flex: 1,
+      }}>
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            mb: 10
+          }}
+        >
+          <Typography variant="h5" fontWeight="bold">
+            Proyectos asignados
+            <Typography component="span" color="text.secondary">
+              {" "}({user?.projects?.length})
+            </Typography>
+          </Typography>
+
+          {user?.projects?.length > 0 ? (
+            <Box
+              display={'flex'}
+              flexWrap={'wrap'}
+              gap={1}
+            >
+              {user?.projects?.map((project, index) => (
+                <Avatar
+                  key={`${project.name}-${index}`}
+                  src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                  sx={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 2,
+                    cursor: canNavigateToProject() ? 'pointer' : 'default',
+                    transition: "transform .2s",
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                    },
+                    boxShadow:
+                      theme.palette.mode === 'light'
+                        ? '0 0 0 1px rgba(0,0,0,0.3)'
+                        : '0 0 0 1px rgba(255,255,255,0.3)',
+                    objectFit: 'cover',
+                  }}
+                  title={project.name}
+                  onClick={() => {
+
+                    if (!canNavigateToProject()) return;
+
+                    navigate(`/proyecto/${project?.name}`, {
+                      state: { id: project?.id },
+                    });
+                  }}
+                >
+                  {project.name[0]}
+                </Avatar>
+              ))}
+            </Box>
+          ) : (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                color: "gray",
+                fontStyle: "italic",
+                fontSize: "0.9rem",
+              }}
+            >
+              Este usuario no tiene proyectos asignados
+            </Typography>
+          )}
+        </Box>
+      </Box>
 
       <input
         type="file"
@@ -944,19 +1059,6 @@ export const AdminInfoPanel = ({ userEmail, panelHeight, onUserChange }) => {
           </Stack>
         </Box>
       </Modal>
-
-      <FloatingActionButtons
-        text="Cambios sin guardar en el usuario"
-        loading={loading}
-        visible={isDirty}
-        onSave={saveChangesUser}
-        onCancel={() => {
-          setUser(structuredClone(originalUserRef.current));
-          setIsDirty(false);
-          setErrors({});
-        }}
-        saveDisabled={!canSave}
-      />
     </Grid>
   );
 };

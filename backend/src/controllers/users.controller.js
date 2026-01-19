@@ -272,8 +272,6 @@ export const updateUser = async (req, res) => {
         });
       }
       user.image_url = null;
-    } else {
-      user.image_url = null;
     }
 
     if (sessionShouldInvalidate) user.session_version += 1;

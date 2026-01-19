@@ -1,44 +1,29 @@
 import { axiosInstance } from "./config";
 import { loadAbort } from "../utils";
 import { Routes } from "./config/routes";
+import { handleApiError } from "./config/handleApiError";
 
 export const loginUserApi = async (userData) => {
-  const controller = loadAbort(); 
+  const controller = loadAbort();
 
   try {
-    const response = await axiosInstance.post(
+    const { data }= await axiosInstance.post(
       Routes.LOGIN,
       userData,
-      { signal: controller.signal } 
+      { signal: controller.signal }
     );
-
-    if (response.status === 200) { 
-      return response.data;
-    } else {
-      return null;
+  
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
     }
+
+    return data?.data; 
+
   } catch (error) {
-
-    console.log(error);
-
-    if (error.code === 'ECONNABORTED') {
-      throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
-    }
-    
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-      return null;
-    }
-
-    if (error.response) {
-      if (error.response.status === 401) {
-        throw new Error('Credenciales incorrectas');
-      }
-      throw new Error(error.response.data.message || 'Error en la autenticación');
-    }
-    
-
-
-    throw new Error(error);
+    throw handleApiError(error, 'Ocurrió un error inesperado al iniciar sesión. Inténtalo nuevamente más tarde.');
   }
 };
 
@@ -55,28 +40,16 @@ export const logoutUserApi = async () => {
     if (response.status === 200) {
       return response.data;
     } else {
-      return null;
+      return null; 
     }
   } catch (error) {
-
-    if (error.code === 'ECONNABORTED') {
-      throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
-    }
-
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-      return null;
-    }
-
-    if (error.response) {
-      throw new Error(error.response.data.message || "Error al cerrar sesión");
-    }
-
-    throw new Error("Error al intentar cerrar sesión");
+    throw handleApiError(error, 'Ocurrió un error inesperado al cerrar sesión en el servidor.');
   }
 };
 
+
 export const meApi = async () => {
-  const controller = loadAbort(); 
+  const controller = loadAbort();
 
   try {
     const response = await axiosInstance.get(Routes.ME, {
@@ -151,7 +124,7 @@ export const getSummaryDataApi = async (user) => {
       return null;
     }
   } catch (error) {
-    
+
     if (error.code === 'ECONNABORTED') {
       throw new Error('La petición tardó demasiado. Por favor intenta de nuevo.');
     }

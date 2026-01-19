@@ -12,7 +12,7 @@ userRoutes.use(verifyJwt);
 userRoutes.post('/createUser', uploadSingleFile, authorizeRole(["admin"]), createUser);
 userRoutes.get('/coordinators',getCoordinators);
 userRoutes.get('/getAllUsers', authorizeRole(["admin", "coordinator"]), getAllUsers);
-userRoutes.get('/getUserByEmail/:email', getUserByEmail);
+userRoutes.get('/getUserByEmail/:email', getUserByEmail); 
 userRoutes.patch('/updateUser/:originalEmail', upload.single('file'), updateUser);
 userRoutes.delete('/deleteUser/:email', deleteUserByEmail);
 
