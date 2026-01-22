@@ -2,7 +2,7 @@ import { useTheme } from '@mui/material/styles';
 import { Box, CssBaseline, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Toolbar, Typography, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useFetchAndLoad } from '../../hooks';
-import { useNotification } from '../../contexts';
+import { useAuth, useNotification } from '../../contexts';
 import {
     SearchBar,
     ButtonWithLoader,
@@ -28,7 +28,7 @@ const sortOptions = [
     { label: "Menos proyectos asignados", value: "projects_asc" },
     { label: "Más antiguos", value: "created_asc" },
     { label: "Menos antiguos", value: "created_desc" },
-]; 
+];
 
 
 export function UsersListPage() {
@@ -46,6 +46,7 @@ export function UsersListPage() {
     const [roleFilter, setRoleFilter] = useState("all");
     const [searchedUsers, setSearchedUsers] = useState([]);
     const { right } = useLayout();
+    const { user, isAdmin, isSuperAdmin } = useAuth();
 
     useEffect(() => {
         setSearchedUsers(users);
@@ -174,20 +175,18 @@ export function UsersListPage() {
         }
 
         return sorted;
-    }; 
+    };
 
     const displayedUsers = sortUsers(
         filterUsers(searchedUsers)
     );
 
-
-
     return (
 
-        <Box sx={{ display: 'flex', px: 1, py: {xs: 1, lg: 0}}}> 
-            <CssBaseline /> 
+        <Box sx={{ display: 'flex', px: 1, py: { xs: 1, lg: 0 } }}>
+            <CssBaseline />
 
-            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%', mb: 1 }}>
                 <Box sx={{
                     display: 'flex',
                     gap: 1,
@@ -258,7 +257,7 @@ export function UsersListPage() {
                             data={users}
                             fields={["firstName", "lastName", "email"]}
                             placeholder="Buscar usuarios..."
-                            onResults={setSearchedUsers} 
+                            onResults={setSearchedUsers}
                         />
                         <FormControl sx={{ minWidth: 200 }}>
                             <InputLabel>Ordenar usuarios por</InputLabel>
@@ -284,23 +283,26 @@ export function UsersListPage() {
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
                                 <MenuItem value="all">Todos</MenuItem>
-                                <MenuItem value="habilitado">Solo habilitados</MenuItem>
-                                <MenuItem value="deshabilitado">Solo deshabilitados</MenuItem>
+                                <MenuItem value="enabled">Solo habilitados</MenuItem>
+                                <MenuItem value="disabled">Solo deshabilitados</MenuItem>
                             </Select>
                         </FormControl>
 
-                        <FormControl size="small" sx={{ minWidth: 180 }}>
-                            <InputLabel>Rol</InputLabel>
-                            <Select
-                                value={roleFilter}
-                                label="Rol"
-                                onChange={(e) => setRoleFilter(e.target.value)}
-                            >
-                                <MenuItem value="all">Todos</MenuItem>
-                                <MenuItem value="admin">Administradores</MenuItem>
-                                <MenuItem value="coordinator">Coordinadores</MenuItem>
-                            </Select>
-                        </FormControl>
+                        {
+                            isSuperAdmin &&
+                            <FormControl size="small" sx={{ minWidth: 180 }}>
+                                <InputLabel>Rol</InputLabel>
+                                <Select
+                                    value={roleFilter}
+                                    label="Rol"
+                                    onChange={(e) => setRoleFilter(e.target.value)}
+                                >
+                                    <MenuItem value="all">Todos</MenuItem>
+                                    <MenuItem value="admin">Administradores</MenuItem>
+                                    <MenuItem value="user">Usuarios</MenuItem>
+                                </Select>
+                            </FormControl>
+                        } 
                     </Box>
 
                     <Divider sx={{ mt: 0.5 }} />
@@ -314,22 +316,22 @@ export function UsersListPage() {
                         displayedUsers.map(user => (
                             <UserItem key={user.id} user={user} onClick={() => handleUserClick(user)} />
                         ))
-                    ) : ( 
+                    ) : (
                         <Box sx={{ width: '100%' }}>
                             <NoResultsScreen
                                 sx={{ height: '50vh' }}
-                                message="Búsqueda de usuarios sin resultados"
+                                message="No se encontraron resultados"
                             />
                         </Box>
                     )}
                 </Stack>
             </Box>
 
-            <UsersDrawer 
-                variant="permanent" 
-                open={open}  
+            <UsersDrawer
+                variant="permanent"
+                open={open}
                 anchor='right'
-                sx={{ 
+                sx={{
                     '& .MuiDrawer-paper': {
                         mr: `${right}px`,
                     },

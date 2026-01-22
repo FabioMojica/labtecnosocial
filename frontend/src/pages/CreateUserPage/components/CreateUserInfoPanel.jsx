@@ -13,7 +13,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import { useEffect, useRef, useState } from "react";
-import { useHeaderHeight, useNotification } from "../../../contexts";
+import { useAuth, useHeaderHeight, useNotification } from "../../../contexts";
 import EmailIcon from '@mui/icons-material/Email';
 import BadgeIcon from '@mui/icons-material/Badge';
 import KeyIcon from '@mui/icons-material/Key';
@@ -30,7 +30,7 @@ import {
   validateTextLength,
   validateOnlyLetters,
 } from "../../../utils/textUtils";
-import { generateSecurePassword, roleConfigWithoutSA, stateConfig } from "../../../utils";
+import { generateSecurePassword, roleConfig, roleConfigWithoutSA, stateConfig } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
 import { useNavigate } from "react-router-dom";
 
@@ -43,7 +43,7 @@ import { createUserFormData } from "../utils/createUserFormData";
 
 
 // 5. Servicios / UseCases
-import { createUserApi } from "../../../api";
+import { createUserApi, getAllAdminsApi } from "../../../api";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { downloadUserCredentials } from "../utils/downloadUserCredentials";
 
@@ -55,6 +55,8 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
   const { notify } = useNotification();
   const { headerHeight } = useHeaderHeight();
   const theme = useTheme();
+  const { user: userSession, isAdmin, isUser, isSuperAdmin } = useAuth();
+
   const initialUser = {
     firstName: '',
     lastName: '',
@@ -62,8 +64,9 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
     password: '',
     image_file: null,
     image_url: null,
-    role: roleConfigWithoutSA.coordinator.value,
+    role: roleConfigWithoutSA.user.value,
     state: stateConfig.enabled.value,
+    created_by: userSession?.id,
   };
 
   const [user, setUser] = useState({ ...initialUser });
@@ -73,6 +76,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
   const { right } = useLayout();
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
 
   const handleCreateUser = async () => {
     if (!user) {
@@ -88,14 +92,9 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
         image_file: user.image_file ?? null,
         role: user.role,
         state: user.state,
-      };
- 
-      console.log(userToSend); 
-
+      }; 
       const formData = createUserFormData(userToSend);
       const newUser = await callEndpoint(createUserApi(formData));
-      console.log(newUser);
-      
       notify("Usuario creado correctamente", "success");
       navigate(`/usuario/${encodeURIComponent(newUser?.email)}`)
 
@@ -151,7 +150,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
   };
 
   const isFormValid = () => {
-    return (
+    const basicFieldsValid =
       user.firstName?.trim() &&
       user.lastName?.trim() &&
       user.email?.trim() &&
@@ -161,9 +160,10 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
       !user.firstNameError &&
       !user.lastNameError &&
       !user.emailError &&
-      !user.passwordError
-    );
+      !user.passwordError;
+    return basicFieldsValid;
   };
+
 
   useEffect(() => {
     setOverlayText(
@@ -229,7 +229,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
   }));
 
   const stateOptions = Object.entries(stateConfig).map(
-    ([key, config]) => ({ 
+    ([key, config]) => ({
       value: config.value,
       label: config.label,
       icon: config.icon,
@@ -275,6 +275,12 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
   };
   const isPasswordValid = !validatePassword(user?.password ?? "");
 
+  const filteredRoleOptions = roleOptions.filter((option) => {
+    if (isSuperAdmin) return option.value !== roleConfig.superAdmin.value;
+    if (isAdmin) return option.value === roleConfig.user.value;
+    return false;
+  });
+
   return (
     <>
       <Grid
@@ -317,7 +323,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
             sx={{
               width: {
                 xs: 250,
-                sm: 300,
+                sm: 400,
                 lg: '100%'
               },
               height: "100%",
@@ -818,7 +824,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     {errors.password || "placeholder"}
                   </Typography>
 
-
                   <Typography
                     variant="caption"
                     color={isPasswordValid ? "success.main" : "warning.main"}
@@ -830,8 +835,8 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                   >
                     {(user?.password?.length ?? 0)} / 8
                   </Typography>
-
                 </Box>
+
               </Box>
             </Box>
           </Grid>
@@ -839,13 +844,19 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
 
           {/* Role y Estado */}
           <Grid size={12}>
-            <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+            <Grid size={12} sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 1 }}>
               <SelectComponent
                 label="Rol"
-                disabled={loading}
-                options={roleOptions}
+                disabled={loading || isAdmin}
+                options={filteredRoleOptions}
                 value={user?.role}
-                onChange={(newRole) => handleUserChange?.({ role: newRole })}
+                onChange={(newRole) => {
+                  let createdById = userSession?.id;
+                  if (newRole === roleConfigWithoutSA.user.value && selectedAdmin?.id) {
+                    createdById = selectedAdmin.id;
+                  }
+                  handleUserChange?.({ role: newRole, created_by: createdById });
+                }}
                 fullWidth
               />
               <SelectComponent
@@ -856,7 +867,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                 onChange={(newState) => handleUserChange?.({ state: newState })}
                 fullWidth
               />
-            </Box>
+            </Grid>
           </Grid>
         </Grid>
 

@@ -6,16 +6,20 @@ import {
   deleteStrategicPlanByYear,
 } from '../controllers/strategicPlan.controller.js';
 import { verifyJwt } from '../middlewares/verifyJwt.js';
-import { authorizeRole } from '../middlewares/authorizedRole.js';
-import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
+import { authorize } from '../middlewares/authorize.js';
+import { PERMISSIONS } from '../config/rolePermissions.js';
 
 const strategicPlanRoutes = Router();
 
-strategicPlanRoutes.use(verifyJwt); 
+strategicPlanRoutes.use(verifyJwt);  
    
-strategicPlanRoutes.get('/', authorizeRole(), getAllStrategicPlans);
-strategicPlanRoutes.get('/:year', authorizeRole(), getStrategicPlanByYear);
-strategicPlanRoutes.put('/:year', authorizeRole(ALLOWED_ROLES.onlyAdmins), updateStrategicPlan);
-strategicPlanRoutes.delete("/deleteStrategicPlan/:year", authorizeRole(ALLOWED_ROLES.superAdmin), deleteStrategicPlanByYear);
+strategicPlanRoutes.get('/', authorize(PERMISSIONS.STRATEGIC_PLAN.READ), getAllStrategicPlans);
+
+strategicPlanRoutes.get('/:year', authorize(PERMISSIONS.STRATEGIC_PLAN.READ), getStrategicPlanByYear); 
+
+strategicPlanRoutes.put('/:year', authorize(PERMISSIONS.STRATEGIC_PLAN.UPDATE), updateStrategicPlan);
+
+strategicPlanRoutes.delete("/deleteStrategicPlan/:year", authorize(PERMISSIONS.STRATEGIC_PLAN.DELETE), deleteStrategicPlanByYear);
 
 export default strategicPlanRoutes; 
+ 

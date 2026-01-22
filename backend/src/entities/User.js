@@ -21,7 +21,7 @@ export const User = new EntitySchema({
     },
     role: {
       type: 'enum',
-      enum: ['super-admin', 'admin', 'coordinator'],
+      enum: ['super-admin', 'admin', 'user'],
       nullable: false,
     },
     email: {
@@ -30,7 +30,7 @@ export const User = new EntitySchema({
       unique: true,
       nullable: false,
     },
-    password: { 
+    password: {
       type: String,
       nullable: false,
     },
@@ -42,6 +42,10 @@ export const User = new EntitySchema({
       type: 'enum',
       enum: ['enabled', 'disabled'],
       default: 'enabled',
+    },
+    created_by: {
+      type: Number,
+      nullable: true,
     },
     created_at: {
       type: 'timestamp',
@@ -64,6 +68,18 @@ export const User = new EntitySchema({
       type: 'one-to-many',
       target: 'ProjectResponsible',
       inverseSide: 'user',
+    },
+    creator: {
+      type: 'many-to-one',
+      target: 'User',
+      joinColumn: { name: 'created_by' },
+      nullable: true,
+      onDelete: 'SET NULL',
+    },
+    createdUsers: {
+      type: 'one-to-many',
+      target: 'User',
+      inverseSide: 'creator',
     },
   },
 });

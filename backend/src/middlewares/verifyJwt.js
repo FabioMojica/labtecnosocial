@@ -28,8 +28,8 @@ export const verifyJwt = async (req, res, next) => {
         errorResponse(
           res,
           ERROR_CODES.USER_NOT_FOUND,
-          'Usuario no encontrado en el sistema.',
-          401,
+          'Usuario no encontrado en el sistema al verificar el token.',
+          401, 
         ));
     }
 

@@ -176,7 +176,7 @@ const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
           </IconButton>
         </Tooltip>
 
-      </Box>
+      </Box> 
 
       <EditProjectModal
         open={showViewProject}

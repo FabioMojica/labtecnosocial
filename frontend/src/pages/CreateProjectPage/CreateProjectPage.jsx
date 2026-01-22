@@ -116,13 +116,13 @@ export const CreateProjectPage = () => {
         <Box>
             <TabButtons
                 labels={["Información del proyecto", "Asignar Responsables", "Integraciones con apis", "Crear Proyecto"]}
-                paramsLabels={["información", "asignarResponsables", "integrarAPIs", "crearProyecto"]}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
-                canChangeTab={(idx) => {
+                onChange={(newTab) => setActiveTab(newTab)}
+                canChangeTab={(idx) => { 
                     if (idx === 0) return true; 
                     if (idx === 1) return isProjectValid;
                     if (idx === 2) return isProjectValid;
-                    if (idx === 3) return isProjectValid;
+                    if (idx === 3) return isProjectValid; 
                     return false;
                 }}
             >

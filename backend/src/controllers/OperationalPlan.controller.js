@@ -2,9 +2,10 @@ import { AppDataSource } from '../../data-source.js';
 import { OperationalProject } from '../entities/OperationalProject.js';
 import { OperationalRow } from '../entities/OperationalRow.js';
 import { isRowEmpty } from '../utils/isRowEmpty.js';
+import { errorResponse, successResponse, ERROR_CODES } from "../utils/apiResponse.js"
 
 
-export const getOperationalProjectRows = async (req, res) => {
+export const getOperationalPlanOfProject = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -13,37 +14,53 @@ export const getOperationalProjectRows = async (req, res) => {
 
     const project = await projectRepository.findOneBy({ id: parseInt(id) });
     if (!project) {
-      return res.status(404).json({ message: 'Proyecto operativo no encontrado' });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'No se encontró el proyecto para obtener su plan operativo.',
+        404
+      );
     }
 
     const rows = await rowRepository.find({
       where: { operationalProject: { id: parseInt(id) } },
       order: { id: 'ASC' },
-    }); 
+    });
 
-    return res.status(200).json({ 
-      rows,
-      operationalPlan_version: project.operationalPlan_version,
-      operationalPlan_created_at: project.operationalPlan_created_at,
-      operationalPlan_updated_at: project.operationalPlan_updated_at,
-    }); 
+    return (
+      successResponse(
+        res,
+        {
+          rows,
+          operationalPlan_version: project.operationalPlan_version,
+          operationalPlan_created_at: project.operationalPlan_created_at,
+          operationalPlan_updated_at: project.operationalPlan_updated_at,
+        },
+        'Plan operativo recuperado exitosamente.',
+        200
+      )
+    );
   } catch (error) {
-    console.error('Error al obtener filas operativas del proyecto:', error);
-    return res.status(500).json({ message: 'Error al obtener las filas operativas del proyecto' });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
 
 
-export const saveOperationalRowsOfProject = async (req, res) => {
+export const saveOperationalPlanOfProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
 
   try {
     const { id: projectId } = req.params;
-    const { 
-      operationalPlan_version: clientVersion, 
-      create = [], 
-      update = [], 
-      delete: deleteIds = [] 
+    const {
+      operationalPlan_version: clientVersion,
+      create = [],
+      update = [],
+      delete: deleteIds = []
     } = req.body;
 
     await queryRunner.connect();
@@ -56,16 +73,26 @@ export const saveOperationalRowsOfProject = async (req, res) => {
 
     if (!project) {
       await queryRunner.rollbackTransaction();
-      return res.status(404).json({ message: 'Proyecto operativo no encontrado' });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'No se encontró el proyecto para guardar su plan operativo.',
+        404
+      );
     }
 
     if (clientVersion < project.operationalPlan_version) {
       await queryRunner.rollbackTransaction();
-      return res.status(409).json({
-        message: "Error al actualizar el plan estratégico: asegúrate de estar trabajando sobre la última versión del plan refrescando la página.",
-        currentVersion: project.operationalPlan_version,
-      });
-    } 
+      return errorResponse(
+        res,
+        ERROR_CODES.VERSION_ERROR,
+        {
+          message: "Error al actualizar el plan estratégico: asegúrate de estar trabajando sobre la última versión del plan refrescando la página.",
+          currentVersion: project.operationalPlan_version,
+        },
+        409
+      );
+    }
 
     if (deleteIds.length > 0) {
       await rowRepository.delete(deleteIds);
@@ -79,7 +106,14 @@ export const saveOperationalRowsOfProject = async (req, res) => {
       const existingRow = await rowRepository.findOneBy({ id: rowData.id });
       if (!existingRow) {
         await queryRunner.rollbackTransaction();
-        return res.status(404).json({ message: `Fila con id ${rowData.id} no encontrada` });
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.RESOURCE_NOT_FOUND,
+            `Fila del plan operativo ${rowData.id} no encontrada`,
+            404,
+          )
+        );
       }
 
       existingRow.objective = rowData.objective;
@@ -96,7 +130,7 @@ export const saveOperationalRowsOfProject = async (req, res) => {
     }
 
     for (const rowData of create) {
-      if (isRowEmpty(rowData)) { 
+      if (isRowEmpty(rowData)) {
         continue;
       }
       const newRow = rowRepository.create({
@@ -122,31 +156,41 @@ export const saveOperationalRowsOfProject = async (req, res) => {
     await projectRepository.save(project);
     await projectRepository.increment({ id: project.id }, 'operationalPlan_version', 1);
     const updatedProject = await projectRepository.findOneBy({ id: project.id });
-    
+
     await queryRunner.commitTransaction();
 
     const savedRows = await rowRepository.find({
       where: { operationalProject: { id: parseInt(projectId) } },
     });
 
-    return res.status(200).json({
-      savedRows,
-      operationalPlan_version: updatedProject.operationalPlan_version,
-      operationalPlan_created_at: updatedProject.operationalPlan_created_at,
-      operationalPlan_updated_at: updatedProject.operationalPlan_updated_at,
-    });
-
+    return (
+      successResponse(
+        res,
+        {
+          savedRows,
+          operationalPlan_version: updatedProject.operationalPlan_version,
+          operationalPlan_created_at: updatedProject.operationalPlan_created_at,
+          operationalPlan_updated_at: updatedProject.operationalPlan_updated_at,
+        },
+        'Plan operativo guardado exitosamente.',
+        200
+      )
+    );
   } catch (error) {
     await queryRunner.rollbackTransaction();
-    console.error('Error al guardar filas operativas:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   } finally {
     await queryRunner.release();
   }
 };
 
 
-export const deleteOperationalPlanning = async (req, res) => {
+export const deleteOperationalPlanOfProject = async (req, res) => {
   const { id } = req.params;
   const queryRunner = AppDataSource.createQueryRunner();
 
@@ -161,7 +205,12 @@ export const deleteOperationalPlanning = async (req, res) => {
 
     if (!project) {
       await queryRunner.rollbackTransaction();
-      return res.status(404).json({ message: 'Proyecto operativo no encontrado' });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Error al eliminar el plan operativo: No se encontró el proyecto seleccionado en el sistema.',
+        404
+      );
     }
 
     const rowsToDelete = await rowRepository.find({
@@ -170,7 +219,12 @@ export const deleteOperationalPlanning = async (req, res) => {
 
     if (rowsToDelete.length === 0) {
       await queryRunner.rollbackTransaction();
-      return res.status(400).json({ message: 'El proyecto no tiene filas operativas registradas' });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Error al eliminar el plan operativo: No se encontró un plan operativo para el proyecto seleccionado.',
+        404
+      );
     }
     await rowRepository.remove(rowsToDelete);
 
@@ -182,11 +236,23 @@ export const deleteOperationalPlanning = async (req, res) => {
 
 
     await queryRunner.commitTransaction();
-    return res.status(200).json({ message: 'Planificación operativa eliminada correctamente' });
+
+     return (
+      successResponse(
+        res,
+        {},
+        'Plan operativo eliminado exitosamente.',
+        200
+      )
+    );
   } catch (error) {
     await queryRunner.rollbackTransaction();
-    console.error('Error al eliminar planificación operativa:', error);
-    return res.status(500).json({ message: 'Error al eliminar la planificación operativa' });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   } finally {
     await queryRunner.release();
   }

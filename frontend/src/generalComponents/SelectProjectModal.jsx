@@ -19,6 +19,7 @@ import { NoResultsScreen, SearchBar } from ".";
 import { useNavigate } from "react-router-dom";
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from "../contexts";
+import { roleConfig } from "../utils";
 
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
@@ -150,7 +151,7 @@ export const SelectProjectModal = ({
             <Box display="flex" justifyContent="center" py={3}>
               <CircularProgress size={30} />
             </Box>
-          ) : projects.length === 0 ? user?.role === 'admin' ? (
+          ) : projects.length === 0 ? user?.role === roleConfig.superAdmin.value ? (
             <NoResultsScreen
               message='Aún no tienes proyectos registrados'
               buttonText="Crear uno"
@@ -172,7 +173,7 @@ export const SelectProjectModal = ({
               buttonText="Ir al inicio"
               onButtonClick={() => navigate("/inicio")}
               buttonSx={{
-                backgroundColor: "primary.main",
+                backgroundColor: "primary.main", 
                 color: "primary.contrastText",
                 "&:hover": {
                   backgroundColor: "primary.dark",

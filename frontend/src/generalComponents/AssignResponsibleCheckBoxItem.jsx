@@ -13,16 +13,18 @@ export const AssignResponsibleCheckBoxItem = ({
 }) => {
   const theme = useTheme();
 
-  const roleData = roleConfig[responsible.role] ?? {
-    icon: QuestionMarkRoundedIcon,
-    role: responsible.role,
-  };
+  const roleData = Object.values(roleConfig).find(r => r.value === responsible?.role);
+  const RoleIcon = roleData?.icon ?? QuestionMarkRoundedIcon;
+  const roleLabel =
+    Object.values(roleConfig).find(r => r.value === responsible?.role) ?? {
+      label: user?.role,
+    };
 
-  const stateData = stateConfig[responsible.state] ?? {
-    icon: QuestionMarkRoundedIcon,
-    label: responsible.state,
-    color: "error.main",
-  };
+  const stateData = Object.values(stateConfig).find(r => r.value === responsible?.state);
+  const StateIcon = stateData?.icon ?? QuestionMarkRoundedIcon
+  const stateLabel = stateData?.label;
+  const stateColor = stateData?.color;
+
 
   return (
     <Item 
@@ -56,7 +58,7 @@ export const AssignResponsibleCheckBoxItem = ({
       ]}
       rightComponents={[
         <Box
-          key="right" 
+          key="right"
           sx={{
             display: "flex",
             flex: 1,
@@ -80,64 +82,78 @@ export const AssignResponsibleCheckBoxItem = ({
               lg: 0
             }
           }}>
-          <Box
-            sx={{
-              display: "flex",
-              minWidth: { sm: 100, xs: 50 },
-              flexDirection: "column",
-              justifyContent: 'center',
-              height: '100%',
-              alignItems: "center",
-              gap: 0.5
-            }}
-          >
-            <Typography lineHeight={1}>{responsible.projectCount}</Typography>
-            <Typography lineHeight={1} variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem'}}>Proyectos</Typography>
-          </Box>
+            <Box
+              sx={{
+                display: "flex",
+                minWidth: { sm: 100, xs: 50 },
+                flexDirection: "column",
+                justifyContent: 'center',
+                height: '100%',
+                alignItems: "center",
+                gap: 0.5
+              }}
+            >
+              <Typography lineHeight={1}>{responsible.projectCount}</Typography>
+              <Typography lineHeight={1} variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem' }}>Proyectos</Typography>
+            </Box>
 
-          <Box
-            sx={{
-              display: "flex",
-              minWidth: { sm: 100, xs: 50 },
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            {React.createElement(roleData.icon, { fontSize: "small" })}
-            <Typography variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem' }}>{responsible.role}</Typography>
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              minWidth: { sm: 100, xs: 50 },
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            {React.createElement(stateData.icon, {
-              fontSize: "small",
-              sx: { color: stateData.color },
-            })}
-            <Typography variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem' }}>{responsible.state}</Typography>
-          </Box>
+            <Box
+              sx={{
+                display: "flex",
+                minWidth: { sm: 100, xs: 50 },
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              {React.createElement(roleData.icon, { fontSize: "small" })}
+
+              <Typography
+                sx={{
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  width: 200
+                }}
+                variant="caption"
+                textAlign={'center'}
+                fontSize={{ xs: '0.6rem', sm: '1rem' }}
+              >
+                {roleLabel.label}
+              </Typography>
+
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                minWidth: { sm: 100, xs: 50 },
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              {React.createElement(StateIcon, {
+                fontSize: "small",
+                sx: { color: stateColor },
+              })}
+              <Typography variant="caption" fontSize={{ xs: '0.6rem', sm: '1rem' }}>{stateLabel}</Typography>
+            </Box>
           </Box>
         </Box>,
-         <Button
-            sx={{
-              height: 36,
-              minWidth: '100px',
-              border: "none",
-              borderRadius: 1,
-              cursor: "pointer",
-              bgcolor: 
-                checked ? theme.palette.error.main : theme.palette.success.main,
-              color: theme.palette.error.contrastText,
-              fontSize: "0.9rem",
-            }}
-            onClick={() => onChange?.(!checked)}
-          >
-            {checked ? "Desasignar" : "Asignar"}
-          </Button>
+        <Button
+          sx={{
+            height: 36,
+            minWidth: '100px',
+            border: "none",
+            borderRadius: 1,
+            cursor: "pointer", 
+            bgcolor:
+            checked ? theme.palette.error.main : theme.palette.success.main,
+            color: theme.palette.error.contrastText,
+            fontSize: "0.9rem",
+          }}
+          onClick={() => onChange?.(!checked)}
+        >
+          {checked ? "Desasignar" : "Asignar"}
+        </Button>
       ]}
     />
   );

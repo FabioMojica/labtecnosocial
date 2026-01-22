@@ -6,7 +6,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import UpdateIcon from "@mui/icons-material/Update";
 import FolderCopyRoundedIcon from '@mui/icons-material/FolderCopyRounded';
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
-import { formatDate } from "../../../utils/formatDate";
+import { formatDate, formatDateParts } from "../../../utils/formatDate";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
@@ -28,12 +28,12 @@ const RightStat = ({ icon, value, label }) => (
                 overflowWrap: 'break-word', 
                 width: 100
             }}
-            variant="caption"
-            fontWeight={600}
+            color="text.secondary"
+            variant="caption" 
         >
             {value}
         </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
+        <Typography variant="caption" fontWeight={600} sx={{ fontSize: "0.7rem" }}>
             {label}
         </Typography>
     </Box>
@@ -66,7 +66,7 @@ export const UserItem = ({ user, onClick }) => {
         <Item
             leftComponents={[
                 <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                         <Avatar
                             src={finalSrc ?? undefined}
                             sx={{
@@ -74,7 +74,7 @@ export const UserItem = ({ user, onClick }) => {
                                 height: 56,
                                 borderRadius: 2,
                                 objectFit: 'cover',
-                                fontWeight: 'bold',
+                                fontWeight: 'bold', 
                                 boxShadow:
                                     theme.palette.mode === 'light'
                                         ? '0 0 0 1px rgba(0,0,0,0.3)'
@@ -93,9 +93,13 @@ export const UserItem = ({ user, onClick }) => {
                                     textOverflow: "ellipsis",
                                     wordBreak: "break-word",
                                     overflowWrap: "break-word",
-                                }}>{user.firstName}
+                                }}
+                                variant="body2"
+                                fontWeight={'bold'}
+                            >
+                                    {user.firstName} 
                             </Typography>
-
+ 
                             <Typography
                                 sx={{
                                     display: "-webkit-box",
@@ -105,7 +109,10 @@ export const UserItem = ({ user, onClick }) => {
                                     textOverflow: "ellipsis",
                                     wordBreak: "break-word",
                                     overflowWrap: "break-word",
-                                }}>
+                                }}
+                                variant="body2"
+                                fontWeight={'bold'}
+                            >
                                 {user.lastName}
                             </Typography>
                             <Typography
@@ -143,11 +150,11 @@ export const UserItem = ({ user, onClick }) => {
                         display: "flex",
                         mt: { xs: 2, sm: 0 },
                         height: "100%",
-                        width: { xs: "100%" },
+                        width: '100%',
                         alignItems: "center",
-                        justifyContent: { xs: "space-around", sm: "flex-end" },
+                        justifyContent: { xs: "space-around", sm: "center" },
                         gap: 2,
-                        flexWrap: "wrap",
+                        flexWrap: "wrap", 
                     }}
                 > 
                     <RightStat
@@ -173,12 +180,12 @@ export const UserItem = ({ user, onClick }) => {
 
                     <RightStat
                         icon={<CalendarMonthIcon fontSize="small" />}
-                        value={formatDate(user.created_at)}
+                        value={formatDateParts(user.created_at).date}
                         label="Fecha creación"
                     />
                     <RightStat
                         icon={<UpdateIcon fontSize="small" />}
-                        value={formatDate(user.updated_at)}
+                        value={formatDateParts(user.updated_at).date}
                         label="Fecha actualización"
                     />
                 </Box>

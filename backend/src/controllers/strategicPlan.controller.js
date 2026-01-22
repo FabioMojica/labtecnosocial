@@ -13,7 +13,7 @@ export const getAllStrategicPlans = async (req, res) => {
       select: {
         id: true,
         year: true,
-      },
+      }, 
       order: {
         year: 'ASC',
       },
@@ -22,7 +22,7 @@ export const getAllStrategicPlans = async (req, res) => {
       successResponse(
         res,
         plans,
-        'Planes estratégicos obtenidos correctemente.',
+        'Planes estratégicos recuperados correctemente.',
         200
       )
     );
@@ -83,7 +83,7 @@ export const getStrategicPlanByYear = async (req, res) => {
       successResponse(
         res,
         plan,
-        'Planes estratégicos obtenidos correctemente.',
+        'Planes estratégicos recuperados exitosamente.',
         200
       )
     );
@@ -328,7 +328,7 @@ export const updateStrategicPlan = async (req, res) => {
         successResponse(
           res,
           null,
-          'El plan se ha vaciado correctamente.',
+          'El plan se ha limpiado exitosamente.',
           200
         )
       );
@@ -373,7 +373,7 @@ export const deleteStrategicPlanByYear = async (req, res) => {
       return errorResponse(
         res,
         ERROR_CODES.RESOURCE_NOT_FOUND,
-        'Plan estratégico no encontrado.',
+        'No se pudo eliminar el plan estratégico porque no encontrado.',
         404
       );
     }
@@ -389,8 +389,6 @@ export const deleteStrategicPlanByYear = async (req, res) => {
 
     await AppDataSource.getRepository(StrategicPlan).remove(plan);
 
-    // return res.status(200).json({ message: 'Plan estratégico eliminado exitosamente' });
-
     return (
       successResponse(
         res,
@@ -400,21 +398,11 @@ export const deleteStrategicPlanByYear = async (req, res) => {
       )
     );
   } catch (error) {
-    console.error('Error al eliminar el plan estratégico:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
-
-
-export const deleteStrategicPlan = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const repo = AppDataSource.getRepository(StrategicPlan);
-    const result = await repo.delete(id);
-    if (result.affected === 0) return res.status(404).json({ message: 'No se puedo eliminar el plan estratégico, no fué encontrado' });
-    res.json({ message: 'Strategic plan deleted' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al eliminar el plan estratégico', error });
-  }
-};
-

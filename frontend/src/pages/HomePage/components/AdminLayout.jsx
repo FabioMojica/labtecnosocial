@@ -38,8 +38,8 @@ export const AdminLayout = () => {
 
     const fetchAllHomeData = async () => {
         try {
+            setError(false);
             const response = await callEndpoint(getSummaryDataApi(user));
-
             setData(response);
             return response;
         } catch (err) {
@@ -74,7 +74,7 @@ export const AdminLayout = () => {
                 bgcolor: 'background.paper',
                 borderRadius: 2,
                 boxShadow: 2,
-                p: 2,
+                p: 2, 
             }}
         >
             <Typography variant="subtitle2" color="text.secondary">
@@ -84,10 +84,10 @@ export const AdminLayout = () => {
                 {item.valor}
             </Typography>
         </Box>
-    )) ?? [];
+    )) ?? []; 
 
     if (error) return <ErrorScreen message="Ocurrió un error al iniciar la página de inicio" onButtonClick={() => fetchAllHomeData()} />
-    if (loading) return <FullScreenProgress text="Iniciando el sistema" />
+    if (loading) return <FullScreenProgress text="Cargando los datos..." />
 
     return (
         <Grid 
@@ -124,7 +124,7 @@ export const AdminLayout = () => {
 
                 <Image src={logoToShow} alt="Lab Tecno Social Logo" width={230} height={100} />
 
-                <Grid justifyContent="center" container columns={12} spacing={1.5} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Grid justifyContent="center" container columns={12} spacing={1.5} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                     <Grid size={{ xs: 12, sm: 4 }}>
                         <GridItem
                             title="Planificación Estratégica"

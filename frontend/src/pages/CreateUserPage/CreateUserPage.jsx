@@ -54,7 +54,7 @@ export const CreateUserPage = () => {
                     Registrar Nuevo Usuario
                 </Typography>
                 <Divider sx={{ mb: { xs: 2, lg: 1 } }} />
-            </Box>
+            </Box> 
 
             {/* 🔹 ESTO SOLO CUANDO YA HAY MEDIDA */}
             {headerHeight > 0 && (

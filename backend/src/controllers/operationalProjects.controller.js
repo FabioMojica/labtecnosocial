@@ -11,11 +11,13 @@ import { OperationalRow } from '../entities/OperationalRow.js';
 import fs from 'fs';
 import path from 'path';
 import { canAccessProject } from '../utils/canAccessProject.js';
-import { ERROR_CODES, successResponse } from '../utils/apiResponse.js';
+import { ERROR_CODES, errorResponse, successResponse } from '../utils/apiResponse.js';
 import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
 
 export const createOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
+
+  console.log("Holaaaaaaaaaa") 
 
   try {
     const { name, description, responsibles: responsiblesRaw, integrations: integrationsRaw } = req.body;
@@ -45,7 +47,7 @@ export const createOperationalProject = async (req, res) => {
     // Asignar responsables si existen
     if (responsibles.length > 0) {
       await assignResponsibles(responsibles, savedProject.id, userRepository, responsibleRepository);
-    }
+    } 
 
     // Crear integraciones
     if (integrations.length > 0) {
@@ -77,13 +79,13 @@ export const createOperationalProject = async (req, res) => {
 
 export const getAllOperationalProjects = async (req, res) => {
   try {
-    const { role, id: userId } = req.user;
+    const { id: userId } = req.user;
 
     const projectRepository = AppDataSource.getRepository(OperationalProject);
 
     let projects;
 
-    if (role === ALLOWED_ROLES.admin || role === ALLOWED_ROLES.superAdmin) {
+    if (req.user.role === ALLOWED_ROLES.superAdmin) {
       projects = await projectRepository.find({
         relations: {
           program: {
@@ -127,7 +129,7 @@ export const getAllOperationalProjects = async (req, res) => {
         created_at: project.created_at,
         updated_at: project.updated_at,
         image_url: project.image_url,
-        projectResponsibles: project.projectResponsibles.map((r) => ({
+        projectResponsibles: (project.projectResponsibles ?? []).map((r) => ({
           id: r.user.id,
           firstName: r.user.firstName,
           lastName: r.user.lastName,
@@ -147,12 +149,12 @@ export const getAllOperationalProjects = async (req, res) => {
               year: project.program.objective.strategicPlan.year,
               mission: project.program.objective.strategicPlan.mission,
             } : null,
-          } : null,
+          } : null, 
         } : null,
-      };
+      }; 
 
-      if (role === ALLOWED_ROLES.admin || role === ALLOWED_ROLES.superAdmin) {
-        base.integrations = project.integrations.map((i) => ({
+      if (req.user.role === ALLOWED_ROLES.admin || req.user.role === ALLOWED_ROLES.superAdmin) {
+        base.integrations = (project.integrations ?? []).map((i) => ({
           id: i.id,
           platform: i.platform,
           name: i.name,
@@ -215,11 +217,10 @@ export const getProjectById = async (req, res) => {
     const projectRepository = AppDataSource.getRepository(OperationalProject);
     const userRepository = AppDataSource.getRepository(User);
 
-    // 🔍 1️⃣ Obtener proyecto base con relaciones
     const project = await projectRepository.findOne({
       where: { id: parseInt(id) },
       relations: {
-        program: {
+        program: { 
           objective: {
             strategicPlan: true,
           },
@@ -232,22 +233,29 @@ export const getProjectById = async (req, res) => {
     });
 
     if (!project) {
-      return res.status(404).json({ message: "Proyecto no encontrado" });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Proyecto no encontrado en el sistema.',
+        404
+      );
     }
 
     const hasAccess = await canAccessProject({
-      projectId: project.id, 
+      projectId: project.id,
       userId,
       role,
     });
 
     if (!hasAccess) {
-      return res.status(403).json({
-        message: "No tienes permisos para acceder a este proyecto",
-      });
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'No tienes permisos para acceder a este proyecto.',
+        403
+      );
     }
 
-    // 🧩 2️⃣ Para cada responsable, obtener sus proyectos asignados
     const responsiblesWithCount = [];
     for (const r of project.projectResponsibles) {
       const user = await userRepository
@@ -322,10 +330,22 @@ export const getProjectById = async (req, res) => {
       })),
     };
 
-    return res.status(200).json(formattedProject);
+    return (
+      successResponse( 
+        res,
+        formattedProject,
+        'Proyecto recuperado exitosamente.',
+        200
+      ) 
+    );
+
   } catch (error) {
-    console.error("Error al obtener proyecto por ID:", error.message);
-    return res.status(500).json({ message: "Error interno del servidor" });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
 
@@ -366,6 +386,21 @@ export const updateOperationalProject = async (req, res) => {
     const responsibleRepository = queryRunner.manager.getRepository(ProjectResponsible);
     const integrationRepository = queryRunner.manager.getRepository(ProjectIntegration);
 
+    const hasAccess = await canAccessProject({
+      projectId: id, 
+      userId: req.user.id,
+      role: req.user.role, 
+    });
+ 
+    if (!hasAccess) {
+      return errorResponse(
+        res, 
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'No tienes permisos para editar este proyecto.',
+        403
+      );
+    }
+
     // Buscar el proyecto
     const project = await projectRepository.findOne({
       where: { id: parseInt(id) },
@@ -374,7 +409,12 @@ export const updateOperationalProject = async (req, res) => {
 
     if (!project) {
       await queryRunner.rollbackTransaction();
-      return res.status(404).json({ message: "Proyecto no encontrado" });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Proyecto no encontrado en el sistema.',
+        404
+      );
     }
 
     // Validar el programa si se envía
@@ -383,7 +423,12 @@ export const updateOperationalProject = async (req, res) => {
       program = await programRepository.findOneBy({ id: parseInt(program_id) });
       if (!program) {
         await queryRunner.rollbackTransaction();
-        return res.status(404).json({ message: "Programa no encontrado" });
+        return errorResponse(
+          res,
+          ERROR_CODES.RESOURCE_NOT_FOUND,
+          'Programa no encontrado en el sistema.',
+          404
+        );
       }
     }
 
@@ -397,7 +442,7 @@ export const updateOperationalProject = async (req, res) => {
         });
       }
       project.image_url = `/uploads/${req.file.filename}`;
-    } else if (req.body.image_url === "" || req.body.image_url === null) {
+    } else if (req.body.image_url === "" || req.body.image_url === null || req.body.image_url === undefined) {
       if (project.image_url) {
         const oldImage = project.image_url.startsWith("/uploads/")
           ? project.image_url.slice(9)
@@ -465,14 +510,12 @@ export const updateOperationalProject = async (req, res) => {
         });
         if (integration) {
           await integrationRepository.remove(integration);
-          console.log("Eliminada integración:", integration.integration_id);
         }
       }
     }
 
     if (Array.isArray(parsedIntAnadidos) && parsedIntAnadidos.length > 0) {
       for (const i of parsedIntAnadidos) {
-        console.log("anadidos", parsedIntAnadidos);
         const newIntegration = integrationRepository.create({
           platform: i.platform,
           integration_id: i.id,
@@ -481,7 +524,6 @@ export const updateOperationalProject = async (req, res) => {
           project: project
         });
         await integrationRepository.save(newIntegration);
-        console.log("Añadida integración:", newIntegration);
       }
     }
 
@@ -491,8 +533,12 @@ export const updateOperationalProject = async (req, res) => {
 
   } catch (error) {
     await queryRunner.rollbackTransaction();
-    console.error("Error al actualizar el proyecto:", error);
-    return res.status(500).json({ message: "Error interno del servidor" });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   } finally {
     await queryRunner.release();
   }
@@ -671,18 +717,12 @@ export const deleteOperationalPlanning = async (req, res) => {
 
 export const getSummaryData = async (req, res) => {
   try {
-    const { id } = req.params;
-
+    const user = req.user; 
+   
     const userRepository = AppDataSource.getRepository(User);
     const projectResponsibleRepo = AppDataSource.getRepository(ProjectResponsible);
 
-    // Buscar usuario por id
-    const user = await userRepository.findOne({ where: { id } });
-    if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
-    }
-
-    if (user.role === ALLOWED_ROLES.admin || ALLOWED_ROLES.superAdmin) {
+    if (user.role === ALLOWED_ROLES.superAdmin || user.role === ALLOWED_ROLES.admin) {
       const strategicPlanRepository = AppDataSource.getRepository(StrategicPlan);
       const operationalPlanRepository = AppDataSource.getRepository(Program);
       const projectRepository = AppDataSource.getRepository(OperationalProject);
@@ -690,10 +730,10 @@ export const getSummaryData = async (req, res) => {
 
       const [userCount, strategicPlanCount, operationalPlanCount, projectCount] = await Promise.all([
         userRepository.count(),
-        strategicPlanRepository.count(),
+        strategicPlanRepository.count(), 
         operationalPlanRepository.count(),
-        projectRepository.count(),
-      ]);
+        projectRepository.count(),  
+      ]); 
 
       const integratedProjectRows = await integrationRepository
         .createQueryBuilder("integration")
@@ -713,18 +753,16 @@ export const getSummaryData = async (req, res) => {
         successResponse(
           res,
           summary,
-          'Obtención de resumen de datos exitosa',
+          'Obtención de resumen de datos exitosa.',
           200
-        )); 
+        ));
     }
 
-    if (user.role === ALLOWED_ROLES.coordinator) {
+    if (user.role === ALLOWED_ROLES.user) {
       const strategicPlanRepository = AppDataSource.getRepository(StrategicPlan);
 
-      // Contar planes estratégicos registrados
       const strategicPlanCount = await strategicPlanRepository.count();
 
-      // Contar proyectos asignados al coordinador
       const assignedProjects = await projectResponsibleRepo.count({
         where: { user: { id: user.id } },
       });
@@ -738,23 +776,25 @@ export const getSummaryData = async (req, res) => {
         successResponse(
           res,
           summary,
-          'Obtención de resumen de datos exitosa',
+          'Obtención de resumen de datos exitosa.',
           200
         ));
     }
+
   } catch (error) {
+    console.log(error);
     return errorResponse(
       res,
       ERROR_CODES.SERVER_ERROR,
-      'Error del servidor',
+      'Error del servidor.',
       500
     );
-  }
+  } 
 };
 
 export const getOperationalProjectsWithIntegrations = async (req, res) => {
   try {
-    const { email } = req.query; // O req.user.email si ya viene del token
+    const { email } = req.query;
     if (!email) return res.status(400).json({ message: "Se requiere el email del usuario" });
 
     const userRepository = AppDataSource.getRepository(User);

@@ -31,7 +31,6 @@ const StrategicPlanningDashboardPage = () => {
   const { year } = useParams();
   const [selectedYear, setSelectedYear] = useState(null);
   const { user } = useAuth();
-  console.log("user", user)
   const { loading, callEndpoint } = useFetchAndLoad();
   const [selectedView, setSelectedView] = useState("Columna");
   const [allPlans, setAllPlans] = useState([]);
@@ -47,6 +46,7 @@ const StrategicPlanningDashboardPage = () => {
   const [isFetchingPlan, setIsFetchingPlan] = useState(true);
   const [hasFetchedPlan, setHasFetchedPlan] = useState(false);
   const navigate = useNavigate();
+  const { notify } = useNotification();
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -73,7 +73,7 @@ const StrategicPlanningDashboardPage = () => {
   }, [year, navigate]);
 
   useEffect(() => {
-    if (user?.role === roleConfig.coordinator.value) {
+    if (user?.role === roleConfig.user.value) {
       setSelectedView("Documento");
     }
   }, [user]);
@@ -147,7 +147,7 @@ const StrategicPlanningDashboardPage = () => {
   };
 
   const handleViewChange = (event) => {
-  if (user?.role !== roleConfig.admin.value || user?.role !== roleConfig.superAdmin.value) return;
+  if (user?.role !== roleConfig.admin.value && user?.role !== roleConfig.superAdmin.value) return;
     setIsChildDirty(false);
     setSelectedView(event.target.value);
   };
@@ -242,7 +242,7 @@ const StrategicPlanningDashboardPage = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-              >
+              > 
                 <Tooltip title={`Eliminar el plan estratégico del año ${selectedYear}`}>
                   <span>
                     <IconButton
@@ -279,7 +279,7 @@ const StrategicPlanningDashboardPage = () => {
             onButtonClick={
               (user?.role === roleConfig.admin.value || user?.role == roleConfig.superAdmin.value)
                 ? onChangeToColumnsView
-                : undefined
+                : undefined 
             }
             sx={{ height: "80vh" }}
             buttonSx={{

@@ -83,7 +83,7 @@ const sortOptions = [
     { label: "Más actualizados", value: "updated_desc" },
 ];
 
-export function ProjectsListPage() { 
+export function ProjectsListPage() {
     const theme = useTheme();
     const [open, setOpen] = useState(false);
     const { loading, callEndpoint } = useFetchAndLoad();
@@ -98,12 +98,10 @@ export function ProjectsListPage() {
     const [sortBy, setSortBy] = useState("name_asc");
     const { right } = useLayout();
 
-    console.log(user)
-
-    const displayedTitle = () => { 
-        if (user?.role === roleConfig.admin.value || user?.role === roleConfig.superAdmin.value) {
-            return "Lista de proyectos" 
-        } else if (user.role === roleConfig.coordinator.value) {
+    const displayedTitle = () => {
+        if (user?.role === roleConfig.superAdmin.value) {
+            return "Lista de proyectos"
+        } else if (roleConfig.rolesArray.includes(user?.role)) {
             return "Proyectos asignados"
         } else {
             notify("Rol no encontrado, se cerrará la sesión", "error");
@@ -192,46 +190,45 @@ export function ProjectsListPage() {
         return sorted;
     };
 
+    let canCreateProject = false;
+    if (user?.role === roleConfig.superAdmin.value) {
+        canCreateProject = true;
+    }
 
     if (!loading && projects.length === 0 && !error) {
-        switch (user?.role) {
-            case roleConfig.superAdmin.value:
-            case roleConfig.admin.value:
-                return <NoResultsScreen
-                    message='Aún no tienes proyectos registrados'
-                    buttonText="Crear Proyecto"
-                    onButtonClick={() => navigate("/proyectos/crear")}
-                    buttonSx={{
-                        backgroundColor: "primary.main",
-                        color: "primary.contrastText",
-                        "&:hover": {
-                            backgroundColor: "primary.dark", 
-                        },
-                        "&.Mui-disabled": {
-                            backgroundColor: "action.disabledBackground",
-                            color: "action.disabled",
-                        },
-                    }}
-                />;
-            case roleConfig.coordinator.value:
-                return <NoResultsScreen
-                    message='Aún no tienes proyectos asignados'
-                    buttonText="Ir al inicio"
-                    onButtonClick={() => navigate("/inicio")}
-                    buttonSx={{
-                        backgroundColor: "primary.main",
-                        color: "primary.contrastText",
-                        "&:hover": {
-                            backgroundColor: "primary.dark",
-                        },
-                        "&.Mui-disabled": {
-                            backgroundColor: "action.disabledBackground",
-                            color: "action.disabled",
-                        },
-                    }} />;
-            default:
-                notify("Rol no encontrado, se cerrará la sesión de emergencia", "error");
-                logout();
+        if (canCreateProject) {
+            return <NoResultsScreen
+                message='Aún no tienes proyectos registrados'
+                buttonText="Crear Proyecto"
+                onButtonClick={() => navigate("/proyectos/crear")}
+                buttonSx={{
+                    backgroundColor: "primary.main",
+                    color: "primary.contrastText",
+                    "&:hover": {
+                        backgroundColor: "primary.dark",
+                    },
+                    "&.Mui-disabled": {
+                        backgroundColor: "action.disabledBackground",
+                        color: "action.disabled",
+                    },
+                }}
+            />;
+        } else {
+            return <NoResultsScreen
+                message='Aún no tienes proyectos asignados'
+                buttonText="Ir al inicio"
+                onButtonClick={() => navigate("/inicio")}
+                buttonSx={{
+                    backgroundColor: "primary.main",
+                    color: "primary.contrastText",
+                    "&:hover": {
+                        backgroundColor: "primary.dark",
+                    },
+                    "&.Mui-disabled": {
+                        backgroundColor: "action.disabledBackground",
+                        color: "action.disabled",
+                    },
+                }} />;
         }
     }
 
@@ -252,7 +249,7 @@ export function ProjectsListPage() {
 
     return (
         <Box sx={{ display: 'flex', px: 1, py: { xs: 1, lg: 0 } }}>
-            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%', mb: 1 }}>
                 <Box sx={{
                     display: 'flex',
                     gap: 1,
@@ -284,7 +281,7 @@ export function ProjectsListPage() {
                         </Typography>
 
 
-                        {user.role === 'admin' && (
+                        {canCreateProject && ( 
                             <ButtonWithLoader
                                 onClick={handleCreateProject}
                                 sx={{
@@ -356,7 +353,7 @@ export function ProjectsListPage() {
                                 project={project}
                                 onClick={() => handleProjectClick(project)}
                             />
-                        )) 
+                        ))
                     ) : (
                         <Box sx={{ width: '100%' }}>
                             <NoResultsScreen

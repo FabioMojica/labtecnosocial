@@ -4,6 +4,8 @@ import { integrationsConfig, roleConfig, stateConfig } from "../../../utils";
 import { NoResultsScreen, ProjectImageDates, ProjectProfileImage } from "../../../generalComponents";
 import { useTheme } from "@emotion/react";
 import { formatDateParts } from "../../../utils/formatDate";
+import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
+
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
@@ -26,16 +28,16 @@ export const ViewProjectDrawer = ({ project }) => {
                 justifyContent: 'center',
                 maxHeight: 1000,
             }}>
-                <Typography
+                <Typography 
                     variant="h7"
-                    fontWeight="bold"
+                    fontWeight="bold" 
                     sx={{
                         display: "-webkit-box",
                         WebkitLineClamp: 1,
                         WebkitBoxOrient: "vertical",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        maxWidth: 200,
+                        maxWidth: 220,
                         mb: 0.5
                     }}
                 >
@@ -122,40 +124,36 @@ export const ViewProjectDrawer = ({ project }) => {
                             borderBottomRightRadius: 8,
                             borderTopRightRadius: 0,
                             borderTopLeftRadius: 0,
-                            p: 1.5,
+                            py: 0.5,
                             gap: 2,
                         }}
                     >
-                        <Box
+                        <Box 
                             sx={{
                                 textAlign: 'center',
+                                display: 'flex',
+                                flexDirection: 'column',
                                 flex: 1,
-                                transition: 'transform 0.2s',
-                                '&:hover': {
-                                    transform: 'scale(1.05)',
-                                },
                             }}
                         >
                             <Typography variant="subtitle2" color="textSecondary">Creado</Typography>
-                            <Typography variant="body2">{formatDateParts(project?.created_at).date}</Typography>
-                            <Typography variant="body2">{formatDateParts(project?.created_at).time}</Typography>
+                            <Typography variant="caption">{formatDateParts(project?.created_at).date}</Typography>
+                            <Typography variant="caption">{formatDateParts(project?.created_at).time}</Typography>
                         </Box>
-
+ 
                         <Divider orientation="vertical" flexItem color="primary" />
 
                         <Box
                             sx={{
                                 textAlign: 'center',
+                                display: 'flex',
+                                flexDirection: 'column',
                                 flex: 1,
-                                transition: 'transform 0.2s ease',
-                                '&:hover': {
-                                    transform: 'scale(1.05)',
-                                },
                             }}
                         >
                             <Typography variant="subtitle2" color="textSecondary">Actualizado</Typography>
-                            <Typography variant="body2">{formatDateParts(project?.updated_at).date}</Typography>
-                            <Typography variant="body2">{formatDateParts(project?.updated_at).time}</Typography>
+                            <Typography variant="caption">{formatDateParts(project?.updated_at).date}</Typography>
+                            <Typography variant="caption">{formatDateParts(project?.updated_at).time}</Typography>
                         </Box>
                     </Paper>
                 </Box>
@@ -240,6 +238,7 @@ export const ViewProjectDrawer = ({ project }) => {
                                     width: '100%',
                                     flexGrow: 1,
                                     overflowY: 'auto',
+                                    overflowX: 'hidden',
                                     display: 'flex',
                                     flexWrap: 'wrap',
                                     justifyContent: 'flex-start',
@@ -321,8 +320,11 @@ export const ViewProjectDrawer = ({ project }) => {
                                                     const StateIcon = stateConfig[responsible.state].icon;
                                                     return <StateIcon sx={{ fontSize: 16, color: stateConfig[responsible.state].color }} />;
                                                 })()}
-                                                {roleConfig[responsible.role] && (() => {
-                                                    const RoleIcon = roleConfig[responsible.role].icon;
+
+                                                {(() => {
+                                                    const roleData = Object.values(roleConfig).find(r => r.value === responsible.role);
+                                                    const RoleIcon = roleData?.icon ?? QuestionMarkRoundedIcon;
+                                                    
                                                     return <RoleIcon sx={{ fontSize: 16, color: 'primary.main' }} />;
                                                 })()}
                                             </Box>

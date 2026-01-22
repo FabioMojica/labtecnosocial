@@ -2,6 +2,7 @@ import { axiosInstance } from "./config";
 
 import { loadAbort } from "../utils";
 import { Routes } from "./config/routes";
+import { handleApiError } from "./config/handleApiError";
 
 export const createOperationalProjectApi = async (projectData) => {
   const controller = loadAbort();
@@ -9,13 +10,13 @@ export const createOperationalProjectApi = async (projectData) => {
     const response = await axiosInstance.post(
       Routes.CREATE_PROJECT,
       projectData,
-      {
+      { 
         signal: controller.signal,
       }
     );
 
     return response.data;
-  } catch (error) {
+  } catch (error) { 
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response) throw new Error(error.response.data.message || "Error al crear el proyecto");
     throw new Error("Error al intentar crear el proyecto");
@@ -38,13 +39,19 @@ export const getAllOperationalProjectsApi = async () => {
 export const getProjectByIdApi = async (id) => {
   const controller = loadAbort();
   try {
-    const response = await axiosInstance.get(`${Routes.GET_PROJECT_BY_ID}/${id}`, { signal: controller.signal });
-    if (response.status === 200) return response.data;
-    return null;
-  } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al obtener el proyecto");
-    throw new Error("Error al intentar obtener el proyecto");
+    const { data } = await axiosInstance.get(`${Routes.GET_PROJECT_BY_ID}/${id}`, { signal: controller.signal });
+
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+
+    return data?.data;   
+
+  } catch (error) { 
+    throw handleApiError(error, 'Ocurrió un error inesperado al obtener el proyecto. Inténtalo nuevamente más tarde.');
   }
 };
 
@@ -64,7 +71,7 @@ export const deleteProjectByIdApi = async (id) => {
 export const updateProjectApi = async (id, formData) => {
   const controller = loadAbort();
   try {
-    const response = await axiosInstance.patch(
+    const { data } = await axiosInstance.patch(
       `${Routes.UPDATE_PROJECT}/${id}`,
       formData,
       {
@@ -75,62 +82,20 @@ export const updateProjectApi = async (id, formData) => {
       },
     );
 
-    if (response.status === 200) return response.data;
-    return null;
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+
+    return data?.data;  
+
   } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al actualizar proyecto");
-    throw new Error("Ocurrió un error al actualizar el proyecto. Inténtalo de nuevo más tarde.");
+    console.log(error);
+    throw handleApiError(error, 'Ocurrió un error inesperado al actualizar el proyecto. Inténtalo nuevamente más tarde.');
   }
 };
-
-export const removeResponsibleApi = async (projectId, responsibleId) => {
-  const controller = loadAbort();
-  try {
-    const response = await axiosInstance.delete(`${Routes.REMOVE_RESPONSIBLE}/${projectId}/responsibles/${responsibleId}`, { signal: controller.signal });
-    if (response.status === 200) return response.data;
-    return null;
-  } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al eliminar responsable");
-    throw new Error("Error al intentar eliminar responsable");
-  }
-};
-
-export const assignProjectResponsiblesApi = async ({ projectId, responsibles }) => {
-  const controller = loadAbort();
-  try {
-    const response = await axiosInstance.post(
-      `${Routes.ASSIGN_RESPONSIBLES}/${projectId}`,
-      { responsibles },
-      { signal: controller.signal }
-    );
-    if (response.status === 200) return response.data;
-    return null;
-  } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al asignar responsables");
-    throw new Error("Error al intentar asignar responsables");
-  }
-};
-
-export const assignProjectToProgram = async (projectId, programId) => {
-  const controller = loadAbort();
-  try {
-    const response = await axiosInstance.patch(
-      `${Routes.UPDATE_PROJECT}/${projectId}`, 
-      { program_id: programId }, 
-      { signal: controller.signal }
-    );
-    if (response.status === 200) return response.data;
-    return null;
-  } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al asignar proyecto al programa");
-    throw new Error("Error al intentar asignar proyecto al programa");
-  }
-};
-
 
 export const getOperationalProjectsWithIntegrationsApi = async (email) => {
   const controller = loadAbort();

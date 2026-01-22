@@ -10,11 +10,11 @@ export async function createUser() {
 
   const firstName = 'Fabio André ';
   const lastName = 'Mojica Armaza';
-  const email = 'fabioadmin@gmail.com';
+  const email = 'fabiosuperadmin@gmail.com';
   const password = 'fabio1A@';
   const role = 'super-admin';
   const state = 'enabled';
-  const image_url = 'https://i.pravatar.cc/150?img=12'; 
+  const image_url = 'https://i.pravatar.cc/150?img=12';  
 
   const existingUser = await userRepository.findOneBy({ email });
   if (existingUser) {

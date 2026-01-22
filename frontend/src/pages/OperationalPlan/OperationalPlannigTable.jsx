@@ -68,9 +68,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
 
     const hasUnsavedChanges = !isEqual(rows, initialRows);
     const hasChanges = () => !isEqual(rows, initialRows);
-
-    const { headerHeight } = useHeaderHeight();
-
+    
     const rowsWrapperRef = useRef(null);
     const [rowsHeight, setRowsHeight] = useState(0);
 
@@ -270,6 +268,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
             setHasLoadError(false);
             onErrorFetchedPlan(false);
         } catch (error) {
+            notify(error.message, "error");
             onErrorFetchedPlan(true);
             setHasLoadError(true);
             console.log(error)
@@ -680,20 +679,11 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
 
         } catch (error) {
             console.error('Error guardando plan:', error);
-
-            if (error.message?.includes('asegúrate de estar trabajando sobre la última versión del plan')) {
-                if (!autoSave) notify('No se actualizó el plan estratégico por que no estás trabajando sobre su última versión.', 'error', { persist: true });
-            } else {
-                if (!autoSave)
-                    notify(
-                        "Ocurrió un error inesperado al guardar el plan estratégico. Inténtalo de nuevo más tarde.",
-                        'error'
-                    );
-            }
+            if (!autoSave) notify(error.message, 'error', { persist: true });
         }
-    };
+    }; 
 
-    useEffect(() => {
+    useEffect(() => { 
         registerAutoSave(async () => {
             await handleSave(true);
         });

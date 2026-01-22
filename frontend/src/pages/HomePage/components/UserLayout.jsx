@@ -9,7 +9,7 @@ import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
 import { GridItem } from "./GridItem";
-import { useAuth, useHeaderHeight } from "../../../contexts";
+import { useAuth, useHeaderHeight, useNotification } from "../../../contexts";
 
 
 import dayjs from 'dayjs';
@@ -29,7 +29,7 @@ import { getSummaryDataApi } from "../../../api";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export const CoordinatorLayout = () => {
+export const UserLayout = () => {
     const { headerHeight } = useHeaderHeight();
     const boliviaNow = dayjs().tz('America/La_Paz');
     const theme = useTheme();
@@ -39,19 +39,21 @@ export const CoordinatorLayout = () => {
     const { loading, callEndpoint } = useFetchAndLoad();
     const [data, setData] = useState();
     const [error, setError] = useState(false);
+    const { notify } = useNotification();
 
-    const fetchAllHomeData = async () => {
+    const fetchAllHomeData = async () => { 
         try {
+            setError(false);
             const response = await callEndpoint(getSummaryDataApi(user));
-
             setData(response);
             return response;
         } catch (err) {
+            notify(err.message, "error");
             setError(true);
         }
     };
 
-    useEffect(() => {
+    useEffect(() => { 
         const storedData = sessionStorage.getItem("homeData");
 
         if (storedData) {
@@ -59,7 +61,10 @@ export const CoordinatorLayout = () => {
         } else {
             fetchAllHomeData().then((response) => {
                 if (response) {
+
                     sessionStorage.setItem("homeData", JSON.stringify(response));
+                } else {
+
                 }
             });
         }
@@ -91,10 +96,10 @@ export const CoordinatorLayout = () => {
     )) ?? [];
 
     if (error) return <ErrorScreen message="Ocurrió un error al iniciar la página de inicio" onButtonClick={() => fetchAllHomeData()} />
-    if (loading) return <FullScreenProgress text="Iniciando el sistema" />
+    if (loading) return <FullScreenProgress text="Cargando los datos..." /> 
 
     return (
-        <Grid container
+        <Grid container 
             sx={{
                 height: {
                     xs: 'auto',
@@ -102,13 +107,13 @@ export const CoordinatorLayout = () => {
                 },
                 width: '100%',
             }}>
-            <Grid size={{ xs: 12, md: 8 }} sx={{ height: { md: '100%', xs: 'auto' }, display: 'flex', gap: 2, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <Grid size={{ xs: 12, md: 8 }} sx={{ height: { md: '100%', xs: 'auto' }, display: 'flex', gap: 2, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 1 }}>
 
                 <Typography align="center" variant="h3">Hola! {user?.firstName} {user?.lastName}</Typography>
                 <Image src={logoToShow} alt="Lab Tecno Social Logo" width={230} height={100} />
 
                 <Grid justifyContent="center" container columns={12} spacing={1.5} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <GridItem
                             title="Planificación Estratégica"
                             description="Infórmate sobre los planes estratégicos anuales"
@@ -116,15 +121,15 @@ export const CoordinatorLayout = () => {
                             link={`/planificacion-estrategica/${new Date().getFullYear()}`}
                         />
                     </Grid >
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <GridItem
                             title="Planificación Operativa"
                             description="Crea y edita planes operativos de los proyectos de los que eres responsable"
                             icon={<TableChartRoundedIcon fontSize="large" />}
                             link="/planificacion-operativa"
                         />
-                    </Grid>
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    </Grid> 
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <GridItem
                             title="Proyectos Asignados"
                             description="Visualiza y entérate sobre los proyectos de los que eres parte"
@@ -132,7 +137,7 @@ export const CoordinatorLayout = () => {
                             link="/proyectos"
                         />
                     </Grid>
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <GridItem
                             title="Dashboard de KPIs"
                             description="Visualiza los indicadores más importantes de tus proyectos integrados con plataformas"
@@ -140,7 +145,7 @@ export const CoordinatorLayout = () => {
                             link="/dashboard"
                         />
                     </Grid>
-                    <Grid size={{ xs: 6, md: 4 }}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <GridItem
                             title="Elaboración de reportes"
                             description="Elabora reportes sobre los proyectos y planificaciónes desde distintos puntos del sistema"
@@ -149,7 +154,8 @@ export const CoordinatorLayout = () => {
                         />
                     </Grid>
                 </Grid>
-            </Grid>
+            </Grid> 
+
             <Grid container size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', with: '100%', gap: 1 }}>
                 <RealTimeClock />
                 <LocalizationProvider dateAdapter={AdapterDayjs}>

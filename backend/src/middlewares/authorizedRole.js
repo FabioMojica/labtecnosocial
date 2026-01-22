@@ -9,14 +9,14 @@ export const authorizeRole = (roles = ALLOWED_ROLES.rolesArray) => {
           res,
           ERROR_CODES.USER_NOT_FOUND,
           'Usuario no proveído.',
-          401,
+          401, 
         )
       );
     }
 
     const allowedRoles = Array.isArray(roles) ? roles : [roles];
 
-    if (!allowedRoles.includes(req.user.role)) {
+    if (!allowedRoles.includes(req.user.role)) { 
       return ( 
         errorResponse(
           res,

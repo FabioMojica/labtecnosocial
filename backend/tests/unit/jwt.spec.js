@@ -5,6 +5,7 @@ import request from 'supertest';
 
 
 const { admin, coordinator, disabledUser, deletedUser } = users;
+
 import app from '../../src/app.js';
 
 describe('Seguridad / Autenticación - Unit Tests', () => {

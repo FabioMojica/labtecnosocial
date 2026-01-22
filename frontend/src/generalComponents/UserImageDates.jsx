@@ -1,7 +1,7 @@
 import { Box, Divider, Paper, Typography, useTheme } from "@mui/material";
 import { UserProfileImage } from "./UserProfileImage";
 import { useHeaderHeight } from "../contexts";
-import { formatDate } from '../utils/formatDate'
+import { formatDateParts } from '../utils/formatDate'
 
 export const UserImageDates = ({
   user,
@@ -10,14 +10,14 @@ export const UserImageDates = ({
   overlayText = "Ver usuario",
   changeImage = false,
   onChangeImage,
-  previewImage,
-  ...rest
+  previewImage, 
+  ...rest 
 }) => {
-  if (!user) return null;
+  if (!user) return null; 
   const { headerHeight } = useHeaderHeight();
   const theme = useTheme();
 
-  return (
+  return ( 
     <Box
       {...rest}
       sx={{
@@ -55,13 +55,13 @@ export const UserImageDates = ({
 
         }}
       >
-        <UserProfileImage 
+        <UserProfileImage   
           user={user}
           src={(previewImage || user?.image_url) ?? undefined}
           sx={{
             width: "100%", 
             height: "100%",
-            objectFit: "cover",
+            objectFit: "cover", 
             maxHeight: "100%",
           }}
         />
@@ -107,25 +107,25 @@ export const UserImageDates = ({
             borderBottomRightRadius: 8,
             borderTopRightRadius: 0,
             borderTopLeftRadius: 0,
-            p: 1.5,
+            p: 0.5,
             gap: 2,
+            cursor: 'default'
           }}
         >
           <Box
             sx={{
               textAlign: "center",
               flex: 1,
-              transition: "transform 0.2s",
-              "&:hover": {
-                transform: "scale(1.05)",
-              },
-            }}
+            }} 
           >
             <Typography variant="subtitle2" color="textSecondary">
               Creado
             </Typography>
             <Typography variant="body2">
-              {formatDate(user?.created_at)}
+              {formatDateParts(user?.created_at).date}
+            </Typography>
+            <Typography variant="body2">
+              {formatDateParts(user?.created_at).time}
             </Typography>
           </Box>
 
@@ -133,19 +133,19 @@ export const UserImageDates = ({
 
           <Box
             sx={{
-              textAlign: "center",
+              textAlign: "center", 
               flex: 1,
-              transition: "transform 0.2s ease",
-              "&:hover": {
-                transform: "scale(1.05)",
-              },
+              cursor: 'default'
             }}
           >
             <Typography variant="subtitle2" color="textSecondary">
               Actualizado
             </Typography>
             <Typography variant="body2">
-              {formatDate(user?.updated_at)}
+              {formatDateParts(user?.updated_at).date}
+            </Typography>
+            <Typography variant="body2">
+              {formatDateParts(user?.updated_at).time}
             </Typography>
           </Box>
         </Paper>

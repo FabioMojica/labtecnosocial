@@ -7,47 +7,56 @@ import {
 } from "../../../generalComponents";
 
 import { MorePanel } from "../components/MorePanel";
-import { AdminInfoPanel } from "./AdminInfoPanel";
+import { useAuth } from "../../../contexts";
+import { ViewUser } from "./ViewUser";
 
 export const AdminTabButtons = ({
     user,
     onUserChange,
-    isOwnProfile
+    isOwnProfile,
+    userRoleSession,
 }) => { 
     const [tabsHeight, setTabsHeight] = useState(0);
-    const { email } = useParams();
-    console.log("iswoma", isOwnProfile)
 
+    const { email } = useParams();
+    const { user: userSession, isAdmin, isSuperAdmin, isUser } = useAuth();
     const navigate = useNavigate();
     if (!email) return <ErrorScreen message="Usuario no encontrado" buttonText="Volver a usuarios" onButtonClick={() => navigate('/usuarios')} />;
     const userEmail = email;
 
-    const lables = isOwnProfile ? 
-    ["Tu perfil", "Más"]
-    :
-    ["Información del usuario", "Más"];
+    let labels; 
+
+
+    if(isOwnProfile){
+        labels = ["Tu perfil"];
+    } else if (isSuperAdmin) {
+        labels = ["Información del usuario", "Más"]
+    } else if (isAdmin) {
+        labels = ["Información del usuario"]
+    } else if (isUser) {
+        labels = ["Información del usuario"]
+    } else {
+        return;
+    }
 
     return (
         <>
-            <TabButtons 
-                labels={lables}
+            <TabButtons
+                labels={labels}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
                 onChange={(newTab) => setActiveTab(newTab)}
             >
-                <AdminInfoPanel 
-                    panelHeight={tabsHeight} 
-                    userEmail={userEmail}
-                    onUserChange={onUserChange} 
-                    isOwnProfile
-                />
+                
+                <ViewUser panelHeight={tabsHeight} user={user} onChange={onUserChange} isOwnProfile={isOwnProfile} />
 
                 <MorePanel  
-                user={user} 
-                panelHeight={tabsHeight} 
-                isOwnProfile={isOwnProfile}
-                /> 
+                    user={user}
+                    panelHeight={tabsHeight}
+                    isOwnProfile={isOwnProfile}
+                    userRoleSession={userRoleSession}
+                />
             </TabButtons>
-        </>
+        </> 
     );
 }
 

@@ -37,6 +37,7 @@ export const FloatingActionButtons = ({
     onCancel,
     saveDisabled, 
     loading,
+    sx,
 }) => {
     const [open, setOpen] = useState(false);
     const [ openBody, setOpenBody ] = useState(false);
@@ -48,7 +49,11 @@ export const FloatingActionButtons = ({
     }, [visible]);
 
     return (
-        <AnimatePresence>
+        <AnimatePresence
+        style={{
+            ...sx
+        }}
+        >
             {visible && (
                 <>
                     {/* OVERLAY */}
@@ -63,6 +68,7 @@ export const FloatingActionButtons = ({
                                 inset: 0,
                                 backgroundColor: "rgba(0,0,0,0.4)",
                                 zIndex: theme.zIndex.drawer + 1,
+                                ...sx,
                             }}
                             onClick={() => { 
                                 if(!loading) setOpen(false)
@@ -85,6 +91,7 @@ export const FloatingActionButtons = ({
                             display: "flex",
                             flexDirection: "column",
                             alignItems: "center",
+                            ...sx
                         }}
                     >
                         <Box

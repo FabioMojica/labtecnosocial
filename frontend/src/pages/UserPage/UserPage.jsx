@@ -7,12 +7,14 @@ import { useFetchAndLoad } from "../../hooks";
 import {
     ErrorScreen,
     FullScreenProgress,
+    NoResultsScreen,
 } from "../../generalComponents";
 
 import { getUserByEmailApi } from "../../api";
 import { ViewUserInfoPanel } from "./components/ViewUserInfoPanel";
 import { AdminTabButtons } from "./components/AdminTabButtons";
 import { roleConfig } from "../../utils";
+import { ViewUser } from "./components/ViewUser";
 
 export const UserPage = () => {
     const { loading, callEndpoint } = useFetchAndLoad();
@@ -24,24 +26,24 @@ export const UserPage = () => {
     const { user: userSession, logout } = useAuth();
     const [user, setUser] = useState(null);
     const originalUserRef = useRef(null);
-    const projectUpdatedRef = useRef(null);
     const [error, setError] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
+    const [userNotFound, setUserNotFound] = useState(false);
 
-    const fetchUserByEmail = async () => {
+    const fetchUserByEmail = async () => { 
         try {
             const resp = await callEndpoint(getUserByEmailApi(userEmail));
             setUser(resp);
-            originalUserRef.current = structuredClone({
-                ...resp,
-                preEliminados: [],
-                preAnadidos: []
-            });
-            projectUpdatedRef.current = resp;
+            console.log(resp) 
+            originalUserRef.current = structuredClone(resp);
             setError(false);
         } catch (err) {
-            notify("Ocurrió un error inesperado al obtener el usuario. Inténtalo de nuevo más tarde.", "error");
-            setError(true);
+            if (err.message.includes("Usuario no encontrado en el sistema")) {
+                setUserNotFound(true);
+            } else {
+                notify(err.message, "error");
+                setError(true);
+            }
         }
     }
 
@@ -49,8 +51,7 @@ export const UserPage = () => {
         fetchUserByEmail();
     }, [userEmail]);
 
-
-    if (!user) return <FullScreenProgress text="Obteniendo el usuario" />;
+    if (userNotFound) return <NoResultsScreen message="Usuario no encontrado en el sistema" buttonText={"Volver atrás"} onButtonClick={() => navigate(-1)} />
     if (loading) return <FullScreenProgress text="Obteniendo el usuario" />;
     if (error) return <ErrorScreen message="Ocurrió un error inesperado al obtener el usuario" buttonText="Intentar de nuevo" onButtonClick={() => fetchUserByEmail()} />
 
@@ -58,13 +59,6 @@ export const UserPage = () => {
 
     const handleUserChange = (updatedUser, meta = {}) => {
         setUser(updatedUser);
-
-        if (meta.roleChanged) {
-            notify(
-                "El rol del usuario cambió. Actualizando vista.",
-                "info"
-            );
-        } 
 
         if (meta.sensitiveChanged) {
             notify(
@@ -80,59 +74,35 @@ export const UserPage = () => {
     const isOwnProfile = userSession?.email === user?.email;
     const isAdmin = userSession?.role === roleConfig.admin.value;
     const isSuperAdmin = userSession?.role === roleConfig.superAdmin.value;
-    const isCoordinator = userSession?.role === roleConfig.coordinator.value;
+    const isUser = userSession?.role === roleConfig.user.value;
 
+    const userRoleSession = {
+        isAdmin: isAdmin,
+        isSuperAdmin: isSuperAdmin,
+        isUser: isUser
+    }
 
     if (loggingOut) return <FullScreenProgress text="Cerrando la sesión..." />;
 
-    if(isSuperAdmin) {
-        // Super admin viendo su propio perfil
-        if(isOwnProfile) {
-            content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} />;
-        } else if(user?.role === roleConfig.admin.value) {
-            // Super admin viendo a un admin
-            content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} />;
-        } else if (user?.role === roleConfig.coordinator.value) {
-            // super admin viendo a un cordinador
-            content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} />;
-        } else {
-            return;
-        }
+    if (isSuperAdmin) {
+        content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} userRoleSession={userRoleSession} />;
     } else if (isAdmin) {
-        console.log("is admin")
-        // admin viendo su propio perfil
-        if(isOwnProfile) {
-            content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} />;
-        } else if(user?.role === roleConfig.superAdmin.value) {
-            // admin viendo a un super admin
-            content = <ViewUserInfoPanel user={user} isEditable={isOwnProfile} />;
-        } else if (user?.role === roleConfig.coordinator.value) {
-            // admin viendo a un cordinador
-            content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} />;
+        if (isOwnProfile) { 
+            content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} userRoleSession={userRoleSession} />;
+        } else if (user?.role === roleConfig.superAdmin.value) {
+            content = <ViewUser user={user} onChange={handleUserChange} isOwnProfile={isOwnProfile} />;
+        } else if (user?.role === roleConfig.admin.value) {
+            content = <ViewUser user={user} onChange={handleUserChange} isOwnProfile={isOwnProfile} />;
+        } else if (user?.role === roleConfig.user.value){
+           content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} userRoleSession={userRoleSession} />;
         } else {
             return;
-        }
-    } else if (isCoordinator) {
-        content = <ViewUserInfoPanel user={user} isEditable={isOwnProfile} />;
+        } 
+    } else if (isUser) { 
+        content = <ViewUser user={user} onChange={handleUserChange} isOwnProfile={isOwnProfile} />;
     } else {
         return;
     }
-
-    // if (isAdmin) {
-    //     if (isOwnProfile) { 
-    //         console.log("admin viendo a su perfil")
-    //         content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} />;
-    //     } else if (user?.role === 'coordinator') {
-    //         console.log("admin viendo a coordindador")
-    //         content = <AdminTabButtons user={user} onUserChange={handleUserChange} isOwnProfile={isOwnProfile} />;
-    //     } else if (user?.role === 'admin') {
-    //         console.log("admin viendo a admin")
-    //         content = <ViewUserInfoPanel user={user} isEditable={false} />;
-    //     }
-    // } else if (isCoordinator) {
-    //     console.log("coordinador viendo")
-    //     content = <ViewUserInfoPanel user={user} isEditable={isOwnProfile} />;
-    // }
 
     return <>{content}</>;
 }

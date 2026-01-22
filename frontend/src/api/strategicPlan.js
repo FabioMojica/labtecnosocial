@@ -10,7 +10,7 @@ export const getAllStrategicPlansApi = async () => {
     const { data } = await axiosInstance.get(Routes.STRATEGIC_PLAN, { signal: controller.signal });
 
     if (data?.success !== true) {
-      throw {
+      throw { 
         code: 'INVALID_API_CONTRACT',
         message: 'Respuesta inesperada del servidor.', 
       };
@@ -27,18 +27,13 @@ export const getStrategicPlanByYearApi = async (year) => {
   try {
     const { data } = await axiosInstance.get(`${Routes.STRATEGIC_PLAN}/${year}`, { signal: controller.signal });
     
-    console.log(data);
-    
     if (data?.success !== true) {
       throw {
         code: 'INVALID_API_CONTRACT',
         message: 'Respuesta inesperada del servidor.',
       };
     }
-
-
     return data?.data;
- 
   } catch (error) {
     throw handleApiError(error, 'Error al intentar obtener el plan estratégico del año.');
   }
@@ -77,7 +72,7 @@ export const deleteStrategicPlanApi = async (year) => {
 
     return data?.data;
  
-  } catch (error) {
+  } catch (error) { 
     console.log(error);
     throw handleApiError(error, 'Error al intentar eliminar el plan estratégico del año.');
   }

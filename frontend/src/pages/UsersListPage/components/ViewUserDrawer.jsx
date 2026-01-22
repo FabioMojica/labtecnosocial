@@ -3,7 +3,8 @@ import { Grid } from "@mui/material";
 import { UserProfileImage, NoResultsScreen } from "../../../generalComponents";
 import { useNavigate } from "react-router-dom";
 import { roleConfig, stateConfig } from "../../../utils";
-import { formatDate, formatDateParts } from "../../../utils/formatDate";
+import { formatDateParts } from "../../../utils/formatDate";
+import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
@@ -11,7 +12,7 @@ const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 export const ViewUserDrawer = ({ user }) => {
     if (!user) return;
     const navigate = useNavigate();
-    const theme = useTheme();
+    const theme = useTheme(); 
 
     return (
         <>
@@ -105,21 +106,21 @@ export const ViewUserDrawer = ({ user }) => {
                             borderTopRightRadius: 0,
                             borderTopLeftRadius: 0,
                             gap: 2,
+                            py: 0.5
                         }}
                     >
                         <Box
                             sx={{
                                 textAlign: 'center',
                                 flex: 1,
-                                transition: 'transform 0.2s',
-                                '&:hover': {
-                                    transform: 'scale(1.05)',
-                                },
-                            }}
+                                display: 'flex',
+                                flexDirection: 'column',
+                                
+                            }} 
                         >
                             <Typography variant="subtitle2" color="textSecondary">Creado</Typography>
-                            <Typography variant="body2">{formatDateParts(user?.created_at).date}</Typography>
-                            <Typography variant="body2">{formatDateParts(user?.created_at).time}</Typography>
+                            <Typography variant="caption">{formatDateParts(user?.created_at).date}</Typography>
+                            <Typography variant="caption">{formatDateParts(user?.created_at).time}</Typography>
                         </Box>
 
                         <Divider orientation="vertical" flexItem color="primary" />
@@ -127,16 +128,14 @@ export const ViewUserDrawer = ({ user }) => {
                         <Box
                             sx={{
                                 textAlign: 'center',
+                                display: 'flex',
+                                flexDirection: 'column',
                                 flex: 1,
-                                transition: 'transform 0.2s ease',
-                                '&:hover': {
-                                    transform: 'scale(1.05)',
-                                },
                             }}
                         >
                             <Typography variant="subtitle2" color="textSecondary">Actualizado</Typography>
-                            <Typography variant="body2">{formatDateParts(user?.updated_at).date}</Typography>
-                            <Typography variant="body2">{formatDateParts(user?.updated_at).time}</Typography>
+                            <Typography variant="caption">{formatDateParts(user?.updated_at).date}</Typography>
+                            <Typography variant="caption">{formatDateParts(user?.updated_at).time}</Typography>
                         </Box>
 
                     </Paper>
@@ -159,7 +158,7 @@ export const ViewUserDrawer = ({ user }) => {
                     }}
                 >
                     <Typography
-                        variant="h6"
+                        variant="h7"
                         fontWeight="bold"
                         noWrap
                         sx={{
@@ -199,22 +198,24 @@ export const ViewUserDrawer = ({ user }) => {
                             const StateIcon = stateConfig[user.state].icon;
                             return (
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                                    <StateIcon sx={{ color: stateConfig[user.state].color }} />
+                                    <StateIcon sx={{ color: stateConfig[user.state].color, fontSize: 20 }} />
                                     <Typography variant="body2" color="text.secondary">
                                         {stateConfig[user.state].label}
                                     </Typography>
                                 </Box>
-                            );
+                            ); 
                         })()}
 
                         {/* Rol */}
-                        {roleConfig[user.role] && (() => {
-                            const RoleIcon = roleConfig[user.role].icon;
+                        {(() => {
+                            const roleData = Object.values(roleConfig).find(r => r.value === user.role);
+                            const RoleIcon = roleData?.icon ?? QuestionMarkRoundedIcon;
+
                             return (
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                                    <RoleIcon sx={{ color: "primary.main" }} />
+                                    <RoleIcon sx={{ color: "primary.main", fontSize: 20 }} />
                                     <Typography variant="body2" color="text.secondary">
-                                        {roleConfig[user.role].role}
+                                        {roleData?.label}
                                     </Typography>
                                 </Box>
                             );
@@ -270,72 +271,72 @@ export const ViewUserDrawer = ({ user }) => {
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
-                                            width: 90, 
+                                            width: 90,
                                             cursor: 'pointer',
                                             transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                                             '&:hover': { transform: 'scale(1.1)' },
                                         }}
                                         onClick={
                                             () => {
-                                            navigate(`/proyecto/${project?.name}`, {
-                                                replace: true,
-                                                state: { id: project?.id },
-                                            });
-                                        }}
+                                                navigate(`/proyecto/${project?.name}`, {
+                                                    replace: true,
+                                                    state: { id: project?.id },
+                                                });
+                                            }}
                                     >
-                                <Box
-                                    sx={{
-                                        width: '100%',
-                                        aspectRatio: '1 / 1',
-                                        borderRadius: 2,
-                                        overflow: 'hidden',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        position: 'relative',
-                                        boxShadow: theme.palette.mode === 'light'
-                                            ? '0 0 0 1px rgba(0,0,0,0.3)'
-                                            : '0 0 0 1px rgba(255,255,255,0.3)',
-                                    }}
-                                >
-                                    <Avatar
-                                        src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
-                                        alt={project.name}
-                                        sx={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover',
-                                            borderRadius: 0,
-                                            fontWeight: 'bold',
-                                        }}
-                                    >
-                                        {project.name[0]}
-                                    </Avatar>
-                                </Box>
+                                        <Box
+                                            sx={{
+                                                width: '100%',
+                                                aspectRatio: '1 / 1',
+                                                borderRadius: 2,
+                                                overflow: 'hidden',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                position: 'relative',
+                                                boxShadow: theme.palette.mode === 'light'
+                                                    ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                                    : '0 0 0 1px rgba(255,255,255,0.3)',
+                                            }}
+                                        >
+                                            <Avatar
+                                                src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                                                alt={project.name}
+                                                sx={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'cover',
+                                                    borderRadius: 0,
+                                                    fontWeight: 'bold',
+                                                }}
+                                            >
+                                                {project.name[0]}
+                                            </Avatar>
+                                        </Box>
 
-                                <Typography
-                                    variant="body2"
-                                    align="center"
-                                    sx={{
-                                        mt: 0.5,
-                                        fontSize: '0.7rem',
-                                        color: 'text.secondary',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        width: '100%',
-                                    }}
-                                >
-                                    {project.name}
-                                </Typography>
-                            </Box>
+                                        <Typography
+                                            variant="body2"
+                                            align="center"
+                                            sx={{
+                                                mt: 0.5,
+                                                fontSize: '0.7rem',
+                                                color: 'text.secondary',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                                width: '100%',
+                                            }}
+                                        >
+                                            {project.name}
+                                        </Typography>
+                                    </Box>
                                 ))}
-                        </Box>
-                </>
+                            </Box>
+                        </>
                     )}
-            </Paper>
+                </Paper>
 
-        </Box >
+            </Box >
         </>
     );
 }

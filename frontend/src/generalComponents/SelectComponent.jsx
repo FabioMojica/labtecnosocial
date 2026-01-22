@@ -5,7 +5,7 @@ import { useState } from "react";
 export const SelectComponent = ({
   disabled = false,
   label,
-  options,
+  options, 
   value,
   onChange,
   sx = {},

@@ -17,7 +17,7 @@ export const validateEmail = (email) => {
  * @returns Mensaje de error o null si es válida.
  */
 export const validatePasswordLength = (password) => {
-  if (!password) return "La contraseña es requerida";
+  if (!password) return "La contraseña es requerida"; 
   return password.length === 8
     ? null
     : "La contraseña debe tener exactamente 8 caracteres";

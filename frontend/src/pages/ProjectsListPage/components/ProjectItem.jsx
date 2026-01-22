@@ -4,7 +4,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import UpdateIcon from "@mui/icons-material/Update";
 import GroupIcon from "@mui/icons-material/Group";
 import LinkIcon from "@mui/icons-material/Link";
-import { formatDate } from "../../../utils/formatDate";
+import { formatDate, formatDateParts } from "../../../utils/formatDate";
 
 const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
@@ -20,10 +20,10 @@ const RightStat = ({ icon, value, label }) => (
     }}
   >
     {icon}
-    <Typography variant="caption" fontWeight={600}>
+    <Typography variant="caption" color="textSecondary">
       {value}
-    </Typography>
-    <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
+    </Typography> 
+    <Typography variant="caption" fontWeight={600} sx={{ fontSize: "0.7rem" }}>
       {label}
     </Typography>
   </Box>
@@ -42,14 +42,15 @@ export const ProjectItem = ({ project, onClick }) => {
   return (
     <Item
       leftComponents={[
-        <Box sx={{ display: 'flex', flexDirection: 'column', width : '100%', height: '100%'}}>
+        <Box sx={{ display: 'flex', flexDirection: 'column' ,width : '100%', height: '100%'}}>
           <Box
           sx={{
             display: "flex",
             flexDirection: "row",
-            gap: 1, 
+            gap: 1,  
             alignItems: "center",
             justifyContent: "start",
+            alignItems: 'center'
           }}
         >
           <Avatar
@@ -84,7 +85,7 @@ export const ProjectItem = ({ project, onClick }) => {
               }}
             >
               {project.name}
-            </Typography>
+            </Typography> 
 
             {/* Descripción */}
             <Typography
@@ -111,7 +112,7 @@ export const ProjectItem = ({ project, onClick }) => {
               sm: "none",
             },
             my: 1,
-          }}
+          }} 
         />
 
         </Box>
@@ -122,14 +123,14 @@ export const ProjectItem = ({ project, onClick }) => {
             display: "flex",
             mt: { xs: 2, sm: 0 },
             height: "100%",
-            width: { xs: "100%" },
+            width: "100%",
             alignItems: "center",
-            justifyContent: { xs: "space-around", sm: "flex-end" },
+            justifyContent: { xs: "space-around", sm: "center" },
             gap: 2,
             flexWrap: "wrap",
           }}
         >
-          <RightStat
+          <RightStat 
             icon={<GroupIcon fontSize="small" />}
             value={project.projectResponsibles?.length ?? 0}
             label="Responsables"
@@ -141,17 +142,17 @@ export const ProjectItem = ({ project, onClick }) => {
           />
           <RightStat
             icon={<CalendarMonthIcon fontSize="small" />}
-            value={formatDate(project.created_at)}
+            value={formatDateParts(project.created_at).date}
             label="Fecha creación"
           />
           <RightStat
             icon={<UpdateIcon fontSize="small" />}
-            value={formatDate(project.updated_at)}
+            value={formatDateParts(project.updated_at).date}
             label="Fecha actualización"
           />
         </Box>,
       ]}
-      onClick={onClick}
+      onClick={onClick} 
     />
   );
 };

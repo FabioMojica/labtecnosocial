@@ -31,8 +31,8 @@ export const navBarOptionsConfig = {
       { text: "Reportes", link: "/reportes", icon: <SummarizeRoundedIcon /> },
     ]
   },
-  coordinator: {
-    label: "coordinator",
+  user: {
+    label: "user",
     options: [
       { text: "Planificación Estratégica", link: `/planificacion-estrategica/${currentYear}`, icon: <AccountTreeRoundedIcon /> },
       { text: "Planificación Operativa", link: "/planificacion-operativa", icon: <TableChartRoundedIcon /> },

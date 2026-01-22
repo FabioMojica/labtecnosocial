@@ -2,7 +2,7 @@
 import { useAuth, useNotification } from "../../contexts";
 import { FullScreenProgress } from "../../generalComponents";
 import { AdminLayout } from "./components/AdminLayout";
-import { CoordinatorLayout } from "./components/CoordinatorLayout";
+import { UserLayout } from "./components/UserLayout";
 
 
 export const HomePage = () => {
@@ -18,8 +18,8 @@ export const HomePage = () => {
         return <AdminLayout />;
     case "super-admin":
         return <AdminLayout />;
-    case "coordinator":
-        return <CoordinatorLayout />;
+    case "user":
+        return <UserLayout />;
     default:
         notify("Rol no encontrado, se cerrará la sesión", "error");
         logout();

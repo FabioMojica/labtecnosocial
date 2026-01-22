@@ -8,24 +8,25 @@ import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
 const operationalProjectRoutes = Router();
  
 operationalProjectRoutes.use(verifyJwt);
-
-operationalProjectRoutes.get('/getAll', authorizeRole(), getAllOperationalProjects);
  
-operationalProjectRoutes.post('/create', authorizeRole(ALLOWED_ROLES.onlyAdmins),upload.single('file'), createOperationalProject);
+operationalProjectRoutes.get('/getAll', authorizeRole(), getAllOperationalProjects);
+  
+operationalProjectRoutes.post('/create', authorizeRole(ALLOWED_ROLES.onlyAdmins), upload.single('file'), createOperationalProject);
 
 operationalProjectRoutes.post('/assign-responsible/:projectId', authorizeRole(ALLOWED_ROLES.onlyAdmins), assignProjectResponsibles);
 
-operationalProjectRoutes.patch('/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins), upload.single('file'), updateOperationalProject);
+operationalProjectRoutes.patch('/:id', authorizeRole(), upload.single('file'), updateOperationalProject);
 
-operationalProjectRoutes.get('/getProjectById/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins), getProjectById);
+operationalProjectRoutes.get('/getProjectById/:id', authorizeRole(), getProjectById); 
+
 operationalProjectRoutes.delete('/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins),deleteProjectById);
 operationalProjectRoutes.get('/complete-project/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins),getOperationalProjectRows);
 
 operationalProjectRoutes.post('/complete-project/save-rows/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins),saveOperationalRowsOfProject);
 operationalProjectRoutes.delete('/delete-operational-planning/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins),deleteOperationalPlanning);
 
-operationalProjectRoutes.get('/sumaryData/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins), getSummaryData); 
- 
+operationalProjectRoutes.get('/sumaryData/:id', authorizeRole(), getSummaryData); 
+   
 
 operationalProjectRoutes.get('/getProjectsWithIntegrations',authorizeRole(ALLOWED_ROLES.onlyAdmins), getOperationalProjectsWithIntegrations);
  

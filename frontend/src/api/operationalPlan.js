@@ -2,51 +2,66 @@ import { axiosInstance } from "./config";
 
 import { loadAbort } from "../utils";
 import { Routes } from "./config/routes";
+import { handleApiError } from "./config/handleApiError";
 
 
 export const getOperationalPlanOfProjectApi = async (id) => {
   const controller = loadAbort();
   try {
-    const response = await axiosInstance.get(
+    const { data } = await axiosInstance.get(
       `${Routes.OPERATIONAL_PLAN}/${id}`,
       { signal: controller.signal }
     );
 
-    if (response.status === 200) return response.data;
-    return null;
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+
+    return data?.data;
+
   } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al obtener el plan operativo del proyecto");
-    throw new Error("Error al intentar obtener el plan operativo del proyecto");
+    throw handleApiError(error, 'Ocurrió un error inesperado al obtener el plan operativo del proyecto. Inténtalo nuevamente más tarde.');
   }
 };
 
 export const saveOperationalRowsApi = async (projectId, rowsPayload) => {
   const controller = loadAbort();
-  try { 
-    const response = await axiosInstance.post(
+  try {
+    const { data } = await axiosInstance.post(
       `${Routes.UPDATE_OPERATIONAL_PLAN}/${projectId}`,
       rowsPayload,
-      { signal: controller.signal } 
+      { signal: controller.signal }
     );
-    if (response.status === 200) return response.data;
-    return null;
+
+    if (data?.success !== true) {
+      throw { 
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+
+    return data?.data;
   } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al guardar filas");
-    throw new Error("Error al intentar guardar filas");
+    throw handleApiError(error, 'Ocurrió un error inesperado al guardar el plan operativo del proyecto. Inténtalo nuevamente más tarde.');
   }
 };
 
 export const deleteOperationalPlanningApi = async (projectId) => {
   const controller = loadAbort();
   try {
-    const response = await axiosInstance.delete(`${Routes.DELETE_OPERATIONAL_PLAN}/${projectId}`, { signal: controller.signal });
-    if (response.status === 200) return response.data;
-    return null;
+    const { data } = await axiosInstance.delete(`${Routes.DELETE_OPERATIONAL_PLAN}/${projectId}`, { signal: controller.signal });
+
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+    return data?.data;
   } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al eliminar planificación operativa");
-    throw new Error("Error al intentar eliminar planificación operativa");
+    throw handleApiError(error, 'Ocurrió un error inesperado al eliminar el plan operativo del proyecto. Inténtalo nuevamente más tarde.');
   }
 };

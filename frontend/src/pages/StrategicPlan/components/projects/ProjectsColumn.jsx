@@ -198,7 +198,7 @@ const ProjectsColumn = ({
 
             {selectedProgram.operationalProjects.map(project => (
               <ProjectItem
-                key={project.id}
+                key={project.id} 
                 project={project}
                 onDelete={() => onUnlinkProject(selectedProgram.id, project.id)}
                 onEdit={(editedProject) => {

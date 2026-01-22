@@ -6,18 +6,21 @@ export const roleConfig = {
     admin: {
         value: "admin",
         icon: AdminPanelSettingsIcon, 
-        label: 'Administrador',
+        label: 'Administrador', 
     },
     superAdmin: {
         value: "super-admin",
         icon: AddModeratorIcon, 
         label: 'Super Administrador',
     },
-    coordinator: {
-        value: "coordinator",
+    user: {
+        value: "user",
         icon: PersonIcon,
-        label: 'Coordinador',
+        label: 'Usuario',
     },
+    rolesArray: [
+        "admin", "super-admin", "user"
+    ]
 };
 
 
@@ -27,9 +30,9 @@ export const roleConfigWithoutSA = {
         icon: AdminPanelSettingsIcon, 
         label: 'Administrador',
     },
-    coordinator: {
-        value: "coordinator",
+    user: {
+        value: "user",
         icon: PersonIcon,
-        label: 'Coordinador',
+        label: 'Usuario',
     },
 };

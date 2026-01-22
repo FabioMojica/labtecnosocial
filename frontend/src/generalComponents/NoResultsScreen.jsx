@@ -3,9 +3,9 @@ import SentimentDissatisfiedRoundedIcon from '@mui/icons-material/SentimentDissa
 import { ButtonWithLoader } from './ButtonWithLoader';
 import { useHeaderHeight } from '../contexts';
 
-export const NoResultsScreen = ({ 
+export const NoResultsScreen = ({
   variant,
-  message = "No se encontraron resultados", 
+  message = "No se encontraron resultados",
   sx,
   iconSX,
   icon,
@@ -27,21 +27,33 @@ export const NoResultsScreen = ({
         justifyContent: 'center',
         textAlign: 'center',
         gap: 2,
-        ...sx, 
+        ...sx,
       }}
     >
       {icon || <SentimentDissatisfiedRoundedIcon sx={{ fontSize: 80, color: 'gray', ...iconSX }} />}
-      
+
       <Typography variant="h6" color="text.secondary"
-      sx={{
-        ...textSx
-      }}
+        sx={{
+          ...textSx
+        }}
       >
         {message}
       </Typography>
 
       {buttonText && onButtonClick && (
-        <ButtonWithLoader sx={{minWidth: '200px', ...buttonSx}} onClick={onButtonClick} triggerOnEnter={triggerOnEnter}>
+        <ButtonWithLoader sx={{
+          minWidth: '200px',
+          backgroundColor: "primary.main",
+          color: "primary.contrastText",
+          "&:hover": {
+            backgroundColor: "primary.dark",
+          },
+          "&.Mui-disabled": {
+            backgroundColor: "action.disabledBackground",
+            color: "action.disabled",
+          },
+          ...buttonSx
+        }} onClick={onButtonClick} triggerOnEnter={triggerOnEnter}>
           {buttonText}
         </ButtonWithLoader>
       )}

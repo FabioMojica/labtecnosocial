@@ -14,6 +14,7 @@ import {
 import { jwtDecode } from "jwt-decode";
 import { useDirty } from "./DirtyContext";
 import { setLogoutCallback } from "../services/callLogout";
+import { roleConfig } from "../utils";
 
 
 const AuthContext = createContext();
@@ -21,6 +22,9 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isUser, setIsUser] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loadingContext, setLoadingContext] = useState(true);
   const { loading, callEndpoint } = useFetchAndLoad();
   const { notify, closeSnackbar } = useNotification();
@@ -44,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     const validate = async () => {
       clearAllSessionSnackbars();
       setLoadingContext(true);
-      try { 
+      try {
         const session = await authService.validateSession();
 
         if (session?.user) {
@@ -91,15 +95,36 @@ export const AuthProvider = ({ children }) => {
     return () => sessionTimer.clear();
   }, []);
 
+  const getRoleFlags = (role) => ({
+    isAdmin: role === roleConfig.admin.value,
+    isUser: role === roleConfig.user.value,
+    isSuperAdmin: role === roleConfig.superAdmin.value,
+  });
+
   const setAuth = (user, authenticated) => {
     setUser(user);
+
+    const { isAdmin, isUser, isSuperAdmin } = getRoleFlags(user?.role);
+    setIsAdmin(isAdmin);
+    setIsUser(isUser);
+    setIsSuperAdmin(isSuperAdmin);
+
     setIsAuthenticated(authenticated);
     setLoadingContext(false);
   };
 
+
   const updateUserInContext = (newUserData) => {
-    setUser((prev) => ({ ...prev, ...newUserData }));
+    setUser((prev) => {
+      const updatedUser = { ...prev, ...newUserData };
+      const { isAdmin, isUser, isSuperAdmin } = getRoleFlags(updatedUser.role);
+      setIsAdmin(isAdmin);
+      setIsUser(isUser);
+      setIsSuperAdmin(isSuperAdmin);
+      return updatedUser;
+    });
   };
+
 
   const login = async (email, password) => {
     try {
@@ -143,6 +168,9 @@ export const AuthProvider = ({ children }) => {
     sessionTimer.clear();
     authService.logout();
     setUser(null);
+    setIsAdmin(false);
+    setIsSuperAdmin(false);
+    setIsUser(false);
     setIsAuthenticated(false);
     setLoadingContext(false);
     setShowSessionModal(false);
@@ -268,6 +296,9 @@ export const AuthProvider = ({ children }) => {
         loadingContext,
         isAuthenticated,
         user,
+        isSuperAdmin,
+        isAdmin,
+        isUser,
         setAuth,
         updateUserInContext,
         showSessionModal,

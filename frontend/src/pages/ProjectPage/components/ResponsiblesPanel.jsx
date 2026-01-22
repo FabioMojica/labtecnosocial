@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Divider, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import { SearchBar, NoResultsScreen, FullScreenProgress, AssignResponsibleCheckBoxItem, ErrorScreen } from "../../../generalComponents";
 import { useHeaderHeight, useNotification } from "../../../contexts";
@@ -328,7 +327,7 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                                         p: 1,
                                     }}
                                 >
-                                    {filteredUsers.length > 0 ? (
+                                    {filteredUsers.length > 0 ? ( 
                                         filteredUsers.map((user) => (
                                             <MemoizedCheckBoxItem
                                                 key={user.email}

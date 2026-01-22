@@ -1,5 +1,7 @@
-export function updateUserFormData(userData) {
+export function updateUserFormData(changedFields) {
   const formData = new FormData();
+
+  const userData = changedFields; 
 
   if (userData.firstName) formData.append("firstName", userData.firstName);
   if (userData.lastName) formData.append("lastName", userData.lastName);
@@ -10,8 +12,8 @@ export function updateUserFormData(userData) {
   if (userData.state) formData.append("state", userData.state);
 
   if (userData.image_file instanceof File) {
-    formData.append("file", userData.image_file);
+    formData.append("file", userData.image_file); 
   }
 
   return formData;
-}
+} 

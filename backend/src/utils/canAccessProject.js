@@ -3,9 +3,10 @@ import { ALLOWED_ROLES } from "../config/allowedStatesAndRoles.js";
 import { ProjectResponsible } from "../entities/ProjectResponsible.js";
 
 export const canAccessProject = async ({ projectId, userId, role }) => {
-  if (ALLOWED_ROLES.onlyAdmins.includes(role)) return true;
+  console.log(projectId, userId, role);
+  if (ALLOWED_ROLES.superAdmin) return true;
 
-  if (role === ALLOWED_ROLES.coordinator) {
+  if (role === ALLOWED_ROLES.user) {
     const count = await AppDataSource
       .getRepository(ProjectResponsible)
       .count({
@@ -15,8 +16,10 @@ export const canAccessProject = async ({ projectId, userId, role }) => {
         },
       });
 
+    console.log("count", count);
+
     return count > 0;
   }
-
+ 
   return false;
 };

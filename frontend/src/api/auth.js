@@ -100,7 +100,7 @@ export const refreshApi = async () => {
 };
 
 export const getSummaryDataApi = async (user) => {
-  const controller = loadAbort();
+  const controller = loadAbort(); 
 
   try {
     const { data } = await axiosInstance.get(

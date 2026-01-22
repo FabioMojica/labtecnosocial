@@ -1,31 +1,19 @@
 import { Avatar, Box } from "@mui/material";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import { useState, useEffect } from "react";
-import { SpinnerLoading } from "./SpinnerLoading";
-
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const UserProfileImage = ({ user, boxSx, sx, src }) => {
-  if (!user) return null;
+  console.log("user. geader..........", user);
 
-  const finalSrc =
-    src ||
-    (user.image_url ? `${API_UPLOADS}${user.image_url}` : null);
+  const finalSrc = src || user?.image_url || null ;
 
-  const [imgError, setImgError] = useState(false);
-
-  useEffect(() => {
-    setImgError(false);
-  }, [finalSrc]);
-
+  console.log("final src", finalSrc)
+ 
   const initials =
     user.firstName && user.lastName
       ? `${user.firstName[0]}${user.lastName[0]}`
       : null;
 
-  const showFallback = !finalSrc || imgError;
-
-  return (
+  return ( 
     <Box
       sx={{
         width: "100%",
@@ -36,9 +24,13 @@ export const UserProfileImage = ({ user, boxSx, sx, src }) => {
       }}
     >
       <Avatar
-        src={showFallback ? undefined : finalSrc}
-        alt={`${user.firstName ?? ""} ${user.lastName ?? ""}`}
-        onError={() => setImgError(true)}
+        src={finalSrc}
+        slotProps={{
+          img: {
+            loading: 'lazy'
+          }
+        }}
+        alt={`${user?.firstName ?? ""} ${user?.lastName ?? ""}`}
         sx={{
           width: "100%", 
           height: "100%",

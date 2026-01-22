@@ -144,7 +144,7 @@ export const Header = () => {
                                         }}
                                     >
                                         <UserProfileImage
-                                            user={user}
+                                            user={user} 
                                             sx={{
                                                 width: 40,
                                                 height: 40,
@@ -178,8 +178,8 @@ export const Header = () => {
                                         slotProps={{
                                             paper: {
                                                 sx: {
-                                                    minWidth: 220,
-                                                    maxWidth: 250,
+                                                    minWidth: 280,
+                                                    maxWidth: 280,
                                                     mt: 1,
                                                 },
                                             },
@@ -223,8 +223,9 @@ export const Header = () => {
                                                                     <IconComponent fontSize="large" color="primary" />
                                                                     <Typography variant='caption' sx={{
                                                                         whiteSpace: 'wrap',
+                                                                        width: 80,
                                                                         textAlign: 'center',
-                                                                        fontSize: '0.6rem'
+                                                                        fontSize: '0.6rem',
                                                                     }}>{config.label}</Typography>
                                                                 </>
                                                             );

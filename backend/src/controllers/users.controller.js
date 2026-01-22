@@ -6,30 +6,64 @@ import fs from 'fs';
 import path from 'path';
 import { comparePassword, hashPassword } from '../utils/passwordUtils.js';
 import { ALLOWED_ROLES, ALLOWED_STATES } from '../config/allowedStatesAndRoles.js';
+import { ERROR_CODES, errorResponse, successResponse } from '../utils/apiResponse.js';
 
 export const createUser = async (req, res) => {
   try {
+    const user = req.user;
     const { firstName, lastName, email, password, role, state } = req.body;
 
     if (!firstName || !lastName || !email || !password || !role) {
-      return res.status(400).json({ message: 'Faltan datos requeridos' });
+      return errorResponse(
+        res,
+        ERROR_CODES.FORBIDDEN,
+        'Faltan datos requeridos para crear el usuario.',
+        400
+      );
     }
 
     const userRepository = AppDataSource.getRepository(User);
 
     const existingUser = await userRepository.findOneBy({ email });
-    if (existingUser) {
-      return res.status(409).json({ message: 'El correo que ingresaste ya pertenece a otro usuario. Prueba con uno diferente.' });
+
+    if (role === ALLOWED_ROLES.superAdmin) {
+      const existingSuperAdmin = await userRepository.findOne({
+        where: { role: ALLOWED_ROLES.superAdmin },
+        select: ['id'],
+      });
+
+      if (existingSuperAdmin) {
+        return errorResponse(
+          res,
+          ERROR_CODES.FORBIDDEN,
+          'Error al crear el usuario: ya existe un super administrador en el sistema.',
+          403
+        );
+      }
     }
 
+    if (existingUser) {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.VALIDATION_ERROR,
+          "El correo que ingresaste ya pertenece a otro usuario. Prueba con uno diferente.",
+          409
+        )
+      );
+    }
 
     const hashedPassword = await hashPassword(password, 10);
 
-    let imageUrl = null;
-    if (req.file) {
-      imageUrl = `/uploads/${req.file.filename}`;
-    }
+    const imagePath = req.file?.optimizedPath || null;
+
     const validatedState = ALLOWED_STATES.statesArray.includes(state) ? state : 'disabled';
+
+    let createdBy = user?.id;
+
+    if (role === ALLOWED_ROLES.superAdmin) {
+      createdBy = null;
+    }
 
     const newUser = userRepository.create({
       firstName,
@@ -37,18 +71,34 @@ export const createUser = async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      state: validatedState, 
-      image_url: imageUrl,
+      state: validatedState,
+      image_url: imagePath,
+      created_by: createdBy,
     });
 
     const savedUser = await userRepository.save(newUser);
 
     const { password: _, ...userWithoutPassword } = savedUser;
 
-    return res.json(userWithoutPassword);
+    return (
+      successResponse(
+        res,
+        userWithoutPassword,
+        'Usuario creado correctamente',
+        200
+      )
+    );
+
   } catch (error) {
-    console.error('Error al crear usuario:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    console.log(error);
+    return (
+      errorResponse(
+        res,
+        ERROR_CODES.SERVER_ERROR,
+        "Error del servidor.",
+        500
+      )
+    );
   }
 };
 
@@ -56,7 +106,7 @@ export const getAllUsers = async (req, res) => {
   try {
     const userRepository = AppDataSource.getRepository(User);
 
-    const rawUsers = await userRepository
+    let query = await userRepository
       .createQueryBuilder('user')
       .leftJoin('user.projectResponsibles', 'pr')
       .leftJoin('pr.operationalProject', 'project')
@@ -85,7 +135,8 @@ export const getAllUsers = async (req, res) => {
       .addGroupBy('user.image_url')
       .addGroupBy('user.created_at')
       .addGroupBy('user.updated_at')
-      .getRawMany();
+
+    const rawUsers = await query.getRawMany();
 
     const users = rawUsers.map(u => ({
       id: u.user_id,
@@ -101,19 +152,68 @@ export const getAllUsers = async (req, res) => {
       projects: u.projects,
     }));
 
-    return res.json({ users: users, status: 200 });
+    return (successResponse(
+      res,
+      users,
+      'Usuarios recuperados exitosamente',
+      200,
+    ));
+
   } catch (error) {
-    console.error('Error al obtener todos los usuarios con proyectos:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    console.log(error);
+    return (
+      errorResponse(
+        res,
+        ERROR_CODES.SERVER_ERROR,
+        "Error del servidor.",
+        500
+      )
+    );
   }
 };
+
+export const getAllAdmins = async (req, res) => {
+  try {
+    const userRepository = AppDataSource.getRepository(User);
+    const adminRoles = [ALLOWED_ROLES.admin, ALLOWED_ROLES.superAdmin];
+
+    const admins = await userRepository
+      .createQueryBuilder('user')
+      .select([
+        'user.id',
+        'user.firstName',
+        'user.lastName',
+        'user.email',
+        'user.image_url',
+        'user.role',
+        'user.state',
+      ])
+      .where('user.role IN (:...roles)', { roles: adminRoles })
+      .getMany();
+
+    return successResponse(res, admins, 'Administradores recuperados exitosamente', 200);
+
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, ERROR_CODES.SERVER_ERROR, 'Error del servidor.', 500);
+  }
+};
+
+
 
 export const getUserByEmail = async (req, res) => {
   try {
     const { email } = req.params;
 
     if (!email) {
-      return res.status(400).json({ message: 'Falta el parámetro email' });
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.VALIDATION_ERROR,
+          'No se envió el email del usuario a obtener.',
+          400,
+        )
+      );
     }
 
     const decodedEmail = decodeURIComponent(email);
@@ -129,29 +229,76 @@ export const getUserByEmail = async (req, res) => {
         projectResponsibles: {
           operationalProject: true,
         },
+        creator: true,
+        createdUsers: true,
       },
     });
 
     if (!user) {
-      console.log("no hay usauro");
-      return res.status(404).json({ message: 'Usuario no encontrado' });
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_NOT_FOUND,
+          'Usuario no encontrado en el sistema.',
+          404,
+        )
+      );
     }
 
-    const { password, id, projectResponsibles, ...userData } = user;
+    const { password, id, projectResponsibles, creator, createdUsers, ...userData } = user;
 
     const assignedProjects = projectResponsibles.map(pr => {
       const { ...projectData } = pr.operationalProject;
       return projectData;
     });
 
-    return res.json({
-      ...userData,
-      projects: assignedProjects,
-    });
+    const responsibleData = creator
+      ? {
+        id: creator.id,
+        firstName: creator.firstName,
+        lastName: creator.lastName,
+        email: creator.email,
+        role: creator.role,
+        state: creator.state,
+        image_url: creator.image_url,
+      }
+      : null;
+
+
+    const createdUsersData = createdUsers?.map(u => ({
+      id: u.id,
+      firstName: u.firstName,
+      lastName: u.lastName, 
+      email: u.email,
+      role: u.role,
+      state: u.state,
+      image_url: u.image_url,
+    })) ?? [];
+
+    return (
+      successResponse(
+        res,
+        {
+          ...userData,
+          projects: assignedProjects,
+          createdBy: responsibleData,
+          createdUsers: createdUsersData
+        },
+        'Usuario recuperado exitosamente.',
+        200
+      )
+    );
 
   } catch (error) {
-    console.error('Error al obtener el usuario por email:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    console.log(error)
+    return (
+      errorResponse(
+        res,
+        ERROR_CODES.SERVER_ERROR,
+        'Error del servidor.',
+        500,
+      )
+    );
   }
 };
 
@@ -168,43 +315,77 @@ export const updateUser = async (req, res) => {
       newPassword,
       password,
       oldPassword,
+      created_by
     } = req.body;
 
-    console.log("estado", state)
+    console.log(newPassword, oldPassword)
 
     const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOneBy({ email: originalEmail });
 
     if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_NOT_FOUND,
+          'Usuario no encontrado en el sistema.',
+          404,
+        )
+      );
     }
 
     const requester = req.user;
 
-    if (!ALLOWED_ROLES.rolesArray.includes(requester.role)) { 
-      return res.status(403).json({ message: 'Rol no válido para esta acción' });
+    if (!ALLOWED_ROLES.rolesArray.includes(requester.role)) {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'Rol no válido para esta acción.',
+          403,
+        )
+      );
     }
 
     // CONTROL DE PERMISOS
     const isAdmin = requester.role === ALLOWED_ROLES.admin;
     const isSuperAdmin = requester.role === ALLOWED_ROLES.superAdmin;
-    const isCoordinator = requester.role === ALLOWED_ROLES.coordinator;
+    const isUser = requester.role === ALLOWED_ROLES.user;
     const isOwnProfile = requester.email === user.email;
 
     if (!isAdmin && !isSuperAdmin && !isOwnProfile) {
-      return res.status(403).json({ message: 'No puedes modificar este perfil' });
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'No puedes modificar este perfil.',
+          403,
+        )
+      );
     }
 
-    if (isCoordinator && isOwnProfile) {
+    if (isUser && isOwnProfile) {
       // coordinador solo puede actualizar su foto
       if (firstName || lastName || role || state || newEmail || password) {
-        return res.status(403).json({ message: 'Coordinador solo puede actualizar su foto' });
+        return errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'Solo puedes actualizar tu foto de perfil.',
+          403,
+        )
       }
     }
 
     // VALIDAR ROL NUEVO SI SE INTENTA CAMBIAR
     if (role && !ALLOWED_ROLES.rolesArray.includes(role)) {
-      return res.status(400).json({ message: 'Rol no válido' });
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'Rol no válido.',
+          400,
+        )
+      );
     }
 
     let sessionShouldInvalidate = false;
@@ -214,7 +395,14 @@ export const updateUser = async (req, res) => {
       if (newEmail && newEmail !== user.email) {
         const existingEmailUser = await userRepository.findOneBy({ email: newEmail });
         if (existingEmailUser) {
-          return res.status(400).json({ message: 'El email ya está en uso por otro usuario. Intéta con otro.' });
+          return (
+            errorResponse(
+              res,
+              ERROR_CODES.VALIDATION_ERROR,
+              'El email ya está en uso por otro usuario. Intéta con otro.',
+              400,
+            )
+          );
         }
         user.email = newEmail;
         sessionShouldInvalidate = true;
@@ -229,7 +417,6 @@ export const updateUser = async (req, res) => {
       }
 
       if (state && ALLOWED_STATES.statesArray.includes(state)) {
-        console.log("state", state)
         if (state !== user.state) {
           user.state = state;
           sessionShouldInvalidate = true;
@@ -238,22 +425,37 @@ export const updateUser = async (req, res) => {
 
       if (newPassword && oldPassword && newPassword.trim() !== '') {
         if (!oldPassword || oldPassword.trim() === '') {
-          return res.status(400).json({ message: 'Debes enviar la contraseña antigua del usuario.' });
+          return (
+            errorResponse(
+              res,
+              ERROR_CODES.VALIDATION_ERROR,
+              'No se envió la contraseña antigua del usuario.',
+              400,
+            )
+          );
         }
 
         const isMatch = await bcrypt.compare(oldPassword, user.password);
         if (!isMatch) {
-          return res.status(400).json({ message: 'La contraseña antigua no coincide. Inténtalo de nuevo.' });
+          return (
+            errorResponse(
+              res,
+              ERROR_CODES.VALIDATION_ERROR,
+              'La contraseña antigua no coincide.',
+              400,
+            )
+          );
         }
 
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
         sessionShouldInvalidate = true;
       }
-
     }
 
-    if (req.file) {
+    const imagePath = req.file?.optimizedPath || null;
+
+    if (imagePath) {
       if (user.image_url) {
         const oldImage = user.image_url.startsWith('/uploads/')
           ? user.image_url.slice(9)
@@ -263,8 +465,8 @@ export const updateUser = async (req, res) => {
           if (err) console.error('No se pudo eliminar imagen antigua:', err.message, oldPath);
         });
       }
-      user.image_url = `/uploads/${req.file.filename}`;
-    } else if (image_url === '') {
+      user.image_url = imagePath;
+    } else if (imagePath === null || imagePath === undefined) {
       if (user.image_url) {
         const oldImage = user.image_url.startsWith('/uploads/')
           ? user.image_url.slice(9)
@@ -281,31 +483,58 @@ export const updateUser = async (req, res) => {
 
     const updatedUser = await userRepository.save(user);
 
+
     // 🔹 Buscar de nuevo incluyendo proyectos
     const userWithProjects = await userRepository.findOne({
       where: { id: updatedUser.id },
       relations: {
         projectResponsibles: {
           operationalProject: true
-        }
+        },
+        creator: true
       }
     });
 
-    // 🔹 Mapear los proyectos asignados
-    const assignedProjects = userWithProjects.projectResponsibles.map(pr => pr.operationalProject);
+    const { creator } = userWithProjects;
 
-    // 🔹 Devolver usuario sin password y con proyectos
+    const responsibleData = creator
+      ? {
+        id: creator.id,
+        firstName: creator.firstName,
+        lastName: creator.lastName,
+        email: creator.email,
+        role: creator.role,
+        state: creator.state,
+        image_url: creator.image_url,
+      }
+      : null;
+
+    const assignedProjects = userWithProjects.projectResponsibles.map(pr => pr.operationalProject);
     const { password: _, projectResponsibles, ...userWithoutPassword } = userWithProjects;
 
-    return res.json({
-      ...userWithoutPassword,
-      projects: assignedProjects
-    });
-
+    return (
+      successResponse(
+        res,
+        {
+          ...userWithoutPassword,
+          createdBy: responsibleData,
+          projects: assignedProjects
+        },
+        'Usuario actualizado exitosamente.',
+        200
+      )
+    );
 
   } catch (error) {
-    console.error('Error actualizando usuario:', error);
-    return res.status(500).json({ message: 'Error del servidor' });
+    console.log(error)
+    return (
+      errorResponse(
+        res,
+        ERROR_CODES.SERVER_ERROR,
+        'Error del servidor.',
+        500,
+      )
+    );
   }
 };
 
@@ -355,61 +584,222 @@ export const getCoordinators = async (req, res) => {
     }));
     return res.json(result);
   } catch (error) {
-    console.error('Error fetching coordinators with project counts:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    return (
+      errorResponse(
+        res,
+        ERROR_CODES.SERVER_ERROR,
+        "Error del servidor.",
+        500
+      )
+    );
   }
 };
 
 export const deleteUserByEmail = async (req, res) => {
   try {
     const { email } = req.params;
-    const { password, requesterEmail } = req.body;
-
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'No tienes permisos para realizar esta acción.' });
-    }
-
-    if (!email || !password || !requesterEmail) {
-      return res.status(400).json({ message: 'Email, contraseña y requesterEmail son requeridos.' });
-    }
+    const { password } = req.body;
 
     const userRepository = AppDataSource.getRepository(User);
 
-    const userToDelete = await userRepository.findOne({
-      where: { email },
-      relations: ['projectResponsibles'],
-    });
-
-    if (!userToDelete) {
-      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    if (!req.user) {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_NOT_FOUND,
+          'Usuario solicitante no encontrado en el sistema.',
+          404,
+        )
+      );
     }
 
-    const requestingUser = await userRepository.findOneBy({ email: requesterEmail });
+    if (req.user.role === ALLOWED_ROLES.superAdmin) {
+      if (!email || !password) {
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.VALIDATION_ERROR,
+            'El email y la contraseña son requeridos.',
+            400,
+          )
+        );
+      }
 
-    if (!requestingUser || requestingUser.role !== 'admin') {
-      return res.status(403).json({ message: 'Solicitud no autorizada.' });
-    }
-
-    if (
-      userToDelete.role === 'admin' &&
-      userToDelete.email !== requestingUser.email
-    ) {
-      return res.status(403).json({
-        message: 'No puedes eliminar otro administrador, solo tu propia cuenta.',
+      const userToDelete = await userRepository.findOne({
+        where: { email },
+        relations: ['projectResponsibles'],
       });
+
+      if (!userToDelete) {
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.USER_NOT_FOUND,
+            'Usuario a eliminar no encontrado en el sistema.',
+            404,
+          )
+        );
+      }
+
+      if (userToDelete.email === req.user.email) {
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.USER_UNAUTHORIZED,
+            'No puedes eliminar tu propia cuenta.',
+            403,
+          )
+        );
+      }
+
+      const userSuperAdmin = await userRepository.findOne({
+        where: { email: req.user.email },
+      });
+
+      const isPasswordValid = await comparePassword(password, userSuperAdmin.password);
+      if (!isPasswordValid) {
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.VALIDATION_ERROR,
+            'La contraseña ingresada no coincide.',
+            401,
+          )
+        );
+      }
+
+      if (userToDelete.role === ALLOWED_ROLES.admin) {
+        const queryRunner = AppDataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+          await queryRunner.manager
+            .createQueryBuilder()
+            .update(User)
+            .set({ created_by: userSuperAdmin.id })
+            .where("created_by = :adminId", { adminId: userToDelete.id })
+            .execute();
+
+          await queryRunner.manager.remove(User, userToDelete);
+
+          await queryRunner.commitTransaction();
+
+          return successResponse(
+            res,
+            {},
+            'Administrador eliminado y ownership reasignado correctamente',
+            200
+          );
+        } catch (error) {
+          await queryRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await queryRunner.release();
+        }
+      }
+
+      await userRepository.remove(userToDelete);
+
+      return (
+        successResponse(
+          res,
+          {},
+          'Usuario eliminado exitosamente del sistema',
+          200
+        )
+      );
+    } else if (req.user.role === ALLOWED_ROLES.admin) {
+      if (!email || !password) {
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.VALIDATION_ERROR,
+            'El email y la contraseña son requeridos.',
+            400,
+          )
+        );
+      }
+
+      const userToDelete = await userRepository.findOne({
+        where: { email },
+        relations: ['projectResponsibles'],
+      });
+
+      if (!userToDelete) {
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.USER_NOT_FOUND,
+            'Usuario no encontrado en el sistema.',
+            404,
+          )
+        );
+      }
+
+      if (userToDelete.role === ALLOWED_ROLES.admin) {
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.USER_UNAUTHORIZED,
+            'No puedes eliminar a otro administrador.',
+            403,
+          )
+        );
+      }
+
+      if (userToDelete.email === req.user.email) {
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.USER_UNAUTHORIZED,
+            'No puedes eliminar tu propia cuenta.',
+            403,
+          )
+        );
+      }
+
+      const isPasswordValid = await comparePassword(password, userToDelete.password);
+      if (!isPasswordValid) {
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.VALIDATION_ERROR,
+            'Email o contraseña incorrectos.',
+            401,
+          )
+        );
+      }
+
+      await userRepository.remove(userToDelete);
+
+      return (
+        successResponse(
+          res,
+          {},
+          'Usuario eliminado exitosamente del sistema',
+          200
+        )
+      );
+
+    } else {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'No tienes permisos para realizar esta acción.',
+          403,
+        )
+      );
     }
-
-    const isPasswordValid = await comparePassword(password, userToDelete.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Email o contraseña incorrectos.' });
-    }
-
-    await userRepository.remove(userToDelete);
-
-    return res.status(200).json({ message: 'Usuario eliminado correctamente.' });
   } catch (error) {
-    console.error('Error al eliminar usuario:', error);
-    return res.status(500).json({ message: 'Error interno del servidor.' });
+    return (
+      errorResponse(
+        res,
+        ERROR_CODES.SERVER_ERROR,
+        'Error del servidor.',
+        500,
+      )
+    );
   }
 };
 

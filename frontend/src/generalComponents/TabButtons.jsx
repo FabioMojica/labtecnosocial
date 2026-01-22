@@ -35,7 +35,6 @@ export const TabButtons = ({
   const tabsRef = useRef(null);
   const variant = isLaptop ? "fullWidth" : "scrollable";
 
-  // calcular altura
   useEffect(() => {
     if (tabsRef.current) {
       onTabsHeightChange?.(
@@ -89,7 +88,7 @@ export const TabButtons = ({
           "& .MuiTab-root": {
             fontSize: {
               xs: "0.7rem",
-              sm: "0.7rem",
+              sm: "0.7rem", 
               md: "0.7rem",
               lg: "0.8rem",
               xl: "1.1rem",
@@ -110,7 +109,7 @@ export const TabButtons = ({
               !canChangeTab(idx)
             }
             id={`tab-${idx}`}
-            aria-controls={`tab-panel-${idx}`}
+            aria-controls={`tab-panel-${idx}`} 
           />
         ))}
       </Tabs>

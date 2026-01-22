@@ -18,7 +18,7 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
   const theme = useTheme();
 
   useEffect(() => {
-    if (open) {
+    if (open) { 
       setInputDigits(Array(4).fill(''));
       inputRefs.current[0]?.focus();
     }
@@ -74,7 +74,7 @@ const DeleteStrategicPlanDialog = ({ open, onClose, year, onDeleted }) => {
       onClose();
       notify(`Plan estratégico del año ${year} eliminado correctamente.`, 'success');
     } catch (err) {
-      notify(`Ocurrio un error inesperado al eliminar el plan estratégico del año ${year}. Inténtalo de nuevo más tarde.`, 'error');
+      notify(err.message, "error");  
     }
   };
 

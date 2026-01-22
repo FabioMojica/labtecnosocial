@@ -37,9 +37,9 @@ import { useLayoutOffsets } from './hooks/useLayoutOffsets';
 export const ROLES = {
   SUPER_ADMIN: "super-admin",
   ADMIN: "admin",
-  COORDINATOR: "coordinator",
+  USER: "user",
 
-  ALL_ROLES: ["super-admin", "admin", "coordinator"],
+  ALL_ROLES: ["super-admin", "admin", "user"],
   ONLY_ADMINS: ["super-admin", "admin"]
 };
 

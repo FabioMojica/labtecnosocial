@@ -63,12 +63,12 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
       return;
     }
 
-    if (user.image_file instanceof File) {
-      setPreviewImage(URL.createObjectURL(user.image_file));
+    if (user?.image_file instanceof File) {
+      setPreviewImage(URL.createObjectURL(user?.image_file));
     }
 
-    else if (user.image_url) {
-      setPreviewImage(`${API_UPLOADS}${encodeURI(user.image_url)}`);
+    else if (user?.image_url) {
+      setPreviewImage(`${API_UPLOADS}${encodeURI(user?.image_url)}`);
     } else {
       setPreviewImage(null);
     }
@@ -132,16 +132,16 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
   };
   const handleTouchEnd = () => clearTimeout(longPressTimer);
 
-  const roleData = Object.values(roleConfig).find(r => r.value === user.role);
+  const roleData = Object.values(roleConfig).find(r => r.value === user?.role);
   const RoleIcon = roleData?.icon ?? QuestionMarkRoundedIcon;
 
   const roleLabel =
-    Object.values(roleConfig).find(r => r.value === user.role) ?? {
-      label: user.role,  
+    Object.values(roleConfig).find(r => r.value === user?.role) ?? {
+      label: user?.role,
     };
 
   const canSave = isDirty;
- 
+
 
   const saveChangesUser = async () => {
     if (!isDirty) return;
@@ -179,8 +179,12 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
 
   if (loadingUpdateUser) return <FullScreenProgress text={'Guardando cambios en el usuario...'} />
 
+  if (!user) {
+    return <FullScreenProgress text="Cargando usuario..." />;
+  }
+
   const canNavigateToProject = () => {
-    return userSession?.role === "admin" || (userSession?.role === "coordinator" && isMyProfile);
+    return userSession?.role === roleConfig.superAdmin.value || (userSession?.role === roleConfig.user.value && isMyProfile);
   };
 
 
@@ -196,13 +200,31 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
         p: 1,
       }}
     >
-      <Grid size={{ xs: 12, md: 5 }} sx={{ width: '100%', height: { xs: '50%', lg: '100%' }, maxHeight: '1000px', display: 'flex', flexDirection: 'column' }}>
+      <Grid
+        size={{ xs: 12, md: 5 }}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          width: '100%',
+          height: `calc(100vh - ${headerHeight}px - 24px)`,
+          maxHeight: {
+            xs: 250,
+            sm: 300,
+            lg: `calc(100vh - ${headerHeight}px - 24px)`,
+          },
+        }}>
+
         <UserImageDates
           overlay
           overlayText={overlayText}
           sx={{
             height: '100%',
-            flex: 1,
+            width: {
+              xs: 250,
+              sm: 400,
+              lg: '100%'
+            },
+            maxHeight: 500,
             cursor: isEditable ? "pointer" : "default",
           }}
           user={user}
@@ -243,7 +265,7 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
               whiteSpace: { xs: 'normal', sm: 'nowrap' },
             }}
           >
-            {user.firstName} {user.lastName}
+            {user?.firstName} {user?.lastName}
           </Typography>
 
           <Typography
@@ -254,7 +276,7 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
               whiteSpace: 'nowrap',
             }}
           >
-            {user.email}
+            {user?.email}
           </Typography>
 
         </Box>
@@ -272,7 +294,7 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
                 alignItems: "center",
                 gap: 0.8,
                 px: 1.5,
-                py: 0.6, 
+                py: 0.6,
                 borderRadius: 2,
                 bgcolor: "primary.main",
                 color: "primary.contrastText",
@@ -288,13 +310,13 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
                 px: 1.5,
                 py: 0.5,
                 borderRadius: 2,
-                bgcolor: stateConfig[user.state]?.color,
+                bgcolor: stateConfig[user?.state]?.color,
                 color: "#fff",
                 fontWeight: 500,
                 fontSize: "0.85rem",
               }}
             >
-              {stateConfig[user.state]?.label}
+              {stateConfig[user?.state]?.label}
             </Box>
           </Stack>
         </Box>
@@ -316,11 +338,11 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
             <Typography variant="h6" fontWeight="bold">
               Proyectos asignados
               <Typography component="span" color="text.secondary">
-                {" "}({user.projects.length})
+                {" "}({user?.projects.length})
               </Typography>
             </Typography>
 
-            {user.projects.length > 0 ? (
+            {user?.projects.length > 0 ? (
               <Box
                 display={'flex'}
                 flexWrap={'wrap'}
@@ -328,6 +350,7 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
                 sx={{
                   overflowY: "auto",
                   maxHeight: {
+                    xs: '100%',
                     sm: '260px',
                   },
                   width: '100%',
@@ -337,7 +360,7 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
                   "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark }
                 }}
               >
-                {user.projects.map((project, index) => (
+                {user?.projects.map((project, index) => (
                   <Avatar
                     key={`${project.name}-${index}`}
                     src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
@@ -356,7 +379,10 @@ export const ViewUserInfoPanel = ({ user, onChange, isEditable }) => {
 
                       if (!canNavigateToProject()) return;
 
-                      navigate(`/proyecto/${project.id}?tab=Información del proyecto`);
+                      navigate(`/proyecto/${project?.name}`, {
+                        replace: true,
+                        state: { id: project?.id },
+                      });
                     }}
 
                     title={project.name}

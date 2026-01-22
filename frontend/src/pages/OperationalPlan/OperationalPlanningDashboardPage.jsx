@@ -91,10 +91,12 @@ const OperationalPlanningDashboardPage = () => {
       handleProjectWithoutPlan(true);
       setDeleteDialogOpen(false);
     } catch (err) {
-      notify("Ocurrió un error inesperado al eliminar la planificación operativa del proyecto. Inténtalo de nuevo más tarde.", 'error');
+      notify(err.message, "error");
     } 
   }; 
 
+  
+ 
   if (loading) {
     return <FullScreenProgress text={"Obteniendo los proyectos"} />
   }

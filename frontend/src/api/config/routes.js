@@ -1,17 +1,20 @@
 export const Routes = {
   LOGIN: "/auth/login",
-  LOGOUT: "/auth/logout",  
+  LOGOUT: "/auth/logout",
 
-  GET_ALL_USERS: "/users/getAllUsers",
-  GET_USER_BY_EMAIL: "/users/getUserByEmail",
-  CREATE_USER: "/users/createUser",
-  UPDATE_USER: "/users/updateUser",
-  DELETE_USER: "/users/deleteUser",
-   
+  users: {
+    GET_ALL_USERS: "/users/getAllUsers",
+    GET_ALL_ADMINS: "/users/getAllAdmins",
+    GET_USER_BY_EMAIL: "/users/getUserByEmail",
+    CREATE_USER: "/users/createUser",
+    UPDATE_USER: "/users/updateUser",
+    DELETE_USER: "/users/deleteUser",
+  },
+
   GET_SUMMARY_DATA: '/projects/sumaryData',
   CREATE_PROJECT: "/projects/create",
   GET_ALL_PROJECTS: "/projects/getAll",
-  GET_PROJECT_BY_ID: "/projects/getProjectById", 
+  GET_PROJECT_BY_ID: "/projects/getProjectById",
   UPDATE_PROJECT: "/projects",
   DELETE_PROJECT: "/projects",
   GET_PROJECTS_WITH_INTEGRATIONS: "/projects/getProjectsWithIntegrations",
@@ -20,7 +23,7 @@ export const Routes = {
   OPERATIONAL_PLAN: "/operational-plans",
   UPDATE_OPERATIONAL_PLAN: "/operational-plans/updateOperationalPlan",
   DELETE_OPERATIONAL_PLAN: "/operational-plans/deleteOperationalPlan",
-  
+
 
   //Plan. estrategica
   STRATEGIC_PLAN: "/strategic-plans",
@@ -28,10 +31,10 @@ export const Routes = {
   DELETE_STRATEGIC_PLAN: "/strategic-plans/deleteStrategicPlan",
 
   //Dashb
-  
+
   GET_OBJECTIVES: "/objectives",
   CREATE_OBJECTIVE: "/objectives",
-  UPDATE_OBJECTIVE: "/objectives", 
+  UPDATE_OBJECTIVE: "/objectives",
   DELETE_OBJECTIVE: "/objectives",
   GET_INDICATORS: "/indicators",
   CREATE_INDICATOR: "/indicators",
@@ -44,7 +47,7 @@ export const Routes = {
   GET_INSTAGRAM_PAGES: "/apis/instagram/pages",
   GET_X_ACCOUNTS: "/apis/X/accounts",
 
-  
+
   ME: "/auth/me",
-  TOKEN_REFRESH:  "/auth/refresh",
+  TOKEN_REFRESH: "/auth/refresh",
 };

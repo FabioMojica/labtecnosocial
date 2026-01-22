@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Box, Button, List, ListItem, ListItemText, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, IconButton, List, ListItem, ListItemText, Paper, TextField, Tooltip, Typography } from "@mui/material";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import { useFetchAndLoad } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,9 @@ import { deleteProjectByIdApi } from "../../../api";
 import { Link as MuiLink } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { slugify } from "../../../utils/slugify";
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
+import InfoIcon from '@mui/icons-material/Info';
+
 
 
 export const MorePanel = ({ project, panelHeight }) => {
@@ -40,7 +42,6 @@ export const MorePanel = ({ project, panelHeight }) => {
         <Box
             sx={{
                 width: "100%",
-                
                 height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
                 maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
                 maxWidth: {
@@ -52,6 +53,7 @@ export const MorePanel = ({ project, panelHeight }) => {
                 flexDirection: "column",
                 gap: 1,
                 maxHeight: 1000,
+                position: 'absolute'
             }}
         >
             <Paper elevation={3} sx={{ padding: 1, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -140,13 +142,13 @@ export const MorePanel = ({ project, panelHeight }) => {
                                             {project?.projectResponsibles?.length === 0 ? (
                                                 "* Este proyecto no tiene ningún responsable asignado."
                                             ) : (
-                                                    <>
-                                                        * Este proyecto tiene {project?.projectResponsibles?.length}{" "}
-                                                        {project?.projectResponsibles?.length === 1 ? "responsable" : "responsables"}{" "}
-                                                        {project?.projectResponsibles?.length === 1
-                                                            ? "que será desasignado del mismo."
-                                                            : "que serán desasignados del mismo."}
-                                                    </>
+                                                <>
+                                                    * Este proyecto tiene {project?.projectResponsibles?.length}{" "}
+                                                    {project?.projectResponsibles?.length === 1 ? "responsable" : "responsables"}{" "}
+                                                    {project?.projectResponsibles?.length === 1
+                                                        ? "que será desasignado del mismo."
+                                                        : "que serán desasignados del mismo."}
+                                                </>
                                             )}
                                         </>
                                     }
@@ -174,7 +176,7 @@ export const MorePanel = ({ project, panelHeight }) => {
                             pr: 10
                         }}
                     >
-                        <DeleteOutlineIcon sx={{ fontSize: 200 }} /> {/* 🔹 Icono grande */}
+                        <FolderDeleteIcon sx={{ fontSize: 200 }} />
                     </Box>
                 </Box>
 
@@ -206,7 +208,7 @@ export const MorePanel = ({ project, panelHeight }) => {
                     </Box>
 
                     <Box sx={{ display: 'flex', alignSelf: 'self-end', justifyContent: 'flex-end', gap: 1, height: 55 }}>
-                        
+
                         <ButtonWithLoader
                             loading={loading}
                             onClick={handleDelete}
@@ -217,7 +219,8 @@ export const MorePanel = ({ project, panelHeight }) => {
                                 color: 'white', px: 2,
                                 width: {
                                     xs: 100,
-                                    lg: 170},
+                                    lg: 170
+                                },
                                 fontSize: {
                                     xs: '0.9rem',
                                     sm: '0.9rem',

@@ -16,6 +16,7 @@ import projectIntegrationRouter from './routes/apis/projectIntegrations.routes.j
 import XRouter from './routes/apis/X.routes.js';
 import cookieParser from 'cookie-parser';
 import operationalPlanRoutes from './routes/operationalPlan.routes.js';
+import { attachFileUrls } from './utils/attachFileUrls.js';
 
 import multer from 'multer';
 
@@ -49,10 +50,13 @@ app.use(express.json());
 //   app.use(morgan('dev')); 
 // }
 
-app.use(morgan('dev'));
+app.use(morgan('dev')); 
 
 
 app.use('/api/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use(attachFileUrls);
+app.set('trust proxy', true);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', operationalProjectRoutes);  
@@ -64,6 +68,7 @@ app.use('/api/apis/instagram', instagramRouter);
 app.use('/api/apis/X', XRouter);
 app.use('/api/apis/project-integration', projectIntegrationRouter);
 
+ 
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {

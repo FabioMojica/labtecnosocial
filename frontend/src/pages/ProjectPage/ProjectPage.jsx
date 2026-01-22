@@ -1,7 +1,7 @@
 import { Box, Button, useMediaQuery, useTheme } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useNotification } from "../../contexts";
+import { useAuth, useNotification } from "../../contexts";
 
 import { useFetchAndLoad } from "../../hooks";
 import {
@@ -18,12 +18,13 @@ import { getProjectByIdApi, updateProjectApi } from "../../api";
 import { updateProjectFormData } from "./utils/updateProjectFormData";
 import { ProjectIntegrationsWithApisPanel } from "./components/ProjectIntegrationsWithApisPanel";
 import { FloatingActionButtons } from "../../generalComponents/FloatingActionButtons";
+import { roleConfig } from "../../utils";
 
 export const ProjectPage = () => {
     const [tabsHeight, setTabsHeight] = useState(0);
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
-    const location = useLocation();
+    const location = useLocation(); 
     const id = location.state?.id;
 
     const navigate = useNavigate();
@@ -39,6 +40,8 @@ export const ProjectPage = () => {
     const [project, setProject] = useState(null);
     const [updatedProject, setUpdatedProject] = useState(null);
     const [projectErrors, setProjectErrors] = useState({});
+
+    const { user: userSession } = useAuth();
 
 
     const fetchProjectById = async () => {
@@ -96,11 +99,11 @@ export const ProjectPage = () => {
                 newUpdatedProject.name !== original.name ||
                 newUpdatedProject.description !== original.description ||
                 newUpdatedProject.image_url !== original.image_url ||
-                newUpdatedProject.image_file !== original.image_file || 
+                newUpdatedProject.image_file !== original.image_file ||
                 (newUpdatedProject.preEliminados?.length ?? 0) > 0 ||
                 (newUpdatedProject.preAnadidos?.length ?? 0) > 0 ||
                 (newUpdatedProject.intEliminados?.length ?? 0) > 0 ||
-                (newUpdatedProject.intAnadidos?.length ?? 0) > 0 
+                (newUpdatedProject.intAnadidos?.length ?? 0) > 0
             );
 
         setIsDirty(Boolean(dirty));
@@ -119,7 +122,7 @@ export const ProjectPage = () => {
 
             const cloneProject = (data) => structuredClone(data);
 
-            setProject(cloneProject(resp)); 
+            setProject(cloneProject(resp));
             setUpdatedProject(cloneProject(resp));
 
             setIsDirty(false);
@@ -129,7 +132,7 @@ export const ProjectPage = () => {
             setResetTrigger(prev => prev + 1);
         } catch (err) {
             notify("Ocurrió un error inesperado al actualizar el proyecto. Inténtalo de nuevo más tarde.", "error");
-        } finally { 
+        } finally {
             setLoadingUpdatedProject(false)
         }
     };
@@ -137,13 +140,26 @@ export const ProjectPage = () => {
     const handleCancelChanges = () => setQuestionModalOpen(true);
 
     const handleConfirmCancelModal = () => {
-        setUpdatedProject(structuredClone(project)); 
+        setUpdatedProject(structuredClone(project));
         setIsDirty(false);
         setQuestionModalOpen(false);
         setProjectErrors({ name: "", description: "" });
         setResetTrigger(prev => prev + 1);
         notify("Cambios descartados correctamente.", "info");
     };
+
+    let labels = [];
+
+    if (roleConfig.rolesArray.includes(userSession.role)) {
+        if (userSession.role === roleConfig.superAdmin.value) {
+            labels = ["Información del proyecto", "Responsables", "Integraciones con apis", "Más"];
+        } else {
+            labels = ["Información del proyecto", "Responsables", "Integraciones con apis"]
+        }
+    } else {
+        return;
+    } 
+
 
     if (loading) return <FullScreenProgress text="Obteniendo el proyecto" />;
     if (error) return <ErrorScreen message="Ocurrió un error inesperado al obtener el proyecto" buttonText="Intentar de nuevo" onButtonClick={() => fetchProjectById()} />
@@ -154,7 +170,7 @@ export const ProjectPage = () => {
             {project &&
                 <>
                     <TabButtons
-                        labels={["Información del proyecto", "Responsables", "Integraciones con apis", "Más"]}
+                        labels={labels}
                         onTabsHeightChange={(height) => setTabsHeight(height)}
                     >
                         <ProjectInfoPanel
@@ -164,7 +180,7 @@ export const ProjectPage = () => {
                             onErrorsChange={(errs) => setProjectErrors(errs)}
                             resetTrigger={resetTrigger}
                         />
- 
+
                         <ResponsiblesPanel
                             panelHeight={tabsHeight}
                             responsibles={updatedProject?.projectResponsibles || []}
@@ -174,18 +190,18 @@ export const ProjectPage = () => {
                                     preEliminados: updatedData.preEliminados,
                                     preAnadidos: updatedData.preAnadidos
                                 })
-                            } 
+                            }
                         />
- 
-                        <ProjectIntegrationsWithApisPanel 
+
+                        <ProjectIntegrationsWithApisPanel
                             panelHeight={tabsHeight}
                             integrations={updatedProject?.integrations || []}
                             onChange={(updatedData) => handleProjectChange({
                                 intEliminados: updatedData.intEliminados,
-                                intAnadidos: updatedData.intAnadidos 
+                                intAnadidos: updatedData.intAnadidos
                             })}
                             resetTrigger={resetTrigger}
-                        /> 
+                        />
 
                         <MorePanel project={project} panelHeight={tabsHeight}></MorePanel>
                     </TabButtons>

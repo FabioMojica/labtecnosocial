@@ -33,9 +33,9 @@ const lightTheme = createTheme({
     },
   },
   zIndex: {
-    modal: 70000,        
-    tooltip: 60000,       
-     
+    modal: 70000,
+    tooltip: 60000,
+
   },
   components: {
     MuiButton: {
@@ -48,6 +48,28 @@ const lightTheme = createTheme({
           },
         },
       },
+    },
+    MuiCssBaseline: {
+      styleOverrides: (theme) => ({
+        body: {
+          scrollbarWidth: "thin",
+          scrollbarColor: `${theme.palette.primary.main} ${theme.palette.background.default}`,
+        },
+        "*": {
+          "&::-webkit-scrollbar": { width: "2px", height: "2px" },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: theme.palette.background.default,
+            borderRadius: "2px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: "2px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            backgroundColor: theme.palette.primary.dark,
+          },
+        },
+      }),
     },
   },
 });
@@ -77,9 +99,9 @@ const darkTheme = createTheme({
     background: { default: '#121212', paper: '#2D2D2D' },
   },
   zIndex: {
-    modal: 70000,        
-    tooltip: 60000,       
-    
+    modal: 70000,
+    tooltip: 60000,
+
   },
   components: {
     MuiButton: {
@@ -92,7 +114,29 @@ const darkTheme = createTheme({
         },
       },
     },
-  } 
+    MuiCssBaseline: {
+      styleOverrides: (theme) => ({
+        body: {
+          scrollbarWidth: "thin",
+          scrollbarColor: `${theme.palette.primary.main} ${theme.palette.background.default}`,
+        },
+        "*": {
+          "&::-webkit-scrollbar": { width: "2px", height: "2px" },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: theme.palette.background.default,
+            borderRadius: "2px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: "2px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            backgroundColor: theme.palette.primary.dark,
+          },
+        },
+      }),
+    },
+  }
 
 });
 
