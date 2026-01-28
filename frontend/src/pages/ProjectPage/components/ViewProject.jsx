@@ -16,7 +16,8 @@ import { useAuth, useHeaderHeight } from "../../../contexts";
 import {
     ProjectImageDates,
 } from "../../../generalComponents";
-import { integrationsConfig, roleConfig } from "../../../utils";
+import { integrationsConfig } from "../../../utils";
+import { getUserIcons, getRoleAndStateData } from "../../../utils/getRoleAndStateData";
 
 import EditIcon from '@mui/icons-material/Edit';
 import { EditProjectDialog } from "./EditProjectDialog";
@@ -25,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) => {
     const { headerHeight } = useHeaderHeight();
     const [project, setProject] = useState(projectData);
-    console.log("alalal", project)
+    const { isUser, isAdmin, isSuperAdmin } = useAuth();
     const [modalEditProjectOpen, setModalEditProjectpen] = useState(false);
     const navigate = useNavigate();
 
@@ -49,7 +50,7 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
             }}
         >
             {
-                true &&
+                (isAdmin || isSuperAdmin) &&
                 <IconButton sx={{
                     position: 'absolute',
                     top: 20,
@@ -389,23 +390,43 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
                                     navigate(`/usuario/${encodeURIComponent(r?.email)}`)
                                 }}
                             >
-                                <Avatar
-                                    title={`${r.firstName} ${r.lastName}`}
-                                    key={`${r?.id}-${index}`}
-                                    src={r?.image_url || null}
+                                <Box
                                     sx={{
-                                        width: 64,
-                                        height: 64,
-                                        borderRadius: 2,
-                                        boxShadow: (theme) =>
-                                            theme.palette.mode === 'light'
-                                                ? '0 0 0 1px rgba(0,0,0,0.3)'
-                                                : '0 0 0 1px rgba(255,255,255,0.3)',
+                                        position: 'relative',
                                     }}
-
                                 >
-                                    {String(r.firstName[0].toUpperCase())}{String(r.lastName[0].toUpperCase())}
-                                </Avatar>
+                                    <Avatar
+                                        title={`${r?.firstName} ${r?.lastName}`}
+                                        key={`${r?.id}-${index}`}
+                                        src={r?.image_url || null}
+                                        sx={{
+                                            width: 64,
+                                            height: 64,
+                                            borderRadius: 2,
+                                            boxShadow: (theme) =>
+                                                theme.palette.mode === 'light'
+                                                    ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                                    : '0 0 0 1px rgba(255,255,255,0.3)',
+                                        }}
+                                    >
+                                        {String(r?.firstName[0]).toUpperCase()}{String(r?.lastName[0]).toUpperCase()}
+                                    </Avatar>
+
+                                    {(() => {
+                                        const { RoleIcon } = getUserIcons(r);
+                                        return (
+                                            <RoleIcon
+                                                sx={{
+                                                    position: 'absolute',
+                                                    bottom: -10,
+                                                    right: -10,
+                                                    fontSize: 30,
+                                                }}
+                                            />
+                                        );
+                                    })()}
+
+                                </Box>
                                 <Typography textOverflow={'ellipsis'} fontWeight={'bold'} noWrap maxWidth={64}>{`${String(r.firstName)} ${String(r.lastName)}`}</Typography>
                             </Paper>
                         ))}

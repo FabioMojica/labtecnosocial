@@ -295,7 +295,7 @@ export const EditProfileDialog = ({ open, onClose, userProfile, panelHeight, onU
             if (isMyProfile) {
                 updateUserInContext(newUser);
             }
- 
+
             const sensitiveChanged =
                 isMyProfile &&
                 (
@@ -415,34 +415,36 @@ export const EditProfileDialog = ({ open, onClose, userProfile, panelHeight, onU
                             justifyContent: 'center'
                         }}
                     >
-                        <Tooltip
-                            title={
-                                isMyProfile ?
-                                    <>Si editas el email o contraseña de tu cuenta se cerrará tu sesión automáticamente.</>
-                                    :
-                                    <>Si editas el email, contraseña o estado de este usario se cerrará la sesión iniciada de su cuenta.</>
-                            }
-                            componentsProps={{
-                                popper: {
-                                    sx: {
-                                        zIndex: 100000,
+                        { !isUser && 
+                            <Tooltip
+                                title={
+                                    isMyProfile ?
+                                        <>Si editas el email o contraseña de tu cuenta se cerrará tu sesión automáticamente.</>
+                                        :
+                                        <>Si editas el email, contraseña o estado de este usario se cerrará la sesión iniciada de su cuenta.</>
+                                }
+                                componentsProps={{
+                                    popper: {
+                                        sx: {
+                                            zIndex: 100000,
+                                        },
                                     },
-                                },
-                            }}
-                            arrow
-                        >
-                            <IconButton
-                                size="small"
-                                sx={{
-                                    position: 'absolute',
-                                    top: 10,
-                                    right: 10,
-                                    zIndex: theme => theme.zIndex.tooltip + 1,
                                 }}
+                                arrow
                             >
-                                <InfoIcon color="info" fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
+                                <IconButton
+                                    size="small"
+                                    sx={{
+                                        position: 'absolute',
+                                        top: 10,
+                                        right: 10,
+                                        zIndex: theme => theme.zIndex.tooltip + 1,
+                                    }}
+                                >
+                                    <InfoIcon color="info" fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        }
                         <Grid
                             size={{ xs: 12, md: 5 }}
                             sx={{

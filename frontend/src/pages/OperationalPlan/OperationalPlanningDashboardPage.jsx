@@ -7,7 +7,7 @@ import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import { ErrorScreen, FullScreenProgress, NoResultsScreen } from "../../generalComponents";
 import { SelectProjectModal } from "../../generalComponents/SelectProjectModal";
 import { deleteOperationalPlanningApi, getAllOperationalProjectsApi } from "../../api";
-import { useNotification } from "../../contexts";
+import { useAuth, useNotification } from "../../contexts";
 import DeleteOperationalPlanningTableDialog from "./components/DeleteOperationalPlanningTableDialog";
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { slugify } from "../../utils/slugify";
@@ -16,6 +16,7 @@ import { useFetchAndLoad } from "../../hooks";
 const OperationalPlanningDashboardPage = () => {
   const location = useLocation();
   const id = location.state?.id;
+  const { isUser } = useAuth();
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const { loading, callEndpoint } = useFetchAndLoad();
@@ -183,7 +184,7 @@ const OperationalPlanningDashboardPage = () => {
                 </FormControl>
               )}
 
-              {(viewMode === 'editable' && selectedProject) && (
+              {(viewMode === 'editable' && selectedProject && !isUser) && (
                 <Box
                   sx={{
                     display: 'flex',
@@ -192,7 +193,6 @@ const OperationalPlanningDashboardPage = () => {
                   }}
                 >
                   <Tooltip title="Eliminar el plan operativo">
-
                     <IconButton
                       onClick={() => setDeleteDialogOpen(true)}
                       color="error"

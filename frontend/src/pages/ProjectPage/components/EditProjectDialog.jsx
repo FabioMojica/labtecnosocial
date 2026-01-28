@@ -128,7 +128,10 @@ export const EditProjectDialog = ({ open, onClose, projectData, onSaved }) => {
                             flex: 1,
                             overflowY: 'auto',
                             bgcolor: 'background.paper',
-                            m: 2,
+                            m: { 
+                                xs: 1,
+                                lg: 2
+                            },
                             borderRadius: 2,
                             px: {
                                 xs: 1,
