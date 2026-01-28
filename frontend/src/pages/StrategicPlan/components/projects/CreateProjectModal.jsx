@@ -11,8 +11,6 @@ import { useNotification } from '../../../../contexts/ToastContext.jsx';
 import { getAllAssignedProjectIds } from '../../utils/strategicPlanningColumnsViewUtils.js';
 import { useTheme } from '@emotion/react';
 
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
-
 const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
@@ -118,7 +116,7 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
                 return (
                   <Box display="flex" alignItems="center" gap={1}>
                     <Avatar
-                      src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                      src={project?.image_url || null}
                       sx={{
                         width: 40,
                         height: 40,
@@ -169,7 +167,7 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
                     }}>
                       <Box display="flex" alignItems="center" gap={1}>
                         <Avatar
-                          src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                          src={project?.image_url || null}
                           sx={{
                             width: 56,
                             height: 56,
@@ -198,7 +196,7 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
                         <Box display="flex" alignItems="center" gap={1}>
 
                           <Avatar
-                            src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                            src={project?.image_url || null}
                             sx={{
                               width: 56,
                               height: 56,

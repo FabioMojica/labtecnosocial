@@ -29,9 +29,6 @@ import {
 import { useHeaderHeight } from "../../../contexts";
 import { getGitHubRepositoriesApi } from "../../../api";
 
-import EditIcon from "@mui/icons-material/Edit";
-import CloseIcon from "@mui/icons-material/Close";
-
 export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigger }) => {
     const { icon: GitHubIcon, label, color } = integrationsConfig.github;
     const theme = useTheme();
@@ -45,7 +42,6 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
     const [tooltipContent, setTooltipContent] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
 
-    const [isEditing, setIsEditing] = useState(false);
     const [tempSelected, setTempSelected] = useState(null);
     const initialSelectedRef = useRef([]);
 
@@ -59,18 +55,12 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
     }, [gitHubIntegration]);
 
     const handleEditToggle = () => {
-        if (isEditing) {
-            setTempSelected(initialSelectedRef.current);
-            setIsEditing(false);
-            onChange({ intAnadidos: [], intEliminados: [] });
-        } else {
-            setIsEditing(true);
-        }
+        setTempSelected(initialSelectedRef.current);
+        onChange({ intAnadidos: [], intEliminados: [] });
     };
 
     useEffect(() => {
         setTempSelected(initialSelectedRef.current);
-        setIsEditing(false);
         onChange({ intAnadidos: [], intEliminados: [] });
     }, [resetTrigger]);
 
@@ -98,8 +88,6 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
 
 
     const handleToggleRepo = (repo) => {
-        if (!isEditing) return;
-
         let newTempSelected = null;
 
         if (tempSelected?.id === repo.id) {
@@ -121,8 +109,6 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
                 intAnadidos.push(newTempSelected); 
             }
         } else {
-            // Hay integracion 
-            // caso borrar repo
             if(newTempSelected === null) {
                 intEliminados.push(initialSelected);
             } else {
@@ -173,14 +159,6 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
                         {label}
                     </Typography>
                 </Box>
-
-                {!error && !loading && repos.length !== 0 &&
-                    <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
-                        <IconButton size="small" onClick={handleEditToggle}>
-                            {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
-                        </IconButton>
-                    </Tooltip>
-                }
             </Box>
 
             {loading ? (
@@ -234,7 +212,6 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
                                     onDelete={() => handleToggleRepo(tempSelected)}
                                     color="primary"
                                     variant="outlined"
-                                    disabled={!isEditing}
                                 />
                             </Stack>
                         ) : (
@@ -298,7 +275,6 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
                                         return (
                                             <ListItemButton
                                                 key={repo.id}
-                                                disabled={!isEditing}
                                                 onContextMenu={(e) => handleContextMenu(e, repo)}
                                                 onClick={() => { }}
                                                 sx={{

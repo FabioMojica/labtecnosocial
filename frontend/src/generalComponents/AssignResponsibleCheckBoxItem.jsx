@@ -4,7 +4,6 @@ import { Item } from "./Item";
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import { roleConfig, stateConfig } from "../utils";
 
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
 
 export const AssignResponsibleCheckBoxItem = ({
   responsible,
@@ -33,7 +32,7 @@ export const AssignResponsibleCheckBoxItem = ({
           sx={{ display: "flex", gap: 1, }}
         >
           <Avatar
-            src={responsible.image_url ? `${API_UPLOADS}${responsible.image_url}` : ""}
+            src={responsible?.image_url || null}
             sx={{
               width: 56,
               height: 56,

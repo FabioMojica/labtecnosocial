@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, List, ListItem, ListItemText, Paper, TextField, Typography, IconButton, InputAdornment, Tooltip } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useAuth, useHeaderHeight, useNotification } from "../../../contexts";
@@ -9,13 +9,10 @@ import { deleteUserApi } from "../../../api";
 import { Link as MuiLink } from '@mui/material';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import InfoIcon from '@mui/icons-material/Info';
 import { roleConfig } from "../../../utils";
 
 
-export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession }) => {
-    console.log(userRoleSession);
-
+export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession, isActive }) => {
     const navigate = useNavigate();
     if (!user) return (
         <ErrorScreen
@@ -24,11 +21,18 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession }) 
             onButtonClick={() => navigate('/usuarios')}
         />
     );
+
+    useEffect(() => {
+        if (!isActive) {
+            setInputEmail('');
+            setInputPassword('');
+        }
+    }, [isActive]);
+
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
     const { notify } = useNotification();
     const { user: loggedInUser } = useAuth();
-    const { logout } = useAuth();
 
     const [inputEmail, setInputEmail] = useState("");
     const [inputPassword, setInputPassword] = useState("");
@@ -63,6 +67,8 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession }) 
             <FullScreenProgress text={text} />);
     };
 
+
+
     return (
         <Box
             sx={{
@@ -86,7 +92,7 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession }) 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <WarningAmberRoundedIcon color="error" fontSize="large" />
                             <Typography variant='h4' alignContent='center'>
-                                Eliminar Usuario
+                                {userRoleSession?.isSuperAdmin && user.role === roleConfig.admin.value ? "Eliminar administrador" : "Eliminar usuario"}
                             </Typography>
                         </Box>
                         {
@@ -104,13 +110,13 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession }) 
                         </Typography>
 
                         <List>
-                            <ListItem>
-                                {user?.projects?.length > 0 ? (
-                                    <Box>
+                            {user?.projects?.length > 0 ? (
+                                <>
+                                    <ListItem>
                                         <ListItemText
                                             primary={
                                                 <>
-                                                    * Este usuario es responsable de{' '}
+                                                    * Este {userRoleSession?.isSuperAdmin && user.role === roleConfig.admin.value ? "administrador" : "usuario"} es responsable de{' '}
                                                     <MuiLink
                                                         sx={{ color: 'orange', fontWeight: 'bold', textDecoration: 'none' }}
                                                     >
@@ -119,23 +125,27 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession }) 
                                                 </>
                                             }
                                         />
+                                    </ListItem>
+                                    <ListItem>
                                         <ListItemText
                                             primary={
                                                 <>
-                                                    * Al eliminar el usuario, se le desasignará de los proyectos de los que es responsable.
+                                                    * Al eliminar el {userRoleSession?.isSuperAdmin && user.role === roleConfig.admin.value ? "administrador" : "usuario"}, se le desasignará de los proyectos de los que es responsable.
                                                 </>
                                             }
                                         />
-                                    </Box>
-                                ) : (
+                                    </ListItem>
+                                </>
+                            ) : (
+                                <ListItem>
                                     <ListItemText
-                                        primary="* Este usuario no es responsable de ningún proyecto."
+                                        primary={`* Este ${userRoleSession?.isSuperAdmin && user.role === roleConfig.admin.value ? "administrador" : "usuario"} no es responsable de ningún proyecto.`}
                                     />
-                                )}
-                            </ListItem>
+                                </ListItem>
+                            )}
 
                             {
-                                userRoleSession?.isSuperAdmin && user.role === roleConfig.admin.value &&
+                                userRoleSession?.isSuperAdmin && user.role === roleConfig.admin.value && user?.createdUsers?.length > 0 &&
                                 <ListItem>
                                     <ListItemText
                                         primary={
@@ -146,7 +156,7 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession }) 
                                                 >
                                                     {user?.createdUsers?.length} {user?.createdUsers?.length === 1 ? 'usuario' : 'usuarios'}
                                                 </MuiLink>
-                                                {' '}en el sistema, los cuales pasarán a mostrarse como creados por ti.
+                                                {' '}en el sistema, {user?.createdUsers?.length === 1 ? 'el cual pasará' : 'los cuales pasarán'} a mostrarse como {user?.createdUsers?.length === 1 ? 'creado' : 'creados'} por ti.
                                             </>
                                         }
                                     /></ListItem>
@@ -207,7 +217,6 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession }) 
                         value={inputEmail}
                         onChange={(e) => setInputEmail(e.target.value)}
                         fullWidth
-                        maxLenght={100}
                         inputProps={{ maxLength: 100, autoComplete: "off", name: "no-email" }}
                     />
 

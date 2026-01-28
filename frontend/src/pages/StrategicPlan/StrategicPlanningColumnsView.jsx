@@ -32,6 +32,8 @@ import { useElementSize } from '../../hooks/useElementSize.js';
 import { useDirty } from '../../contexts/DirtyContext.jsx';
 import { formatDate } from '../../utils/formatDate.js';
 import { useLayout } from '../../contexts/LayoutContext.jsx';
+import { useDrawerClosedWidth } from '../../utils/index.js';
+import { useLayoutOffsets } from '../../hooks/useLayoutOffsets.js';
 
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
   const confirm = useConfirm();
@@ -84,6 +86,8 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const [canScroll, setCanScroll] = useState(false);
 
   const { setIsDirtyContext, registerAutoSave } = useDirty();
+
+  const { scrollbarWidth } = useLayout();
 
   const currentPlanRef = useRef({
     mission: data?.mission || '',
@@ -493,6 +497,8 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     });
   }, []);
 
+  console.log("scbw", scrollbarWidth)
+
   return (
     <>
       <Box
@@ -504,11 +510,14 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
           position: isFullscreen ? 'fixed' : 'relative',
           top: isFullscreen ? 0 : 'auto',
           left: isFullscreen ? 0 : 'auto',
-          width: isFullscreen ? '100vw' : '100%',
+          width: isFullscreen ? '100vw' : '100%', 
+          maxWidth: {
+            xs: '100vw',
+            lg: `calc(100vw - ${useDrawerClosedWidth()} - ${scrollbarWidth}px - 16px)`},
           height: isFullscreen ? '100vh' : 'auto',
           bgcolor: (theme) => theme.palette.background.default,
           zIndex: isFullscreen ? 1500 : 'auto',
-          overflow: isFullscreen ? 'auto' : 'visible', 
+          overflow: isFullscreen ? 'auto' : 'visible',  
         }}
       >  
         <Box

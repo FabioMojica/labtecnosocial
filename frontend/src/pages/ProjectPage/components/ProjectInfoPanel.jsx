@@ -5,13 +5,10 @@ import {
     ProjectImageDates,
     TextFieldMultiline,
 } from "../../../generalComponents";
-import { cleanExtraSpaces, validateRequiredText, validateTextLength } from "../../../utils/textUtils";
+import { cleanExtraSpaces, validateRequiredText, validateSpaces, validateTextLength } from "../../../utils/textUtils";
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import DescriptionIcon from '@mui/icons-material/Description';
-import EditIcon from '@mui/icons-material/Edit';
-import CancelIcon from '@mui/icons-material/Cancel';
-
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
+import { projectSchema } from "../../../utils/schemas/projectSchema";
 
 export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChange, resetTrigger }) => {
     const theme = useTheme();
@@ -19,17 +16,10 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
     const [previewImage, setPreviewImage] = useState(null);
     const [overlayText, setOverlayText] = useState("Subir una imagen");
     const [errors, setErrors] = useState({ name: "", description: "" });
-    const [isEditingName, setIsEditingName] = useState(false);
-    const [isEditingDescription, setIsEditingDescription] = useState(false);
-    const [originalName, setOriginalName] = useState("");
-    const [originalDescription, setOriginalDescription] = useState("");
     const { notify } = useNotification();
     const { headerHeight } = useHeaderHeight();
 
     useEffect(() => {
-        console.log("trigger", resetTrigger)
-        setIsEditingName(false);
-        setIsEditingDescription(false);
         setErrors({ name: "", description: "" });
     }, [resetTrigger]);
 
@@ -37,47 +27,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
         onErrorsChange?.({ ...errors });
     }, [errors]);
 
-    const startEditName = () => {
-        setOriginalName(project?.name ?? "");
-        setIsEditingName(true);
-    };
-
-    const startEditDescription = () => {
-        setOriginalDescription(project?.description ?? "");
-        setIsEditingDescription(true);
-    };
-
-    const cancelEditName = () => {
-        onChange?.({ name: originalName });
-        setErrors((prev) => ({ ...prev, name: "" }));
-        setIsEditingName(false);
-    };
-
-    const cancelEditDescription = () => {
-        onChange?.({ description: originalDescription });
-        setErrors((prev) => ({ ...prev, description: "" }));
-        setIsEditingDescription(false);
-    };
-
-
-    useEffect(() => {
-        if (!project) {
-            setPreviewImage(null);
-            return;
-        }
-
-        if (project.image_file instanceof File) {
-            setPreviewImage(URL.createObjectURL(project.image_file));
-        }
-        else if (project.image_url) {
-            setPreviewImage(`${API_UPLOADS}${encodeURI(project.image_url)}`);
-        } else {
-            setPreviewImage(null);
-        }
-    }, [project]);
-
-
-
+    
     useEffect(() => {
         if (previewImage) {
             const hasHover = window.matchMedia("(hover: hover)").matches;
@@ -112,13 +62,13 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
 
         const previewUrl = URL.createObjectURL(file);
         setPreviewImage(previewUrl);
-        onChange?.({ image_file: file, image_url: previewUrl });
+        onChange?.({ image_url: file });
         event.target.value = "";
     };
-
-    const handleRemoveImage = () => {
+ 
+    const handleRemoveImage = () => { 
         setPreviewImage(null);
-        onChange?.({ image_file: null, image_url: null });
+        onChange?.({ image_url: null });
     };
 
     const handleContextMenu = (e) => {
@@ -136,29 +86,21 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
     const handleNameChange = (e) => {
         const value = e.target.value;
         const error =
+            validateSpaces(value, "Nombre del proyecto") || 
             validateRequiredText(value, "Nombre del proyecto") ||
-            validateTextLength(value, 3, 100, "Nombre del proyecto");
+            validateTextLength(value, projectSchema.MIN_LENGTH_NAME, projectSchema.MAX_LENGTH_NAME, "Nombre del proyecto");
         setErrors((prev) => ({ ...prev, name: error || "" }));
         onChange?.({ name: value });
-    };
-
-    const handleNameBlur = (e) => {
-        const cleaned = cleanExtraSpaces(e.target.value);
-        onChange?.({ name: cleaned });
     };
 
     const handleDescriptionChange = (e) => {
         const value = e.target.value;
         const error =
+            validateSpaces(value, "Descripción") || 
             validateRequiredText(value, "Descripción") ||
-            validateTextLength(value, 5, 300, "Descripción");
+            validateTextLength(value, projectSchema.MIN_LENGTH_DESCRIPTION, projectSchema.MAX_LENGTH_DESCRIPTION, "Descripción");
         setErrors((prev) => ({ ...prev, description: error || "" }));
         onChange?.({ description: value });
-    };
-
-    const handleDescriptionBlur = (e) => {
-        const cleaned = cleanExtraSpaces(e.target.value);
-        onChange?.({ description: cleaned });
     };
 
 
@@ -193,7 +135,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
                     overlayText={overlayText}
                     project={project}
                     fallbackLetter={(project.name)?.trim().charAt(0)?.toUpperCase()}
-                    sx={{
+                    sx={{ 
                         width: {
                             xs: 250,
                             sm: 300,
@@ -203,8 +145,8 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
                         maxHeight: 500,
                     }}
                     changeImage
-                    onChangeImage={handleOverlayClick}
-                    previewImage={previewImage ?? undefined}
+                    onChangeImage={handleOverlayClick} 
+                    previewImage={previewImage}
                     onContextMenu={handleContextMenu}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
@@ -246,11 +188,12 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
                         variant="outlined"
                         value={project?.name ?? ""}
                         onChange={handleNameChange}
-                        onBlur={handleNameBlur}
-                        maxLength={100}
                         error={!!errors.name}
-                        inputProps={{ maxLength: 100 }}
-                        disabled={!isEditingName}
+                        slotProps={{
+                            htmlInput: {
+                                maxLength: projectSchema.MAX_LENGTH_NAME
+                            }
+                        }}
                         size='small'
                         sx={{
                             '& .MuiOutlinedInput-root': {
@@ -270,30 +213,6 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
                                 lineHeight: '1.2',
                                 textAlign: 'justify'
                             }
-                        }}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Tooltip title={
-                                        isEditingName ? "Borrar cambios" : "Editar nombre"
-                                    }>
-                                        <span>
-                                            <IconButton
-                                                size="small"
-                                                onClick={isEditingName ? cancelEditName : startEditName}
-                                            >
-                                                {
-                                                    isEditingName ? (
-                                                        <CancelIcon fontSize="small" />
-                                                    ) : (
-                                                        <EditIcon fontSize="small" />
-                                                    )
-                                                }
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                </InputAdornment>
-                            ),
                         }}
                     />
 
@@ -332,7 +251,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
                                 height: 20,
                             }}
                         >
-                            {(project?.name?.length ?? 0)} / 100
+                            {(project?.name?.length ?? 0)} / {projectSchema.MAX_LENGTH_NAME}
                         </Typography>
                     </Box>
                 </Grid>
@@ -361,17 +280,19 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
                         rows={6}
                         value={project?.description ?? ""}
                         onChange={handleDescriptionChange}
-                        onBlur={handleDescriptionBlur}
-                        maxLength={300}
                         error={!!errors.description}
                         variant="outlined"
-                        disabled={!isEditingDescription}
                         label={
                             project?.description !== "" ? null :
                                 <>
                                     Ingrese una descripción para el proyecto <span style={{ color: theme.palette.error.main }}>*</span>
                                 </>
                         }
+                        slotProps={{
+                            htmlInput: {
+                                maxLength: projectSchema.MAX_LENGTH_DESCRIPTION
+                            }
+                        }}
                         sx={{
                             '& .MuiOutlinedInput-root': {
                                 width: '100%',
@@ -382,30 +303,6 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
                                 lineHeight: '1.2',
                                 textAlign: 'justify'
                             }
-                        }}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Tooltip title={
-                                        isEditingDescription ? "Borrar cambios" : "Editar descripción"
-                                    }>
-                                        <span>
-                                            <IconButton
-                                                size="small"
-                                                onClick={isEditingDescription ? cancelEditDescription : startEditDescription}
-                                            >
-                                                {
-                                                    isEditingDescription ? (
-                                                        <CancelIcon fontSize="small" />
-                                                    ) : (
-                                                        <EditIcon fontSize="small" />
-                                                    )
-                                                }
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                </InputAdornment>
-                            ),
                         }}
                     />
 
@@ -444,7 +341,7 @@ export const ProjectInfoPanel = ({ project, panelHeight, onChange, onErrorsChang
                                 height: 20,
                             }}
                         >
-                            {(project?.description.length ?? 0)} / 300
+                            {(project?.description.length ?? 0)} / {projectSchema.MAX_LENGTH_DESCRIPTION}
                         </Typography>
                     </Box>
                 </Grid>

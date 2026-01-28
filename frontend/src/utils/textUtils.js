@@ -78,3 +78,20 @@ export const cleanAndValidatePositiveNumber = (input = "") => {
   // Limpiar decimales innecesarios (e.g. "12.00" → "12")
   return num % 1 === 0 ? String(parseInt(num)) : String(num);
 };
+
+/**
+ * Valida que un nombre no tenga:
+ * - espacios al inicio
+ * - espacios al final
+ * - múltiples espacios consecutivos en el medio
+ * Retorna mensaje de error o null si es válido
+ */
+export const validateSpaces = (name = "", fieldName = "Campo") => {
+  if (typeof name !== "string") return `${fieldName} debe ser un texto válido.`;
+
+  if (/^\s/.test(name)) return `${fieldName} no debe comenzar con espacios.`;
+  if (/\s$/.test(name)) return `${fieldName} no debe terminar con espacios.`;
+  if (/\s{2,}/.test(name)) return `${fieldName} no debe tener múltiples espacios consecutivos.`;
+
+  return null;
+};

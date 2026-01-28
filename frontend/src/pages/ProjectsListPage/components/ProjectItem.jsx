@@ -6,8 +6,6 @@ import GroupIcon from "@mui/icons-material/Group";
 import LinkIcon from "@mui/icons-material/Link";
 import { formatDate, formatDateParts } from "../../../utils/formatDate";
 
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
-
 // Mini componente para cada estadística a la derecha
 const RightStat = ({ icon, value, label }) => (
   <Box
@@ -32,12 +30,7 @@ const RightStat = ({ icon, value, label }) => (
 export const ProjectItem = ({ project, onClick }) => {
   const theme = useTheme();
 
-  const imageSrc =
-    (project.image_url
-      ? project.image_url.startsWith("http")
-        ? project.image_url
-        : `${API_UPLOADS}${project.image_url}` 
-      : undefined);
+  const imageSrc = project?.image_url || null;
 
   return (
     <Item

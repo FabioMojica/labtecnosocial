@@ -11,7 +11,6 @@ import {
 } from "../../generalComponents";
 
 import { getUserByEmailApi } from "../../api";
-import { ViewUserInfoPanel } from "./components/ViewUserInfoPanel";
 import { AdminTabButtons } from "./components/AdminTabButtons";
 import { roleConfig } from "../../utils";
 import { ViewUser } from "./components/ViewUser";
@@ -30,11 +29,11 @@ export const UserPage = () => {
     const [loggingOut, setLoggingOut] = useState(false);
     const [userNotFound, setUserNotFound] = useState(false);
 
-    const fetchUserByEmail = async () => { 
+    const fetchUserByEmail = async () => {  
         try {
             const resp = await callEndpoint(getUserByEmailApi(userEmail));
             setUser(resp);
-            console.log(resp) 
+            console.log("resppppppppppp", resp) 
             originalUserRef.current = structuredClone(resp);
             setError(false);
         } catch (err) {
@@ -46,12 +45,12 @@ export const UserPage = () => {
             }
         }
     }
-
+ 
     useEffect(() => {
         fetchUserByEmail();
     }, [userEmail]);
 
-    if (userNotFound) return <NoResultsScreen message="Usuario no encontrado en el sistema" buttonText={"Volver atrás"} onButtonClick={() => navigate(-1)} />
+    if (userNotFound) return <NoResultsScreen message="Usuario no encontrado en el sistema" buttonText={"Ir al inicio"} onButtonClick={() => navigate('/inicio')} />
     if (loading) return <FullScreenProgress text="Obteniendo el usuario" />;
     if (error) return <ErrorScreen message="Ocurrió un error inesperado al obtener el usuario" buttonText="Intentar de nuevo" onButtonClick={() => fetchUserByEmail()} />
 
@@ -62,15 +61,15 @@ export const UserPage = () => {
 
         if (meta.sensitiveChanged) {
             notify(
-                "Se cerrará la sesión porque hiciste cambios en información sensible en tu perfil.",
+                "Cerrando sesión porque hiciste cambios en información sensible en tu perfil.",
                 "warning",
-                { persist: true }
+                { persist: true } 
             );
             setLoggingOut(true);
-            setTimeout(() => logout(), 2000);
+            setTimeout(() => logout(), 1000);
         }
     };
-
+ 
     const isOwnProfile = userSession?.email === user?.email;
     const isAdmin = userSession?.role === roleConfig.admin.value;
     const isSuperAdmin = userSession?.role === roleConfig.superAdmin.value;

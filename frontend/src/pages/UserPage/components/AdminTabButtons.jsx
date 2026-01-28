@@ -17,13 +17,14 @@ export const AdminTabButtons = ({
     userRoleSession,
 }) => { 
     const [tabsHeight, setTabsHeight] = useState(0);
+    const [activeTab, setActiveTab] = useState(0);
+    
 
     const { email } = useParams();
     const { user: userSession, isAdmin, isSuperAdmin, isUser } = useAuth();
     const navigate = useNavigate();
     if (!email) return <ErrorScreen message="Usuario no encontrado" buttonText="Volver a usuarios" onButtonClick={() => navigate('/usuarios')} />;
-    const userEmail = email;
-
+    
     let labels; 
 
 
@@ -54,6 +55,7 @@ export const AdminTabButtons = ({
                     panelHeight={tabsHeight}
                     isOwnProfile={isOwnProfile}
                     userRoleSession={userRoleSession}
+                    isActive={activeTab === 1}
                 />
             </TabButtons>
         </> 

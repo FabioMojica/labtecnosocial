@@ -3,28 +3,28 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useDirty } from "../contexts/DirtyContext";
 
 export function useNavigationGuard() {
-  const { isDirtyContext } = useDirty();
+  const { isDirtyContext, setIsDirtyContext } = useDirty();
   const navigate = useNavigate();
   const location = useLocation();
-  const [nextPath, setNextPath] = useState(null);
+  const [nextNavigation, setNextNavigation] = useState(null);
 
   useEffect(() => {
-    if (!nextPath || !isDirtyContext) return;
+    if (!nextNavigation || !isDirtyContext) return;
 
     const confirmLeave = window.confirm("Tienes cambios pendientes, ¿quieres salir sin guardar?");
     if (confirmLeave) {
-      navigate(nextPath);
-    } 
-    setNextPath(null);
-  }, [nextPath, isDirtyContext, navigate]);
- 
-  const handleNavigate = (path) => {
+      navigate(nextNavigation.path, { state: nextNavigation.state });
+      setIsDirtyContext(false);
+    }
+    setNextNavigation(null);
+  }, [nextNavigation, isDirtyContext, navigate]);
+
+  const handleNavigate = (path, state = {}) => {
     if (isDirtyContext) {
-      console.log("is dirta", isDirtyContext);
-      setNextPath(path);
+      setNextNavigation({ path, state });
       return false;
     } else {
-      navigate(path);
+      navigate(path, { state });
       return true;
     }
   };

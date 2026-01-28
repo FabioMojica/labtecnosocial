@@ -1,11 +1,8 @@
 
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, Avatar } from '@mui/material';
-import RenderAvatar from '../../../../generalComponents/RenderAvatar';
 import { useTheme } from '@emotion/react';
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
-
 
 const DeleteProgramModal = ({ open, onClose, program, onDelete }) => {
     const [showModal, setShowModal] = useState(open);
@@ -71,7 +68,7 @@ const DeleteProgramModal = ({ open, onClose, program, onDelete }) => {
                                         {index + 1}.
                                     </Box>
                                     <Avatar
-                                        src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                                        src={project?.image_url || null}
                                         sx={{
                                             width: 56,
                                             height: 56,

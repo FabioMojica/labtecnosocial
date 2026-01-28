@@ -2,11 +2,8 @@ import { Avatar, Box } from "@mui/material";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 
 export const UserProfileImage = ({ user, boxSx, sx, src }) => {
-  console.log("user. geader..........", user);
 
   const finalSrc = src || user?.image_url || null ;
-
-  console.log("final src", finalSrc)
  
   const initials =
     user.firstName && user.lastName
@@ -16,7 +13,7 @@ export const UserProfileImage = ({ user, boxSx, sx, src }) => {
   return ( 
     <Box
       sx={{
-        width: "100%",
+        width: "100%", 
         height: "100%",
         display: "flex",
         alignItems: "center",

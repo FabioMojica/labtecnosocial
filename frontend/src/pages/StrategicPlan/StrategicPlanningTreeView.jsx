@@ -9,11 +9,6 @@ import { exportStrategicPlanPDF } from './utils/exportStrategicPlanPDF';
 import { exportStrategicPlanDOCX } from './utils/exportStrategicPlanDOCX';
 import { formatDate } from '../../utils/formatDate';
 
-
-
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
-
-
 const getRandomSoftColor = (bgColor) => {
   let color;
   do {
@@ -74,7 +69,7 @@ const StrategicPlanningTreeView = ({ data, year }) => {
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <Avatar
-                src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+                src={project?.image_url || null}
                 sx={{
                   width: 46,
                   height: 46,

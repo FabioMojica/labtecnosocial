@@ -23,12 +23,14 @@ import {
   SelectComponent,
   UserImageDates,
   ButtonWithLoader,
+  FullScreenProgress,
 } from "../../../generalComponents";
 import {
   cleanExtraSpaces,
   validateRequiredText,
   validateTextLength,
   validateOnlyLetters,
+  validateSpaces,
 } from "../../../utils/textUtils";
 import { generateSecurePassword, roleConfig, roleConfigWithoutSA, stateConfig } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
@@ -45,7 +47,7 @@ import { createUserFormData } from "../utils/createUserFormData";
 // 5. Servicios / UseCases
 import { createUserApi, getAllAdminsApi } from "../../../api";
 import { useLayout } from "../../../contexts/LayoutContext";
-import { downloadUserCredentials } from "../utils/downloadUserCredentials";
+import { userSchema } from "../../../utils/schemas/userSchema";
 
 export const CreateUserInfoPanel = ({ panelHeight }) => {
   const fileInputRef = useRef(null);
@@ -92,18 +94,11 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
         image_file: user.image_file ?? null,
         role: user.role,
         state: user.state,
-      }; 
+      };
       const formData = createUserFormData(userToSend);
       const newUser = await callEndpoint(createUserApi(formData));
       notify("Usuario creado correctamente", "success");
       navigate(`/usuario/${encodeURIComponent(newUser?.email)}`)
-
-      downloadUserCredentials({
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        email: newUser.email,
-        password: user.password,
-      });
 
     } catch (error) {
       console.log("errr", error)
@@ -245,14 +240,16 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
     switch (field) {
       case "firstName":
         error =
+          validateSpaces(cleaned, "Nombre del usuario") ||
           validateRequiredText(cleaned, "Nombre del usuario") ||
-          validateTextLength(cleaned, 3, 100, "Nombre del usuario") ||
+          validateTextLength(cleaned, userSchema.MIN_LENGTH_FIRST_NAME, userSchema.MAX_LENGTH_FIRST_NAME, "Nombre del usuario") ||
           validateOnlyLetters(cleaned, "Nombre del usuario");
         break;
       case "lastName":
         error =
+          validateSpaces(cleaned, "Apellido del usuario") ||
           validateRequiredText(cleaned, "Apellido del usuario") ||
-          validateTextLength(cleaned, 3, 100, "Apellido del usuario") ||
+          validateTextLength(cleaned, userSchema.MIN_LENGTH_LAST_NAME, userSchema.MAX_LENGTH_LAST_NAME, "Apellido del usuario") ||
           validateOnlyLetters(cleaned, "Apellido del usuario");
         break;
       case "email":
@@ -280,6 +277,8 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
     if (isAdmin) return option.value === roleConfig.user.value;
     return false;
   });
+
+  if (loading) return <FullScreenProgress text={"Creando el usuario..."} />
 
   return (
     <>
@@ -411,12 +410,11 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     handleUserChange?.({ firstName: value });
                     validateField("firstName", value);
                   }}
-                  onBlur={(e) => {
-                    const cleaned = cleanExtraSpaces(e.target.value);
-                    handleUserChange?.({ firstName: cleaned });
-                    validateField("firstName", cleaned);
+                  slotProps={{
+                    htmlInput: {
+                      maxLength: userSchema.MAX_LENGTH_FIRST_NAME
+                    }
                   }}
-                  inputProps={{ maxLength: 100 }}
                   size='small'
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -474,7 +472,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                       height: 20,
                     }}
                   >
-                    {(user?.firstName?.length ?? 0)} / 100
+                    {(user?.firstName?.length ?? 0)} / {userSchema.MAX_LENGTH_FIRST_NAME}
                   </Typography>
                 </Box>
               </Grid>
@@ -497,12 +495,11 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     handleUserChange?.({ lastName: value });
                     validateField("lastName", value);
                   }}
-                  onBlur={(e) => {
-                    const cleaned = cleanExtraSpaces(e.target.value);
-                    handleUserChange?.({ lastName: cleaned });
-                    validateField("lastName", cleaned);
+                  slotProps={{
+                    htmlInput: {
+                      maxLength: userSchema.MAX_LENGTH_LAST_NAME
+                    }
                   }}
-                  inputProps={{ maxLength: 100 }}
                   size='small'
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -560,7 +557,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                       }
                     }}
                   >
-                    {(user?.lastName?.length ?? 0)} / 100
+                    {(user?.lastName?.length ?? 0)} / {userSchema.MAX_LENGTH_LAST_NAME}
                   </Typography>
                 </Box>
               </Grid>
@@ -616,24 +613,28 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                       handleUserChange?.({ email: cleaned });
                       validateField("email", cleaned);
                     }}
-                    inputProps={{ maxLength: 100 }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            edge="end"
-                            onClick={() => {
-                              if (user?.email) {
-                                navigator.clipboard.writeText(user.email);
-                                notify("Correo copiado al portapapeles.", "info");
-                              }
-                            }}
-                            disabled={!!errors.email || !user?.email || loading}
-                          >
-                            <ContentCopyIcon fontSize="small" />
-                          </IconButton>
-                        </InputAdornment>
-                      ),
+                    slotProps={{
+                      htmlInput: {
+                        maxLength: userSchema.MAX_LENGTH_EMAIL
+                      },
+                      input: {
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              edge="end"
+                              onClick={() => {
+                                if (user?.email) {
+                                  navigator.clipboard.writeText(user.email);
+                                  notify("Correo copiado al portapapeles.", "info");
+                                }
+                              }}
+                              disabled={!!errors.email || !user?.email || loading}
+                            >
+                              <ContentCopyIcon fontSize="small" />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }
                     }}
                     sx={{
                       flex: 1,
@@ -687,7 +688,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                         }
                       }}
                     >
-                      {user?.email?.length ?? 0} / 100
+                      {user?.email?.length ?? 0} / {userSchema.MAX_LENGTH_EMAIL}
                     </Typography>
                   </Box>
                 </Box>
@@ -726,59 +727,63 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     validateField("password", e.target.value);
                   }}
                   onBlur={(e) => validateField("password", e.target.value)}
-                  inputProps={{ maxLength: 8 }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          edge="end"
-                          onClick={() => setShowPassword(!showPassword)}
-                          title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                        >
-                          {showPassword ? (
-                            <VisibilityOffIcon fontSize="small" />
-                          ) : (
-                            <VisibilityIcon fontSize="small" />
-                          )}
-                        </IconButton>
+                  slotProps={{
+                    htmlInput: {
+                      maxLength: userSchema.MAX_LENGTH_PASSWORD
+                    },
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            edge="end"
+                            onClick={() => setShowPassword(!showPassword)}
+                            title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                          >
+                            {showPassword ? (
+                              <VisibilityOffIcon fontSize="small" />
+                            ) : (
+                              <VisibilityIcon fontSize="small" />
+                            )}
+                          </IconButton>
 
-                        <IconButton
-                          edge="end"
-                          disabled={loading}
-                          onClick={() => {
-                            const password = generateSecurePassword();
-                            handleUserChange?.({ password });
-                            validateField("password", password);
-                            notify("Contraseña segura generada correctamente.", "info");
-                          }}
-                          title="Generar contraseña segura"
-                          sx={{
-                            ml: 1
-                          }}
-                        >
-                          <AutorenewIcon fontSize="small" />
-                        </IconButton>
+                          <IconButton
+                            edge="end"
+                            disabled={loading}
+                            onClick={() => {
+                              const password = generateSecurePassword();
+                              handleUserChange?.({ password });
+                              validateField("password", password);
+                              notify("Contraseña segura generada correctamente.", "info");
+                            }}
+                            title="Generar contraseña segura"
+                            sx={{
+                              ml: 1
+                            }}
+                          >
+                            <AutorenewIcon fontSize="small" />
+                          </IconButton>
 
-                        <IconButton
-                          edge="end"
-                          disabled={!isPasswordValid || loading}
-                          onClick={() => {
-                            if (user?.password) {
-                              navigator.clipboard.writeText(user.password);
-                              notify("Contraseña copiada al portapapeles.", "info");
-                            } else {
-                              notify("No hay contraseña para copiar", "warning");
-                            }
-                          }}
-                          title="Copiar contraseña"
-                          sx={{
-                            ml: 1
-                          }}
-                        >
-                          <ContentCopyIcon fontSize="small" />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
+                          <IconButton
+                            edge="end"
+                            disabled={!isPasswordValid || loading}
+                            onClick={() => {
+                              if (user?.password) {
+                                navigator.clipboard.writeText(user.password);
+                                notify("Contraseña copiada al portapapeles.", "info");
+                              } else {
+                                notify("No hay contraseña para copiar", "warning");
+                              }
+                            }}
+                            title="Copiar contraseña"
+                            sx={{
+                              ml: 1
+                            }}
+                          >
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -833,7 +838,7 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                       }
                     }}
                   >
-                    {(user?.password?.length ?? 0)} / 8
+                    {(user?.password?.length ?? 0)} / {userSchema.MAX_LENGTH_PASSWORD}
                   </Typography>
                 </Box>
 

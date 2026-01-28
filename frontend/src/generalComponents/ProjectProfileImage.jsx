@@ -4,13 +4,12 @@ import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import React, { memo, useEffect } from "react";
 
 
-const ProjectProfileImageComponent = ({ fallbackLetter, src, boxShadow= false, sx }) => {
+const ProjectProfileImageComponent = ({ fallbackLetter, src, project, sx }) => {
 
-  console.log("xssssss", src);
+  const finalSrc = src || project?.image_url || null ;
 
-  useEffect(() => {
-      },[fallbackLetter]);
-   
+  console.log("final srce", finalSrc)
+ 
   return (
     <Box
       sx={{
@@ -23,7 +22,7 @@ const ProjectProfileImageComponent = ({ fallbackLetter, src, boxShadow= false, s
       }}
     >
       <Avatar
-        src={src}
+        src={finalSrc}
         sx={{
           width: '100%',
           height: '100%',

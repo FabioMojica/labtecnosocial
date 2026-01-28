@@ -1,28 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Box, Typography, IconButton, Tooltip, Avatar } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditProjectModal from './EditProjectModal.jsx';
-import RenderAvatar from '../../../../generalComponents/RenderAvatar.jsx';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useTheme } from '@emotion/react';
-
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
+import { useNavigate } from 'react-router-dom';
+import { useNavigationGuard } from '../../../../hooks/useBlockNavigation.js';
 
 const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
-  const [pressTimer, setPressTimer] = useState(null);
   const theme = useTheme();
-
-  const handleMouseDown = () => {
-    const timer = setTimeout(() => {
-      window.open(`/proyectos/${project.id}`, '_blank');
-    }, 2000);
-    setPressTimer(timer);
-  };
-
-  const handleMouseUp = () => {
-    clearTimeout(pressTimer);
-  };
+  const { handleNavigate } = useNavigationGuard();
 
   if (!project) return null;
   const [showViewProject, setShowViewProject] = useState(false);
@@ -55,7 +42,7 @@ const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
         cursor: 'pointer',
         border: theme.palette.mode === "light"
           ? `1px solid #b9c0b3ff`
-          : "1px solid #e0e0e0", 
+          : "1px solid #e0e0e0",
         boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
         position: 'relative'
       }}
@@ -66,7 +53,7 @@ const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
 
           <Avatar
-            src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
+            src={project.image_url || null}
             sx={{
               width: 46,
               height: 46,
@@ -158,25 +145,19 @@ const ProjectItem = ({ project, onClick, onDelete, onView, onEdit }) => {
             <DeleteIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Ir al proyecto, pulsa por 2 segundos">
+        <Tooltip title="Ir al proyecto">
           <IconButton
             size="small"
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              handleMouseDown();
+            onClick={() => {
+              handleNavigate(`/proyecto/${project?.name}`, { id: project?.id });
             }}
-            onMouseUp={(e) => {
-              e.stopPropagation();
-              handleMouseUp();
-            }}
-            onMouseLeave={handleMouseUp}
             sx={{ position: 'absolute', top: 4, right: 4 }}
           >
             <OpenInNewIcon fontSize="small" />
           </IconButton>
         </Tooltip>
 
-      </Box> 
+      </Box>
 
       <EditProjectModal
         open={showViewProject}

@@ -32,7 +32,7 @@ export const NotFoundPage = () => {
       <Button
         variant="contained"
         color="primary"
-        onClick={() => navigate(-1)}
+        onClick={() => navigate(-1, {replace: true})}
         sx={{
           px: 4,
           py: 1.5,

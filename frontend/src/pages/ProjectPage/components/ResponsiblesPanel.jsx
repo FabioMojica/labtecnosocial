@@ -316,11 +316,6 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                                 <Box
                                     sx={{
                                         flexGrow: 1,
-                                        overflowY: 'auto',
-                                        "&::-webkit-scrollbar": { width: "2px" },
-                                        "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
-                                        "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
-                                        "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
                                         display: 'flex',
                                         flexDirection: 'column',
                                         gap: 1,

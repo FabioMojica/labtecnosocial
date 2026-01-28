@@ -268,7 +268,7 @@ export const getUserByEmail = async (req, res) => {
     const createdUsersData = createdUsers?.map(u => ({
       id: u.id,
       firstName: u.firstName,
-      lastName: u.lastName, 
+      lastName: u.lastName,
       email: u.email,
       role: u.role,
       state: u.state,
@@ -311,19 +311,19 @@ export const updateUser = async (req, res) => {
       role,
       state,
       email: newEmail,
-      image_url,
       newPassword,
+      image_url,
       password,
       oldPassword,
-      created_by
     } = req.body;
 
-    console.log(newPassword, oldPassword)
+    const requester = req.user;
 
     const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOneBy({ email: originalEmail });
+    const reqUser = await userRepository.findOneBy({ email: requester?.email });
 
-    if (!user) {
+    if (!user || !reqUser) {
       return (
         errorResponse(
           res,
@@ -334,7 +334,6 @@ export const updateUser = async (req, res) => {
       );
     }
 
-    const requester = req.user;
 
     if (!ALLOWED_ROLES.rolesArray.includes(requester.role)) {
       return (
@@ -352,6 +351,17 @@ export const updateUser = async (req, res) => {
     const isSuperAdmin = requester.role === ALLOWED_ROLES.superAdmin;
     const isUser = requester.role === ALLOWED_ROLES.user;
     const isOwnProfile = requester.email === user.email;
+
+    if (isAdmin && user?.role === ALLOWED_ROLES.admin) {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'No tienes permisos para modificar este perfil.',
+          403,
+        )
+      );
+    }
 
     if (!isAdmin && !isSuperAdmin && !isOwnProfile) {
       return (
@@ -425,35 +435,59 @@ export const updateUser = async (req, res) => {
 
       if (newPassword && oldPassword && newPassword.trim() !== '') {
         if (!oldPassword || oldPassword.trim() === '') {
+          let message;
+          if (isSuperAdmin) {
+            message = "No se envió la contraseña de tu cuenta"
+          } else {
+            message = 'No se envió la contraseña antigua del usuario.'
+          }
           return (
             errorResponse(
               res,
               ERROR_CODES.VALIDATION_ERROR,
-              'No se envió la contraseña antigua del usuario.',
+              message,
               400,
             )
           );
         }
 
-        const isMatch = await bcrypt.compare(oldPassword, user.password);
-        if (!isMatch) {
-          return (
-            errorResponse(
-              res,
-              ERROR_CODES.VALIDATION_ERROR,
-              'La contraseña antigua no coincide.',
-              400,
-            )
-          );
-        }
+        if (isSuperAdmin) {
+          const isMatch = await bcrypt.compare(oldPassword, reqUser.password);
+          if (!isMatch) {
+            return (
+              errorResponse(
+                res,
+                ERROR_CODES.VALIDATION_ERROR,
+                'La contraseña de tu cuenta no coincide.',
+                400,
+              )
+            );
+          }
 
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
-        sessionShouldInvalidate = true;
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(newPassword, salt);
+          sessionShouldInvalidate = true;
+        } else {
+          const isMatch = await bcrypt.compare(oldPassword, user.password);
+          if (!isMatch) {
+            return (
+              errorResponse(
+                res,
+                ERROR_CODES.VALIDATION_ERROR,
+                'La contraseña antigua no coincide.',
+                400,
+              )
+            );
+          }
+
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(newPassword, salt);
+          sessionShouldInvalidate = true;
+        }
       }
     }
 
-    const imagePath = req.file?.optimizedPath || null;
+    const imagePath = req.file?.optimizedPath;
 
     if (imagePath) {
       if (user.image_url) {
@@ -466,7 +500,10 @@ export const updateUser = async (req, res) => {
         });
       }
       user.image_url = imagePath;
-    } else if (imagePath === null || imagePath === undefined) {
+    } else if (
+      image_url === null ||
+      image_url === "null"
+    ) {
       if (user.image_url) {
         const oldImage = user.image_url.startsWith('/uploads/')
           ? user.image_url.slice(9)
@@ -491,23 +528,32 @@ export const updateUser = async (req, res) => {
         projectResponsibles: {
           operationalProject: true
         },
-        creator: true
+        creator: true,
+        createdUsers: true,
       }
     });
 
-    const { creator } = userWithProjects;
+    const { creator, createdUsers } = userWithProjects;
 
-    const responsibleData = creator
-      ? {
-        id: creator.id,
-        firstName: creator.firstName,
-        lastName: creator.lastName,
-        email: creator.email,
-        role: creator.role,
-        state: creator.state,
-        image_url: creator.image_url,
-      }
-      : null;
+    const responsibleData = {
+      id: creator?.id,
+      firstName: creator?.firstName,
+      lastName: creator?.lastName,
+      email: creator?.email,
+      role: creator?.role,
+      state: creator?.state,
+      image_url: creator?.image_url,
+    } || null;
+
+    const createdUsersData = createdUsers?.map(u => ({
+      id: u.id,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+      role: u.role,
+      state: u.state,
+      image_url: u.image_url,
+    })) ?? [];
 
     const assignedProjects = userWithProjects.projectResponsibles.map(pr => pr.operationalProject);
     const { password: _, projectResponsibles, ...userWithoutPassword } = userWithProjects;
@@ -518,6 +564,7 @@ export const updateUser = async (req, res) => {
         {
           ...userWithoutPassword,
           createdBy: responsibleData,
+          createdUsers: createdUsersData,
           projects: assignedProjects
         },
         'Usuario actualizado exitosamente.',
@@ -668,7 +715,7 @@ export const deleteUserByEmail = async (req, res) => {
         );
       }
 
-      if (userToDelete.role === ALLOWED_ROLES.admin) {
+      if (userToDelete.role === ALLOWED_ROLES.admin || userToDelete.role === ALLOWED_ROLES.user) {
         const queryRunner = AppDataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();

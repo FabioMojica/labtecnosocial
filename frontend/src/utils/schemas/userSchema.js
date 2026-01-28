@@ -1,0 +1,11 @@
+export const userSchema = {
+    MAX_LENGTH_FIRST_NAME: 100,
+    MIN_LENGTH_FIRST_NAME: 3,
+
+    MAX_LENGTH_LAST_NAME: 100,
+    MIN_LENGTH_LAST_NAME: 3,
+
+    MAX_LENGTH_EMAIL: 100,
+
+    MAX_LENGTH_PASSWORD: 8,
+}

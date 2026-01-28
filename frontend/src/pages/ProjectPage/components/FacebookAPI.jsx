@@ -39,7 +39,6 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
     const [tooltipContent, setTooltipContent] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
 
-    const [isEditing, setIsEditing] = useState(false);
     const [tempSelected, setTempSelected] = useState(null);
     const initialSelectedRef = useRef([]);
 
@@ -52,19 +51,8 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
         initialSelectedRef.current = facebookIntegrationInitial;
     }, [facebookIntegration]);
 
-    const handleEditToggle = () => {
-        if (isEditing) {
-            setTempSelected(initialSelectedRef.current);
-            setIsEditing(false);
-            onChange({ intAnadidos: [], intEliminados: [] });
-        } else {
-            setIsEditing(true);
-        }
-    };
-
     useEffect(() => { 
         setTempSelected(initialSelectedRef.current);
-        setIsEditing(false);
         onChange({ intAnadidos: [], intEliminados: [] });
     }, [resetTrigger]);
 
@@ -77,7 +65,7 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
                 platform: "facebook"
             }));
             setPages(pagesWithPlatform);
-            setFilteredPages(pagesWithPlatform);
+            setFilteredPages(pagesWithPlatform); 
             setError(false);
         } catch (err) {
             setError(true);
@@ -88,8 +76,6 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
 
 
     const handleTogglePage = (page) => {
-        if (!isEditing) return;
-
         let newTempSelected = null;
 
         if (tempSelected?.id === page.id) {
@@ -97,9 +83,6 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
         } else {
             newTempSelected = page;
         }
-
-        console.log("temp", tempSelected);
-        console.log("New temp", newTempSelected);
 
         setTempSelected(newTempSelected);
 
@@ -148,14 +131,6 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
                     <FacebookIcon sx={{ fontSize: 40, color }} />
                     <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
                 </Box>
-
-                {!error && !loading && pages.length !== 0 &&
-                    <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
-                        <IconButton size="small" onClick={handleEditToggle}>
-                            {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
-                        </IconButton>
-                    </Tooltip>
-                }
             </Box>
 
             {loading ? (
@@ -185,7 +160,6 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
                                 }}
                             >
                                 <Chip
-                                    disabled={!isEditing}
                                     label={tempSelected?.name}
                                     onDelete={() => handleTogglePage(tempSelected)}
                                     color="primary"
@@ -229,7 +203,7 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
                                     const handleOpenPage = (e) => { e.stopPropagation(); window.open(page.url, "_blank"); };
 
                                     return (
-                                        <ListItemButton disabled={!isEditing} key={page.id} onContextMenu={(e) => handleContextMenu(e, page)} onClick={() => handleTogglePage(page)} sx={{ "&:hover": { backgroundColor: "action.hover" }, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', pr: 0, position: 'relative' }}>
+                                        <ListItemButton key={page.id} onContextMenu={(e) => handleContextMenu(e, page)} onClick={() => handleTogglePage(page)} sx={{ "&:hover": { backgroundColor: "action.hover" }, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', pr: 0, position: 'relative' }}>
                                             <IconButton size="small" onClick={handleOpenPage} sx={{ position: 'absolute', top: -3, left: -3 }}>
                                                 <OpenInNewIcon sx={{ fontSize: '1rem' }} />
                                             </IconButton>

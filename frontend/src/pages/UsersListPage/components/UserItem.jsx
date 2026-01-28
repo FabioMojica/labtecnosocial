@@ -8,8 +8,6 @@ import FolderCopyRoundedIcon from '@mui/icons-material/FolderCopyRounded';
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 import { formatDate, formatDateParts } from "../../../utils/formatDate";
 
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
-
 const RightStat = ({ icon, value, label }) => (
     <Box
         sx={{
@@ -44,7 +42,7 @@ export const UserItem = ({ user, onClick }) => {
     const [imgError, setImgError] = useState(false);
 
     const finalSrc =
-        (user.image_url ? `${API_UPLOADS}${user.image_url}` : null);
+        (user?.image_url || null);
 
     useEffect(() => {
         setImgError(false);

@@ -164,7 +164,7 @@ export const login = async (req, res) => {
         errorResponse(
           res,
           ERROR_CODES.USER_NOT_FOUND,
-          'Usuario no encontrado en el sistema.',
+          'Cuenta no encontrada.',
           401,
         )
       );

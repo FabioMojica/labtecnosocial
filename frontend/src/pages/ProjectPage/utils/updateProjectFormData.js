@@ -8,10 +8,10 @@ export function updateProjectFormData(projectData) {
 
     if (projectData.program?.id) formData.append("program_id", projectData.program.id);
 
-    if (projectData.image_file instanceof File) {
-        formData.append("file", projectData.image_file);
-    } else if (projectData.image_url === "" || projectData.image_url === null) {
-        formData.append("image_url", "");
+    if (projectData.image_url instanceof File) {
+        formData.append("file", projectData.image_url);  
+    } else if (projectData.image_url === null){
+        formData.append("image_url", null)
     }
 
     if (Array.isArray(projectData.preEliminados) && projectData.preEliminados.length > 0) {

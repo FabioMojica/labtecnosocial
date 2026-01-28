@@ -2,8 +2,7 @@ import { Box, Divider, Paper, Typography, useTheme } from "@mui/material";
 import { ProjectProfileImage } from "./ProjectProfileImage";
 import { useHeaderHeight } from "../contexts";
 import React, { memo, useEffect, useState } from "react";
-
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
+import { formatDateParts } from "../utils/formatDate";
 
 export const ProjectImageDates = ({
     project,
@@ -12,7 +11,7 @@ export const ProjectImageDates = ({
     overlayText = "Ir al proyecto",
     changeImage = false,
     fallbackLetter,
-    onChangeImage, 
+    onChangeImage,
     previewImage,
     ...rest
 }) => {
@@ -22,18 +21,22 @@ export const ProjectImageDates = ({
     const theme = useTheme();
 
     useEffect(() => {
-    if (project.image_file) {
-        const url = URL.createObjectURL(project.image_file);
-        setPreviewSrc(url);
-        return () => URL.revokeObjectURL(url);
-    } else {
-        setPreviewSrc(project.image_url ? `${API_UPLOADS}${encodeURI(project.image_url)}` : undefined);
-    }
-}, [project.image_file, project.image_url]);
+        if (!project?.image_url) {
+            setPreviewSrc(null);
+            return;
+        }
 
+        if (project.image_url instanceof File || project.image_url instanceof Blob) {
+            const url = URL.createObjectURL(project.image_url);
+            setPreviewSrc(url);
+            return () => URL.revokeObjectURL(url);
+        }
 
-    useEffect(() => {
-    },[project, fallbackLetter]);
+        if (typeof project.image_url === "string") {
+            setPreviewSrc(project.image_url);
+        }
+    }, [project?.image_url]);
+
 
     return (
         <Box
@@ -67,9 +70,8 @@ export const ProjectImageDates = ({
                     ...sx
                 }}
             >
-
                 <ProjectProfileImage
-                    project={project} 
+                    project={project}
                     fallbackLetter={fallbackLetter}
                     src={previewSrc}
                     sx={{
@@ -127,17 +129,18 @@ export const ProjectImageDates = ({
                 >
                     <Box
                         sx={{
-                            textAlign: 'center',
+                            textAlign: "center",
                             flex: 1,
-                            transition: 'transform 0.2s',
-                            '&:hover': {
-                                transform: 'scale(1.05)',
-                            },
                         }}
                     >
-                        <Typography variant="subtitle2" color="textSecondary">Creado</Typography>
+                        <Typography variant="subtitle2" color="textSecondary">
+                            Creado
+                        </Typography>
                         <Typography variant="body2">
-                            {new Date(project.created_at ?? Date.now()).toLocaleDateString()}
+                            {formatDateParts(project?.created_at).date}
+                        </Typography>
+                        <Typography variant="body2">
+                            {formatDateParts(project?.created_at).time}
                         </Typography>
                     </Box>
 
@@ -145,18 +148,19 @@ export const ProjectImageDates = ({
 
                     <Box
                         sx={{
-                            textAlign: 'center',
+                            textAlign: "center",
                             flex: 1,
-                            transition: 'transform 0.2s ease',
-                            '&:hover': {
-                                transform: 'scale(1.05)',
-                            },
+                            cursor: 'default'
                         }}
                     >
-                        <Typography variant="subtitle2" color="textSecondary">Actualizado</Typography>
-
+                        <Typography variant="subtitle2" color="textSecondary">
+                            Actualizado
+                        </Typography>
                         <Typography variant="body2">
-                            {new Date(project.updated_at ?? Date.now()).toLocaleDateString()}
+                            {formatDateParts(project?.updated_at).date}
+                        </Typography>
+                        <Typography variant="body2">
+                            {formatDateParts(project?.updated_at).time}
                         </Typography>
                     </Box>
                 </Paper>

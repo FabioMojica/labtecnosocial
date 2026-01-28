@@ -5,7 +5,6 @@ const EDITABLE_FIELDS = [
   "role",
   "state",
   "image_url",
-  "image_file",
 ];
 
 export const getChangedFields = (current, original) => {
@@ -18,7 +17,7 @@ export const getChangedFields = (current, original) => {
     // imagen nueva
     if (currentValue instanceof File) {
       changes[key] = currentValue;
-      return;
+      return; 
     }
 
     // borrar imagen

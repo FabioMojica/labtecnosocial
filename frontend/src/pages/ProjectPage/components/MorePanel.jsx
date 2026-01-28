@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, IconButton, List, ListItem, ListItemText, Paper, TextField, Tooltip, Typography } from "@mui/material";
 import { useHeaderHeight, useNotification } from "../../../contexts";
 import { useFetchAndLoad } from "../../../hooks";
@@ -10,11 +10,10 @@ import { Link as MuiLink } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { slugify } from "../../../utils/slugify";
 import FolderDeleteIcon from '@mui/icons-material/FolderDelete';
-import InfoIcon from '@mui/icons-material/Info';
+import { useDrawerClosedWidth } from "../../../utils";
 
 
-
-export const MorePanel = ({ project, panelHeight }) => {
+export const MorePanel = ({ project, panelHeight, isActive }) => {
     if (!project) return;
     const { headerHeight } = useHeaderHeight();
     const { loading, callEndpoint } = useFetchAndLoad();
@@ -22,6 +21,14 @@ export const MorePanel = ({ project, panelHeight }) => {
     const [inputName, setInputName] = useState('');
     const inputRef = useRef(null);
     const navigate = useNavigate();
+    const drawerWidth = useDrawerClosedWidth();
+    
+    useEffect(() => {
+        if (!isActive) {
+            setInputName('');
+            inputRef.current?.blur();
+        }
+    }, [isActive]);
 
 
     if (loading) return <FullScreenProgress text="Borrando el proyecto" />;
@@ -41,19 +48,17 @@ export const MorePanel = ({ project, panelHeight }) => {
     return (
         <Box
             sx={{
-                width: "100%",
                 height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
                 maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
                 maxWidth: {
                     xs: '100vw',
-                    lg: '100%',
+                    lg: `calc(100vw - ${drawerWidth}px)`,
                 },
-                p: 1,
                 display: "flex",
                 flexDirection: "column",
                 gap: 1,
                 maxHeight: 1000,
-                position: 'absolute'
+                p: 1
             }}
         >
             <Paper elevation={3} sx={{ padding: 1, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -216,7 +221,8 @@ export const MorePanel = ({ project, panelHeight }) => {
                             variant="contained"
                             backgroundButton={theme => theme.palette.error.main}
                             sx={{
-                                color: 'white', px: 2,
+                                color: 'white',
+                                px: 2,
                                 width: {
                                     xs: 100,
                                     lg: 170

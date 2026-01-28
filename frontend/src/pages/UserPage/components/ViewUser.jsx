@@ -19,24 +19,18 @@ import {
 import { roleConfig } from "../../../utils";
 
 import EditIcon from '@mui/icons-material/Edit';
-import { EditProfileModal } from "./EditProfileModal";
 import { getUserIcons, getRoleAndStateData } from "../../../utils/getRoleAndStateData";
 import { useNavigate } from "react-router-dom";
+import { EditProfileDialog } from "./EditProfileDialog";
 
 export const ViewUser = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
     const { headerHeight } = useHeaderHeight();
     const [modalEditProfileOpen, setModalEditProfileOpen] = useState(false);
     const { selected } = getRoleAndStateData(user);
-    const { selected: selectedCreator } = getRoleAndStateData(user?.createdBy);
-    const theme = useTheme();
     const { isSuperAdmin, isAdmin, isUser } = useAuth();
     const navigate = useNavigate();
 
-
     let RoleIconUser = selected.role.icon;
-    let RoleIconCreator = selectedCreator.role.icon;
-
-
     let canEditProfile = false;
 
     if (isOwnProfile) {
@@ -50,29 +44,19 @@ export const ViewUser = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
     } else if (isUser) {
         canEditProfile = false;
     } else {
-        return;
+        return; 
     }
 
     let showCreatedUsers = false;
 
-    if (isOwnProfile) {
-        if(isAdmin || isSuperAdmin) showCreatedUsers = true;
-    } else if (isSuperAdmin || isAdmin) {
-        if (user?.role !== roleConfig.user.value) {
-            showCreatedUsers = true;
-        }
-    } else if (isUser) {
-        if (user?.role !== roleConfig.user.value) {
-            showCreatedUsers = true;
-        }
-    } else {
-        return;
+    if (user?.createdUsers?.length > 0) {
+        showCreatedUsers = true;
     }
 
     return (
         <Grid
             container
-            rowSpacing={1}
+            rowSpacing={1} 
             columnSpacing={3}
             sx={{
                 width: "100%",
@@ -312,16 +296,18 @@ export const ViewUser = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
                         marginY={1}
                     >
                         {Array(1).fill(user?.projects || []).flat().map((project, index) => (
-                            <Paper sx={{
-                                p: 1,
-                                borderRadius: 2,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                gap: 1,
-                            }}>
+                            <Paper
+                                key={index}
+                                sx={{
+                                    p: 1,
+                                    borderRadius: 2,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                }}>
                                 <Avatar
                                     title={project?.name}
                                     key={`${project.name}-${index}`}
@@ -356,18 +342,19 @@ export const ViewUser = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
                             color: "gray",
                             fontStyle: "italic",
                             fontSize: "0.9rem",
+                            mb: 10
                         }}
                     >
-                        Este usuario no tiene proyectos asignados
+                        {isOwnProfile ? "No tienes proyectos asignados" : "Este usuario no tiene proyectos asignados"}
                     </Typography>
                 )}
             </Grid>
 
-            { showCreatedUsers &&
+            {showCreatedUsers && 
                 <>
                     <Divider sx={{ width: '100%' }} />
 
-                    <Grid columns={12} sx={{ width: '100%', mt: 1 , pb: 20}}>
+                    <Grid columns={12} sx={{ width: '100%', mt: 1, pb: 20 }}>
                         <Typography variant="h5" fontWeight="bold" mb={1}>
                             Usuarios creados
                             <Typography component="span" color="text.secondary">
@@ -385,16 +372,21 @@ export const ViewUser = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
                             >
                                 {
                                     Array(1).fill(user?.createdUsers || []).flat().map((u, index) => (
-                                        <Paper sx={{
-                                            p: 1,
-                                            borderRadius: 2,
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            gap: 1
-                                        }}>
+                                        <Paper
+                                            onClick={() => {
+                                                navigate(`/usuario/${encodeURIComponent(u?.email)}`)
+                                            }}
+                                            key={`${u?.id}-${index}`}
+                                            sx={{
+                                                p: 1,
+                                                borderRadius: 2,
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                gap: 1,
+                                            }}>
                                             <Box
                                                 sx={{
                                                     position: 'relative',
@@ -439,15 +431,15 @@ export const ViewUser = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
                             </Stack>
                         ) : (
                             <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', fontSize: '0.9rem' }}>
-                                Este usuario no ha creado otros usuarios
+                                {isOwnProfile ? "No has creado ningún usuario" : "Este usuario no ha creado otros usuarios"}
                             </Typography>
                         )}
                     </Grid>
                 </>}
-            
+
 
             {user &&
-                <EditProfileModal
+                <EditProfileDialog
                     userProfile={user}
                     open={modalEditProfileOpen}
                     onClose={() => setModalEditProfileOpen(false)}

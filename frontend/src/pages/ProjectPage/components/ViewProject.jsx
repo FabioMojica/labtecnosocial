@@ -10,64 +10,28 @@ import {
     useTheme,
     Paper,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth, useHeaderHeight } from "../../../contexts";
 
 import {
-    UserImageDates,
+    ProjectImageDates,
 } from "../../../generalComponents";
-import { roleConfig } from "../../../utils";
+import { integrationsConfig, roleConfig } from "../../../utils";
 
 import EditIcon from '@mui/icons-material/Edit';
-import { EditProfileModal } from "./EditProfileModal";
-import { getUserIcons, getRoleAndStateData } from "../../../utils/getRoleAndStateData";
+import { EditProjectDialog } from "./EditProjectDialog";
 import { useNavigate } from "react-router-dom";
 
-export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
+export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) => {
     const { headerHeight } = useHeaderHeight();
-    const [modalEditProfileOpen, setModalEditProfileOpen] = useState(false);
-    const { selected } = getRoleAndStateData(user);
-    const { selected: selectedCreator } = getRoleAndStateData(user?.createdBy);
-    const theme = useTheme();
-    const { isSuperAdmin, isAdmin, isUser } = useAuth();
+    const [project, setProject] = useState(projectData);
+    console.log("alalal", project)
+    const [modalEditProjectOpen, setModalEditProjectpen] = useState(false);
     const navigate = useNavigate();
 
-
-    let RoleIconUser = selected.role.icon;
-    let RoleIconCreator = selectedCreator.role.icon;
-
-
-    let canEditProfile = false;
-
-    if (isOwnProfile) {
-        canEditProfile = true;
-    } else if (isSuperAdmin) {
-        canEditProfile = true;
-    } else if (isAdmin) {
-        if (user?.role === roleConfig.user.value) {
-            canEditProfile = true;
-        }
-    } else if (isUser) {
-        canEditProfile = false;
-    } else {
-        return;
-    }
-
-    let showCreatedUsers = false;
-
-    if (isOwnProfile) {
-        if(isAdmin || isSuperAdmin) showCreatedUsers = true;
-    } else if (isSuperAdmin || isAdmin) {
-        if (user?.role !== roleConfig.user.value) {
-            showCreatedUsers = true;
-        }
-    } else if (isUser) {
-        if (user?.role !== roleConfig.user.value) {
-            showCreatedUsers = true;
-        }
-    } else {
-        return;
-    }
+    useEffect(() => {
+        setProject(projectData);
+    }, [projectData])
 
     return (
         <Grid
@@ -81,10 +45,11 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                 maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
                 p: 1,
                 position: 'relative',
+                maxWidth: '100vw'
             }}
         >
             {
-                user && canEditProfile &&
+                true &&
                 <IconButton sx={{
                     position: 'absolute',
                     top: 20,
@@ -93,9 +58,9 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                     zIndex: 500
                 }}
 
-                    onClick={() => setModalEditProfileOpen(true)}
+                    onClick={() => { setModalEditProjectpen(true) }}
                 >
-                    <Tooltip title="Editar perfil">
+                    <Tooltip title="Editar proyecto">
                         <EditIcon fontSize="large"></EditIcon>
                     </Tooltip>
                 </IconButton>
@@ -115,7 +80,7 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                     },
                     pointerEvents: 'none'
                 }}>
-                <UserImageDates
+                <ProjectImageDates
                     sx={{
                         height: '100%',
                         width: {
@@ -126,7 +91,8 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                         maxHeight: 500,
                         cursor: "pointer"
                     }}
-                    user={user}
+                    project={project}
+                    fallbackLetter={(project?.name)?.trim().charAt(0)?.toUpperCase()}
                 />
 
             </Grid>
@@ -143,9 +109,7 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
             >
                 <Box sx={{ width: '100%' }}>
                     <Typography variant="h6" fontWeight="bold">
-                        {
-                            isOwnProfile ? "Tus datos personales" : "Datos del usuario"
-                        }
+                        Información del proyecto
                     </Typography>
                     <Typography
                         variant="h4"
@@ -154,10 +118,10 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                             lineHeight: 1.2,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            whiteSpace: { xs: 'normal', sm: 'nowrap' },
+                            whiteSpace: { xs: 'normal' },
                         }}
                     >
-                        {user?.firstName} {user?.lastName}
+                        {project?.name}
                     </Typography>
 
                     <Typography
@@ -165,145 +129,243 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                         sx={{
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
                         }}
                     >
-                        {user?.email}
+                        {project?.description}
                     </Typography>
-
                 </Box>
-
                 <Divider sx={{ width: '100%' }} />
-
-                <Box>
-                    <Typography variant="h6" fontWeight="bold">
-                        Rol y estado
-                    </Typography>
+                <Typography variant="h6" fontWeight="bold">
+                    Programa
+                </Typography>
+                {project?.program ? (
                     <Stack direction="row" spacing={1}>
                         <Box
                             sx={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 0.8,
                                 px: 1.5,
-                                py: 0.6,
+                                py: 1,
                                 borderRadius: 2,
-                                bgcolor: "primary.main",
-                                color: "primary.contrastText",
+                                bgcolor: 'background.paper',
+                                boxShadow: 3,
                                 fontWeight: 500,
                                 fontSize: "0.85rem",
+                                fontWeight: 'bold',
                                 display: 'flex',
-                                alignItems: 'center'
+                                gap: 1,
+                                alignItems: 'center',
+                                cursor: 'pointer'
+                            }}
+                            onClick={() => {
+                                navigate(`/planificacion-estrategica/${encodeURIComponent(project?.program?.objective?.strategicPlan?.year)}`)
                             }}
                         >
-                            <RoleIconUser icon={selected.role.icon} />
-                            {selected.role.label}
-                        </Box>
-                        <Box
-                            sx={{
-                                px: 1.5,
-                                py: 0.5,
-                                borderRadius: 2,
-                                bgcolor: selected?.state?.color,
-                                color: "#fff",
-                                fontWeight: 500,
-                                fontSize: "0.85rem",
-                                display: 'flex',
-                                alignItems: 'center'
-                            }}
-                        >
-                            {selected.state.label}
-                        </Box>
-                    </Stack>
-                </Box>
-
-                {user?.role !== roleConfig.superAdmin.value &&
-                    <>
-                        <Divider sx={{ width: '100%' }} />
-                        <Box>
-                            <Typography variant="h6" fontWeight="bold">
-                                Creado por:
-                            </Typography>
-                            <Stack direction="row" spacing={1}>
-                                <Box
-                                    sx={{
-                                        px: 1.5,
-                                        py: 1,
-                                        borderRadius: 2,
-                                        bgcolor: 'background.paper',
-                                        boxShadow: 3,
-                                        fontWeight: 500,
-                                        fontSize: "0.85rem",
-                                        fontWeight: 'bold',
-                                        display: 'flex',
-                                        gap: 1,
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }}
-                                    onClick={() => {
-                                        navigate(`/usuario/${encodeURIComponent(user?.createdBy?.email)}`)
-                                    }}
-                                >
-                                    <Box
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: 250, maxWidth: 300 }}>
+                                {/* Plan estratégico */}
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    <Typography variant="body1" fontWeight="bold" sx={{ flexShrink: 0 }} lineHeight={1}>
+                                        🧭 Plan estratégico:
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        lineHeight={1}
                                         sx={{
-                                            position: 'relative',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                            flexGrow: 1,
                                         }}
                                     >
-                                        <Avatar
-                                            src={user?.createdBy?.image_url || null}
-                                            sx={{
-                                                width: 38,
-                                                height: 38,
-                                                borderRadius: 2,
-                                                boxShadow: (theme) =>
-                                                    theme.palette.mode === 'light'
-                                                        ? '0 0 0 1px rgba(0,0,0,0.3)'
-                                                        : '0 0 0 1px rgba(255,255,255,0.3)',
-                                            }}
-                                            title={user?.createdBy?.firstName}
-                                        >
-                                            {user?.createdBy?.firstName[0]}{user?.createdBy?.lastName[0]}
-                                        </Avatar>
-                                        {(() => {
-                                            const { RoleIcon } = getUserIcons(user);
-                                            return (
-                                                <RoleIcon
-                                                    sx={{
-                                                        position: 'absolute',
-                                                        bottom: -4,
-                                                        right: -10,
-                                                        fontSize: 20
-                                                    }}
-                                                />
-                                            );
-                                        })()}
-                                    </Box>
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: 300 }}>
-                                        <Typography variant="caption" fontWeight={'bold'} textOverflow={'ellipsis'} noWrap>
-                                            {user?.createdBy?.firstName} {user?.createdBy?.lastName}
-                                        </Typography>
-                                        <Typography variant="caption" textOverflow={'ellipsis'} noWrap>
-                                            {user?.createdBy?.email}
-                                        </Typography>
-                                    </Box>
+                                        {project?.program?.objective?.strategicPlan?.year}
+                                    </Typography>
                                 </Box>
-                            </Stack>
+                                <Divider />
+
+                                {/* Objetivo */}
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    <Typography variant="body1" fontWeight="bold" sx={{ flexShrink: 0 }} lineHeight={1}>
+                                        🎯 Objetivo:
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        fontWeight="bold"
+                                        lineHeight={1}
+                                        sx={{
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                            flexGrow: 1,
+                                        }}
+                                    >
+                                        {project?.program?.objective?.title}
+                                    </Typography>
+                                </Box>
+                                <Divider />
+
+                                {/* Programa */}
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    <Typography variant="body1" fontWeight="bold" sx={{ flexShrink: 0 }} lineHeight={1}>
+                                        📦 Programa:
+                                    </Typography>
+                                    <Typography
+                                        lineHeight={1}
+                                        variant="caption"
+                                        fontWeight="bold"
+                                        sx={{
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                            flexGrow: 1,
+                                        }}
+                                    >
+                                        {project?.program?.description}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
                         </Box>
-                    </>
-                }
+                    </Stack>
+                ) : (
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                            color: "gray",
+                            fontStyle: "italic",
+                            fontSize: "0.9rem",
+                        }}
+                    >
+                        Este proyecto no está asociado a ningún programa de algún plan estratégico
+                    </Typography>
+                )}
             </Grid>
 
             <Divider sx={{ width: '100%' }} />
 
-            <Grid columns={12} sx={{ width: '100%', pb: showCreatedUsers ? 0 : 20 }}>
-                <Typography variant="h5" fontWeight="bold">
-                    Proyectos asignados
+            <Grid columns={12} sx={{ width: '100%', mt: 1 }}>
+                <Typography variant="h5" fontWeight="bold" mb={1}>
+                    Integraciones
                     <Typography component="span" color="text.secondary">
-                        {" "}({user?.projects?.length})
+                        {" "}({project?.integrations?.length || 0})
                     </Typography>
                 </Typography>
 
-                {user?.projects?.length > 0 ? (
+                {project?.integrations?.length > 0 ? (
+                    <Stack
+                        direction="row"
+                        rowGap={1}
+                        columnGap={1}
+                        flexWrap="wrap"
+                        marginY={1}
+                        justifyContent={{
+                            xs: 'center',
+                            lg: 'flex-start'
+                        }}
+                    >
+                        {
+                            Array(1).fill(project?.integrations || []).flat().map((i, index) => {
+                                const config = integrationsConfig[i?.platform];
+
+                                if (!config) return null;
+
+                                const Icon = config.icon;
+
+
+                                return (
+                                    <Paper
+                                        key={index}
+                                        onClick={(e) => {
+                                            e.stopPropagation(); window.open(i?.url, "_blank")
+                                        }}
+                                        sx={{
+                                            p: 1,
+                                            borderRadius: 2,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'flex-start',
+                                            alignItems: 'flex-start',
+                                            gap: 1,
+                                            minWidth: {
+                                                xs: 300,
+                                                lg: 250
+                                            }
+                                        }}>
+                                        <Box
+
+                                            sx={{
+                                                display: 'flex',
+                                                gap: 1,
+                                                justifyContent: 'start'
+                                            }}
+                                        >
+                                            <Avatar
+                                                sx={{
+                                                    bgcolor: config.color,
+                                                    width: 48,
+                                                    height: 48,
+                                                    borderRadius: 2,
+                                                    boxShadow: (theme) =>
+                                                        theme.palette.mode === 'light'
+                                                            ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                                            : '0 0 0 1px rgba(255,255,255,0.3)',
+                                                }}
+                                            >
+                                                <Icon sx={{ color: "#fff" }} />
+                                            </Avatar>
+                                            <Typography fontWeight="bold" variant="h4" noWrap>
+                                                {config.label}
+                                            </Typography>
+                                        </Box>
+
+                                        <Typography width={{
+                                            xs: 300,
+                                            lg: 230
+                                        }} textAlign={'center'} variant="body1" fontWeight={'bold'} color="text.secondary" noWrap>
+                                            {i?.name}
+                                        </Typography>
+                                        <Typography sx={{
+                                            textDecoration: 'underline',
+                                            ":hover": {
+                                                color: 'primary.main',
+                                            },
+                                            fontWeight: 'bold'
+                                        }} width={{
+                                            xs: 300,
+                                            lg: 230
+                                        }} textAlign={'left'} variant="caption" color="text.secondary" noWrap>
+                                            {i?.url}
+                                        </Typography>
+                                    </Paper>
+                                )
+                            })}
+                    </Stack>
+                ) : (
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                            color: "gray",
+                            fontStyle: "italic",
+                            fontSize: "0.9rem",
+                        }}
+                    >
+                        Este proyecto no se ha integrado con ninguna plataforma
+                    </Typography>
+                )}
+            </Grid>
+
+
+            <Divider sx={{ width: '100%' }} />
+
+            <Grid size={{ xs: 12, md: 7 }} sx={{ pb: 20 }}>
+                <Typography variant="h5" fontWeight="bold">
+                    Responsables del proyecto
+                    <Typography component="span" color="text.secondary">
+                        {" "}({project?.projectResponsibles?.length})
+                    </Typography>
+                </Typography>
+
+                {project?.projectResponsibles?.length > 0 ? (
                     <Stack
                         direction="row"
                         rowGap={1}
@@ -311,7 +373,7 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                         flexWrap="wrap"
                         marginY={1}
                     >
-                        {Array(1).fill(user?.projects || []).flat().map((project, index) => (
+                        {Array(1).fill(project?.projectResponsibles || []).flat().map((r, index) => (
                             <Paper sx={{
                                 p: 1,
                                 borderRadius: 2,
@@ -321,11 +383,16 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                                 justifyContent: 'center',
                                 alignItems: 'center',
                                 gap: 1,
-                            }}>
+                            }}
+                                key={index}
+                                onClick={() => {
+                                    navigate(`/usuario/${encodeURIComponent(r?.email)}`)
+                                }}
+                            >
                                 <Avatar
-                                    title={project?.name}
-                                    key={`${project.name}-${index}`}
-                                    src={project.image_url || null}
+                                    title={`${r.firstName} ${r.lastName}`}
+                                    key={`${r?.id}-${index}`}
+                                    src={r?.image_url || null}
                                     sx={{
                                         width: 64,
                                         height: 64,
@@ -335,16 +402,11 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                                                 ? '0 0 0 1px rgba(0,0,0,0.3)'
                                                 : '0 0 0 1px rgba(255,255,255,0.3)',
                                     }}
-                                    onClick={() => {
-                                        navigate(`/proyecto/${project?.name}`, {
-                                            replace: true,
-                                            state: { id: project?.id },
-                                        });
-                                    }}
+
                                 >
-                                    {project.name[0]}
+                                    {String(r.firstName[0].toUpperCase())}{String(r.lastName[0].toUpperCase())}
                                 </Avatar>
-                                <Typography textOverflow={'ellipsis'} fontWeight={'bold'} noWrap maxWidth={64}>{project.name}</Typography>
+                                <Typography textOverflow={'ellipsis'} fontWeight={'bold'} noWrap maxWidth={64}>{`${String(r.firstName)} ${String(r.lastName)}`}</Typography>
                             </Paper>
                         ))}
                     </Stack>
@@ -358,103 +420,19 @@ export const Viewproject = ({ user, panelHeight = 0, isOwnProfile, onChange }) =
                             fontSize: "0.9rem",
                         }}
                     >
-                        Este usuario no tiene proyectos asignados
+                        Este proyecto no tiene responsables asignados
                     </Typography>
                 )}
             </Grid>
 
-            { showCreatedUsers &&
-                <>
-                    <Divider sx={{ width: '100%' }} />
 
-                    <Grid columns={12} sx={{ width: '100%', mt: 1 , pb: 20}}>
-                        <Typography variant="h5" fontWeight="bold" mb={1}>
-                            Usuarios creados
-                            <Typography component="span" color="text.secondary">
-                                {" "}({user?.createdUsers?.length || 0})
-                            </Typography>
-                        </Typography>
 
-                        {user?.createdUsers?.length > 0 ? (
-                            <Stack
-                                direction="row"
-                                rowGap={1}
-                                columnGap={1}
-                                flexWrap="wrap"
-                                marginY={1}
-                            >
-                                {
-                                    Array(1).fill(user?.createdUsers || []).flat().map((u, index) => (
-                                        <Paper sx={{
-                                            p: 1,
-                                            borderRadius: 2,
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            gap: 1
-                                        }}>
-                                            <Box
-                                                sx={{
-                                                    position: 'relative',
-                                                }}
-                                            >
-                                                <Avatar
-                                                    title={`${u?.firstName} ${u?.lastName}`}
-                                                    key={`${u?.id}-${index}`}
-                                                    src={u?.image_url || null}
-                                                    sx={{
-                                                        width: 64,
-                                                        height: 64,
-                                                        borderRadius: 2,
-                                                        boxShadow: (theme) =>
-                                                            theme.palette.mode === 'light'
-                                                                ? '0 0 0 1px rgba(0,0,0,0.3)'
-                                                                : '0 0 0 1px rgba(255,255,255,0.3)',
-                                                    }}
-                                                >
-                                                    {String(u.firstName[0]).toUpperCase()}{String(u.lastName[0]).toUpperCase()}
-                                                </Avatar>
-
-                                                {(() => {
-                                                    const { RoleIcon } = getUserIcons(u);
-                                                    return (
-                                                        <RoleIcon
-                                                            sx={{
-                                                                position: 'absolute',
-                                                                bottom: -10,
-                                                                right: -10,
-                                                                fontSize: 30,
-                                                            }}
-                                                        />
-                                                    );
-                                                })()}
-
-                                            </Box>
-                                            <Typography textOverflow={'ellipsis'} fontWeight={'bold'} noWrap maxWidth={64}>{u?.firstName} {u?.lastName}</Typography>
-                                        </Paper>
-
-                                    ))}
-                            </Stack>
-                        ) : (
-                            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', fontSize: '0.9rem' }}>
-                                Este usuario no ha creado otros usuarios
-                            </Typography>
-                        )}
-                    </Grid>
-                </>}
-            
-
-            {user &&
-                <EditProfileModal
-                    userProfile={user}
-                    open={modalEditProfileOpen}
-                    onClose={() => setModalEditProfileOpen(false)}
-                    panelHeight={headerHeight}
-                    onUserChange={onChange}
-                />
-            }
+            <EditProjectDialog
+                open={modalEditProjectOpen}
+                onClose={() => { setModalEditProjectpen(false) }}
+                projectData={project}
+                onSaved={onProjectUpdated}
+            />
         </Grid>
     );
 };

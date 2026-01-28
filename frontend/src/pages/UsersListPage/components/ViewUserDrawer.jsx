@@ -300,8 +300,8 @@ export const ViewUserDrawer = ({ user }) => {
                                             }}
                                         >
                                             <Avatar
-                                                src={project.image_url ? `${API_UPLOADS}${project.image_url}` : undefined}
-                                                alt={project.name}
+                                                src={project?.image_url || null}
+                                                alt={project.name} 
                                                 sx={{
                                                     width: '100%',
                                                     height: '100%',

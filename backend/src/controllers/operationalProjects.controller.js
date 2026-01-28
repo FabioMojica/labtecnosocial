@@ -17,8 +17,6 @@ import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
 export const createOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
 
-  console.log("Holaaaaaaaaaa") 
-
   try {
     const { name, description, responsibles: responsiblesRaw, integrations: integrationsRaw } = req.body;
 
@@ -38,16 +36,17 @@ export const createOperationalProject = async (req, res) => {
     const integrationRepository = queryRunner.manager.getRepository(ProjectIntegration);
 
     // Manejo de imagen
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const imagePath = req.file?.optimizedPath || null;
 
-    // Crear proyecto
-    const newProject = projectRepository.create({ name, description, image_url: imageUrl });
+    // Crear proyecto 
+
+    const newProject = projectRepository.create({ name, description, image_url: imagePath });
     const savedProject = await projectRepository.save(newProject);
 
     // Asignar responsables si existen
     if (responsibles.length > 0) {
       await assignResponsibles(responsibles, savedProject.id, userRepository, responsibleRepository);
-    } 
+    }
 
     // Crear integraciones
     if (integrations.length > 0) {
@@ -149,9 +148,9 @@ export const getAllOperationalProjects = async (req, res) => {
               year: project.program.objective.strategicPlan.year,
               mission: project.program.objective.strategicPlan.mission,
             } : null,
-          } : null, 
+          } : null,
         } : null,
-      }; 
+      };
 
       if (req.user.role === ALLOWED_ROLES.admin || req.user.role === ALLOWED_ROLES.superAdmin) {
         base.integrations = (project.integrations ?? []).map((i) => ({
@@ -220,7 +219,7 @@ export const getProjectById = async (req, res) => {
     const project = await projectRepository.findOne({
       where: { id: parseInt(id) },
       relations: {
-        program: { 
+        program: {
           objective: {
             strategicPlan: true,
           },
@@ -331,12 +330,12 @@ export const getProjectById = async (req, res) => {
     };
 
     return (
-      successResponse( 
+      successResponse(
         res,
         formattedProject,
         'Proyecto recuperado exitosamente.',
         200
-      ) 
+      )
     );
 
   } catch (error) {
@@ -375,7 +374,7 @@ export const updateOperationalProject = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { name, description, program_id, preEliminados, preAnadidos, intEliminados, intAnadidos } = req.body;
+    const { name, description, program_id, image_url, preEliminados, preAnadidos, intEliminados, intAnadidos } = req.body;
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -387,14 +386,14 @@ export const updateOperationalProject = async (req, res) => {
     const integrationRepository = queryRunner.manager.getRepository(ProjectIntegration);
 
     const hasAccess = await canAccessProject({
-      projectId: id, 
+      projectId: id,
       userId: req.user.id,
-      role: req.user.role, 
+      role: req.user.role,
     });
- 
+
     if (!hasAccess) {
       return errorResponse(
-        res, 
+        res,
         ERROR_CODES.USER_UNAUTHORIZED,
         'No tienes permisos para editar este proyecto.',
         403
@@ -432,7 +431,9 @@ export const updateOperationalProject = async (req, res) => {
       }
     }
 
-    if (req.file) {
+    const imagePath = req.file?.optimizedPath || null;
+
+    if (imagePath) {
       if (project.image_url) {
         const oldImage = project.image_url.startsWith("/uploads/")
           ? project.image_url.slice(9)
@@ -441,8 +442,10 @@ export const updateOperationalProject = async (req, res) => {
           if (err) console.error("⚠️ No se pudo eliminar imagen antigua:", err.message);
         });
       }
-      project.image_url = `/uploads/${req.file.filename}`;
-    } else if (req.body.image_url === "" || req.body.image_url === null || req.body.image_url === undefined) {
+
+      project.image_url = imagePath; 
+
+    } else if (image_url === null || image_url === "null") {
       if (project.image_url) {
         const oldImage = project.image_url.startsWith("/uploads/")
           ? project.image_url.slice(9)
@@ -717,8 +720,8 @@ export const deleteOperationalPlanning = async (req, res) => {
 
 export const getSummaryData = async (req, res) => {
   try {
-    const user = req.user; 
-   
+    const user = req.user;
+
     const userRepository = AppDataSource.getRepository(User);
     const projectResponsibleRepo = AppDataSource.getRepository(ProjectResponsible);
 
@@ -730,10 +733,10 @@ export const getSummaryData = async (req, res) => {
 
       const [userCount, strategicPlanCount, operationalPlanCount, projectCount] = await Promise.all([
         userRepository.count(),
-        strategicPlanRepository.count(), 
+        strategicPlanRepository.count(),
         operationalPlanRepository.count(),
-        projectRepository.count(),  
-      ]); 
+        projectRepository.count(),
+      ]);
 
       const integratedProjectRows = await integrationRepository
         .createQueryBuilder("integration")
@@ -789,7 +792,7 @@ export const getSummaryData = async (req, res) => {
       'Error del servidor.',
       500
     );
-  } 
+  }
 };
 
 export const getOperationalProjectsWithIntegrations = async (req, res) => {

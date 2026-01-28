@@ -6,9 +6,6 @@ import { useTheme } from "@emotion/react";
 import { formatDateParts } from "../../../utils/formatDate";
 import QuestionMarkRoundedIcon from '@mui/icons-material/QuestionMarkRounded';
 
-
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
-
 export const ViewProjectDrawer = ({ project }) => {
     if (!project) return null;
     const navigate = useNavigate();
@@ -87,7 +84,7 @@ export const ViewProjectDrawer = ({ project }) => {
                                 borderTopRightRadius: 8,
                                 overflow: 'hidden'
                             }}
-                            src={project?.image_url ? `${API_UPLOADS}${project?.image_url}` : undefined}
+                            src={project?.image_url || null}
                             fallbackLetter={project?.name?.trim().charAt(0)?.toUpperCase()}
                         />
                         <Box
@@ -289,8 +286,8 @@ export const ViewProjectDrawer = ({ project }) => {
                                             }}
                                         >
                                             <Avatar
-                                                src={responsible.image_url ? `${API_UPLOADS}${responsible.image_url}` : undefined}
-                                                alt={`${responsible.firstName} ${responsible.lastName}`}
+                                                src={responsible?.image_url || null}
+                                                alt={`${responsible?.firstName} ${responsible?.lastName}`}
                                                 sx={{
                                                     width: '100%',
                                                     height: '100%',

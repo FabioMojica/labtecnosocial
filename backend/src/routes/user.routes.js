@@ -18,8 +18,8 @@ userRoutes.get('/getAllAdmins', authorize(PERMISSIONS.USER.READ_ALL_ADMINS), get
 
 userRoutes.get('/getUserByEmail/:email', authorize(PERMISSIONS.USER.READ), getUserByEmail); 
 userRoutes.patch('/updateUser/:originalEmail', authorize(PERMISSIONS.USER.UPDATE), uploadSingleFile, optimizeImage, updateUser);
-userRoutes.delete('/deleteUser/:email', authorize(PERMISSIONS.USER.DELETE), deleteUserByEmail);
+userRoutes.delete('/deleteUser/:email', authorize(PERMISSIONS.USER.DELETE), deleteUserByEmail); 
 
-
+ 
 export default userRoutes; 
   

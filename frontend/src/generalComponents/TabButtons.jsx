@@ -95,7 +95,7 @@ export const TabButtons = ({
             },
           },
           width: {
-            xs: "100vw",
+            xs: "100%",
             sm: "100%",
           },
         }}

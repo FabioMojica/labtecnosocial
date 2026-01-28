@@ -15,7 +15,7 @@ import { Box, Divider, Typography } from "@mui/material";
 
 // 8. Tipos
 
-export const CreateUserPage = () => {
+export const CreateUserPage = () => { 
     const headerRef = useRef(null);
     const [headerHeight, setHeaderHeight] = useState(0);
 

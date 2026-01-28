@@ -75,7 +75,7 @@ export const DrawerNavBar = ({ open, onClose }) => {
   const { user } = useAuth();
   const theme = useTheme();
   const { handleNavigate } = useNavigationGuard();
-  if (!user) return null;
+  if (!user) return null; 
   const { left } = useLayout();
 
   const role = user?.role;
@@ -140,7 +140,6 @@ export const DrawerNavBar = ({ open, onClose }) => {
             >
               <ListItemButton
                 onClick={() => {
-
                   handleNavigate(link);
                   onClose();
                 }}

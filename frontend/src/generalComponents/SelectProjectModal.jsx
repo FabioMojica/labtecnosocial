@@ -22,8 +22,6 @@ import { useAuth } from "../contexts";
 import { roleConfig } from "../utils";
 
 
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
-
 export const SelectProjectModal = ({
   sx,
   projects = [],
@@ -73,7 +71,7 @@ export const SelectProjectModal = ({
         ) : selectedProject ? (
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1, width: 100 }}>
             <Avatar
-              src={selectedProject.image_url ? `${API_UPLOADS}${selectedProject.image_url}` : undefined}
+              src={selectedProject.image_url || null}
               sx={{
                 width: 36,
                 height: 36,
@@ -274,8 +272,8 @@ export const SelectProjectModal = ({
                         <Avatar
                           src={
                             project.image_url
-                              ? `${API_UPLOADS}${project.image_url}`
-                              : undefined
+                              ? project?.image_url
+                              : null
                           }
                           sx={{
                             width: 46,

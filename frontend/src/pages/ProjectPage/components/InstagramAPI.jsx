@@ -40,7 +40,6 @@ export const InstagramApi = ({ panelHeight, instagramIntegration, onChange, rese
     const [pages, setPages] = useState([]);
     const [filteredPages, setFilteredPages] = useState([]);
 
-    const [isEditing, setIsEditing] = useState(false);
     const [tempSelected, setTempSelected] = useState(null);
     const initialSelectedRef = useRef([]);
 
@@ -57,25 +56,14 @@ export const InstagramApi = ({ panelHeight, instagramIntegration, onChange, rese
         initialSelectedRef.current = instagramIntegrationInitial;
     }, [instagramIntegration]);
 
-    const handleEditToggle = () => {
-        if (isEditing) {
-            setTempSelected(initialSelectedRef.current);
-            setIsEditing(false);
-            onChange({ intAnadidos: [], intEliminados: [] });
-        } else {
-            setIsEditing(true);
-        }
-    };
-
     useEffect(() => {
         setTempSelected(initialSelectedRef.current);
-        setIsEditing(false);
         onChange({ intAnadidos: [], intEliminados: [] });
     }, [resetTrigger]);
 
 
     // Fetch pages
-    const getInstagramPages = async () => {
+    const getInstagramPages = async () => { 
         try {
             const pages = await callEndpoint(getInstagramPagesApi());
             const pagesWithPlatform = pages.map(page => ({
@@ -95,7 +83,6 @@ export const InstagramApi = ({ panelHeight, instagramIntegration, onChange, rese
     }, []);
 
      const handleTogglePage = (page) => {
-        if (!isEditing) return;
 
         let newTempSelected = null;
 
@@ -157,14 +144,6 @@ export const InstagramApi = ({ panelHeight, instagramIntegration, onChange, rese
                     <InstagramIcon sx={{ fontSize: 40, color }} />
                     <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
                 </Box>
-
-                {!error && !loading && pages.length !== 0 &&
-                    <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
-                        <IconButton size="small" onClick={handleEditToggle}>
-                            {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
-                        </IconButton>
-                    </Tooltip>
-                }
             </Box>
 
             {loading ? (
@@ -199,7 +178,6 @@ export const InstagramApi = ({ panelHeight, instagramIntegration, onChange, rese
                                 }}
                             >
                                     <Chip
-                                    disabled={!isEditing}
                                     label={tempSelected?.name}
                                     onDelete={() => handleTogglePage(tempSelected)}
                                     color="primary"
@@ -255,7 +233,6 @@ export const InstagramApi = ({ panelHeight, instagramIntegration, onChange, rese
 
                                     return (
                                         <ListItemButton
-                                            disabled={!isEditing}
                                             key={page.id}
                                             onContextMenu={(e) => handleContextMenu(e, page)}
                                             onClick={() => handleTogglePage(page)}

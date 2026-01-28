@@ -22,7 +22,7 @@ export function useLayoutOffsets(containerRef) {
 
     setOffsets({
       left: rect.left,
-      right:
+      right: 
         window.innerWidth - rect.right - (hasVerticalScroll ? scrollbarWidth : 0),
       width: rect.width,
       hasScroll: hasVerticalScroll,

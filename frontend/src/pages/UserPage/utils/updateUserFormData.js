@@ -1,3 +1,4 @@
+
 export function updateUserFormData(changedFields) {
   const formData = new FormData();
 
@@ -9,10 +10,12 @@ export function updateUserFormData(changedFields) {
   if (userData.oldPassword) formData.append("oldPassword", userData.oldPassword);
   if (userData.newPassword) formData.append("newPassword", userData.newPassword);
   if (userData.role) formData.append("role", userData.role);
-  if (userData.state) formData.append("state", userData.state);
+  if (userData.state) formData.append("state", userData.state); 
 
-  if (userData.image_file instanceof File) {
-    formData.append("file", userData.image_file); 
+  if (userData.image_url instanceof File) {
+    formData.append("file", userData.image_url); 
+  } else if (userData.image_url === null) {
+    formData.append("image_url", null); 
   }
 
   return formData;

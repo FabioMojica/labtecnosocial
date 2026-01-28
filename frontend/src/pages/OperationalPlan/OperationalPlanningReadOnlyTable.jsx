@@ -284,13 +284,8 @@ const handleExportPDF = async (rows, project) => {
   const avatarX = 40;
   const avatarY = 30;
   const avatarSize = 40;
-
-  let imageUrl = project.image_url;
-
-  // Si la URL es relativa, anteponemos el dominio del backend
-  if (imageUrl && imageUrl.startsWith('/uploads/')) {
-    imageUrl = `${API_BASE_URL}${imageUrl}`;
-  }
+ 
+  let imageUrl = project?.image_url || null;
 
   // --- Dibuja avatar o imagen ---
   let titleY;

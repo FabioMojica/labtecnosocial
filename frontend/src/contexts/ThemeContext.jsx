@@ -49,28 +49,6 @@ const lightTheme = createTheme({
         },
       },
     },
-    MuiCssBaseline: {
-      styleOverrides: (theme) => ({
-        body: {
-          scrollbarWidth: "thin",
-          scrollbarColor: `${theme.palette.primary.main} ${theme.palette.background.default}`,
-        },
-        "*": {
-          "&::-webkit-scrollbar": { width: "2px", height: "2px" },
-          "&::-webkit-scrollbar-track": {
-            backgroundColor: theme.palette.background.default,
-            borderRadius: "2px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: theme.palette.primary.main,
-            borderRadius: "2px",
-          },
-          "&::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: theme.palette.primary.dark,
-          },
-        },
-      }),
-    },
   },
 });
 
@@ -114,30 +92,7 @@ const darkTheme = createTheme({
         },
       },
     },
-    MuiCssBaseline: {
-      styleOverrides: (theme) => ({
-        body: {
-          scrollbarWidth: "thin",
-          scrollbarColor: `${theme.palette.primary.main} ${theme.palette.background.default}`,
-        },
-        "*": {
-          "&::-webkit-scrollbar": { width: "2px", height: "2px" },
-          "&::-webkit-scrollbar-track": {
-            backgroundColor: theme.palette.background.default,
-            borderRadius: "2px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: theme.palette.primary.main,
-            borderRadius: "2px",
-          },
-          "&::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: theme.palette.primary.dark,
-          },
-        },
-      }),
-    },
   }
-
 });
 
 const ThemeContext = createContext({

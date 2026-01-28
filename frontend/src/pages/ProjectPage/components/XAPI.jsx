@@ -41,7 +41,6 @@ export const XApi = ({ panelHeight, xIntegration, onChange, resetTrigger }) => {
     const [accounts, setAccounts] = useState([]);
     const [filteredAccounts, setFilteredAccounts] = useState([]);
 
-    const [isEditing, setIsEditing] = useState(false);
     const [tempSelected, setTempSelected] = useState(null);
     const initialSelectedRef = useRef([]);
 
@@ -57,19 +56,8 @@ export const XApi = ({ panelHeight, xIntegration, onChange, resetTrigger }) => {
         initialSelectedRef.current = xIntegrationInitial;
     }, [xIntegration]);
 
-    const handleEditToggle = () => {
-        if (isEditing) {
-            setTempSelected(initialSelectedRef.current);
-            setIsEditing(false);
-            onChange({ intAnadidos: [], intEliminados: [] });
-        } else {
-            setIsEditing(true);
-        }
-    };
-
     useEffect(() => {
         setTempSelected(initialSelectedRef.current);
-        setIsEditing(false);
         onChange({ intAnadidos: [], intEliminados: [] });
     }, [resetTrigger]);
 
@@ -94,9 +82,8 @@ export const XApi = ({ panelHeight, xIntegration, onChange, resetTrigger }) => {
         getXAccounts();
     }, []);
 
-
+ 
     const handleToggleAccount = (account) => {
-        if (!isEditing) return;
 
         let newTempSelected = null;
 
@@ -165,15 +152,6 @@ export const XApi = ({ panelHeight, xIntegration, onChange, resetTrigger }) => {
                         {label}
                     </Typography>
                 </Box>
-
-                {/* NUEVO: Botón Edit/Close */}
-                {!error && !loading && accounts?.length !== 0 &&
-                    <Tooltip title={isEditing ? "Cancelar edición" : "Editar integración"} arrow>
-                        <IconButton size="small" onClick={handleEditToggle}>
-                            {isEditing ? <CloseIcon fontSize="small" /> : <EditIcon fontSize="small" />}
-                        </IconButton>
-                    </Tooltip>
-                }
             </Box>
 
             {loading ? (
@@ -223,7 +201,6 @@ export const XApi = ({ panelHeight, xIntegration, onChange, resetTrigger }) => {
                                 }}
                             >
                                     <Chip
-                                        disabled={!isEditing}
                                         label={tempSelected?.name}
                                         onDelete={() => handleToggleAccount(tempSelected)}
                                         color="primary"
@@ -290,7 +267,6 @@ export const XApi = ({ panelHeight, xIntegration, onChange, resetTrigger }) => {
 
                                         return (
                                             <ListItemButton
-                                                disabled={!isEditing}
                                                 key={account.id}
                                                 onContextMenu={(e) => handleContextMenu(e, account)}
                                                 onClick={() => handleToggleAccount(account)}

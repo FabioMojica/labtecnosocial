@@ -5,9 +5,6 @@ import LibraryAddCheckRoundedIcon from '@mui/icons-material/LibraryAddCheckRound
 import ModeStandbyRoundedIcon from '@mui/icons-material/ModeStandbyRounded';
 import { useDrawerClosedWidth, integrationsConfig } from "../../../utils";
 
-
-const API_UPLOADS = import.meta.env.VITE_BASE_URL;
-
 export const ProjectPreviewPanel = ({
     project,
     panelHeight,
@@ -179,7 +176,7 @@ export const ProjectPreviewPanel = ({
                                 project.newResponsibles.map((user) => (
                                     <Avatar
                                         key={user.email}
-                                        src={user.image_url ? `${API_UPLOADS}${user.image_url}` : undefined}
+                                        src={user.image_url || null}
                                         title={`${user.firstName} ${user.lastName}\n${user.email}\nrol: ${user.role}\nestado: ${user.state}`}
 
                                         sx={{
