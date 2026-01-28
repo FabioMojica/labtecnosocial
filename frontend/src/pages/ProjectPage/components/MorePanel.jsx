@@ -22,7 +22,7 @@ export const MorePanel = ({ project, panelHeight, isActive }) => {
     const inputRef = useRef(null);
     const navigate = useNavigate();
     const drawerWidth = useDrawerClosedWidth();
-    
+
     useEffect(() => {
         if (!isActive) {
             setInputName('');
@@ -148,11 +148,39 @@ export const MorePanel = ({ project, panelHeight, isActive }) => {
                                                 "* Este proyecto no tiene ningún responsable asignado."
                                             ) : (
                                                 <>
-                                                    * Este proyecto tiene {project?.projectResponsibles?.length}{" "}
+                                                    * Este proyecto tiene
+                                                    <MuiLink
+                                                        sx={{ color: 'orange', fontWeight: 'bold', textDecoration: 'none' }}
+                                                    >{' '}{project?.projectResponsibles?.length}{" "}
+                                                    </MuiLink>
                                                     {project?.projectResponsibles?.length === 1 ? "responsable" : "responsables"}{" "}
                                                     {project?.projectResponsibles?.length === 1
                                                         ? "que será desasignado del mismo."
                                                         : "que serán desasignados del mismo."}
+                                                </>
+                                            )}
+                                        </>
+                                    }
+                                />
+                            </ListItem>
+
+                            <ListItem>
+                                <ListItemText
+                                    primary={
+                                        <>
+                                            {project?.integrations?.length === 0 ? (
+                                                "* Este proyecto no tiene ninguna integración con alguna plataforma."
+                                            ) : (
+                                                <>
+                                                    * Este proyecto tiene
+                                                    <MuiLink
+                                                        sx={{ color: 'orange', fontWeight: 'bold', textDecoration: 'none' }}
+                                                    >{' '}{project?.integrations?.length}{" "}
+                                                    </MuiLink>
+                                                    {project?.integrations?.length === 1 ? "integración" : "integraciones"}{" "}
+                                                    {project?.integrations?.length === 1
+                                                        ? "que será desvinculada."
+                                                        : "que serán desvinculadas."}
                                                 </>
                                             )}
                                         </>

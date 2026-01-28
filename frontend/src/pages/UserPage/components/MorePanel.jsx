@@ -16,7 +16,7 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession, is
     const navigate = useNavigate();
     if (!user) return (
         <ErrorScreen
-            message="Usuario no encontrado"
+            message="Usuario no encontrado" 
             buttonText="Volver"
             onButtonClick={() => navigate('/usuarios')}
         />
