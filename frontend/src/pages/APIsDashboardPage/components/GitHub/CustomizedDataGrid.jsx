@@ -1,6 +1,6 @@
 import * as React from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Checkbox, Box, Typography } from "@mui/material";
+import { Checkbox, Box, Typography, Card } from "@mui/material";
 import dayjs from "dayjs";
 import { buildRowsFromCommits } from "./utils/dataGridAdapter";
 import { columns } from "./utils/columns";
@@ -14,50 +14,51 @@ export const CustomizedDataGrid = ({
   commits,
   title,
   selectable = false,
-  selected = false, 
+  selected = false,
   onSelectChange,
+  interval,
   selectedPeriod = "all",
 }) => {
 
   const filteredCommits = React.useMemo(() => {
-  if (!commits || commits.length === 0) return [];
+    if (!commits || commits.length === 0) return [];
 
-  const today = dayjs().startOf("day");
-  let startDate, endDate;
+    const today = dayjs().startOf("day");
+    let startDate, endDate;
 
-  switch (selectedPeriod) {
-    case "today":
-      startDate = today;
-      endDate = today.endOf("day");
-      break;
-    case "lastWeek":
-      startDate = today.subtract(7, "day");
-      endDate = today.endOf("day");
-      break;
-    case "lastMonth":
-      startDate = today.subtract(1, "month");
-      endDate = today.endOf("day");
-      break;
-    case "lastSixMonths":
-      startDate = today.subtract(6, "month");
-      endDate = today.endOf("day");
-      break;
-    default:
-      startDate = null;
-      endDate = null;
-  }
+    switch (selectedPeriod) {
+      case "today":
+        startDate = today;
+        endDate = today.endOf("day");
+        break;
+      case "lastWeek":
+        startDate = today.subtract(7, "day");
+        endDate = today.endOf("day");
+        break;
+      case "lastMonth":
+        startDate = today.subtract(1, "month");
+        endDate = today.endOf("day");
+        break;
+      case "lastSixMonths":
+        startDate = today.subtract(6, "month");
+        endDate = today.endOf("day");
+        break;
+      default:
+        startDate = null;
+        endDate = null;
+    }
 
-  if (!startDate) return commits;
+    if (!startDate) return commits;
 
-  return commits.filter((c) => {
-    const commitDate = dayjs(c.commit.author.date);
-    return (
-      commitDate.isSameOrAfter(startDate, "day") &&
-      commitDate.isSameOrBefore(endDate, "day")
-    );
-  });
-}, [commits, selectedPeriod]);
- 
+    return commits.filter((c) => {
+      const commitDate = dayjs(c.commit.author.date);
+      return (
+        commitDate.isSameOrAfter(startDate, "day") &&
+        commitDate.isSameOrBefore(endDate, "day")
+      );
+    });
+  }, [commits, selectedPeriod]);
+
 
   // Construimos las filas con los commits filtrados
   const rows = React.useMemo(
@@ -66,24 +67,36 @@ export const CustomizedDataGrid = ({
   );
 
   return (
-    <Box sx={{ m: 0, p: 0 }}>
+    <Card variant="outlined" sx={{
+      p: 0,
+      position: 'relative',
+    }}>
       <Box
         sx={{
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
-          alignItems: "center", 
+          alignItems: "center",
+          pt: 2,
+          mb: 1,
+          pl: 2,
+          pr: 1
         }}
       >
-        <Typography component="h2" fontWeight={"bold"} variant="subtitle2">
-          {title}
-        </Typography>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <Typography component="h2" variant="subtitle2">
+            {title}
+          </Typography>
+          <Typography variant="caption" color='textSecondary'>{interval}</Typography>
+        </Box>
 
         {selectable && rows.length > 0 && (
-          <Checkbox
-            checked={selected}
-            onChange={(e) => onSelectChange?.(e.target.checked)}
-          />
+          <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <Checkbox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
+          </Box>
         )}
       </Box>
 
@@ -100,6 +113,6 @@ export const CustomizedDataGrid = ({
         disableColumnResize
         density="compact"
       />
-    </Box>
+    </Card>
   );
 };

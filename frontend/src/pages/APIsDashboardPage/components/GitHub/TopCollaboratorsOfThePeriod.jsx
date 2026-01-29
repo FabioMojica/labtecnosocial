@@ -16,12 +16,12 @@ const AvatarWrapper = styled(Box)(({ theme }) => ({
     justifyContent: 'center',
     alignItems: 'flex-end',
     position: 'relative',
-    gap: theme.spacing(4),
+    gap: theme.spacing(3),
     marginTop: theme.spacing(2),
 }));
 
 const TopAvatar = styled(Avatar, {
-  shouldForwardProp: (prop) => prop !== '$zIndex' && prop !== 'size' && prop !== 'trend'
+    shouldForwardProp: (prop) => prop !== '$zIndex' && prop !== 'size' && prop !== 'trend'
 })(({ theme, size = 56, $zIndex, trend }) => {
     const trendColors = {
         up: theme.palette.success.main,
@@ -30,7 +30,7 @@ const TopAvatar = styled(Avatar, {
     };
     return {
         width: size,
-        height: size, 
+        height: size,
         border: `3px solid ${trendColors[trend] || theme.palette.background.paper}`,
         cursor: 'pointer',
         zIndex: $zIndex,
@@ -91,7 +91,11 @@ export const TopCollaboratorsOfThePeriod = ({
     filteredCommits.forEach(c => {
         const login = c.author?.login;
         if (!login) return;
-        if (!commitMap[login]) commitMap[login] = { ...c.author, totalCommits: 0 };
+        if (!commitMap[login]) commitMap[login] = {
+            ...c.author,
+            email: c.commit?.author?.email ?? null,
+            totalCommits: 0
+        };
         commitMap[login].totalCommits += 1;
     });
 
@@ -169,9 +173,39 @@ export const TopCollaboratorsOfThePeriod = ({
                                             }
                                         />
                                     </Tooltip>
-                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                        {user.totalCommits} commits
-                                    </Typography>
+
+                                    <Box sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}>
+                                        <Typography
+                                            variant="caption"
+                                            sx={{
+                                                maxWidth: 80,
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                color: 'text.secondary',
+                                            }}
+                                            noWrap
+                                        >
+                                            {user.login}
+                                        </Typography>
+
+                                        <Typography variant="caption"
+                                            sx={{
+                                                maxWidth: 70,
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                color: 'text.secondary',
+                                            }}
+                                            noWrap>
+                                            {user.totalCommits} commits
+                                        </Typography>
+                                    </Box>
                                 </Stack>
                             ) : (
                                 <Box key={idx} width={sizes[idx]} />

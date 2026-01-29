@@ -89,6 +89,8 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
   const { scrollbarWidth } = useLayout();
 
+  const navBarWidth = useDrawerClosedWidth();
+
   const currentPlanRef = useRef({
     mission: data?.mission || '',
     objectives: data?.objectives || [],
@@ -513,7 +515,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
           width: isFullscreen ? '100vw' : '100%', 
           maxWidth: {
             xs: '100vw',
-            lg: `calc(100vw - ${useDrawerClosedWidth()} - ${scrollbarWidth}px - 16px)`},
+            lg: `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`},
           height: isFullscreen ? '100vh' : 'auto',
           bgcolor: (theme) => theme.palette.background.default,
           zIndex: isFullscreen ? 1500 : 'auto',

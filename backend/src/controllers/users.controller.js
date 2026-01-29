@@ -90,7 +90,6 @@ export const createUser = async (req, res) => {
     );
 
   } catch (error) {
-    console.log(error);
     return (
       errorResponse(
         res,
@@ -160,7 +159,6 @@ export const getAllUsers = async (req, res) => {
     ));
 
   } catch (error) {
-    console.log(error);
     return (
       errorResponse(
         res,
@@ -194,7 +192,6 @@ export const getAllAdmins = async (req, res) => {
     return successResponse(res, admins, 'Administradores recuperados exitosamente', 200);
 
   } catch (error) {
-    console.error(error);
     return errorResponse(res, ERROR_CODES.SERVER_ERROR, 'Error del servidor.', 500);
   }
 };
@@ -352,7 +349,8 @@ export const updateUser = async (req, res) => {
     const isUser = requester.role === ALLOWED_ROLES.user;
     const isOwnProfile = requester.email === user.email;
 
-    if (isAdmin && user?.role === ALLOWED_ROLES.admin) {
+
+    if (isAdmin && !isOwnProfile && user?.role === ALLOWED_ROLES.admin) {
       return (
         errorResponse(
           res,
@@ -452,21 +450,39 @@ export const updateUser = async (req, res) => {
         }
 
         if (isSuperAdmin) {
-          const isMatch = await bcrypt.compare(oldPassword, reqUser.password);
-          if (!isMatch) {
-            return (
-              errorResponse(
-                res,
-                ERROR_CODES.VALIDATION_ERROR,
-                'La contraseña de tu cuenta no coincide.',
-                400,
-              )
-            );
-          }
+          if (isOwnProfile) {
+            const isMatch = await bcrypt.compare(oldPassword, user.password);
+            if (!isMatch) {
+              return (
+                errorResponse(
+                  res,
+                  ERROR_CODES.VALIDATION_ERROR,
+                  'La contraseña antigua no coincide.',
+                  400,
+                )
+              );
+            }
 
-          const salt = await bcrypt.genSalt(10);
-          user.password = await bcrypt.hash(newPassword, salt);
-          sessionShouldInvalidate = true;
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(newPassword, salt);
+            sessionShouldInvalidate = true;
+          } else {
+            const isMatch = await bcrypt.compare(oldPassword, reqUser.password);
+            if (!isMatch) {
+              return (
+                errorResponse(
+                  res,
+                  ERROR_CODES.VALIDATION_ERROR,
+                  'La contraseña de tu cuenta no coincide.',
+                  400,
+                )
+              );
+            }
+
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(newPassword, salt);
+            sessionShouldInvalidate = true;
+          }
         } else {
           const isMatch = await bcrypt.compare(oldPassword, user.password);
           if (!isMatch) {
@@ -629,7 +645,16 @@ export const getCoordinators = async (req, res) => {
       updated_at: c.user_updated_at,
       projectCount: parseInt(c.project_count, 10) || 0,
     }));
-    return res.json(result);
+
+    return (
+      successResponse(
+        res,
+        result,
+        'Coordinadores recuperados exitosamente.',
+        200
+      )
+    );
+
   } catch (error) {
     return (
       errorResponse(

@@ -110,7 +110,7 @@ export function ProjectsListPage() {
     }
 
     const handleProjectClick = (project) => {
-        setSelectedProject(project);
+        setSelectedProject(project); 
 
         if (isLaptop) {
             handleDrawerOpen();
@@ -129,6 +129,7 @@ export function ProjectsListPage() {
             setFilteredProjects(response);
             setError(false);
         } catch (err) {
+            notify(err.message, "error");
             setError(true);
         }
     }

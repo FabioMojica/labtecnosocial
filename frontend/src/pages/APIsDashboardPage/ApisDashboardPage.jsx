@@ -1,5 +1,6 @@
 import {
     Box,
+    Divider,
     IconButton,
     Tooltip,
     Typography
@@ -16,61 +17,59 @@ import { integrationsConfig } from '../../utils';
 import { DashboardOutlined } from '@mui/icons-material';
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import { GitHubDashboard } from './components/GitHub/GitHubDashboard';
+import { FacebookDashboard } from './components/Facebook/FacebookDashboard';
 
 export const APIsDashboardPage = () => {
     const { id } = useParams();
     const [projects, setProjects] = useState([]);
     const { loading, callEndpoint } = useFetchAndLoad();
-    const [selectedProjectId, setSelectedProjectId] = useState(() => {
-        const parsed = Number(id);
-        return !isNaN(parsed) ? parsed : "";
-    });
+    const [selectedProject, setSelectedProject] = useState(null);
     const { user } = useAuth();
     const [error, setError] = useState(false);
     const { notify } = useNotification();
     const navigate = useNavigate();
     const [selectedIntegration, setSelectedIntegration] = useState(null);
+    
 
     const fetchProjectsWithIntegrations = async () => {
         try {
+            setError(false);
             const res = await callEndpoint(getOperationalProjectsWithIntegrationsApi(user.email));
             setProjects(res);
-            setError(false);
         } catch (error) {
             setError(true);
-            notify('Ocurrió un error inesperado al cargar lista de proyectos. Inténtalo de nuevo más tarde.', 'error');
+            notify(error.message, "error");
         }
     };
 
 
     useEffect(() => {
-        fetchProjectsWithIntegrations(); 
+        fetchProjectsWithIntegrations();
     }, []);
 
 
-    const handleProjectChange = (newId) => {
-        setSelectedProjectId(Number(newId));
+    const handleProjectChange = (project) => {
+        setSelectedProject(project);
         setSelectedIntegration(null);
     };
 
-
+    if (loading) { return <FullScreenProgress text={'Obteniendo los proyectos con integraciones'} /> }
 
     if (error) { return <ErrorScreen message="Ocurrió un error al obtener los proyectos" buttonText='Volver a intentar' onButtonClick={() => { fetchProjectsWithIntegrations() }} /> }
 
-    if (loading) { return <FullScreenProgress text={'Obteniendo los proyectos con integraciones'} /> }
 
     if (projects.length === 0) {
         return <NoResultsScreen message='No tienes ningún proyecto registrado en el sistema' buttonText={'Crear uno'} onButtonClick={() => { navigate('/proyectos/crear') }} />
     }
 
-    const selectedProject = projects.find(p => p.id === selectedProjectId);
+    console.log(selectedProject);
 
     const renderIntegrationDashboard = () => {
         switch (selectedIntegration) {
             case 'github':
                 return <GitHubDashboard project={selectedProject} />;
             case 'facebook':
-                return <div>Facebook Dashboard (en construcción)</div>;
+                return <FacebookDashboard project={selectedProject}/>;
             case 'instagram':
                 return <div>Instagram Dashboard (en construcción)</div>;
             case 'x':
@@ -181,15 +180,16 @@ export const APIsDashboardPage = () => {
                     }
                     <SelectProjectModal
                         projects={projects}
-                        selectedProjectId={selectedProjectId}
+                        selectedProject={selectedProject}
                         onChange={handleProjectChange}
                         loading={loading}
                     />
                 </Box>
             </Box>
 
-            <Box sx={{ p: 1, borderTop: '1px solid #ccc' }}>
-                 {!selectedProject ? (
+            <Box>
+                <Divider />
+                {!selectedProject ? (
                     <NoResultsScreen
                         message="Seleccione un proyecto para ver los dashboards disponibles."
                         icon={<TouchAppRoundedIcon sx={{ fontSize: 90, color: 'text.secondary' }} />}

@@ -13,7 +13,7 @@ export const getGitHubRepositoriesApi = async () => {
       throw new Error(error.response.data.message || "Ocurrió un problema al obtener los repositorios de GitHub, inténtalo de nuevo más tarde");
     throw new Error("Error al intentar obtener los repositorios de GitHub");
   }
-};
+}; 
 
 export const getFacebookPagesApi = async () => {
   const controller = loadAbort();

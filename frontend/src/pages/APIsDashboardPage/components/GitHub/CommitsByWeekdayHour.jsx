@@ -131,7 +131,7 @@ export const CommitsByWeekdayHour = ({ commitsData = [], title, interval }) => {
 
         <BarChart
           xAxis={[{
-            scaleType: 'band',
+            scaleType: 'band', 
             categoryGapRatio: 0.5,
             data: grouped.map(d => d.day)
           }]}

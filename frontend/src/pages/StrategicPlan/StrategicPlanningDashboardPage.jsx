@@ -297,7 +297,7 @@ const StrategicPlanningDashboardPage = () => {
       )}
 
       {showColumnsView && selectedView && (
-        <Box>
+        <Box> 
           {selectedView === "Columna" && (
             <StrategicPlanningColumnsView
               data={planData}

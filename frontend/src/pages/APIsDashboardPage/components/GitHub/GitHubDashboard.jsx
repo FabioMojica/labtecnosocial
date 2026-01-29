@@ -17,6 +17,8 @@ import CollaboratorsWithoutPushCard from './CollaboratorsWithoutPushCard';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import { useLayout } from '../../../../contexts/LayoutContext';
+import { useDrawerClosedWidth } from '../../../../utils';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -32,6 +34,8 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
     const [stats, setStats] = useState(null);
     const [loadingStats, setLoadingStats] = useState(false);
     const { addChart, removeChart, selectedCharts } = useReport();
+    const { scrollbarWidth } = useLayout();
+    const navBarWidth = useDrawerClosedWidth();
 
     const githubIntegration = project?.integrations?.find(i => i.platform === 'github');
 
@@ -142,7 +146,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
 
 
     return (
-        <Box sx={{ width: '100%', height: '100%' }}>
+        <Box sx={{ width: '100%', height: '100%', px: {xs: 1, lg: 0}, py: {xs: 1, lg: 0}, maxWidth: { xs: '100vw', lg: `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`}}}>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', gap: 2 }}>
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <GitHub fontSize="large" />
@@ -173,9 +177,9 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
             </Box>
 
             <Box sx={{ mt: 1 }}>
-                <Grid container columns={12} spacing={2} size={{ xs: 12, sm: 12, lg: 6 }} sx={{ mb: 2 }}>
+                <Grid container columns={12} spacing={1} size={{ xs: 12, sm: 12, lg: 6 }} sx={{ mb: 1 }}>
                     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <CommitsInThePeriod
+                        <CommitsInThePeriod 
                             commits={stats?.commits || []}
                             title="Cantidad de commits"
                             interval={periodLabel}
@@ -266,13 +270,13 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                     </Grid>
                 </Grid>
 
-                <Grid container columns={12} spacing={2} sx={{ mb: 2 }}>
+                <Grid container columns={12} spacing={1} sx={{ mb: 1 }}>
 
                     <Grid size={{ xs: 12, md: 6 }}>
                         <SessionsChart
                             commitsData={stats?.commits || []}
                             title="Historial de commits"
-                            interval={periodLabel}
+                            interval={periodLabel} 
                             selectable
                             selected={selectedCharts.some(c => c.id === 'topCollaborators')}
                             selectedPeriod={selectedPeriod}
@@ -307,7 +311,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                 </Grid>
 
 
-                <Grid container spacing={2} columns={12}>
+                <Grid container spacing={1} columns={12}>
                     <Grid size={{ xs: 12, lg: 9 }}>
                         <CustomizedDataGrid
                             commits={stats?.commits || []}

@@ -15,6 +15,17 @@ export const PERMISSIONS = {
         DELETE: 'operational-plan:delete',
     },
 
+    OPERATIONAL_PROJECT: {
+        READ:   'operational_project:read',
+        CREATE: 'operational_project:create',
+        UPDATE: 'operational_project:update',
+        DELETE: 'operational_project:delete',
+    },
+
+    SUMMARY_DATA: {
+        READ: 'summary_data:read',
+    },
+
     USER: {
         READ:   'user:read', 
         READ_ALL_ADMINS: 'user:read-all-admins',
@@ -22,6 +33,15 @@ export const PERMISSIONS = {
         CREATE: 'user:create',
         UPDATE: 'user:update', 
         DELETE: 'user:delete',
+    },
+
+    DASHBOARD: {
+        READ:   'dashboard:read', 
+    },
+
+    AUTH: {
+        REFRESH:   'auth:refresh', 
+        ME:        'auth:me',
     }
 };
  
@@ -34,7 +54,15 @@ export const ROLE_PERMISSIONS = {
 
         PERMISSIONS.OPERATIONAL_PLAN, 
 
-        PERMISSIONS.USER,
+        PERMISSIONS.OPERATIONAL_PROJECT,
+
+        PERMISSIONS.SUMMARY_DATA,
+
+        PERMISSIONS.USER, 
+
+        PERMISSIONS.DASHBOARD,
+
+        PERMISSIONS.AUTH,
     ), 
 
     [ALLOWED_ROLES.admin]: [
@@ -44,10 +72,18 @@ export const ROLE_PERMISSIONS = {
         PERMISSIONS.OPERATIONAL_PLAN.READ,
         PERMISSIONS.OPERATIONAL_PLAN.UPDATE,
 
+        PERMISSIONS.OPERATIONAL_PROJECT.READ,
+        PERMISSIONS.OPERATIONAL_PROJECT.UPDATE,
+
+        PERMISSIONS.SUMMARY_DATA,
+
         PERMISSIONS.USER.READ,
         PERMISSIONS.USER.CREATE,
         PERMISSIONS.USER.UPDATE,
-        PERMISSIONS.USER.DELETE,
+
+        PERMISSIONS.DASHBOARD.READ,
+
+        PERMISSIONS.AUTH
     ],
 
     [ALLOWED_ROLES.user]: [
@@ -55,7 +91,15 @@ export const ROLE_PERMISSIONS = {
 
         PERMISSIONS.OPERATIONAL_PLAN.READ,
 
+        PERMISSIONS.OPERATIONAL_PROJECT.READ,
+
+        PERMISSIONS.SUMMARY_DATA,
+
         PERMISSIONS.USER.READ,
         PERMISSIONS.USER.UPDATE,
+
+        PERMISSIONS.DASHBOARD.READ,
+
+        PERMISSIONS.AUTH
     ],
 };

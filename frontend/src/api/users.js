@@ -42,13 +42,18 @@ export const getAllAdminsApi = async () => {
 export const fetchCoordinatorsApi = async () => {
   const controller = loadAbort();
   try {
-    const response = await axiosInstance.get(Routes.users.GET_COORDINATORS, { signal: controller.signal });
-    if (response.status === 200) return response.data;
-    return null;
+    const { data } = await axiosInstance.get(Routes.users.GET_COORDINATORS, { signal: controller.signal });
+
+     if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+    return data?.data;
+
   } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response) throw new Error(error.response.data.message || "Error al obtener coordinadores");
-    throw new Error("Error al intentar obtener coordinadores");
+    throw handleApiError(error, "Ocurrió un error inesperado al obtener los responsables. Inténtalo de nuevo más tarde.")
   }
 };
 

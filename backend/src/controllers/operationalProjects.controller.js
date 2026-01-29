@@ -6,8 +6,6 @@ import { ProjectIntegration } from '../entities/ProjectIntegration.js';
 import { Program } from '../entities/Program.js';
 import { assignResponsibles } from '../utils/assignResponsibles.js';
 import { createProjectIntegrations } from '../utils/createProjectIntegrations.js';
-import { StrategicPlan } from '../entities/StrategicPlan.js';
-import { OperationalRow } from '../entities/OperationalRow.js';
 import fs from 'fs';
 import path from 'path';
 import { canAccessProject } from '../utils/canAccessProject.js';
@@ -21,7 +19,12 @@ export const createOperationalProject = async (req, res) => {
     const { name, description, responsibles: responsiblesRaw, integrations: integrationsRaw } = req.body;
 
     if (!name || !description) {
-      return res.status(400).json({ message: "Faltan datos requeridos: nombre y descripción son obligatorios" });
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'Faltan datos requeridos: nombre y descripción de proyecto son obligatorios.',
+        400
+      );
     }
 
     const responsibles = typeof responsiblesRaw === "string" ? JSON.parse(responsiblesRaw) : responsiblesRaw || [];
@@ -62,15 +65,26 @@ export const createOperationalProject = async (req, res) => {
       relations: ["integrations", "projectResponsibles"],
     });
 
-    return res.status(201).json(projectWithRelations);
+
+    return (
+      successResponse(
+        res,
+        projectWithRelations,
+        'Proyecto creado exitosamente',
+        200,
+      )
+    );
 
   } catch (error) {
-    // Rollback solo si la transacción se inició
     if (queryRunner.isTransactionActive) {
       await queryRunner.rollbackTransaction();
     }
-    console.error("Error al crear proyecto operativo:", error);
-    return res.status(500).json({ message: error.message || "Error interno del servidor" });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   } finally {
     await queryRunner.release();
   }
@@ -164,47 +178,21 @@ export const getAllOperationalProjects = async (req, res) => {
       return base;
     });
 
-    return res.status(200).json({ projects: formattedProjects, status: 200 });
+    return (
+      successResponse(
+        res,
+        formattedProjects,
+        'Proyectos recuperados exitosamente',
+        200,
+      )
+    );
   } catch (error) {
-    console.error('Error al obtener proyectos operativos:', error);
-    res.status(500).json({ message: 'Error al obtener los proyectos operativos' });
-  }
-};
-
-
-export const assignProjectResponsibles = async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const { responsibles } = req.body;
-
-    if (!Array.isArray(responsibles) || responsibles.length === 0) {
-      return res.status(400).json({ message: 'Debe enviar un array de IDs de responsables' });
-    }
-
-    const projectRepository = AppDataSource.getRepository(OperationalProject);
-    const project = await projectRepository.findOneBy({ id: parseInt(projectId) });
-
-    if (!project) {
-      return res.status(404).json({ message: 'Proyecto operativo no encontrado' });
-    }
-
-    const userRepository = AppDataSource.getRepository('User');
-    const responsibleRepository = AppDataSource.getRepository(ProjectResponsible);
-
-    try {
-      await assignResponsibles(responsibles, project.id, userRepository, responsibleRepository);
-
-      project.updated_at = new Date();
-      await projectRepository.save(project);
-
-    } catch (error) {
-      return res.status(404).json({ message: error.message });
-    }
-
-    return res.status(201).json({ message: 'Responsables asignados correctamente' });
-  } catch (error) {
-    console.error('Error al asignar responsables:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
 
@@ -357,15 +345,31 @@ export const deleteProjectById = async (req, res) => {
     const project = await projectRepo.findOne({ where: { id: Number(id) } });
 
     if (!project) {
-      return res.status(404).json({ message: 'Proyecto operativo no encontrado' });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Proyecto no encontrado en el sistema.',
+        404
+      );
     }
 
     await projectRepo.remove(project);
 
-    return res.json({ message: 'Proyecto operativo eliminado correctamente' });
+    return (
+      successResponse(
+        res,
+        {},
+        'Proyecto operativo eliminado exitosamente.',
+        200
+      )
+    );
   } catch (error) {
-    console.error('Error eliminando proyecto operativo:', error);
-    return res.status(500).json({ message: 'Error al eliminar el proyecto operativo' });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
 
@@ -443,7 +447,7 @@ export const updateOperationalProject = async (req, res) => {
         });
       }
 
-      project.image_url = imagePath; 
+      project.image_url = imagePath;
 
     } else if (image_url === null || image_url === "null") {
       if (project.image_url) {
@@ -544,333 +548,5 @@ export const updateOperationalProject = async (req, res) => {
     );
   } finally {
     await queryRunner.release();
-  }
-};
-
-export const removeProjectResponsible = async (req, res) => {
-  try {
-    const { projectId, responsibleId } = req.params;
-
-    const responsibleRepository = AppDataSource.getRepository(ProjectResponsible);
-
-    const projectResponsible = await responsibleRepository.findOne({
-      where: {
-        operationalProject: { id: parseInt(projectId) },
-        user: { id: parseInt(responsibleId) },
-      },
-      relations: ['operationalProject', 'user'],
-    });
-
-    if (!projectResponsible) {
-      return res.status(404).json({ message: 'Responsable no encontrado para el proyecto' });
-    }
-
-    await responsibleRepository.remove(projectResponsible);
-
-    const projectRepository = AppDataSource.getRepository(OperationalProject);
-    const project = await projectRepository.findOneBy({ id: parseInt(projectId) });
-    if (project) {
-      project.updated_at = new Date();
-      await projectRepository.save(project);
-    }
-
-    return res.status(200).json({ message: 'Responsable eliminado correctamente' });
-  } catch (error) {
-    console.error('Error al eliminar responsable:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
-  }
-};
-
-export const getOperationalProjectRows = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const rowRepository = AppDataSource.getRepository(OperationalRow);
-
-    const rows = await rowRepository.find({
-      where: {
-        operationalProject: { id: parseInt(id) }
-      },
-      order: {
-        id: 'ASC'
-      }
-    });
-
-    return res.status(200).json(rows);
-  } catch (error) {
-    console.error('Error al obtener filas operativas del proyecto:', error);
-    return res.status(500).json({ message: 'Error al obtener las filas operativas del proyecto' });
-  }
-};
-
-export const saveOperationalRowsOfProject = async (req, res) => {
-  const queryRunner = AppDataSource.createQueryRunner();
-
-  try {
-    const { id: projectId } = req.params;
-    const { create = [], update = [], delete: deleteIds = [] } = req.body;
-
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    const rowRepository = queryRunner.manager.getRepository(OperationalRow);
-    const projectRepository = queryRunner.manager.getRepository(OperationalProject);
-
-    const project = await projectRepository.findOneBy({ id: parseInt(projectId) });
-    if (!project) {
-      await queryRunner.rollbackTransaction();
-      return res.status(404).json({ message: 'Proyecto operativo no encontrado' });
-    }
-
-    if (deleteIds.length > 0) {
-      await rowRepository.delete(deleteIds);
-    }
-
-    for (const rowData of update) {
-      const existingRow = await rowRepository.findOneBy({ id: rowData.id });
-      if (!existingRow) {
-        await queryRunner.rollbackTransaction();
-        return res.status(404).json({ message: `Fila con id ${rowData.id} no encontrada` });
-      }
-
-      existingRow.objective = rowData.objective;
-      existingRow.indicator_amount = rowData.indicator_amount;
-      existingRow.indicator_concept = rowData.indicator_concept;
-      existingRow.team = rowData.team;
-      existingRow.resources = rowData.resources;
-      existingRow.budget_amount = rowData.budget_amount;
-      existingRow.budget_description = rowData.budget_description;
-      existingRow.period_start = rowData.period_start;
-      existingRow.period_end = rowData.period_end;
-
-      await rowRepository.save(existingRow);
-    }
-
-    for (const rowData of create) {
-      const newRow = rowRepository.create({
-        objective: rowData.objective,
-        indicator_amount: rowData.indicator_amount,
-        indicator_concept: rowData.indicator_concept,
-        team: rowData.team,
-        resources: rowData.resources,
-        budget_amount: rowData.budget_amount,
-        budget_description: rowData.budget_description,
-        period_start: rowData.period_start,
-        period_end: rowData.period_end,
-        operationalProject: project,
-      });
-      await rowRepository.save(newRow);
-    }
-
-    await queryRunner.commitTransaction();
-
-    const savedRows = await rowRepository.find({
-      where: { operationalProject: { id: parseInt(projectId) } },
-    });
-
-    return res.status(200).json(savedRows);
-  } catch (error) {
-    await queryRunner.rollbackTransaction();
-    console.error('Error al guardar filas operativas:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
-  } finally {
-    await queryRunner.release();
-  }
-};
-
-export const deleteOperationalPlanning = async (req, res) => {
-  const { id } = req.params;
-  const queryRunner = AppDataSource.createQueryRunner();
-
-  try {
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    const projectRepository = queryRunner.manager.getRepository(OperationalProject);
-    const rowRepository = queryRunner.manager.getRepository(OperationalRow);
-
-    const project = await projectRepository.findOneBy({ id: parseInt(id) });
-
-    if (!project) {
-      await queryRunner.rollbackTransaction();
-      return res.status(404).json({ message: 'Proyecto operativo no encontrado' });
-    }
-
-    const rowsToDelete = await rowRepository.find({
-      where: { operationalProject: { id: parseInt(id) } },
-    });
-
-    if (rowsToDelete.length === 0) {
-      await queryRunner.rollbackTransaction();
-      return res.status(400).json({ message: 'El proyecto no tiene filas operativas registradas' });
-    }
-
-    await rowRepository.remove(rowsToDelete);
-
-    await queryRunner.commitTransaction();
-    return res.status(200).json({ message: 'Planificación operativa eliminada correctamente' });
-  } catch (error) {
-    await queryRunner.rollbackTransaction();
-    console.error('Error al eliminar planificación operativa:', error);
-    return res.status(500).json({ message: 'Error al eliminar la planificación operativa' });
-  } finally {
-    await queryRunner.release();
-  }
-};
-
-export const getSummaryData = async (req, res) => {
-  try {
-    const user = req.user;
-
-    const userRepository = AppDataSource.getRepository(User);
-    const projectResponsibleRepo = AppDataSource.getRepository(ProjectResponsible);
-
-    if (user.role === ALLOWED_ROLES.superAdmin || user.role === ALLOWED_ROLES.admin) {
-      const strategicPlanRepository = AppDataSource.getRepository(StrategicPlan);
-      const operationalPlanRepository = AppDataSource.getRepository(Program);
-      const projectRepository = AppDataSource.getRepository(OperationalProject);
-      const integrationRepository = AppDataSource.getRepository(ProjectIntegration);
-
-      const [userCount, strategicPlanCount, operationalPlanCount, projectCount] = await Promise.all([
-        userRepository.count(),
-        strategicPlanRepository.count(),
-        operationalPlanRepository.count(),
-        projectRepository.count(),
-      ]);
-
-      const integratedProjectRows = await integrationRepository
-        .createQueryBuilder("integration")
-        .select("DISTINCT integration.project_id")
-        .getRawMany();
-      const integratedProjectCount = integratedProjectRows.length;
-
-      const summary = [
-        { clave: "Cantidad de usuarios", valor: userCount },
-        { clave: "Planes estratégicos registrados", valor: strategicPlanCount },
-        { clave: "Planes operativos registrados", valor: operationalPlanCount },
-        { clave: "Proyectos registrados", valor: projectCount },
-        { clave: "Proyectos integrados con plataformas", valor: integratedProjectCount },
-      ];
-
-      return (
-        successResponse(
-          res,
-          summary,
-          'Obtención de resumen de datos exitosa.',
-          200
-        ));
-    }
-
-    if (user.role === ALLOWED_ROLES.user) {
-      const strategicPlanRepository = AppDataSource.getRepository(StrategicPlan);
-
-      const strategicPlanCount = await strategicPlanRepository.count();
-
-      const assignedProjects = await projectResponsibleRepo.count({
-        where: { user: { id: user.id } },
-      });
-
-      const summary = [
-        { clave: "Planes estratégicos registrados", valor: strategicPlanCount },
-        { clave: "Proyectos asignados", valor: assignedProjects },
-      ];
-
-      return (
-        successResponse(
-          res,
-          summary,
-          'Obtención de resumen de datos exitosa.',
-          200
-        ));
-    }
-
-  } catch (error) {
-    console.log(error);
-    return errorResponse(
-      res,
-      ERROR_CODES.SERVER_ERROR,
-      'Error del servidor.',
-      500
-    );
-  }
-};
-
-export const getOperationalProjectsWithIntegrations = async (req, res) => {
-  try {
-    const { email } = req.query;
-    if (!email) return res.status(400).json({ message: "Se requiere el email del usuario" });
-
-    const userRepository = AppDataSource.getRepository(User);
-    const projectRepository = AppDataSource.getRepository(OperationalProject);
-
-    // 🔹 Verificamos el usuario y su rol
-    const user = await userRepository.findOneBy({ email });
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-
-    let projects;
-
-    if (user.role === 'admin') {
-      // Todos los proyectos con integraciones
-      projects = await projectRepository
-        .createQueryBuilder('project')
-        .leftJoinAndSelect('project.integrations', 'integrations')
-        .leftJoinAndSelect('project.projectResponsibles', 'projectResponsibles')
-        .leftJoinAndSelect('projectResponsibles.user', 'user')
-        .where('integrations.id IS NOT NULL')
-        .orderBy('project.created_at', 'DESC')
-        .getMany();
-    } else if (user.role === 'coordinator') {
-      // Proyectos asignados al coordinador con integraciones
-      projects = await projectRepository
-        .createQueryBuilder('project')
-        .leftJoinAndSelect('project.integrations', 'integrations')
-        .leftJoinAndSelect('project.projectResponsibles', 'projectResponsibles')
-        .leftJoinAndSelect('projectResponsibles.user', 'user')
-        .where('integrations.id IS NOT NULL')
-        .andWhere(qb => {
-          const subQuery = qb.subQuery()
-            .select('pr.operational_project_id')
-            .from(ProjectResponsible, 'pr')
-            .where('pr.user_id = :userId')
-            .getQuery();
-          return 'project.id IN ' + subQuery;
-        })
-        .setParameter('userId', user.id)
-        .orderBy('project.created_at', 'DESC')
-        .getMany();
-    } else {
-      return res.status(403).json({ message: 'Rol no autorizado' });
-    }
-
-    // Formatear la respuesta
-    const formattedProjects = projects.map(project => ({
-      id: project.id,
-      name: project.name,
-      description: project.description,
-      created_at: project.created_at,
-      updated_at: project.updated_at,
-      image_url: project.image_url,
-      integrations: project.integrations.map(i => ({
-        id: i.id,
-        name: i.name,
-        platform: i.platform,
-        url: i.url,
-      })),
-      projectResponsibles: project.projectResponsibles.map(r => ({
-        id: r.user.id,
-        firstName: r.user.firstName,
-        lastName: r.user.lastName,
-        role: r.user.role,
-        email: r.user.email,
-        image_url: r.user.image_url,
-      })),
-    }));
-
-    console.log("holaaaaaaaaaaaaa")
-
-    return res.status(200).json({ projects: formattedProjects });
-  } catch (error) {
-    console.error('Error al obtener proyectos con integraciones:', error);
-    return res.status(500).json({ message: 'Error interno del servidor' });
   }
 };

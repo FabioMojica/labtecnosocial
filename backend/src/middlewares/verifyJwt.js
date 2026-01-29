@@ -23,13 +23,13 @@ export const verifyJwt = async (req, res, next) => {
     const userRepo = AppDataSource.getRepository(User);
     const userInDb = await userRepo.findOneBy({ id: decoded.id });
 
-    if (!userInDb) {
+    if (!userInDb) { 
       return (
         errorResponse(
           res,
           ERROR_CODES.USER_NOT_FOUND,
           'Usuario no encontrado en el sistema al verificar el token.',
-          401, 
+          401,  
         ));
     }
 

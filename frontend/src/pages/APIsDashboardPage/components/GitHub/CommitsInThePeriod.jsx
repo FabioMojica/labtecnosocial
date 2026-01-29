@@ -137,7 +137,6 @@ export default function CommitsInThePeriod({
             dateArray.push(dayStr);
         }
 
-        // <<< Aquí es donde debes ponerlo
         if (selectedPeriod === 'today' && dateArray.length === 1) {
             const yesterday = new Date(startDate);
             yesterday.setDate(yesterday.getDate() - 1);
@@ -243,7 +242,6 @@ export default function CommitsInThePeriod({
                                 fontSize: '0.9rem',
                                 mt: 2
                             }}>
-
                                 Sin datos para mostrar
                             </Typography>
                         ) : (

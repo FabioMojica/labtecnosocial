@@ -16,14 +16,12 @@ axiosInstance.interceptors.request.use(config => {
 
 axiosInstance.interceptors.response.use(
   response => response,
-  error => { 
+  error => {  
     if (error.code === 'ECONNABORTED') {
       console.error("La petición tardó demasiado y se abortó");
     }
 
-    const message = error.response?.data?.message;
-
-    if (message === 'Sesión expirada por cambios en el perfil. Por favor vuelve a iniciar sesión.') {
+    if(error?.response?.data?.error?.code === 'SESSION_EXPIRED' && error?.response?.data?.error?.message === 'Sesión expirada por cambios en el perfil. Por favor vuelve a iniciar sesión.') {
       triggerLogout();
     }
 

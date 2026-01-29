@@ -50,7 +50,6 @@ export const getOperationalPlanOfProject = async (req, res) => {
   }
 };
 
-
 export const saveOperationalPlanOfProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
 

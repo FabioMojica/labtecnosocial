@@ -39,7 +39,7 @@ export const MorePanel = ({ project, panelHeight, isActive }) => {
         try {
             await callEndpoint(deleteProjectByIdApi(project.id));
             navigate('/proyectos');
-            notify("Proyecto eliminado correctamente", "success");
+            notify("Proyecto eliminado exitosamente.", "success");
         } catch (err) {
             notify(err.message, "error");
         }

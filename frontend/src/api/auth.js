@@ -8,7 +8,7 @@ export const loginUserApi = async (userData) => {
 
   try {
     const { data }= await axiosInstance.post(
-      Routes.LOGIN,
+      Routes.auth.LOGIN,
       userData,
       { signal: controller.signal }
     );
@@ -32,7 +32,7 @@ export const logoutUserApi = async () => {
 
   try {
     const { data } = await axiosInstance.post(
-      Routes.LOGOUT,
+      Routes.auth.LOGOUT,
       {},
       { signal: controller.signal }
     );
@@ -56,7 +56,7 @@ export const meApi = async () => {
   const controller = loadAbort();
 
   try {
-    const { data } = await axiosInstance.get(Routes.ME, {
+    const { data } = await axiosInstance.get(Routes.auth.ME, {
       withCredentials: true,
       signal: controller.signal,
     });
@@ -80,7 +80,7 @@ export const refreshApi = async () => {
 
   try {
     const { data } = await axiosInstance.post(
-      Routes.TOKEN_REFRESH,
+      Routes.auth.TOKEN_REFRESH,
       {},
       { withCredentials: true, signal: controller.signal }
     );
@@ -90,7 +90,7 @@ export const refreshApi = async () => {
         code: 'INVALID_API_CONTRACT',
         message: 'Respuesta inesperada del servidor.',
       };
-    }
+    } 
 
     return data?.data;
   } catch (error) {
@@ -104,7 +104,7 @@ export const getSummaryDataApi = async (user) => {
 
   try {
     const { data } = await axiosInstance.get(
-      `${Routes.GET_SUMMARY_DATA}/${user.id}`,
+      `${Routes.auth.GET_SUMMARY_DATA}/${user.id}`,
       { signal: controller.signal }
     );
 

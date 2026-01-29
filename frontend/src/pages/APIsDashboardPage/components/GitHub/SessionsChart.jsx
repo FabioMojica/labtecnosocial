@@ -169,7 +169,7 @@ export const SessionsChart = ({
           }}
 
         />
-        
+
       </Card>
     );
   }
@@ -179,21 +179,13 @@ export const SessionsChart = ({
       height: '100%',
       width: '100%',
       position: 'relative',
-      minHeight: 400
+      minHeight: 400,
+      p: 2
     }}>
-      <Typography
-        component="h2"
-        variant="subtitle2"
-        sx={{
-          position: 'relative',
-          mt: 2,
-          ml: 2,
-          zIndex: 10
-        }}
-      >
+      <Typography component="h2" variant="subtitle2">
         {title}
       </Typography>
-      <Typography variant="caption" sx={{ color: 'text.secondary', zIndex: 10, position: 'relative', ml: 2 }}>{interval}</Typography>
+      <Typography variant="caption" color='textSecondary'>{interval}</Typography>
       {selectable && (
         <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
           <Checkbox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
@@ -202,90 +194,112 @@ export const SessionsChart = ({
       <CardContent sx={{
         height: '100%',
         width: '100%',
-        position: 'relative',
-        overflowX: 'auto',
-        "&::-webkit-scrollbar": { height: "2px" },
-        "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
-        "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
-        "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+        p: 0,
+        display: 'flex',
+        flexDirection: 'column',
       }}>
-        <ResponsiveContainer
-          width={Math.max(xTicks.length * pxPerDay, 800)}
-          sx={{ height: 200 }}>
-          <LineChart data={chartData} margin={{ top: 10, right: 30, bottom: 100 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              type="number"
-              dataKey="x"
-              ticks={xTicks.map((_, idx) => idx)}
-              tickFormatter={(val) => xTicks[Math.floor(val)] ? dayjs(xTicks[Math.floor(val)]).format("DD/MM/YY") : ""}
-              angle={-45}
-              textAnchor="end"
-              tick={{ fontSize: 12, fontWeight: 500 }}
-              domain={[0, xTicks.length]}
-            />
-
-            <YAxis
-              domain={[1, maxY]}
-              allowDecimals={false}
-              tickCount={Math.min(maxY, 10)}
-              tick={{ fontSize: 12, fontWeight: 500 }}
-            />
-
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="monotone"
-              dataKey="y"
-              stroke={theme.palette.primary.dark}
-              dot={{ r: 4, cursor: "pointer" }}
-              activeDot={{ r: 6, cursor: "pointer" }}
-              isAnimationActive={false}
-            />
-            <AreaGradient color={theme.palette.primary.dark} />
-          </LineChart>
-        </ResponsiveContainer>
-      </CardContent>
-      <Card
-        variant="outlined"
-        sx={{
-          position: "sticky",
-          width: 30,
-          height: '100%',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: 'none',
-          zIndex: 0
-        }}>
-        <Typography
-          variant="body2"
-          color="text.secondary"
+        <Typography variant="body2" color="text.secondary"
           sx={{
-            transform: "rotate(-90deg) translateY(-50%)",
-            transformOrigin: "center",
-            fontWeight: "bold",
             textAlign: "center",
-            whiteSpace: "nowrap",
-            ml: 3,
+            fontWeight: "bold",
           }}
         >
-          Número de commits en el día
+          Fecha del commit
         </Typography>
-      </Card>
-      <Typography variant="body2" color="text.secondary"
-        sx={{
-          textAlign: "center",
-          fontWeight: "bold",
-          position: "sticky",
-          bottom: 5,
-          left: 0
-        }}
-      >
-        Fecha del commit
-      </Typography>
+
+        <Box display={'flex'} sx={{
+          width: '100%',
+          height: '100%'
+        }}>
+          <Card
+            variant="outlined"
+            sx={{
+              position: "sticky",
+              width: 20,
+              height: '100%',
+              top: 0,
+              bottom: 0,
+              left: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 0,
+              border: 'none',
+              zIndex: 200,
+              pl: 2
+            }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                transform: "rotate(-90deg) translateY(-50%)",
+                transformOrigin: "center",
+                fontWeight: "bold",
+                textAlign: "center",
+                whiteSpace: "nowrap",
+              }}
+            > 
+              Número de commits en el día
+            </Typography>
+          </Card>
+          <Box sx={{
+            width: 'auto',
+            display: 'flex',
+            flex: 1,
+            minHeight: 0,
+            mb: 2,
+            overflow: 'auto',
+            "&::-webkit-scrollbar": { height: "2px" },
+            "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+            "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+            '& svg': {
+              outline: 'none',
+            },
+            '& svg:focus': {
+              outline: 'none',
+            },
+            '& svg:focus-visible': {
+              outline: 'none',
+            },
+          }}>
+            <ResponsiveContainer width={Math.max(xTicks.length * pxPerDay, 800)}>
+              <LineChart
+                data={chartData} margin={{ top: 20, bottom: 25 }}>
+                <CartesianGrid strokeDasharray="3 3"/>
+                <XAxis
+                  type="number"
+                  dataKey="x"
+                  ticks={xTicks.map((_, idx) => idx)}
+                  tickFormatter={(val) => xTicks[Math.floor(val)] ? dayjs(xTicks[Math.floor(val)]).format("DD/MM/YY") : ""}
+                  angle={-45}
+                  textAnchor="end"
+                  tick={{ fontSize: 12, fontWeight: 500 }}
+                  domain={[0, xTicks.length]}
+                />
+
+                <YAxis 
+                  domain={[1, maxY]}
+                  allowDecimals={false}
+                  tickCount={Math.min(maxY, 10)}
+                  tick={{ fontSize: 12, fontWeight: 500 }}
+                />
+
+                <Tooltip content={<CustomTooltip />} />
+                <Line
+                  type="monotone"
+                  dataKey="y"
+                  stroke={theme.palette.primary.dark}
+                  dot={{ r: 4, cursor: "pointer" }}
+                  activeDot={{ r: 6, cursor: "pointer" }}
+                  isAnimationActive={true}
+                />
+                <AreaGradient color={theme.palette.primary.dark} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Box>
+        </Box>
+      </CardContent>
     </Card>
   );
 };

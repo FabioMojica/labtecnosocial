@@ -19,6 +19,7 @@ import operationalPlanRoutes from './routes/operationalPlan.routes.js';
 import { attachFileUrls } from './utils/attachFileUrls.js';
 
 import multer from 'multer';
+import dashboardRoutes from './routes/dashboard.routes.js';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/projects', operationalProjectRoutes);  
 app.use('/api/strategic-plans', strategicPlanRoutes);
 app.use('/api/operational-plans', operationalPlanRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/apis/github', githubRouter);
 app.use('/api/apis/facebook', facebookRouter);
 app.use('/api/apis/instagram', instagramRouter);

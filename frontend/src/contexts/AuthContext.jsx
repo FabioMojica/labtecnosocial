@@ -218,7 +218,6 @@ export const AuthProvider = ({ children }) => {
       isLoggingOutRef.current = false;
 
       if (showNotify) {
-        console.log("holaaaaa");
         notify("Cerraste sesión.", "info")
       };
 

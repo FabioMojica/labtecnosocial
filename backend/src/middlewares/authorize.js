@@ -12,12 +12,14 @@ export const authorize = (requiredPermission) => {
         'Usuario no autenticado.',
         401
       );
-    }
+    } 
 
-    const userPerms = ROLE_PERMISSIONS[user.role] || [];
+    const userPerms = ROLE_PERMISSIONS[user.role] || []; 
+
+    console.log(req.user, userPerms);
     
     if (!userPerms.includes(requiredPermission)) {
-      return errorResponse(
+      return errorResponse( 
         res,
         ERROR_CODES.USER_UNAUTHORIZED,
         'No tienes permisos para realizar esta acción.',

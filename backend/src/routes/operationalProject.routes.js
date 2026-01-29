@@ -1,36 +1,24 @@
 import { Router } from 'express';
-import { createOperationalProject, getAllOperationalProjects, assignProjectResponsibles, updateOperationalProject, getProjectById, deleteProjectById,removeProjectResponsible, getOperationalProjectRows, saveOperationalRowsOfProject, deleteOperationalPlanning, getSummaryData, getOperationalProjectsWithIntegrations } from '../controllers/operationalProjects.controller.js';
-import { upload } from '../middlewares/uploads.js';
+import { createOperationalProject, getAllOperationalProjects, updateOperationalProject, getProjectById, deleteProjectById } from '../controllers/operationalProjects.controller.js';
 import { verifyJwt } from '../middlewares/verifyJwt.js';
-import { authorizeRole } from '../middlewares/authorizedRole.js';
 import { optimizeImage } from '../middlewares/optimizeImage.js';
-import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
 import { uploadSingleFile } from '../utils/uploadSingleFiles.js';
- 
+import { authorize } from '../middlewares/authorize.js';
+import { PERMISSIONS } from '../config/rolePermissions.js';
+  
 const operationalProjectRoutes = Router();
- 
+  
 operationalProjectRoutes.use(verifyJwt);
- 
-operationalProjectRoutes.get('/getAll', authorizeRole(), getAllOperationalProjects); 
-  
-operationalProjectRoutes.post('/create', authorizeRole(ALLOWED_ROLES.onlyAdmins), uploadSingleFile, optimizeImage, createOperationalProject);
-
-operationalProjectRoutes.post('/assign-responsible/:projectId', authorizeRole(ALLOWED_ROLES.onlyAdmins), assignProjectResponsibles);
-
-operationalProjectRoutes.patch('/:id', authorizeRole(), uploadSingleFile, optimizeImage, updateOperationalProject);
-
-operationalProjectRoutes.get('/getProjectById/:id', authorizeRole(), getProjectById);  
-
-operationalProjectRoutes.delete('/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins),deleteProjectById);
-operationalProjectRoutes.get('/complete-project/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins),getOperationalProjectRows);
-
-operationalProjectRoutes.post('/complete-project/save-rows/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins),saveOperationalRowsOfProject);
-operationalProjectRoutes.delete('/delete-operational-planning/:id', authorizeRole(ALLOWED_ROLES.onlyAdmins),deleteOperationalPlanning);
-
-operationalProjectRoutes.get('/sumaryData/:id', authorizeRole(), getSummaryData); 
    
-
-operationalProjectRoutes.get('/getProjectsWithIntegrations',authorizeRole(ALLOWED_ROLES.onlyAdmins), getOperationalProjectsWithIntegrations);
- 
-export default operationalProjectRoutes;
+operationalProjectRoutes.get('/getAll', authorize(PERMISSIONS.OPERATIONAL_PROJECT.READ), getAllOperationalProjects); 
   
+operationalProjectRoutes.post('/create', authorize(PERMISSIONS.OPERATIONAL_PROJECT.CREATE), uploadSingleFile, optimizeImage, createOperationalProject);
+
+operationalProjectRoutes.patch('/:id', authorize(PERMISSIONS.OPERATIONAL_PROJECT.UPDATE), uploadSingleFile, optimizeImage, updateOperationalProject);
+
+operationalProjectRoutes.get('/getProjectById/:id', authorize(PERMISSIONS.OPERATIONAL_PROJECT.READ), getProjectById);  
+
+operationalProjectRoutes.delete('/:id', authorize(PERMISSIONS.OPERATIONAL_PROJECT.DELETE),deleteProjectById);
+  
+export default operationalProjectRoutes;
+ 

@@ -22,7 +22,7 @@ export const getAllStrategicPlans = async (req, res) => {
       successResponse(
         res,
         plans,
-        'Planes estratégicos recuperados correctemente.',
+        'Planes estratégicos recuperados exitosamente.',
         200
       )
     );
@@ -373,7 +373,7 @@ export const deleteStrategicPlanByYear = async (req, res) => {
       return errorResponse(
         res,
         ERROR_CODES.RESOURCE_NOT_FOUND,
-        'No se pudo eliminar el plan estratégico porque no encontrado.',
+        'Plan estratégico no encontrado.',
         404
       );
     }

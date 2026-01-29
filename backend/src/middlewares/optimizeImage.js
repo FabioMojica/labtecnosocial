@@ -7,17 +7,24 @@ export const optimizeImage = async (req, res, next) => {
 
   const inputPath = req.file.path;
   const ext = path.extname(req.file.filename);
+
+  if (ext === '.webp') {
+    req.file.optimizedPath = `/uploads/${req.file.filename}`;
+    return next();
+  }
+
   const baseName = path.basename(req.file.filename, ext);
   const outputFileName = baseName + '.webp';
   const outputPath = path.join(process.cwd(), 'uploads', outputFileName);
 
   try {
     await sharp(inputPath)
-      .resize(800) 
-      .webp({ quality: 80 }) 
+      .resize(800)
+      .webp({ quality: 80 })
       .toFile(outputPath);
 
     fs.unlinkSync(inputPath);
+
 
     req.file.optimizedPath = `/uploads/${outputFileName}`;
 

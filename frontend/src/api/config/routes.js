@@ -1,6 +1,11 @@
 export const Routes = {
-  LOGIN: "/auth/login",
-  LOGOUT: "/auth/logout",
+  auth: {
+    LOGIN: "/auth/login",
+    LOGOUT: "/auth/logout",
+    GET_SUMMARY_DATA: '/auth/sumaryData',
+    ME: "/auth/me",
+    TOKEN_REFRESH: "/auth/refresh",
+  },
 
   users: {
     GET_ALL_USERS: "/users/getAllUsers",
@@ -11,13 +16,11 @@ export const Routes = {
     DELETE_USER: "/users/deleteUser",
   },
 
-  GET_SUMMARY_DATA: '/projects/sumaryData',
   CREATE_PROJECT: "/projects/create",
   GET_ALL_PROJECTS: "/projects/getAll",
   GET_PROJECT_BY_ID: "/projects/getProjectById",
   UPDATE_PROJECT: "/projects",
   DELETE_PROJECT: "/projects",
-  GET_PROJECTS_WITH_INTEGRATIONS: "/projects/getProjectsWithIntegrations",
 
   //Plan. operativa
   OPERATIONAL_PLAN: "/operational-plans",
@@ -30,24 +33,14 @@ export const Routes = {
   UPDATE_STRATEGIC_PLAN: "/strategic-plans/updateStrategicPlan",
   DELETE_STRATEGIC_PLAN: "/strategic-plans/deleteStrategicPlan",
 
-  //Dashb
-
-  GET_OBJECTIVES: "/objectives",
-  CREATE_OBJECTIVE: "/objectives",
-  UPDATE_OBJECTIVE: "/objectives",
-  DELETE_OBJECTIVE: "/objectives",
-  GET_INDICATORS: "/indicators",
-  CREATE_INDICATOR: "/indicators",
-  UPDATE_INDICATOR: "/indicators",
-  DELETE_INDICATOR: "/indicators",
+  //Dashboard
+  dashboard: {
+    GET_PROJECTS_WITH_INTEGRATIONS: "/dashboard/getProjectsWithIntegrations",
+  },
 
 
   GET_GITHUB_REPOS: "/apis/github/repos",
   GET_FACEBOOK_PAGES: "/apis/facebook/pages",
   GET_INSTAGRAM_PAGES: "/apis/instagram/pages",
   GET_X_ACCOUNTS: "/apis/X/accounts",
-
-
-  ME: "/auth/me",
-  TOKEN_REFRESH: "/auth/refresh",
 };

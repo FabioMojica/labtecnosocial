@@ -38,10 +38,9 @@ import {
     validateOnlyLetters,
     validateSpaces,
 } from "../../../utils/textUtils";
-import { roleConfig, roleConfigWithoutSA, stateConfig } from "../../../utils";
+import { roleConfig, roleConfigWithoutSA } from "../../../utils";
 import { validateEmail, validatePassword } from "../../../utils";
 import { updateUserApi } from "../../../api";
-import { useFetchAndLoad } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
 import { getChangedFields } from "../utils/getChangedFields.js";
 import { userSchema } from "../../../utils/schemas/userSchema.js";
@@ -421,7 +420,7 @@ export const EditProfileDialog = ({ open, onClose, userProfile, panelHeight, onU
                                     isMyProfile ?
                                         <>Si editas el email o contraseña de tu cuenta se cerrará tu sesión automáticamente.</>
                                         :
-                                        <>Si editas el email, contraseña o estado de este usario se cerrará la sesión iniciada de su cuenta.</>
+                                        <>Si editas el email, contraseña {isSuperAdmin && "rol"} o estado de este usario se cerrará la sesión iniciada de su cuenta.</>
                                 }
                                 componentsProps={{
                                     popper: {
@@ -793,7 +792,7 @@ export const EditProfileDialog = ({ open, onClose, userProfile, panelHeight, onU
                                             <TextField
                                                 disabled={loadingUpdateUser}
                                                 label={
-                                                    isSuperAdmin ? <>Contraseña de tu cuenta</> :
+                                                    isSuperAdmin ? isMyProfile ? <>Contraseña antigua</> : <>Contraseña de tu cuenta</> :
                                                         isAdmin ? <>Contraseña antigua</> : null
                                                 }
                                                 type={showOldPassword ? "text" : "password"}

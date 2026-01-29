@@ -1,15 +1,16 @@
 import { Router } from 'express';
-import { login, logout, me, refresh } from '../controllers/auth.controller.js';
-import { authorizeRole } from '../middlewares/authorizedRole.js';
+import { login, logout, me, refresh, getSummaryData } from '../controllers/auth.controller.js';
 import { verifyJwt } from '../middlewares/verifyJwt.js';
-import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
+import { PERMISSIONS } from '../config/rolePermissions.js';
+import { authorize } from '../middlewares/authorize.js';
 
 const authRoutes = Router();
 
 authRoutes.post('/login', login);
 authRoutes.post('/logout', logout);
-authRoutes.get('/me', verifyJwt, authorizeRole(), me);
-authRoutes.post('/refresh', verifyJwt, authorizeRole(), refresh);
+authRoutes.get('/me', verifyJwt, authorize(PERMISSIONS.AUTH.ME), me);
+authRoutes.post('/refresh', verifyJwt, authorize(PERMISSIONS.AUTH.REFRESH), refresh);
+authRoutes.get('/sumaryData/:id', verifyJwt, authorize(PERMISSIONS.SUMMARY_DATA.READ), getSummaryData);  
 
 export default authRoutes;
-  
+     

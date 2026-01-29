@@ -5,6 +5,11 @@ import { comparePassword } from '../utils/passwordUtils.js';
 import { ERROR_CODES, errorResponse, successResponse } from '../utils/apiResponse.js';
 import { ALLOWED_ROLES, ALLOWED_STATES } from '../config/allowedStatesAndRoles.js';
 import dotenv from "dotenv";
+import { ProjectResponsible } from '../entities/ProjectResponsible.js';
+import { StrategicPlan } from '../entities/StrategicPlan.js';
+import { Program } from '../entities/Program.js';
+import { OperationalProject } from '../entities/OperationalProject.js';
+import { ProjectIntegration } from '../entities/ProjectIntegration.js';
 
 dotenv.config();
 
@@ -257,4 +262,81 @@ export const logout = (req, res) => {
       200,
     )
   );
+};
+
+export const getSummaryData = async (req, res) => {
+  try {
+    const user = req.user; 
+
+    const userRepository = AppDataSource.getRepository(User);
+    const projectResponsibleRepo = AppDataSource.getRepository(ProjectResponsible);
+
+    if (user.role === ALLOWED_ROLES.superAdmin || user.role === ALLOWED_ROLES.admin) {
+      const strategicPlanRepository = AppDataSource.getRepository(StrategicPlan);
+      const operationalPlanRepository = AppDataSource.getRepository(Program);
+      const projectRepository = AppDataSource.getRepository(OperationalProject);
+      const integrationRepository = AppDataSource.getRepository(ProjectIntegration);
+
+      const [userCount, strategicPlanCount, operationalPlanCount, projectCount] = await Promise.all([
+        userRepository.count(),
+        strategicPlanRepository.count(),
+        operationalPlanRepository.count(),
+        projectRepository.count(),
+      ]);
+
+      const integratedProjectRows = await integrationRepository
+        .createQueryBuilder("integration")
+        .select("DISTINCT integration.project_id")
+        .getRawMany();
+      const integratedProjectCount = integratedProjectRows.length;
+
+      const summary = [
+        { clave: "Cantidad de usuarios", valor: userCount },
+        { clave: "Planes estratégicos registrados", valor: strategicPlanCount },
+        { clave: "Planes operativos registrados", valor: operationalPlanCount },
+        { clave: "Proyectos registrados", valor: projectCount },
+        { clave: "Proyectos integrados con plataformas", valor: integratedProjectCount },
+      ];
+
+      return (
+        successResponse(
+          res,
+          summary,
+          'Resumen de datos recuperado exitosamente.',
+          200
+        ));
+    }
+
+    if (user.role === ALLOWED_ROLES.user) {
+      const strategicPlanRepository = AppDataSource.getRepository(StrategicPlan);
+
+      const strategicPlanCount = await strategicPlanRepository.count();
+
+      const assignedProjects = await projectResponsibleRepo.count({
+        where: { user: { id: user.id } },
+      });
+
+      const summary = [
+        { clave: "Planes estratégicos registrados", valor: strategicPlanCount },
+        { clave: "Proyectos asignados", valor: assignedProjects },
+      ];
+
+      return (
+        successResponse(
+          res,
+          summary,
+          'Resumen de datos recuperado exitosamente.',
+          200
+        ));
+    }
+
+  } catch (error) {
+    console.log(error)
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
+  }
 };
