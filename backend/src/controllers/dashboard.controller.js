@@ -81,6 +81,7 @@ export const getOperationalProjectsWithIntegrations = async (req, res) => {
       integrations: project.integrations.map(i => ({
         id: i.id,
         name: i.name,
+        integration_id: i.integration_id,
         platform: i.platform,
         url: i.url,
       })),

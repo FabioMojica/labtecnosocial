@@ -7,12 +7,12 @@ import {
   getFacebookPagePosts,
 } from "../../controllers/apis/facebook.controller.js";
 
-const facebookRouter = Router();
+const facebookRouter = Router(); 
 
 facebookRouter.get("/pages", getFacebookPages);
-
-facebookRouter.get("/pages/:pageId/overview", getFacebookPageOverview);
-facebookRouter.get("/pages/:pageId/insights", getFacebookPageInsights);
-facebookRouter.get("/pages/:pageId/posts", getFacebookPagePosts);
+facebookRouter.get("/:pageId/overview", getFacebookPageOverview);
+facebookRouter.get("/:pageId/insights", getFacebookPageInsights);
+facebookRouter.get("/:pageId/posts", getFacebookPagePosts);
 
 export default facebookRouter;
+ 

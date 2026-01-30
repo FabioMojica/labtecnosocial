@@ -11,86 +11,38 @@ import { getFacebookPageInsights, getFacebookPageOverview } from "../../../../ap
 
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
-import { useNotification } from "../../../../contexts";
-import { formatForFollowersCard } from "./utils/cards/formatForFollowersCard";
-import { formatForPageViewsCard } from "./utils/cards/formatForPageViewsCard";
-import ChartFollowersByCountry from "./components/ChartFollowersByCountry";
-import { formatForFollowersByCountryCard } from "./utils/cards/formatForFollowersByCountryCard";
 
 
-export const FacebookDashboard = ({ project, useMock = true }) => {
+export const InstagramDashboard = ({ project, useMock = true }) => {
     const { scrollbarWidth } = useLayout();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [selectedPeriod, setSelectedPeriod] = useState('lastMonth');
-    const periodLabel =
-        selectedPeriod === 'today' ? 'Hoy' :
-            selectedPeriod === 'lastWeek' ? 'Última semana' :
-                selectedPeriod === 'lastMonth' ? 'Último mes' :
-                    selectedPeriod === 'lastSixMonths' ? 'Últimos seis meses' :
-                        'Todo';
-
-
     const navBarWidth = useDrawerClosedWidth();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const theme = useTheme();
     const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
-    const { notify } = useNotification();
-    const [isLoadingInsights, setIsLoadingInsights] = useState(false);
-    const [errorFetchInsights, setErrorFetchInsights] = useState(false);
 
-    const [followersData, setFollowersData] = useState({
-        chartData: [],
-        dates: [],
-        total: 0,
-        delta: 0,
-    });
 
-    const [viewsPageData, setViewsPageData] = useState({
-        chartData: [],
-        dates: [],
-        total: 0,
-        delta: 0,
-    });
-
-    const [countryFollowersData, setCountryFollowersData] = useState([]);
-
-    const facebookIntegration = project?.integrations?.find(i => i.platform === 'facebook');
-
+    const instagramIntegration = project?.integrations?.find(i => i.platform === 'instagram');
 
     const fetchFacebookPageData = async () => {
         try {
-            //const resp = await callEndpoint(getFacebookPageOverview(facebookIntegration?.integration_id));
-            setIsLoadingInsights(true);
-            setErrorFetchInsights(false);
-            const insights = await callEndpoint(getFacebookPageInsights(facebookIntegration?.integration_id, selectedPeriod));
+            const resp = await callEndpoint(getFacebookPageOverview(instagramIntegration?.integration_id));
+            const insights = await callEndpoint(getFacebookPageInsights(instagramIntegration?.integration_id, "today"));
 
+            console.log("hola", resp);
             console.log("insights", insights);
 
-            const followersInsight = insights.find(i => i.name === "page_follows");
-            console.log("fffff", followersInsight)
-            setFollowersData(formatForFollowersCard(followersInsight?.values, selectedPeriod));
-
-            const pageViewsInsight = insights.find(i => i.name === "page_media_view");
-            console.log("fffff", pageViewsInsight)
-            setViewsPageData(formatForPageViewsCard(pageViewsInsight?.values, selectedPeriod));
-
-            const followersCountryInsight = insights.find(i => i.name === "page_follows_country");
-            const countryData = formatForFollowersByCountryCard(followersCountryInsight?.values, selectedPeriod);
-            setCountryFollowersData(countryData);
-
         } catch (err) {
-            setErrorFetchInsights(true);
-            notify(err?.message, "error");
-        } finally {
-            setIsLoadingInsights(false);
+            console.error(err);
         }
     };
 
     useEffect(() => {
         fetchFacebookPageData();
-    }, [selectedPeriod]);
+    }, []);
 
-    const integration = integrationsConfig["facebook"];
+    const integration = integrationsConfig["instagram"];
     const IntegrationIcon = integration.icon;
 
     return (
@@ -174,7 +126,7 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                             </Avatar>
                             <Box display={'flex'} flexDirection={'column'}>
                                 <Typography fontWeight="bold" variant="h5" noWrap>
-                                    Facebook
+                                    Instagram
                                 </Typography>
                                 <Box
                                     display="flex"
@@ -189,12 +141,11 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                                         },
                                     }}
                                     onClick={() => {
-                                        // acción al hacer click, ejemplo abrir url
-                                        window.open(facebookIntegration?.url, "_blank");
+                                        window.open(instagramIntegration?.url, "_blank");
                                     }}
                                 >
                                     <Avatar
-                                        src={`https://graph.facebook.com/${facebookIntegration?.integration_id}/picture?type=square`}
+                                        //src={`https://graph.facebook.com/${instagramIntegration?.integration_id}/picture?type=square`}
                                         sx={{
                                             bgcolor: integration.color,
                                             width: 15,
@@ -206,11 +157,11 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                                                     : "0 0 0 1px rgba(255,255,255,0.3)",
                                         }}
                                     >
-                                        {String(facebookIntegration?.name[0]).toUpperCase()}
+                                        {String(instagramIntegration?.name[0]).toUpperCase()}
                                     </Avatar>
 
                                     <Typography fontWeight="bold" variant="subtitle2" noWrap>
-                                        {facebookIntegration?.name}
+                                        {instagramIntegration?.name}
                                     </Typography>
                                 </Box>
 
@@ -290,64 +241,17 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
             }}>
                 <Grid container columns={12} spacing={1} size={{ xs: 12, sm: 12, lg: 6 }} sx={{ mb: 1 }}>
                     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <FollowersCard
-                            error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                            period={selectedPeriod}
-                            followersData={followersData}
-                        />
+                        <FollowersCard />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <PageViewsCard
-                           error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                            period={selectedPeriod}
-                            viewsPageData={viewsPageData}
-                        />
+                        <TotalLikesCard />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <PageViewsCard
-                           error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                            period={selectedPeriod}
-                            viewsPageData={viewsPageData}
-                        />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <ChartFollowersByCountry
-                           error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                            period={selectedPeriod} 
-                            insights={countryFollowersData}
-                        />
-                    </Grid>
-
-                    {/* <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <TotalLikesCard
-                            error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                        />
+                        <TotalReactionsCard />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <TotalReactionsCard
-                            error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                        />
+                        <PageViewsCard />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <PageViewsCard
-                            error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                        />
-                    </Grid> */}
                 </Grid>
             </Box>
         </Box>

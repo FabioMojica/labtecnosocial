@@ -263,7 +263,7 @@ export const ProjectPreviewPanel = ({
                                             fontSize: '0.9rem',
                                             ml: 1
                                         }}
-                                    >
+                                    > 
                                         Este proyecto no tiene integraciones con ninguna plataforma
                                     </Typography>
                                 </Box>

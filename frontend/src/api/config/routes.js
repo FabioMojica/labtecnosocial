@@ -38,9 +38,14 @@ export const Routes = {
     GET_PROJECTS_WITH_INTEGRATIONS: "/dashboard/getProjectsWithIntegrations",
   },
 
-
-  GET_GITHUB_REPOS: "/apis/github/repos",
-  GET_FACEBOOK_PAGES: "/apis/facebook/pages",
-  GET_INSTAGRAM_PAGES: "/apis/instagram/pages",
-  GET_X_ACCOUNTS: "/apis/X/accounts",
+  github: {
+    REPOS: "/apis/github/repos", 
+    BRANCHES: (repoName) => `/apis/github/${repoName}/branches`,
+    STATS: (projectName) => `/apis/github/${projectName}/github-stats`,
+  },
+ 
+  facebook: { 
+    PAGE_OVERVIEW: (pageId) => `/apis/facebook/${pageId}/overview`,
+    PAGE_INSIGHTS: (pageId) => `/apis/facebook/${pageId}/insights`,
+  },
 };

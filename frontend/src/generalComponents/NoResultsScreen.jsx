@@ -2,6 +2,8 @@ import { Box, Typography } from '@mui/material';
 import SentimentDissatisfiedRoundedIcon from '@mui/icons-material/SentimentDissatisfiedRounded';
 import { ButtonWithLoader } from './ButtonWithLoader';
 import { useHeaderHeight } from '../contexts';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import React from "react";
 
 export const NoResultsScreen = ({
   variant,
@@ -9,6 +11,7 @@ export const NoResultsScreen = ({
   sx,
   iconSX,
   icon,
+  iconType = 'sad',
   textSx,
   buttonText,
   triggerOnEnter = false,
@@ -16,6 +19,20 @@ export const NoResultsScreen = ({
   buttonSx,
 }) => {
   const { headerHeight } = useHeaderHeight();
+
+  const getIcon = () => {
+    if (icon) {
+      return React.cloneElement(icon, {
+        sx: { fontSize: 80, color: 'gray', ...iconSX },
+      });
+    }
+
+    if (iconType === 'outline') {
+      return <ErrorOutlineRoundedIcon sx={{ fontSize: 80, color: 'warning.main', ...iconSX }} />;
+    }
+    return <SentimentDissatisfiedRoundedIcon sx={{ fontSize: 80, color: 'gray', ...iconSX }} />;
+  };
+
   return (
     <Box
       sx={{
@@ -30,7 +47,7 @@ export const NoResultsScreen = ({
         ...sx,
       }}
     >
-      {icon || <SentimentDissatisfiedRoundedIcon sx={{ fontSize: 80, color: 'gray', ...iconSX }} />}
+      {getIcon()}
 
       <Typography variant="h6" color="text.secondary"
         sx={{

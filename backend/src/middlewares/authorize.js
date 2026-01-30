@@ -16,8 +16,6 @@ export const authorize = (requiredPermission) => {
 
     const userPerms = ROLE_PERMISSIONS[user.role] || []; 
 
-    console.log(req.user, userPerms);
-    
     if (!userPerms.includes(requiredPermission)) {
       return errorResponse( 
         res,

@@ -6,7 +6,10 @@ export const ErrorScreen = ({
   message = "Ocurrió un error",
   buttonText = "Reintentar",
   onButtonClick,
-  sx
+  sx,
+  textSx,
+  buttonSx,
+  iconSx,
 }) => {
     const { headerHeight }= useHeaderHeight();
 
@@ -25,12 +28,12 @@ export const ErrorScreen = ({
         ...sx,
       }}
     >
-      <ErrorOutlineRoundedIcon sx={{ fontSize: 80, color: 'error.main' }} />
-      <Typography variant="h6" color="error">
+      <ErrorOutlineRoundedIcon sx={{ fontSize: 80, color: 'error.main', ...iconSx }} />
+      <Typography variant="h6" color="error" sx={{ ...textSx }}>
         {message}
       </Typography>
       {onButtonClick && (
-        <Button variant="contained" color="error" onClick={onButtonClick}>
+        <Button variant="contained" color="error" onClick={onButtonClick} sx={{...buttonSx}}>
           {buttonText}
         </Button>
       )}

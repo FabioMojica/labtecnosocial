@@ -1,4 +1,4 @@
-import { Box, FormControl, Grid, InputLabel, MenuItem, Select, Stack, Typography } from '@mui/material';
+import { Avatar, Box, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack, Tab, Tabs, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useFetchAndLoad } from '../../../../hooks';
 import { generateMockBranches, generateMockStats } from './mock/mockStats';
 import { useEffect, useState } from 'react';
@@ -18,7 +18,10 @@ import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { useLayout } from '../../../../contexts/LayoutContext';
-import { useDrawerClosedWidth } from '../../../../utils';
+import { integrationsConfig, useDrawerClosedWidth } from '../../../../utils';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
+
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -36,6 +39,11 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
     const { addChart, removeChart, selectedCharts } = useReport();
     const { scrollbarWidth } = useLayout();
     const navBarWidth = useDrawerClosedWidth();
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const theme = useTheme();
+    const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
+    const integration = integrationsConfig["github"];
+    const IntegrationIcon = integration.icon;
 
     const githubIntegration = project?.integrations?.find(i => i.platform === 'github');
 
@@ -146,40 +154,193 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
 
 
     return (
-        <Box sx={{ width: '100%', height: '100%', px: {xs: 1, lg: 0}, py: {xs: 1, lg: 0}, maxWidth: { xs: '100vw', lg: `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`}}}>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', gap: 2 }}>
-                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <GitHub fontSize="large" />
-                    <Typography variant="h6">{`Repositorio: ${githubIntegration.name}`}</Typography>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                position: isFullscreen ? 'fixed' : 'relative',
+                top: isFullscreen ? 0 : 'auto',
+                left: isFullscreen ? 0 : 'auto',
+                width: isFullscreen ? '100vw' : '100%',
+                maxWidth: {
+                    xs: '100vw',
+                    lg: isFullscreen ? '100vw' : `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`
+                },
+                height: isFullscreen ? '100vh' : 'auto',
+                bgcolor: (theme) => theme.palette.background.default,
+                zIndex: isFullscreen ? 1500 : 'auto',
+                overflow: isFullscreen ? 'hidden' : 'visible',
+            }}
+        >
+            <Box
+                sx={{
+                    position: isFullscreen ? 'fixed' : 'sticky',
+                    top: 0,
+                    left: 0,
+                    zIndex: isFullscreen ? 1600 : 999,
+                    bgcolor: 'background.paper',
+                    borderTopLeftRadius: 5,
+                    borderTopRightRadius: 5,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    p: 1,
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    flexDirection: {
+                        xs: 'column',
+                        md: 'row',
+                    },
+                    gap: 1
+                }}
+            >
+                <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: {
+                        xs: 'column',
+                        sm: 'row',
+                        md: 'row',
+                        lg: 'row'
+                    },
+                    gap: 1,
+
+                }}>
+                    <Box sx={{
+                        display: 'flex',
+                        gap: 1,
+                        justifyContent: {
+                            xs: 'space-between',
+                            sm: 'left'
+                        },
+                        width: '100%',
+                        alignItems: 'center'
+                    }}>
+                        <Box display={'flex'} alignItems={'center'} gap={1}>
+                            <Avatar
+                                sx={{
+                                    bgcolor: integration.color,
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: 2,
+                                    boxShadow: (theme) =>
+                                        theme.palette.mode === 'light'
+                                            ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                            : '0 0 0 1px rgba(255,255,255,0.3)',
+                                }}
+                            >
+                                <IntegrationIcon sx={{ color: "#fff", fontSize: 38 }} />
+                            </Avatar>
+                            <Box display={'flex'} flexDirection={'column'}>
+                                <Typography fontWeight="bold" variant="h5" noWrap>
+                                    Github
+                                </Typography>
+                                <Box
+                                    display="flex"
+                                    gap={1}
+                                    alignItems="center"
+                                    sx={{
+                                        cursor: "pointer",
+                                        textDecoration: "underline",
+                                        color: "primary.main",
+                                        "&:hover": {
+                                            color: "primary.dark",
+                                        },
+                                    }}
+                                    onClick={() => {
+                                        // acción al hacer click, ejemplo abrir url
+                                        window.open(facebookIntegration?.url, "_blank");
+                                    }}
+                                >
+                                    <Typography fontWeight="bold" variant="subtitle2" noWrap>
+                                        {githubIntegration?.name}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                            {branches.length > 0 && (
+                                <FormControl size="small" sx={{ minWidth: { xs: 120, sm: 150 }, maxWidth: {xs: 120, sm: 150} }}>
+                                    <InputLabel id="branches-label">Ramas</InputLabel>
+                                    <Select labelId="branches-label" value={selectedBranch} onChange={e => setSelectedBranch(e.target.value)} label="Ramas">
+                                        {branches.map(b => <MenuItem key={b} value={b}>{b}</MenuItem>)}
+                                    </Select>
+                                </FormControl>
+                            )}
+                        </Box>
+                    </Box>
                 </Box>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 0.5 }}>
-                    {branches.length > 0 && (
-                        <FormControl size="small" sx={{ minWidth: { xs: 120, sm: 150 } }}>
-                            <InputLabel id="branches-label">Ramas</InputLabel>
-                            <Select labelId="branches-label" value={selectedBranch} onChange={e => setSelectedBranch(e.target.value)} label="Ramas">
-                                {branches.map(b => <MenuItem key={b} value={b}>{b}</MenuItem>)}
-                            </Select>
-                        </FormControl>
-                    )}
+                <Tabs
+                    value={selectedPeriod}
+                    onChange={(event, newValue) => setSelectedPeriod(newValue)}
+                    variant='scrollable'
+                    allowScrollButtonsMobile
+                    sx={{
+                        mr: {
+                            lg: 5
+                        }
+                    }}
+                    aria-label="secondary tabs example"
+                >
+                    <Tab value="today" label="Hoy" />
+                    <Tab value="lastWeek" label="Última semana" />
+                    <Tab value="lastMonth" label="Último mes" />
+                    <Tab value="lastSixMonths" label="Últimos seis meses" />
+                    <Tab value="all" label="Todo" />
+                </Tabs>
 
-                    <FormControl size="small" sx={{ minWidth: { xs: 120, sm: 150 } }}>
-                        <InputLabel id="period-label">Periodo</InputLabel>
-                        <Select labelId="period-label" value={selectedPeriod} onChange={e => setSelectedPeriod(e.target.value)} label="Periodo">
-                            <MenuItem value="today">Hoy</MenuItem>
-                            <MenuItem value="lastWeek">Última semana</MenuItem>
-                            <MenuItem value="lastMonth">Último mes</MenuItem>
-                            <MenuItem value="lastSixMonths">Últimos seis meses</MenuItem>
-                            <MenuItem value="all">Todo</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Box>
+                <Tooltip
+                    title={isFullscreen ? "Minimizar" : "Maximizar"}
+                    onOpen={() => setTooltipOpen(true)}
+                    onClose={() => setTooltipOpen(false)}
+                >
+                    <IconButton
+                        size="small"
+                        onClick={() => {
+                            setIsFullscreen(!isFullscreen);
+                            setTooltipOpen(false);
+                        }}
+                        sx={{
+                            transition: 'transform 0.3s ease',
+                            transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
+                            position: 'absolute',
+                            top: {
+                                xs: 10,
+                                lg: 15
+                            },
+                            right: 10
+                        }}
+                    >
+                        {isFullscreen ? <CloseFullscreenIcon fontSize="small" /> : <FullscreenIcon fontSize="medium" />}
+                    </IconButton>
+                </Tooltip>
             </Box>
 
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{
+                mt: isFullscreen ? isLaptop ? 10 : 17 : 1,
+                px: {
+                    xs: 1,
+                    lg: isFullscreen ? 1 : 0,
+                },
+                width: '100%',
+                height: 'auto',
+                overflowY: isFullscreen ? 'auto' : 'visible',
+                "&::-webkit-scrollbar": { height: "2px", width: "2px" },
+                "&::-webkit-scrollbar-track": {
+                    backgroundColor: theme.palette.background.default,
+                    borderRadius: "2px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                    backgroundColor: theme.palette.primary.main,
+                    borderRadius: "2px",
+                },
+                "&::-webkit-scrollbar-thumb:hover": {
+                    backgroundColor: theme.palette.primary.dark,
+                },
+            }}>
                 <Grid container columns={12} spacing={1} size={{ xs: 12, sm: 12, lg: 6 }} sx={{ mb: 1 }}>
                     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <CommitsInThePeriod 
+                        <CommitsInThePeriod
                             commits={stats?.commits || []}
                             title="Cantidad de commits"
                             interval={periodLabel}
@@ -276,7 +437,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                         <SessionsChart
                             commitsData={stats?.commits || []}
                             title="Historial de commits"
-                            interval={periodLabel} 
+                            interval={periodLabel}
                             selectable
                             selected={selectedCharts.some(c => c.id === 'topCollaborators')}
                             selectedPeriod={selectedPeriod}

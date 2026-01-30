@@ -18,6 +18,8 @@ import { DashboardOutlined } from '@mui/icons-material';
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import { GitHubDashboard } from './components/GitHub/GitHubDashboard';
 import { FacebookDashboard } from './components/Facebook/FacebookDashboard';
+import { InstagramDashboard } from './components/Instagram/InstagramDashboard';
+import { XDashboard } from './components/X/XDashboard';
 
 export const APIsDashboardPage = () => {
     const { id } = useParams();
@@ -36,7 +38,7 @@ export const APIsDashboardPage = () => {
             setError(false);
             const res = await callEndpoint(getOperationalProjectsWithIntegrationsApi(user.email));
             setProjects(res);
-        } catch (error) {
+        } catch (error) { 
             setError(true);
             notify(error.message, "error");
         }
@@ -61,9 +63,7 @@ export const APIsDashboardPage = () => {
     if (projects.length === 0) {
         return <NoResultsScreen message='No tienes ningún proyecto registrado en el sistema' buttonText={'Crear uno'} onButtonClick={() => { navigate('/proyectos/crear') }} />
     }
-
-    console.log(selectedProject);
-
+ 
     const renderIntegrationDashboard = () => {
         switch (selectedIntegration) {
             case 'github':
@@ -71,9 +71,9 @@ export const APIsDashboardPage = () => {
             case 'facebook':
                 return <FacebookDashboard project={selectedProject}/>;
             case 'instagram':
-                return <div>Instagram Dashboard (en construcción)</div>;
+                return <InstagramDashboard project={selectedProject}/>;
             case 'x':
-                return <div>X (Twitter) Dashboard (en construcción)</div>;
+                return <XDashboard project={selectedProject} />;
             default:
                 return null;
         }
@@ -188,7 +188,6 @@ export const APIsDashboardPage = () => {
             </Box>
 
             <Box>
-                <Divider />
                 {!selectedProject ? (
                     <NoResultsScreen
                         message="Seleccione un proyecto para ver los dashboards disponibles."

@@ -1,7 +1,11 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import { normalizeGetAPIsData } from "../../utils/normalizeGetAPIsData.js";
- 
+import { ERROR_CODES, errorResponse, successResponse } from "../../utils/apiResponse.js";
+import { resolveDateRange } from '../../utils/resolveDateRange.js';
+import { getFacebookPageAccessToken } from './utils/getFacebookPageAccessToken.js'
+import { formatInsights } from "./utils/formatInsights.js";
+
 dotenv.config();
 
 const { FACEBOOK_TOKEN } = process.env;
@@ -10,17 +14,16 @@ const BASE_URL = `https://graph.facebook.com/${GRAPH_VERSION}`;
 
 export const getFacebookPages = async (req, res) => {
   try {
-     const response = await axios.get(`${BASE_URL}/me/accounts`, {
-        params: {
-          access_token: FACEBOOK_TOKEN, 
-          // fields: "id,name,link" 
-          fields: "id,name,link,picture{url}"
-        }
+    const response = await axios.get(`${BASE_URL}/me/accounts`, {
+      params: {
+        access_token: FACEBOOK_TOKEN,
+        fields: "id,name,link,picture{url}"
       }
+    }
     );
 
     const normalized = normalizeGetAPIsData('facebook', { pages: response.data.data });
-    
+
     return res.status(200).json(normalized);
   } catch (error) {
     console.error("Error obteniendo páginas de Facebook:", error.response?.data || error.message);
@@ -39,47 +42,73 @@ export const getFacebookPageOverview = async (req, res) => {
       },
     });
 
-    return res.status(200).json(response.data);
+    return (
+      successResponse(
+        res,
+        response?.data,
+        "Overview de la página de facebook recuperado exitosamente.",
+        200
+      )
+    );
+
   } catch (error) {
     console.error(
       "Error obteniendo overview:",
       error.response?.data || error.message
     );
-    return res.status(500).json({ error: "No se pudo obtener el overview" });
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
   }
 };
 
 export const getFacebookPageInsights = async (req, res) => {
   try {
     const { pageId } = req.params;
-    const { since, until } = req.query;
+    const { range = "lastMonth" } = req.query;
+
+    const pageAccessToken = getFacebookPageAccessToken(pageId);
+
+    const intervals = resolveDateRange(range);
 
     const metrics = [
-      "page_impressions",
-      "page_impressions_organic",
-      "page_impressions_paid",
-      "page_engaged_users",
-      "page_fans",
+      "page_media_view",
+      "page_follows",
+      "page_follows_country"
     ];
 
-    const response = await axios.get(`${BASE_URL}/${pageId}/insights`, {
-      params: {
-        access_token: FACEBOOK_TOKEN,
-        metric: metrics.join(","),
-        since,
-        until,
-      },
-    });
+    let allInsights = [];
 
-    return res.status(200).json(response.data.data);
+    for (const interval of intervals) {
+      const params = {
+        access_token: pageAccessToken,
+        metric: metrics.join(","),
+        period: "day",
+      };
+      if (interval.since) params.since = interval.since;
+      if (interval.until) params.until = interval.until;
+
+      const response = await axios.get(
+        `${BASE_URL}/${pageId}/insights`,
+        { params }
+      );
+
+      allInsights = allInsights.concat(response.data.data);
+    }
+
+    const formattedInsights = formatInsights(allInsights)
+ 
+    return successResponse(res, formattedInsights, "OK", 200);
+
   } catch (error) {
-    console.error(
-      "Error obteniendo insights:",
-      error.response?.data || error.message
-    );
-    return res.status(500).json({ error: "No se pudieron obtener insights" });
+    console.error("Error obteniendo insights:", error);
+    return errorResponse(res, ERROR_CODES.SERVER_ERROR, error.message, 500);
   }
 };
+
 
 export const getFacebookPagePosts = async (req, res) => {
   try {
