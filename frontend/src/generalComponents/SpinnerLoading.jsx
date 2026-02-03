@@ -22,10 +22,16 @@ export const SpinnerLoading = ({
         ...sx, 
       }}
     >
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 1
+      }}>
       {text && (
         <Typography
           sx={{
-            mb: 2,
             textAlign: "center",
             fontWeight: 500,
             fontSize: {
@@ -34,13 +40,14 @@ export const SpinnerLoading = ({
               md: "1.5rem", 
               lg: "1rem" 
             },
+            ...sx
           }}
         >
           {text}
         </Typography>
       )}
-
       <CircularProgress size={size} thickness={4} color="primary" />
+      </Box>
     </Box>
   );
 };

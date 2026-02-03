@@ -2,12 +2,12 @@ import { Avatar, Box, Grid, Icon, IconButton, Tab, Tabs, Tooltip, Typography, us
 import { useLayout } from "../../../../contexts/LayoutContext";
 import { integrationsConfig, useDrawerClosedWidth } from "../../../../utils";
 import FollowersCard from "./components/FollowersCard";
-import TotalLikesCard from "./components/TotalLikesCard";
 import TotalReactionsCard from "./components/TotalReactionsCard";
+import PageImpressionsCard from "./components/PageImpressionsCard";
 import PageViewsCard from "./components/PageViewsCard";
 import { useEffect, useState } from "react";
 import { useFetchAndLoad } from "../../../../hooks";
-import { getFacebookPageInsights, getFacebookPageOverview } from "../../../../api";
+import { getFacebookPageInsights, getFacebookPageOverview, getFacebookPagePosts } from "../../../../api";
 
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
@@ -16,6 +16,14 @@ import { formatForFollowersCard } from "./utils/cards/formatForFollowersCard";
 import { formatForPageViewsCard } from "./utils/cards/formatForPageViewsCard";
 import ChartFollowersByCountry from "./components/ChartFollowersByCountry";
 import { formatForFollowersByCountryCard } from "./utils/cards/formatForFollowersByCountryCard";
+import TopPostOfThePeriod from "./components/TopPostOfThePeriod";
+import OrganicOrPaidViewsCard from "./components/OrganicOrPaidViewsCard";
+import { formatForOrganicOrPaidViewsCard } from "./utils/cards/formatForOrganicOrPaidViewsCard";
+import { formatForTotalReactionsCard } from "./utils/cards/formatTotalReactionsCard";
+import { formatForTotalActionsCard } from "./utils/cards/formatForTotalActionsCard";
+import TotalActionsCard from "./components/TotalActionsCard";
+import PostEngagementsCard from "./components/PostEngagementsCard";
+import { useReport } from "../../../../contexts/ReportContext";
 
 
 export const FacebookDashboard = ({ project, useMock = true }) => {
@@ -26,9 +34,9 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
         selectedPeriod === 'today' ? 'Hoy' :
             selectedPeriod === 'lastWeek' ? 'Última semana' :
                 selectedPeriod === 'lastMonth' ? 'Último mes' :
-                    selectedPeriod === 'lastSixMonths' ? 'Últimos seis meses' :
-                        'Todo';
+                    selectedPeriod === 'lastSixMonths' && 'Últimos seis meses';
 
+    const { addChart, removeChart, selectedCharts } = useReport();
 
     const navBarWidth = useDrawerClosedWidth();
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -36,9 +44,33 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
     const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
     const { notify } = useNotification();
     const [isLoadingInsights, setIsLoadingInsights] = useState(false);
-    const [errorFetchInsights, setErrorFetchInsights] = useState(false);
+    const [errorFetchData, setErrorFetchData] = useState(false);
+
+    const [totalActionsData, setTotalActionsData] = useState({
+        total: 0,
+        delta: 0
+    });
+
+    const [postEngagementsData, setPostEngagementsData] = useState({
+        total: 0,
+        delta: 0
+    });
+
+    const [organicOrPaidViewsData, setOrganicOrPaidViewsData] = useState({
+        chartData: [],
+        dates: [],
+        total: 0,
+        delta: 0,
+    });
 
     const [followersData, setFollowersData] = useState({
+        chartData: [],
+        dates: [],
+        total: 0,
+        delta: 0,
+    });
+
+    const [impressionsPageData, setImpressionsPageData] = useState({
         chartData: [],
         dates: [],
         total: 0,
@@ -52,7 +84,11 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
         delta: 0,
     });
 
+    const [totalReactionsOfPage, setTotalReactionsOfPage] = useState();
+
     const [countryFollowersData, setCountryFollowersData] = useState([]);
+
+    const [topPostsData, setTopPostsData] = useState([]);
 
     const facebookIntegration = project?.integrations?.find(i => i.platform === 'facebook');
 
@@ -61,25 +97,45 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
         try {
             //const resp = await callEndpoint(getFacebookPageOverview(facebookIntegration?.integration_id));
             setIsLoadingInsights(true);
-            setErrorFetchInsights(false);
+            setErrorFetchData(false);
+
             const insights = await callEndpoint(getFacebookPageInsights(facebookIntegration?.integration_id, selectedPeriod));
+            const posts = await callEndpoint(getFacebookPagePosts(facebookIntegration?.integration_id, selectedPeriod));
+            setTopPostsData(posts);
 
             console.log("insights", insights);
+            console.log("posts", posts);
 
             const followersInsight = insights.find(i => i.name === "page_follows");
-            console.log("fffff", followersInsight)
             setFollowersData(formatForFollowersCard(followersInsight?.values, selectedPeriod));
 
-            const pageViewsInsight = insights.find(i => i.name === "page_media_view");
-            console.log("fffff", pageViewsInsight)
+            const pageImpressionsInsight = insights.find(i => i.name === "page_media_view");
+            setImpressionsPageData(formatForPageViewsCard(pageImpressionsInsight?.values, selectedPeriod));
+            setOrganicOrPaidViewsData(formatForOrganicOrPaidViewsCard(pageImpressionsInsight?.values, selectedPeriod));
+
+            const pageViewsInsight = insights.find(i => i.name === "page_views_total");
             setViewsPageData(formatForPageViewsCard(pageViewsInsight?.values, selectedPeriod));
+
+            const reactionsInsights = insights.filter(i => i.name.includes("page_actions_post_reactions"));
+            const totalReactionsData = formatForTotalReactionsCard(reactionsInsights);
+            setTotalReactionsOfPage(totalReactionsData);
 
             const followersCountryInsight = insights.find(i => i.name === "page_follows_country");
             const countryData = formatForFollowersByCountryCard(followersCountryInsight?.values, selectedPeriod);
             setCountryFollowersData(countryData);
 
+            const totalActionsInsight = insights.find(i => i.name === "page_total_actions");
+            const totalActions = formatForTotalActionsCard(totalActionsInsight?.values, selectedPeriod);
+            setTotalActionsData(totalActions);
+
+            const postEngagementsInsight = insights.find(i => i.name === "page_post_engagements");
+            const postEngagements = formatForTotalActionsCard(postEngagementsInsight?.values, selectedPeriod);
+            setPostEngagementsData(postEngagements);
+
+            setErrorFetchData(false);
+
         } catch (err) {
-            setErrorFetchInsights(true);
+            setErrorFetchData(true);
             notify(err?.message, "error");
         } finally {
             setIsLoadingInsights(false);
@@ -232,17 +288,14 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                     }}
                     aria-label="secondary tabs example"
                 >
-                    <Tab value="today" label="Hoy" />
-                    <Tab value="lastWeek" label="Última semana" />
-                    <Tab value="lastMonth" label="Último mes" />
-                    <Tab value="lastSixMonths" label="Últimos seis meses" />
-                    <Tab value="all" label="Todo" />
+                    <Tab value="today" label="Hoy" disabled={isLoadingInsights} />
+                    <Tab value="lastWeek" label="Última semana" disabled={isLoadingInsights} />
+                    <Tab value="lastMonth" label="Último mes" disabled={isLoadingInsights} />
+                    <Tab value="lastSixMonths" label="Últimos seis meses" disabled={isLoadingInsights} />
                 </Tabs>
 
                 <Tooltip
                     title={isFullscreen ? "Minimizar" : "Maximizar"}
-                    onOpen={() => setTooltipOpen(true)}
-                    onClose={() => setTooltipOpen(false)}
                 >
                     <IconButton
                         size="small"
@@ -288,66 +341,243 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                     backgroundColor: theme.palette.primary.dark,
                 },
             }}>
+                <Grid container columns={12} spacing={1} sx={{ mb: 1 }}>
+                    <Grid container spacing={1} columns={{ xs: 12, sm: 12 }} size={{ xs: 12, lg: 9 }}>
+                        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                            <FollowersCard
+                                error={errorFetchData}
+                                title="Seguidores de la página"
+                                loading={isLoadingInsights}
+                                interval={periodLabel}
+                                period={selectedPeriod}
+                                followersData={followersData}
+                                selected={selectedCharts.some(c => c.id === `followersCard-facebook-${selectedPeriod}`)}
+                                onSelectChange={(checked) => {
+                                    if (checked) {
+                                        addChart({
+                                            chartKey: 'followersCard',
+                                            platform: 'facebook',
+                                            selectedPeriod,
+                                            title: 'Seguidores de la página',
+                                            data: followersData,
+                                            interval: periodLabel,
+                                        });
+                                    } else {
+                                        removeChart({ chartKey: 'followersCard', platform: 'facebook', selectedPeriod });
+                                    }
+                                }}
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                            <PageViewsCard
+                                error={errorFetchData}
+                                title="Visitas a la página"
+                                loading={isLoadingInsights}
+                                interval={periodLabel}
+                                period={selectedPeriod}
+                                viewsPageData={viewsPageData}
+                                selected={selectedCharts.some(c => c.id === `pageViewsCard-facebook-${selectedPeriod}`)}
+                                onSelectChange={(checked) => {
+                                    if (checked) {
+                                        addChart({
+                                            chartKey: 'pageViewsCard',
+                                            platform: 'facebook',
+                                            selectedPeriod,
+                                            title: 'Visitas a la página',
+                                            data: viewsPageData,
+                                            interval: periodLabel,
+                                        });
+                                    } else {
+                                        removeChart({ chartKey: 'pageViewsCard', platform: 'facebook', selectedPeriod });
+                                    }
+                                }}
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                            <PageImpressionsCard
+                                error={errorFetchData}
+                                loading={isLoadingInsights}
+                                interval={periodLabel}
+                                period={selectedPeriod}
+                                impressionsPageData={impressionsPageData}
+                                selected={selectedCharts.some(c => c.id === `pageImpressionsCard-facebook-${selectedPeriod}`)}
+                                onSelectChange={(checked) => {
+                                    if (checked) {
+                                        addChart({
+                                            chartKey: 'pageImpressionsCard',
+                                            platform: 'facebook',
+                                            selectedPeriod,
+                                            title: 'Page impressions',
+                                            data: impressionsPageData,
+                                            interval: periodLabel,
+                                        });
+                                    } else {
+                                        removeChart({ chartKey: 'pageImpressionsCard', platform: 'facebook', selectedPeriod });
+                                    }
+                                }}
+                            />
+                        </Grid>
+
+
+                        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                            <TotalActionsCard
+                                error={errorFetchData}
+                                title="Total actions"
+                                loading={isLoadingInsights}
+                                interval={periodLabel}
+                                period={selectedPeriod}
+                                totalActionsData={totalActionsData}
+                                selected={selectedCharts.some(c => c.id === `totalActionsCard-facebook-${selectedPeriod}`)}
+                                onSelectChange={(checked) => {
+                                    if (checked) {
+                                        addChart({
+                                            chartKey: 'totalActionsCard',
+                                            platform: 'facebook',
+                                            selectedPeriod,
+                                            title: 'Total actions',
+                                            data: totalActionsData,
+                                            interval: periodLabel,
+                                        });
+                                    } else {
+                                        removeChart({ chartKey: 'totalActionsCard', platform: 'facebook', selectedPeriod });
+                                    }
+                                }}
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                            <PostEngagementsCard
+                                error={errorFetchData}
+                                title="Post engagements"
+                                loading={isLoadingInsights}
+                                interval={periodLabel}
+                                period={selectedPeriod}
+                                postEngagementsData={postEngagementsData}
+                                selected={selectedCharts.some(c => c.id === `postEngagementsCard-facebook-${selectedPeriod}`)}
+                                onSelectChange={(checked) => {
+                                    if (checked) {
+                                        addChart({
+                                            chartKey: 'postEngagementsCard',
+                                            platform: 'facebook',
+                                            selectedPeriod,
+                                            title: 'Post engagements',
+                                            data: postEngagementsData,
+                                            interval: periodLabel,
+                                        });
+                                    } else {
+                                        removeChart({ chartKey: 'postEngagementsCard', platform: 'facebook', selectedPeriod });
+                                    }
+                                }}
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                            <TotalReactionsCard
+                                error={errorFetchData}
+                                title="Reacciones totales"
+                                loading={isLoadingInsights}
+                                interval={periodLabel}
+                                period={selectedPeriod}
+                                totalReactionsOfPage={totalReactionsOfPage}
+                                selected={selectedCharts.some(c => c.id === `totalReactionsCard-facebook-${selectedPeriod}`)}
+                                onSelectChange={(checked) => {
+                                    if (checked) {
+                                        addChart({
+                                            chartKey: 'totalReactionsCard',
+                                            platform: 'facebook',
+                                            selectedPeriod,
+                                            title: 'Reacciones totales',
+                                            data: postEngagementsData,
+                                            interval: periodLabel,
+                                        });
+                                    } else {
+                                        removeChart({ chartKey: 'totalReactionsCard', platform: 'facebook', selectedPeriod });
+                                    }
+                                }}
+                            />
+                        </Grid>
+                    </Grid>
+
+                    <Grid container size={{ xs: 12, sm: 12, lg: 3 }}>
+                        <OrganicOrPaidViewsCard
+                            error={errorFetchData}
+                            title="Page impressions orgánicas vs pagadas"
+                            loading={isLoadingInsights}
+                            interval={periodLabel}
+                            period={selectedPeriod}
+                            organicOrPaidViewsData={organicOrPaidViewsData}
+                            selected={selectedCharts.some(c => c.id === `organicOrPaidViewsCard-facebook-${selectedPeriod}`)}
+                            onSelectChange={(checked) => {
+                                if (checked) {
+                                    addChart({
+                                        chartKey: 'organicOrPaidViewsCard',
+                                        platform: 'facebook',
+                                        selectedPeriod,
+                                        title: 'Page impressions orgánicas vs pagadas',
+                                        data: organicOrPaidViewsData,
+                                        interval: periodLabel,
+                                    });
+                                } else {
+                                    removeChart({ chartKey: 'organicOrPaidViewsCard', platform: 'facebook', selectedPeriod });
+                                }
+                            }}
+                        />
+                    </Grid>
+                </Grid>
+
                 <Grid container columns={12} spacing={1} size={{ xs: 12, sm: 12, lg: 6 }} sx={{ mb: 1 }}>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <FollowersCard
-                            error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                            period={selectedPeriod}
-                            followersData={followersData}
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <PageViewsCard
-                           error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                            period={selectedPeriod}
-                            viewsPageData={viewsPageData}
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <PageViewsCard
-                           error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                            period={selectedPeriod}
-                            viewsPageData={viewsPageData}
-                        />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, lg: 3 }} >
                         <ChartFollowersByCountry
-                           error={errorFetchInsights}
+                            error={errorFetchData}
+                            title="Seguidores por país"
                             loading={isLoadingInsights}
                             interval={periodLabel}
-                            period={selectedPeriod} 
+                            period={selectedPeriod}
                             insights={countryFollowersData}
+                            selected={selectedCharts.some(c => c.id === `chartFollowersByCountry-facebook-${selectedPeriod}`)}
+                            onSelectChange={(checked) => {
+                                if (checked) {
+                                    addChart({
+                                        chartKey: 'chartFollowersByCountry',
+                                        platform: 'facebook',
+                                        selectedPeriod,
+                                        title: 'Seguidores por país',
+                                        data: countryFollowersData,
+                                        interval: periodLabel,
+                                    });
+                                } else {
+                                    removeChart({ chartKey: 'chartFollowersByCountry', platform: 'facebook', selectedPeriod });
+                                }
+                            }}
                         />
                     </Grid>
-
-                    {/* <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <TotalLikesCard
-                            error={errorFetchInsights}
+                    <Grid size={{ xs: 12, sm: 6, lg: 9 }} >
+                        <TopPostOfThePeriod
+                            error={errorFetchData}
+                            title="Top 5 posts populares"
                             loading={isLoadingInsights}
                             interval={periodLabel}
+                            period={selectedPeriod}
+                            topPostsData={topPostsData}
+                            selected={selectedCharts.some(c => c.id === `topPostOfThePeriod-facebook-${selectedPeriod}`)}
+                            onSelectChange={(checked) => {
+                                if (checked) {
+                                    addChart({
+                                        chartKey: 'topPostOfThePeriod',
+                                        platform: 'facebook',
+                                        selectedPeriod,
+                                        title: 'Top 5 posts populares',
+                                        data: topPostsData,
+                                        interval: periodLabel,
+                                    });
+                                } else {
+                                    removeChart({ chartKey: 'topPostOfThePeriod', platform: 'facebook', selectedPeriod });
+                                }
+                            }}
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <TotalReactionsCard
-                            error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <PageViewsCard
-                            error={errorFetchInsights}
-                            loading={isLoadingInsights}
-                            interval={periodLabel}
-                        />
-                    </Grid> */}
                 </Grid>
             </Box>
         </Box>

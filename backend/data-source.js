@@ -9,6 +9,9 @@ import { OperationalProject } from './src/entities/OperationalProject.js';
 import { OperationalRow } from './src/entities/OperationalRow.js';
 import { ProjectResponsible } from './src/entities/ProjectResponsible.js';
 import { ProjectIntegration } from './src/entities/ProjectIntegration.js';
+import { Report } from './src/entities/Report.js';
+import { ReportElementData } from './src/entities/ReportElementData.js';
+import { ReportElement } from './src/entities/ReportElement.js';
 
 const isTest = process.env.NODE_ENV === 'test';
 const isDev = process.env.NODE_ENV === 'development';
@@ -25,7 +28,7 @@ export const AppDataSource = new DataSource({
   synchronize: true,
   dropSchema: isTest, 
   
-  logging: isDev, // solo log en desarrollo
+  logging: isDev, 
   entities: [
     User,
     StrategicPlan,
@@ -35,6 +38,9 @@ export const AppDataSource = new DataSource({
     OperationalProject,
     OperationalRow,
     ProjectResponsible,
-    ProjectIntegration
+    ProjectIntegration,
+    Report,
+    ReportElement,
+    ReportElementData,
   ],
 });

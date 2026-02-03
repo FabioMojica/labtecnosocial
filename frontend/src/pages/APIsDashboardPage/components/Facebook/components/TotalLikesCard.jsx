@@ -71,66 +71,71 @@ function TotalLikesCard({
 
 
     return (
-        <Card variant="outlined" sx={{ height: 150, flexGrow: 1, position: 'relative' }}>
+        <Card variant="outlined" sx={{ maxHeight: 150, height: 150, flexGrow: 1, position: 'relative' }}>
+            <Stack direction="column" justifyContent="flex-start" alignItems="flex-start" sx={{ position: 'absolute', left: 8, top: 8 }}>
+                <Typography component="h2" variant="subtitle2">{title}</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
+            </Stack>
+
             {loading ?
                 <>
-                    <SpinnerLoading text={`Obteniendo los seguidores de la página...`} size={30} sx={{ height: "90%" }} />
-                </> 
-                : error ?  
-                <>
-                    <ErrorScreen message="Ocurrió un error al obtener los seguidores de la página" sx={{height: "100%", width: "100%", gap: 0, p: 2}} iconSx={{ fontSize: 50}} textSx={{ fontSize: 17}}/>
-                </>  
-                : (followersData.length === 0 && !error && !loading) ? 
-                <>
-                    <NoResultsScreen message="No hay datos para mostrar" iconType={'outline'} sx={{height: "100%", width: "100%", gap: 0, p: 2}} iconSX={{ fontSize: 50}} textSx={{ fontSize: 17}}/>
-                </> 
-                : 
-                <>
-                    {selectable && (
-                        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                            <CheckBox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
-                        </Box>
-                    )}
-                    <CardContent>
-                        <Stack direction="column" justifyContent="flex-start" alignItems="flex-start">
-                            <Typography component="h2" variant="subtitle2">{title}</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
-                        </Stack>
- 
-                        <Box display={'flex'} gap={0.5} justifyContent={'center'} alignItems={'flex-end'}>
-
-                            <Typography variant='h3'>100K</Typography>
-
-                            <svg width="0" height="0">
-                                <defs>
-                                    <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor={integrationsConfig.facebook.color} stopOpacity={0.4} />
-                                        <stop offset="100%" stopColor={integrationsConfig.facebook.color} stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-
-                            <SparkLineChart
-                                key={interval}
-                                data={data}
-                                height={70}
-                                area
-                                curve="natural"
-                                showHighlight={showHighlight}
-                                showTooltip={showTooltip}
-                                color={integrationsConfig.facebook.color}
-                                sx={{
-                                    '& .MuiAreaElement-root': {
-                                        fill: 'url(#gradient)',
-                                    },
-                                    '& .MuiLineElement-root': {
-                                        transition: 'none',
-                                    },
-                                }}
-                            />
-                        </Box>
-                    </CardContent>
+                    <SpinnerLoading text={`Obteniendo las "page impressions" de la página...`} size={25} sx={{ height: "100%", width: "100%", pt: 3.5, fontSize: '0.9rem' }} />
                 </>
+                : error ?
+                    <>
+                        <ErrorScreen message="Ocurrió un error al obtener los seguidores de la página" sx={{ height: "100%", width: "100%", gap: 0, p: 2 }} iconSx={{ fontSize: 50 }} textSx={{ fontSize: 17 }} />
+                    </>
+                    : (followersData.length === 0 && !error && !loading) ?
+                        <>
+                            <NoResultsScreen message="No hay datos para mostrar" iconType={'outline'} sx={{ height: "100%", width: "100%", gap: 0, p: 2 }} iconSX={{ fontSize: 50 }} textSx={{ fontSize: 17 }} />
+                        </>
+                        :
+                        <>
+                            {selectable && (
+                                <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+                                    <CheckBox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
+                                </Box>
+                            )}
+                            <CardContent>
+                                <Stack direction="column" justifyContent="flex-start" alignItems="flex-start">
+                                    <Typography component="h2" variant="subtitle2">{title}</Typography>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
+                                </Stack>
+
+                                <Box display={'flex'} gap={0.5} justifyContent={'center'} alignItems={'flex-end'}>
+
+                                    <Typography variant='h3'>100K</Typography>
+
+                                    <svg width="0" height="0">
+                                        <defs>
+                                            <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor={integrationsConfig.facebook.color} stopOpacity={0.4} />
+                                                <stop offset="100%" stopColor={integrationsConfig.facebook.color} stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+
+                                    <SparkLineChart
+                                        key={interval}
+                                        data={data}
+                                        height={70}
+                                        area
+                                        curve="natural"
+                                        showHighlight={showHighlight}
+                                        showTooltip={showTooltip}
+                                        color={integrationsConfig.facebook.color}
+                                        sx={{
+                                            '& .MuiAreaElement-root': {
+                                                fill: 'url(#gradient)',
+                                            },
+                                            '& .MuiLineElement-root': {
+                                                transition: 'none',
+                                            },
+                                        }}
+                                    />
+                                </Box>
+                            </CardContent>
+                        </>
             }
         </Card>
     )

@@ -8,7 +8,7 @@ export const formatForFollowersByCountryCard = (insights, selectedPeriod) => {
 
     switch (selectedPeriod) {
         case "today":
-            startDate = today;
+            startDate = today; 
             endDate = today.endOf("day");
             break;
         case "lastWeek":

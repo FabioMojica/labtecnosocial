@@ -9,8 +9,7 @@ import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-import { CheckBox } from '@mui/icons-material';
-import { ErrorScreen, NoResultsScreen, SpinnerLoading } from '../../../../../generalComponents';
+import DashboardCard from './DashboardCard';
 
 const StyledText = styled('text', {
   shouldForwardProp: (prop) => prop !== 'variant',
@@ -43,7 +42,7 @@ function PieCenterLabel({ primaryText, secondaryText }) {
 PieCenterLabel.propTypes = {
   primaryText: PropTypes.string.isRequired,
   secondaryText: PropTypes.string.isRequired,
-};
+}; 
 
 const colors = [
   'hsl(220, 20%, 65%)',
@@ -54,19 +53,19 @@ const colors = [
   'hsl(50, 70%, 60%)',
 ];
 
-export default function ChartFollowersByCountry({
+export default function ChartFollowersByCountry({ 
   loading,
   error,
   insights,
-  title = "Seguidores por ciudad",
+  interval,
+  title = "Seguidores por país",
   selected = true,
   selectable = true,
+  onSelectChange,
 }) {
   const latest = React.useMemo(() => {
     if (!insights?.length) return {};
-    // El último objeto ya contiene los datos
     return insights[insights.length - 1];
-    //return insights = []
   }, [insights]);
 
 
@@ -75,65 +74,57 @@ export default function ChartFollowersByCountry({
   const pieData = Object.entries(latest).map(([country, value]) => ({
     label: country,
     value: (value / totalFollowers) * 100
-  })); 
+  })).sort((a, b) => b.value - a.value);
 
   return (
-    <Card variant="outlined" sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1, position: 'relative', minHeight: 150 }}>
-      {loading ?
-        <>
-          <SpinnerLoading text={`Obteniendo los seguidores de la página pos país...`} size={30} sx={{ height: "90%" }} />
-        </>
-        : error ?
-          <>
-            <ErrorScreen message="Ocurrió un error al obtener los seguidores por país" sx={{ height: "100%", width: "100%", gap: 0, p: 2 }} iconSx={{ fontSize: 50 }} textSx={{ fontSize: 17 }} />
-          </>
-          : (insights?.length === 0 && !error && !loading) ?
-            <>
-              <NoResultsScreen message="No hay datos para mostrar" iconType={'outline'} sx={{ height: "100%", width: "100%", gap: 0, p: 2 }} iconSX={{ fontSize: 50 }} textSx={{ fontSize: 17 }} />
-            </>
-            :
-            <>
-              {selectable && (
-                <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                  <CheckBox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
-                </Box>
-              )}
+    <DashboardCard
+      title={title}
+      titleSpinner={'Obteniendo los seguidores por país de la página...'}
+      titleError={'Ocurrió un error al obtener los seguidores por país de la página'}
+      interval={interval}
+      loading={loading}
+      error={error}
+      isEmpty={insights?.length === 0}
+      selectable={selectable}
+      selected={selected}
+      onSelectChange={onSelectChange}
+      sxCard={{
+        height: 540,
+        maxHeight: 540
+      }}
+    >
+      <Box mt={2.5}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <PieChart
+            colors={colors}
+            margin={{ left: 80, right: 80, top: 80, bottom: 80 }}
+            series={[{ data: pieData, innerRadius: 75, outerRadius: 100, paddingAngle: 0, highlightScope: { fade: 'global', highlight: 'item' } }]}
+            height={260}
+            width={260}
+            hideLegend
+          >
+            <PieCenterLabel primaryText={totalFollowers.toString()} secondaryText="Total" />
+          </PieChart>
+        </Box>
 
-              <CardContent>
-                <Typography component="h2" variant="subtitle2">{title}</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <PieChart
-                    colors={colors}
-                    margin={{ left: 80, right: 80, top: 80, bottom: 80 }}
-                    series={[{ data: pieData, innerRadius: 75, outerRadius: 100, paddingAngle: 0 }]}
-                    height={260}
-                    width={260}
-                    hideLegend
-                  >
-                    <PieCenterLabel primaryText={totalFollowers.toString()} secondaryText="Total" />
-                  </PieChart>
-                </Box>
-
-                {pieData.map((c, index) => (
-                  <Stack key={c.label} direction="row" sx={{ alignItems: 'center', gap: 2, pb: 2 }}>
-                    <Box sx={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: colors[index % colors.length] }} />
-                    <Stack sx={{ gap: 1, flexGrow: 1 }}>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="body2" sx={{ fontWeight: '500' }}>{c.label}</Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>{Math.round(c.value)}%</Typography>
-                      </Stack>
-                      <LinearProgress
-                        variant="determinate"
-                        value={c.value}
-                        sx={{ [`& .${linearProgressClasses.bar}`]: { backgroundColor: colors[index % colors.length] } }}
-                      />
-                    </Stack>
-                  </Stack>
-                ))}
-              </CardContent>
-
-            </>}
-    </Card>
+        {pieData.map((c, index) => (
+          <Stack key={c.label} direction="row" sx={{ alignItems: 'center', gap: 2, pb: 2 }}>
+            <Box sx={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: colors[index % colors.length] }} />
+            <Stack sx={{ gap: 1, flexGrow: 1 }}>
+              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+                <Typography variant="body2" sx={{ fontWeight: '500' }}>{c.label}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>{Math.round(c.value)}%</Typography>
+              </Stack>
+              <LinearProgress
+                variant="determinate"
+                value={c.value}
+                sx={{ [`& .${linearProgressClasses.bar}`]: { backgroundColor: colors[index % colors.length] } }}
+              />
+            </Stack>
+          </Stack>
+        ))}
+      </Box>
+    </DashboardCard>
   );
 }
 

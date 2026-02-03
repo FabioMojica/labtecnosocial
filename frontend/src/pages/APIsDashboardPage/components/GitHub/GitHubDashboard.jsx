@@ -351,6 +351,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                                 if (checked) {
                                     addChart({
                                         id: 'commitsInPeriod',
+                                        platform: 'github',
                                         title: 'Cantidad de commits',
                                         data: stats?.commits,
                                         interval: periodLabel,
@@ -373,7 +374,12 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
                                 if (checked) {
-                                    addChart({ id: 'topCollaborators', title: 'Top Colaboradores', data: stats?.commits });
+                                    addChart({ 
+                                        id: 'topCollaborators', 
+                                        title: 'Top Colaboradores', 
+                                        platform: 'github',
+                                        data: stats?.commits 
+                                    });
                                 } else {
                                     removeChart('topCollaborators');
                                 }
@@ -394,6 +400,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                                     addChart({
                                         id: 'pullRequests',
                                         title: 'Pull Requests',
+                                        platform: 'github',
                                         data: stats?.pullRequests,
                                         interval: periodLabel,
                                         selectedPeriod: selectedPeriod,
@@ -419,6 +426,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                                     addChart({
                                         id: 'collaboratorsWithoutPush',
                                         title: 'Colaboradores sin push',
+                                        platform: 'github',
                                         data: stats?.commits,
                                         interval: periodLabel,
                                         selectedPeriod,
@@ -443,7 +451,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
                                 if (checked) {
-                                    addChart({ id: 'topCollaborators', title: 'Top Colaboradores', data: stats?.commits });
+                                    addChart({ id: 'topCollaborators', platform: 'github', title: 'Top Colaboradores', data: stats?.commits });
                                 } else {
                                     removeChart('topCollaborators');
                                 }
@@ -462,7 +470,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
                                 if (checked) {
-                                    addChart({ id: 'topCollaborators', title: 'Top Colaboradores', data: stats?.commits });
+                                    addChart({ id: 'topCollaborators', platform: 'github', title: 'Top Colaboradores', data: stats?.commits });
                                 } else {
                                     removeChart('topCollaborators');
                                 }
@@ -486,6 +494,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                                     addChart({
                                         id: 'commitGrid',
                                         title: 'Historial de Commits',
+                                        platform: 'github',
                                         data: stats?.commits,
                                         interval: periodLabel,
                                         selectedPeriod,
@@ -512,6 +521,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                                         addChart({
                                             id: 'commitGrid',
                                             title: 'Historial de Commits',
+                                            platform: 'github',
                                             data: stats?.commits,
                                             interval: periodLabel,
                                             selectedPeriod,

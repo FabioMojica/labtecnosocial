@@ -27,12 +27,13 @@ import { ReportProvider } from './contexts/ReportContext';
 import { ReportBubble } from './generalComponents/ReportBubble';
 import { ReportModal } from './generalComponents/ReportModal';
 import { useEffect, useRef, useState } from 'react';
-import { ReportEditor } from './pages/Reports/ReportEditor';
+import { ReportEditor } from './pages/ReportPage/ReportEditor';
 import { useSnackbarStyles } from './pages/StrategicPlan/hooks/useSnackBarStyles';
 import { useCloseTooltipsOnScroll } from './pages/StrategicPlan/hooks/useCloseTooltipsOnScroll';
 import { DirtyProvider } from './contexts/DirtyContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { useLayoutOffsets } from './hooks/useLayoutOffsets';
+import { ReportsListPage } from './pages/ReportListPage/ReportListPage';
 
 export const ROLES = {
   SUPER_ADMIN: "super-admin",
@@ -74,7 +75,8 @@ const AppContent = () => {
         <Route path="/planificacion-estrategica/:year" element={<PrivateRoute element={<StrategicPlanningDashboardPage />} allowedRoles={ROLES.ALL_ROLES} />} />
         <Route path="/planificacion-operativa/:name?" element={<PrivateRoute element={<OperationalPlanningDashboardPage />} allowedRoles={ROLES.ALL_ROLES} />} />
         <Route path="/dashboard" element={<PrivateRoute element={<APIsDashboardPage />} allowedRoles={ROLES.ALL_ROLES} />} />
-        <Route path="/reportes/crear/:nombre/:id" element={<PrivateRoute element={<ReportEditor />} allowedRoles={ROLES.ADMIN.ALL_ROLES} />} />
+        <Route path="/reportes" element={<PrivateRoute element={<ReportsListPage />} allowedRoles={ROLES.ALL_ROLES} />} />
+        <Route path="/reportes/editor/:name?" element={<PrivateRoute element={<ReportEditor />} allowedRoles={ROLES.ADMIN.ALL_ROLES} />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>
@@ -130,7 +132,7 @@ function App() {
                               {/* BURBUJA DEL REPORTE */}
                               <ReportBubble onClick={() => setModalOpen(true)} />
                               <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
-                              <AppContent />
+                              <AppContent /> 
                             </Box>
                           </Box>
                         </Box>

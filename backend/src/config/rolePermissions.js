@@ -39,6 +39,13 @@ export const PERMISSIONS = {
         READ:   'dashboard:read', 
     },
 
+    REPORT: {
+        CREATE: 'report:create',
+        READ_ALL: 'report:read',
+        READ_REPORT: 'report:read-one',
+        DELETE: 'report:delete'
+    },
+
     AUTH: {
         REFRESH:   'auth:refresh', 
         ME:        'auth:me',
@@ -61,6 +68,8 @@ export const ROLE_PERMISSIONS = {
         PERMISSIONS.USER, 
 
         PERMISSIONS.DASHBOARD,
+
+        PERMISSIONS.REPORT,
 
         PERMISSIONS.AUTH,
     ), 

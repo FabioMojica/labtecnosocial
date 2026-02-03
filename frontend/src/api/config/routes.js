@@ -38,6 +38,14 @@ export const Routes = {
     GET_PROJECTS_WITH_INTEGRATIONS: "/dashboard/getProjectsWithIntegrations",
   },
 
+  reports: {
+    REPORTS: "/reports",
+    CREATE_REPORT: "/reports/createReport",
+    SAVE_REPORT: (reportId) => `/reports/${reportId}`,
+    GET_REPORT: (reportId) => `/reports/${reportId}`,
+    DELETE_REPORT: (reportId) => `/reports/${reportId}`,
+  },
+
   github: {
     REPOS: "/apis/github/repos", 
     BRANCHES: (repoName) => `/apis/github/${repoName}/branches`,
@@ -45,7 +53,17 @@ export const Routes = {
   },
  
   facebook: { 
+    PAGES: "apis/facebook/pages", 
     PAGE_OVERVIEW: (pageId) => `/apis/facebook/${pageId}/overview`,
     PAGE_INSIGHTS: (pageId) => `/apis/facebook/${pageId}/insights`,
+    PAGE_POSTS: (pageId) => `/apis/facebook/${pageId}/posts`,
+  },
+
+  instagram: { 
+    PAGES: "apis/instagram/pages", 
+  },
+
+  x: { 
+    ACCOUNTS: "apis/x/accounts", 
   },
 };

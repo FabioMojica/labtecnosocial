@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { ErrorScreen, NoResultsScreen, SpinnerLoading } from "../../../../../generalComponents";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import DashboardCard from "./DashboardCard";
 
 function PageViewsCard({
     loading,
@@ -94,106 +95,95 @@ function PageViewsCard({
     }, [interval, finalData, viewsPageData.dates]);
 
     return (
-        <Card variant="outlined" sx={{ height: 150, flexGrow: 1, position: 'relative' }}>
-            {loading ?
-                <>
-                    <SpinnerLoading text={`Obteniendo las visitas a la página...`} size={30} sx={{ height: "90%" }} />
-                </>
-                : error ?
-                    <>
-                        <ErrorScreen message="Ocurrió un error al obtener las visitas a la página" sx={{ height: "100%", width: "100%", gap: 0, p: 2 }} iconSx={{ fontSize: 50 }} textSx={{ fontSize: 17 }} />
-                    </>
-                    : (viewsPageData?.chartData?.length === 0 && !error && !loading) ?
-                        <>
-                            <NoResultsScreen message="No hay datos para mostrar" iconType={'outline'} sx={{ height: "100%", width: "100%", gap: 0, p: 2 }} iconSX={{ fontSize: 50 }} textSx={{ fontSize: 17 }} />
-                        </>
-                        :
-                        <>
-                            {selectable && (
-                                <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                                    <CheckBox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
-                                </Box>
-                            )}
-                            <CardContent>
-                                <Stack direction="column" justifyContent="flex-start" alignItems="flex-start">
-                                    <Typography component="h2" variant="subtitle2">{title}</Typography>
-                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
-                                </Stack>
-
-                                <Box display={'flex'} gap={0.5} justifyContent={'center'} alignItems={'flex-end'}>
-
-                                    <Box sx={{
-                                        position: 'relative',
-                                    }}>
-                                        <Typography variant='h3'>
-                                            +{animatedTotal}
-                                        </Typography>
-                                        <Box sx={{
-                                            position: 'absolute',
-                                            bottom: -10,
-                                            right: -10
-                                        }}>
-                                            {viewsPageData.delta > 0 && (
-                                                <ArrowUpwardIcon
-                                                    sx={{ color: 'green', fontSize: 15, transform: 'scale(1.4)' }}
-                                                />
-                                            )}
-                                            {viewsPageData.delta < 0 && (
-                                                <ArrowDownwardIcon
-                                                    sx={{ color: 'red', fontSize: 15, transform: 'scale(1.4)' }}
-                                                />
-                                            )}
-                                        </Box>
-                                    </Box>
+        <DashboardCard
+            title={title}
+            titleSpinner={'Obteniendo las visitas a la página...'}
+            titleError={'Ocurrió un error al obtener las visitas de la página'}
+            sxSpinner={{
+                fontSize: '0.9rem',
+                pt: 3.5
+            }}
+            smallCard
+            interval={interval}
+            loading={loading}
+            error={error}
+            isEmpty={viewsPageData?.chartData?.length === 0}
+            selectable={selectable}
+            selected={selected}
+            onSelectChange={onSelectChange}
+        >
+            <Box display={'flex'} gap={0.5} justifyContent={'center'} alignItems={'flex-end'} sx={{
+                mt: 4.5
+            }}> 
+                <Box sx={{
+                    position: 'relative',
+                }}>
+                    <Typography variant='h3'>
+                        +{animatedTotal}
+                    </Typography>
+                    <Box sx={{
+                        position: 'absolute',
+                        bottom: -10,
+                        right: -10
+                    }}>
+                        {viewsPageData.delta > 0 && (
+                            <ArrowUpwardIcon
+                                sx={{ color: 'green', fontSize: 15, transform: 'scale(1.4)' }}
+                            />
+                        )}
+                        {viewsPageData.delta < 0 && (
+                            <ArrowDownwardIcon
+                                sx={{ color: 'red', fontSize: 15, transform: 'scale(1.4)' }}
+                            />
+                        )}
+                    </Box>
+                </Box>
 
 
-                                    <svg width="0" height="0">
-                                        <defs>
-                                            <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor={integrationsConfig.facebook.color} stopOpacity={0.4} />
-                                                <stop offset="100%" stopColor={integrationsConfig.facebook.color} stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                    </svg>
+                <svg width="0" height="0">
+                    <defs>
+                        <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={integrationsConfig.facebook.color} stopOpacity={0.4} />
+                            <stop offset="100%" stopColor={integrationsConfig.facebook.color} stopOpacity={0} />
+                        </linearGradient>
+                    </defs>
+                </svg>
 
-                                    {period !== 'all' && period !== 'today' &&
-                                        <SparkLineChart
-                                            key={interval}
-                                            data={data}
-                                            height={70}
-                                            area
-                                            curve="natural"
-                                            showHighlight={showHighlight}
-                                            showTooltip={showTooltip}
-                                            color={integrationsConfig.facebook.color}
-                                            xAxis={{
-                                                scaleType: 'point',
-                                                data: animDates,
-                                                valueFormatter: (value) =>
-                                                    new Date(value).toLocaleDateString('es-BO', {
-                                                        day: '2-digit',
-                                                        month: 'short',
-                                                        year: 'numeric',
-                                                    }),
-                                            }}
-                                            tooltip={{
-                                                valueFormatter: (value) => `${value} visitas`,
-                                            }}
-                                            sx={{
-                                                '& .MuiAreaElement-root': {
-                                                    fill: 'url(#gradient)',
-                                                },
-                                                '& .MuiLineElement-root': {
-                                                    transition: 'none',
-                                                },
-                                            }}
-                                        />
-                                    }
-                                </Box>
-                            </CardContent>
-                        </>
-            }
-        </Card>
+                {period !== 'all' && period !== 'today' &&
+                    <SparkLineChart
+                        key={interval}
+                        data={data}
+                        height={70}
+                        area
+                        curve="natural"
+                        showHighlight={showHighlight}
+                        showTooltip={showTooltip}
+                        color={integrationsConfig.facebook.color}
+                        xAxis={{
+                            scaleType: 'point',
+                            data: animDates,
+                            valueFormatter: (value) =>
+                                new Date(value).toLocaleDateString('es-BO', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric',
+                                }),
+                        }}
+                        tooltip={{
+                            valueFormatter: (value) => `${value} visitas`,
+                        }}
+                        sx={{
+                            '& .MuiAreaElement-root': {
+                                fill: 'url(#gradient)',
+                            },
+                            '& .MuiLineElement-root': {
+                                transition: 'none',
+                            },
+                        }}
+                    />
+                }
+            </Box>
+        </DashboardCard>
     )
 }
 

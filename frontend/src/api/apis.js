@@ -4,7 +4,7 @@ import { loadAbort } from "../utils";
 export const getGitHubRepositoriesApi = async () => {
   const controller = loadAbort();
   try {
-    const response = await axiosInstance.get(Routes.GET_GITHUB_REPOS, { signal: controller.signal });
+    const response = await axiosInstance.get(Routes.github.REPOS, { signal: controller.signal });
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
@@ -18,7 +18,7 @@ export const getGitHubRepositoriesApi = async () => {
 export const getFacebookPagesApi = async () => {
   const controller = loadAbort();
   try {
-    const response = await axiosInstance.get(Routes.GET_FACEBOOK_PAGES, { signal: controller.signal });
+    const response = await axiosInstance.get(Routes.facebook.PAGES, { signal: controller.signal });
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
@@ -32,7 +32,7 @@ export const getFacebookPagesApi = async () => {
 export const getInstagramPagesApi = async () => {
   const controller = loadAbort();
   try {
-    const response = await axiosInstance.get(Routes.GET_INSTAGRAM_PAGES, { signal: controller.signal });
+    const response = await axiosInstance.get(Routes.instagram.PAGES, { signal: controller.signal });
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {
@@ -46,7 +46,7 @@ export const getInstagramPagesApi = async () => {
 export const getXAccountsApi = async () => {
   const controller = loadAbort();
   try {
-    const response = await axiosInstance.get(Routes.GET_X_ACCOUNTS, { signal: controller.signal });
+    const response = await axiosInstance.get(Routes.x.ACCOUNTS, { signal: controller.signal });
     if (response.status === 200) return response.data;
     return null;
   } catch (error) {

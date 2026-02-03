@@ -4,8 +4,7 @@ import {
     BarChart
 } from '@mui/x-charts/BarChart';
 import { integrationsConfig } from "../../../../../utils";
-import { ErrorScreen, NoResultsScreen, SpinnerLoading } from "../../../../../generalComponents";
-
+import DashboardCard from "./DashboardCard";
 
 function Gradient(props) {
     return (
@@ -24,89 +23,76 @@ function TotalReactionsCard({
     selected = true,
     selectable = true,
     onSelectChange,
-    followersData = {}
+    totalReactionsOfPage = []
 }) {
-
     const reactions = [
-        { icon: "👍", label: "Me gusta" },
+        { icon: "👍", label: "Me gusta / me importa" },
         { icon: "❤️", label: "Me encanta" },
-        { icon: "🤗", label: "Me importa" },
         { icon: "😆", label: "Me divierte" },
         { icon: "😮", label: "Me asombra" },
         { icon: "😢", label: "Me entristece" },
         { icon: "😡", label: "Me enoja" },
     ];
+
     const icons = reactions.map(r => r.icon);
 
-    const data = [120, 85, 46, 69, 34, 29, 29];
+    const data = totalReactionsOfPage || [];
 
     return (
-        <Card variant="outlined" sx={{ height: 150, flexGrow: 1, position: 'relative' }}>
-            {loading ?
-                <>
-                    <SpinnerLoading text={`Obteniendo los seguidores de la página...`} size={30} sx={{ height: "90%" }} />
-                </>
-                : error ?
-                    <>
-                        <ErrorScreen message="Ocurrió un error al obtener los seguidores de la página" sx={{ height: "100%", width: "100%", gap: 0, p: 2 }} iconSx={{ fontSize: 50 }} textSx={{ fontSize: 17 }} />
-                    </>
-                    : (followersData.length === 0 && !error && !loading) ?
-                        <>
-                            <NoResultsScreen message="No hay datos para mostrar" iconType={'outline'} sx={{ height: "100%", width: "100%", gap: 0, p: 2 }} iconSX={{ fontSize: 50 }} textSx={{ fontSize: 17 }} />
-                        </>
-                        :
-                        <>
-                            {selectable && (
-                                <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                                    <CheckBox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
-                                </Box>
-                            )}
-                            <CardContent>
-                                <Stack direction="column" justifyContent="flex-start" alignItems="flex-start">
-                                    <Typography component="h2" variant="subtitle2">{title}</Typography>
-                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
-                                </Stack>
-
-
-                                <BarChart
-                                    borderRadius={2}
-                                    xAxis={[
-                                        {
-                                            categoryGapRatio: 0.1,
-                                            barGapRatio: 0.5,
-                                            scaleType: "band",
-                                            data: icons,
-                                            tickLabelPlacement: "middle",
-                                            disableTicks: true,
-                                            disableLine: true,
-                                        },
-                                    ]}
-                                    yAxis={[{
-                                        width: 0,
-                                        disableTicks: true,
-                                        disableLine: true,
-                                        tickSize: 2000
-                                    }]}
-                                    series={[{
-                                        data,
-                                        color: 'url(#bar-gradient)',
-                                        valueFormatter: (value, context) => {
-                                            const reaction = reactions[context.dataIndex];
-                                            return `${reaction.label}: ${value}`;
-                                        },
-                                    }]}
-                                    height={105}
-                                    grid={{ horizontal: false, vertical: false }}
-                                >
-                                    <defs>
-                                        <Gradient id="bar-gradient" />
-                                    </defs>
-                                </BarChart>
-
-
-                            </CardContent>
-                        </>}
-        </Card>
+        <DashboardCard
+            title={title}
+            titleSpinner={'Obteniendo las reacciones totales de la página...'}
+            titleError={'Ocurrió un error al obtener las reacciones totales de la página'}
+            sxSpinner={{
+                fontSize: '0.9rem',
+                pt: 3.5
+            }}
+            smallCard
+            interval={interval}
+            loading={loading}
+            error={error}
+            isEmpty={totalReactionsOfPage.length === 0}
+            selectable={selectable}
+            selected={selected}
+            onSelectChange={onSelectChange}
+        >
+            <Box mt={4.5}>
+            <BarChart
+                borderRadius={2}
+                xAxis={[
+                    {
+                        categoryGapRatio: 0.1,
+                        barGapRatio: 0.5,
+                        scaleType: "band",
+                        data: icons,
+                        tickLabelPlacement: "middle",
+                        disableTicks: true,
+                        disableLine: false,
+                    },
+                ]}
+                yAxis={[{
+                    width: 0,
+                    disableTicks: true,
+                    disableLine: true,
+                    tickSize: 2000
+                }]}
+                series={[{
+                    data,
+                    color: 'url(#bar-gradient)',
+                    valueFormatter: (value, context) => {
+                        const reaction = reactions[context.dataIndex];
+                        return `${reaction.label}: ${value}`;
+                    },
+                }]}
+                height={105}
+                grid={{ horizontal: false, vertical: false }}
+            >
+                <defs>
+                    <Gradient id="bar-gradient" />
+                </defs>
+            </BarChart>
+            </Box>
+        </DashboardCard>
     )
 }
 
