@@ -1,10 +1,9 @@
-import { CheckBox } from "@mui/icons-material";
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
 import {
     BarChart
 } from '@mui/x-charts/BarChart';
 import { integrationsConfig } from "../../../../../utils";
-import DashboardCard from "./DashboardCard";
+import { DashboardCard } from './DashboardCard';
 
 function Gradient(props) {
     return (
@@ -15,7 +14,7 @@ function Gradient(props) {
     );
 }
 
-function TotalReactionsCard({
+export const TotalReactionsCard = ({
     error,
     loading,
     title = "Reacciones totales",
@@ -24,7 +23,7 @@ function TotalReactionsCard({
     selectable = true,
     onSelectChange,
     totalReactionsOfPage = []
-}) {
+}) => {
     const reactions = [
         { icon: "👍", label: "Me gusta / me importa" },
         { icon: "❤️", label: "Me encanta" },
@@ -95,7 +94,5 @@ function TotalReactionsCard({
         </DashboardCard>
     )
 }
-
-export default TotalReactionsCard;
 
 

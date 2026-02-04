@@ -1,15 +1,12 @@
 import { CheckBox, Dashboard } from "@mui/icons-material";
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
-import { SparkLineChart } from "@mui/x-charts";
 import { useState } from "react";
-import { integrationsConfig } from "../../../../../utils";
 import { useEffect } from "react";
-import { ErrorScreen, NoResultsScreen, SpinnerLoading } from "../../../../../generalComponents";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import DashboardCard from "./DashboardCard";
+import { DashboardCard } from './DashboardCard';
 
-function TotalActionsCard({
+export const TotalActionsCard = ({
     loading,
     error,
     title = "Total actions",
@@ -19,7 +16,7 @@ function TotalActionsCard({
     selectable = true,
     onSelectChange,
     totalActionsData = {}
-}) {
+}) => {
     const [showHighlight, setShowHighlight] = useState(true);
     const [showTooltip, setShowTooltip] = useState(true);
 
@@ -140,5 +137,3 @@ function TotalActionsCard({
         </DashboardCard>
     )
 }
-
-export default TotalActionsCard;

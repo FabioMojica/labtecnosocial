@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -12,14 +12,15 @@ import {
   Divider,
   Tooltip,
   useTheme,
+  Drawer,
+  Toolbar,
 } from "@mui/material";
 import { Delete as DeleteIcon } from "@mui/icons-material";
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import html2pdf from "html2pdf.js";
-import { TopCollaboratorsOfThePeriod } from "../APIsDashboardPage/components/GitHub/TopCollaboratorsOfThePeriod";
-import CommitsInThePeriod from "../APIsDashboardPage/components/GitHub/CommitsInThePeriod";
 import { useFetchAndLoad } from "../../hooks";
 import { createReportApi, deleteReportApi, updateReportApi } from "../../api/reports";
 import { ButtonWithLoader, FullScreenProgress } from "../../generalComponents";
@@ -34,12 +35,18 @@ import DeleteReportDialog from "./components/DeleteReportDialog";
 import { useNotification } from "../../contexts";
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
+import ChartRenderer from "./components/ChartRenderer";
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import { integrationsConfig } from "../../utils";
+import { useElementSize } from "../../hooks/useElementSize";
+import CloseIcon from '@mui/icons-material/Close';
+
+const ZOOM_OPTIONS = [0.5, 0.75, 1];
 
 export const ReportEditor = () => {
   const { name } = useParams();
   const location = useLocation();
-  const reportId = location.state?.id;
-  console.log("reportId", reportId)
   const [exportAnchorEl, setExportAnchorEl] = useState(null);
   const openExportMenu = Boolean(exportAnchorEl);
   const [history, setHistory] = useState([]);
@@ -50,13 +57,28 @@ export const ReportEditor = () => {
   const { notify } = useNotification();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const theme = useTheme();
+  const [isDragging, setIsDragging] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [zoomAnchorEl, setZoomAnchorEl] = useState(null);
+  const openZoomMenu = Boolean(zoomAnchorEl);
+  const [openOutline, setOpenOutline] = useState(false);
+  const headerRef = useRef(null);
+  const { height: headerHeight } = useElementSize(headerRef);
+
+  const handleOpenZoomMenu = (e) => setZoomAnchorEl(e.currentTarget);
+  const handleCloseZoomMenu = () => setZoomAnchorEl(null);
+
+  const handleSelectZoom = (value) => {
+    setZoom(value);
+    handleCloseZoomMenu();
+  };
+
 
   const [currentReportId, setCurrentReportId] = useState(
     location.state?.id ?? null
   );
 
   const isEditing = Boolean(currentReportId);
-
 
   useEffect(() => {
     const initial = {
@@ -77,7 +99,6 @@ export const ReportEditor = () => {
 
     setHistoryIndex((prev) => prev + 1);
   };
-
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
@@ -100,7 +121,6 @@ export const ReportEditor = () => {
     setHistoryIndex(nextIndex);
   };
 
-
   const handleOpenExportMenu = (event) => {
     setExportAnchorEl(event.currentTarget);
   };
@@ -116,9 +136,12 @@ export const ReportEditor = () => {
 
   const initialTitle = name || "Reporte sin título";
   const initialElements = [
-    { id: "text-1", type: "text", content: "<p>Escribe tu reporte aquí...</p>" },
+    { id: "text-1", type: "text", content: "<p>Nuevo texto...</p>" },
     ...chartsFromModal.map((chart) => ({
-      id: `chart-${chart.id}`,
+      id: chart?.id,
+      selectedPeriod: chart?.selectedPeriod,
+      platform: chart?.platform,
+      interval: chart?.periodLabel,
       type: "chart",
       content: chart.title,
       data: chart.data || null,
@@ -127,6 +150,7 @@ export const ReportEditor = () => {
 
   const [reportTitle, setReportTitle] = useState(initialTitle);
   const [elements, setElements] = useState(initialElements);
+
   const [originalState, setOriginalState] = useState({
     title: initialTitle,
     elements: initialElements,
@@ -152,51 +176,53 @@ export const ReportEditor = () => {
     }
   }, [reportTitle]);
 
-
   useEffect(() => {
     const original = JSON.stringify(originalState);
     const current = JSON.stringify({ title: reportTitle, elements });
     setHasChanges(original !== current);
   }, [reportTitle, elements, originalState]);
 
-  // 🔹 Confirmar recarga si hay cambios sin guardar
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (hasChanges) {
-        e.preventDefault();
-        e.returnValue = "Hay cambios sin guardar. ¿Deseas salir?";
-        return e.returnValue;
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [hasChanges]);
+  const insertElementAfter = (index, newElement) => {
+    const updated = [...elements];
+    updated.splice(index + 1, 0, newElement);
+
+    setElements(updated);
+    pushToHistory({ title: reportTitle, elements: updated });
+  };
 
   const onDragEnd = (result) => {
+    setIsDragging(false);
+
     if (!result.destination) return;
 
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
     const items = Array.from(elements);
-    const [moved] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, moved);
+    const [moved] = items.splice(sourceIndex, 1);
+    items.splice(destinationIndex, 0, moved);
 
     setElements(items);
     pushToHistory({ title: reportTitle, elements: items });
   };
 
 
-  // 🔹 Añadir nuevo bloque
-  const addText = () => {
-    const newElements = [
-      ...elements,
-      {
-        id: `text-${Date.now()}`,
-        type: "text",
-        content: "<p>Nuevo texto...</p>",
-      },
-    ];
-
-    setElements(newElements);
-    pushToHistory({ title: reportTitle, elements: newElements });
+  const InsertBlockDivider = ({ onAddText, onAddChart }) => {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 1,
+          justifyContent: 'center',
+          py: 1,
+          mb: 1,
+          width: '100%',
+        }}
+      >
+        <Button fullWidth size="small" startIcon={<AddIcon />} onClick={onAddText}>
+          Texto
+        </Button>
+      </Box>
+    );
   };
 
   const removeElement = (id) => {
@@ -329,6 +355,22 @@ export const ReportEditor = () => {
     // acá después enchufás SheetJS / backend
   };
 
+  const scrollToElement = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+
+    // efecto visual de highlight
+    el.classList.remove('flash-highlight');
+    void el.offsetWidth;
+    el.classList.add('flash-highlight');
+  };
+
+
 
   if (loading) return (
     <FullScreenProgress text={'Guardando el reporte...'} />
@@ -337,6 +379,8 @@ export const ReportEditor = () => {
   if (deletedReport) return (
     <FullScreenProgress text={'Eliminando el reporte...'} />
   )
+
+
 
   return (
     <Box
@@ -351,27 +395,25 @@ export const ReportEditor = () => {
           xs: '100vw',
           lg: isFullscreen ? '100vw' : 'auto'
         },
-        height: isFullscreen ? '100vh' : 'auto',
+        height: isFullscreen ? '100vh' : `calc(100vh - 74px)`,
         bgcolor: "background.default",
         zIndex: isFullscreen ? 1500 : 'auto',
-        overflow: isFullscreen ? 'hidden' : 'visible',
+        overflow: 'hidden'
       }}
     >
       {/* Encabezado */}
       <Box
+        ref={headerRef}
         sx={{
           display: "flex",
           flexDirection: 'column',
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 2,
-          px: {
-            xs: 0.5, 
-            lg: 1
-          }
+          mb: 1,
+          px: 0.5
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: { xs: 'column', lg: 'row' }, alignItems: "center", width: "100%", gap: 2, justifyContent: 'space-between' }}>
+        <Box sx={{ display: "flex", height: 48, flexDirection: { xs: 'column', lg: 'row' }, alignItems: "center", width: "100%", gap: 2, justifyContent: 'space-between' }}>
           <Box display={'flex'} gap={1} width={'100%'} height={'100%'} alignItems={'center'}>
             <IconButton
               onClick={handleOpenExportMenu}
@@ -462,7 +504,6 @@ export const ReportEditor = () => {
                 size="small"
                 onClick={() => {
                   setIsFullscreen(!isFullscreen);
-                  setTooltipOpen(false);
                 }}
                 sx={{
                   transition: 'transform 0.3s ease',
@@ -491,27 +532,60 @@ export const ReportEditor = () => {
             borderRadius: 1,
             px: 1,
             py: 0.5,
-            mt: {
-              xs: 1,
-              lg: 0,
-            },
             bgcolor: 'background.paper',
           }}
         >
           <Box sx={{
-            display: 'flex'
+            display: 'flex',
+            width: '100%'
           }}>
-            <IconButton onClick={addText}>
-              <AddIcon />
-            </IconButton>
 
-            <IconButton onClick={handleUndo} disabled={!canUndo}>
-              <UndoIcon />
-            </IconButton>
+            <Button variant='outlined' sx={{ px: 0.5 }} onClick={handleOpenZoomMenu}>
+              <ZoomInIcon />
+              <Typography variant="caption" sx={{ minWidth: 40, textAlign: 'center' }}>
+                {Math.round(zoom * 100)}%
+              </Typography>
+            </Button>
 
-            <IconButton onClick={handleRedo} disabled={!canRedo}>
-              <RedoIcon />
-            </IconButton>
+            <Tooltip title="Mostrar índice del reporte">
+              <span>
+                <IconButton onClick={() => setOpenOutline(o => !o)}>
+                  <ListAltIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+
+            <Tooltip title="Deshacer">
+              <span>
+                <IconButton onClick={handleUndo} disabled={!canUndo}>
+                  <UndoIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+
+            <Tooltip title="Rehacer">
+              <span>
+                <IconButton onClick={handleRedo} disabled={!canRedo}>
+                  <RedoIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+
+            <Menu
+              anchorEl={zoomAnchorEl}
+              open={openZoomMenu}
+              onClose={handleCloseZoomMenu}
+            >
+              {ZOOM_OPTIONS.map(z => (
+                <MenuItem
+                  key={z}
+                  selected={zoom === z}
+                  onClick={() => handleSelectZoom(z)}
+                >
+                  {Math.round(z * 100)}%
+                </MenuItem>
+              ))}
+            </Menu>
           </Box>
 
           <Box sx={{
@@ -546,109 +620,279 @@ export const ReportEditor = () => {
 
       {/* Contenido editable */}
       <Box sx={{
-        p: 1, borderTop: "1px solid #ccc", 
+        p: 1,
+        zoom: zoom,
+        flex: 1,
+        minHeight: 0,
+        borderTop: "1px solid #ccc",
         overflowY: 'auto',
-        "&::-webkit-scrollbar": { width: "2px" },
+        "&::-webkit-scrollbar": { width: {xs: '2px', lg: '8px'} },
         "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
         "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
         "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
       }}>
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="report">
-            {(provided) => (
-              <Box
-                id="report-content"
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                sx={{
-                  width: { lg: '80%', xs: '100%' },
-                  margin: "auto",
-                  p: { xs: 1, lg: 4 },
-                  bgcolor: "background.paper",
-                  borderRadius: 2,
-                  boxShadow: 3,
-                  minHeight: "80vh",
-                }}
-              >
-                {elements.map((el, index) => (
-                  <Draggable key={el.id} draggableId={el.id} index={index}>
-                    {(provided) => (
-                      <Box
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        sx={{
-                          mb: 2,
-                          position: "relative",
-                          border: "1px solid #ddd",
-                          borderRadius: 2,
-                          p: 2,
-                        }}
-                      >
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => removeElement(el.id)}
-                          sx={{
-                            position: "absolute",
-                            top: 4,
-                            right: 4,
-                            zIndex: 400,
-                          }}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
+        <Drawer
+          anchor="right"
+          open={openOutline}
+          onClose={() => setOpenOutline(false)}
+          variant="temporary"
+          sx={{
+            zIndex: isFullscreen && 2000,
+            width: 270,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: 260,
+              boxSizing: 'border-box',
+              overflow: 'hidden'
+            },
+          }}
+        >
+          {!isFullscreen &&
+            <Toolbar />
+          }
 
-                        {el.type === "text" && (
-                          <ReactQuill
-                            theme="snow"
-                            value={el.content}
-                            onChange={(val) => {
-                              const updated = elements.map((item, i) =>
-                                i === index ? { ...item, content: val } : item
-                              );
-                              setElements(updated);
+          <Box height={50} display={'flex'} flexDirection={'row'} justifyContent={'space-between'} alignItems={'center'} p={1}>
+            <Typography lineHeight={1} variant="subtitle1" fontWeight={'bold'}>
+              Índice del reporte
+            </Typography>
+            <IconButton
+              size="large"
+              sx={{
+                p: 0,
+                m: 0
+              }}
+              onClick={() => setOpenOutline(false)}
+            >
+              <CloseIcon fontSize="medium" />
+            </IconButton>
+          </Box>
+
+          <Divider sx={{ mb: 0.5 }} />
+
+          <Box sx={{
+            width: '100%',
+            height: '100%',
+            p: 1,
+            overflowY: 'auto',
+            "&::-webkit-scrollbar": { width: "2px" },
+            "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
+            "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
+            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+          }}>
+            <DragDropContext
+              onDragEnd={onDragEnd}
+            >
+              <Droppable droppableId="outline">
+                {(provided) => (
+                  <Box ref={provided.innerRef} {...provided.droppableProps}>
+                    {elements.map((el, index) => (
+                      <Draggable
+                        draggableId={`outline-${el.id}`}
+                        index={index}
+                        key={el.id}>
+                        {(provided, snapshot) => (
+                          <Box
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              p: 1,
+                              mb: 1,
+                              borderRadius: 1,
+                              bgcolor: 'background.paper',
+                              boxShadow: 4,
+                              gap: 1,
+                              transition: 'background-color 0.2s, box-shadow 0.2s',
+                              cursor: snapshot.isDragging ? 'grabbing' : 'grab',
+                              '&:hover': { bgcolor: snapshot.isDragging ? 'action.hover' : 'action.hover' },
                             }}
-                            onBlur={() => {
-                              pushToHistory({ title: reportTitle, elements });
-                            }}
-                          />
+                          >
+                            <Box display={'flex'} height={'100%'} alignItems={'center'} gap={1}>
+                              <DragIndicatorIcon fontSize="small" />
 
-                        )}
+                              <Box display={'flex'} flexDirection={'column'} alignContent={'start'}>
+                                <Typography variant="caption" fontWeight={'bold'} lineHeight={1} sx={{ flexGrow: 1 }}>
+                                  {el.type === 'text' ? 'Texto' : 'Gráfico'} #{index + 1}
+                                </Typography>
 
-                        {el.type === "chart" && (
-                          <Box>
-                            {el.id.replace("chart-", "") === "topCollaborators" ? (
-                              <TopCollaboratorsOfThePeriod
-                                commits={el.data}
-                                title="Top Colaboradores"
-                                selectable={false}
-                              />
-                            ) : el.id.replace("chart-", "") === "commitsInPeriod" ? (
-                              <CommitsInThePeriod
-                                commits={el.data}
-                                title="Cantidad de commits"
-                                interval={el.interval || "Periodo"}
-                                selectable={false}
-                                selectedPeriod={el.selectedPeriod || "all"}
-                              />
-                            ) : (
-                              <Typography variant="body2" color="text.secondary">
-                                Gráfica desconocida
-                              </Typography>
-                            )}
+                                {el.type === 'text' && (
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{
+                                      display: 'block',
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      maxWidth: '100%',
+                                    }}
+                                  >
+                                    {/* extraemos un snippet del texto sin tags HTML */}
+                                    {el.content.replace(/<[^>]+>/g, '').slice(0, 50)}
+                                    {el.content.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
+                                  </Typography>
+                                )}
 
+                                {el.type === 'chart' && (
+                                  <Box
+                                    sx={{
+                                      mt: 0.5,
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: 0.5,
+                                      overflow: 'hidden',
+                                      maxWidth: '100%',
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="caption"
+                                      fontWeight={'bold'}
+                                      color={integrationsConfig[el?.platform].color}
+                                      lineHeight={1}
+                                      sx={{
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                      }}
+                                    >
+                                      {el.platform ?? 'N/A'}
+                                    </Typography>
+                                    <Typography
+                                      variant="caption"
+                                      color="textSecondary"
+                                      fontWeight={'semiBold'}
+                                      lineHeight={1}
+                                      sx={{
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        fontSize: 10
+                                      }}
+                                    >
+                                      {el.interval ?? 'N/A'}
+                                    </Typography>
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
+                                      sx={{
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'wrap',
+                                      }}
+                                    >
+                                      {el.content ?? 'Sin título'}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            </Box>
+
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              disabled={isDragging}
+                              onClick={() => {
+                                scrollToElement(el.id);
+                                setOpenOutline(false);
+                              }}
+                            >
+                              Ir
+                            </Button>
                           </Box>
                         )}
-                      </Box>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </Box>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </Box>
+        </Drawer>
+
+        <Box
+          id="report-content"
+          sx={{
+            width: { lg: 900, xs: '100%' },
+            margin: "auto",
+            p: { xs: 1, lg: 4 },
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 3,
+            minHeight: "80vh",
+          }}
+        >
+          {elements.map((el, index) => (
+            <Fragment key={el.id}>
+              <Box
+                id={el.id}
+                sx={{
+                  border: "1px solid #ddd",
+                  borderRadius: 2,
+                  bgcolor: "background.paper",
+                  px: 2,
+                  pb: 2,
+                  pt: 1,
+                  boxShadow: 3,
+                  mb: 1,
+                }}
+              >
+                <Box sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1
+                }}>
+                  <Typography variant="subtitle2" fontWeight={'bold'} lineHeight={1}>
+                    {el.type === 'text' ? 'Texto' : 'Gráfico'} #{index + 1}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => removeElement(el.id)}
+                    sx={{p: 0, m: 0}}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+
+                {el.type === "text" && (
+                  <ReactQuill
+                    theme="snow"
+                    value={el.content}
+                    onChange={(val) => {
+                      const updated = elements.map((item, i) =>
+                        i === index ? { ...item, content: val } : item
+                      );
+                      setElements(updated);
+                    }}
+                    onBlur={() => pushToHistory({ title: reportTitle, elements })}
+                  />
+                )}
+
+                {el.type === "chart" && (
+                  <ChartRenderer element={el} />
+                )}
               </Box>
-            )}
-          </Droppable>
-        </DragDropContext>
+
+              <InsertBlockDivider
+                onAddText={() =>
+                  insertElementAfter(index, {
+                    id: `text-${Date.now()}`,
+                    type: 'text',
+                    content: '<p>Nuevo texto...</p>',
+                  })
+                }
+              />
+            </Fragment>
+          ))}
+        </Box>
+
       </Box>
 
       <DeleteReportDialog

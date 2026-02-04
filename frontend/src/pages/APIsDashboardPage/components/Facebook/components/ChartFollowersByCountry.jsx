@@ -4,12 +4,10 @@ import { PieChart } from '@mui/x-charts/PieChart';
 import { useDrawingArea } from '@mui/x-charts/hooks';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-import DashboardCard from './DashboardCard';
+import { DashboardCard } from './DashboardCard';
 
 const StyledText = styled('text', {
   shouldForwardProp: (prop) => prop !== 'variant',
@@ -53,20 +51,20 @@ const colors = [
   'hsl(50, 70%, 60%)',
 ];
 
-export default function ChartFollowersByCountry({ 
+export const ChartFollowersByCountry = ({ 
   loading,
   error,
-  insights,
+  countryFollowersData,
   interval,
   title = "Seguidores por país",
   selected = true,
   selectable = true,
   onSelectChange,
-}) {
+}) => {
   const latest = React.useMemo(() => {
-    if (!insights?.length) return {};
-    return insights[insights.length - 1];
-  }, [insights]);
+    if (!countryFollowersData?.length) return {};
+    return countryFollowersData[countryFollowersData.length - 1];
+  }, [countryFollowersData]);
 
 
   const totalFollowers = Object.values(latest).reduce((acc, val) => acc + val, 0);
@@ -84,7 +82,7 @@ export default function ChartFollowersByCountry({
       interval={interval}
       loading={loading}
       error={error}
-      isEmpty={insights?.length === 0}
+      isEmpty={countryFollowersData?.length === 0}
       selectable={selectable}
       selected={selected}
       onSelectChange={onSelectChange}
@@ -129,6 +127,6 @@ export default function ChartFollowersByCountry({
 }
 
 ChartFollowersByCountry.propTypes = {
-  insights: PropTypes.array.isRequired,
+  countryFollowersData: PropTypes.array.isRequired,
   title: PropTypes.string.isRequired,
 };

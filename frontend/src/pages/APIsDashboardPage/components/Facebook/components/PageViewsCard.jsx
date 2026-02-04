@@ -7,9 +7,9 @@ import { useEffect } from "react";
 import { ErrorScreen, NoResultsScreen, SpinnerLoading } from "../../../../../generalComponents";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import DashboardCard from "./DashboardCard";
+import { DashboardCard } from './DashboardCard';
 
-function PageViewsCard({
+export const PageViewsCard = ({
     loading,
     error,
     title = "Visitas a la página",
@@ -19,7 +19,7 @@ function PageViewsCard({
     selectable = true,
     onSelectChange,
     viewsPageData = {}
-}) {
+}) => {
     const [showHighlight, setShowHighlight] = useState(true);
     const [showTooltip, setShowTooltip] = useState(true);
 
@@ -186,5 +186,3 @@ function PageViewsCard({
         </DashboardCard>
     )
 }
-
-export default PageViewsCard;

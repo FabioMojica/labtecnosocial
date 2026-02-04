@@ -12,14 +12,13 @@ import {
   Button,
   useTheme,
   Divider,
-  Tooltip,
+  Tooltip, 
   Avatar,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
-import { useReport } from '../contexts/ReportContext';
+import { useReport } from '../contexts';
 import { useNavigate } from "react-router-dom";
-import dayjs from "dayjs";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { useConfirm } from 'material-ui-confirm';
 import { integrationsConfig } from '../utils';
@@ -46,15 +45,28 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
     setSelectedReport(report);
     setConfirmModal(true);
   };
+
   const handleCloseConfirmModal = () => {
     setConfirmModal(false);
     setSelectedReport(null);
   };
 
+  const parseChartId = (id) => {
+    const parts = id.split('-');
+
+    return {
+      platform: parts.find(p => p.startsWith('platform:'))?.replace('platform:', ''),
+      period: parts.at(-1),
+    };
+  };
+
   const groupedCharts = selectedCharts.reduce((acc, chart) => {
-    if (!acc[chart.platform]) acc[chart.platform] = {};
-    if (!acc[chart.platform][chart.interval]) acc[chart.platform][chart.interval] = [];
-    acc[chart.platform][chart.interval].push(chart);
+    const { platform } = parseChartId(chart.id);
+
+    if (!acc[platform]) acc[platform] = {};
+    if (!acc[platform][chart.interval]) acc[platform][chart.interval] = [];
+
+    acc[platform][chart.interval].push(chart);
     return acc;
   }, {});
 
@@ -73,6 +85,11 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
       .catch(() => {
       });
   }
+
+  const totalCharts = Object.values(groupedCharts)
+    .flatMap(periods => Object.values(periods))
+    .flat()
+    .length;
 
 
   return (
@@ -143,7 +160,7 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
                     fontWeight="normal"
                     fontSize={'0.7rem'}
                   >
-                    ({selectedCharts?.length})
+                    ({totalCharts})
                   </Typography>
                 </Box>
 
@@ -158,7 +175,7 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
                     <IconButton
                       size='medium'
                       onClick={handleClearAllCharts}
-                      disabled={selectedCharts?.length === 0}
+                      disabled={totalCharts === 0}
                     >
                       <HighlightOffIcon fontSize='small' />
                     </IconButton>
@@ -188,7 +205,7 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
                   },
                 }}
               >
-                {selectedCharts.length === 0 ? (
+                {totalCharts === 0 ? (
                   <Box sx={{
                     width: '100%',
                     height: '90%',
@@ -235,7 +252,7 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
                                 {interval}
                               </Typography>
                               <Stack spacing={1}>
-                                {selectedCharts.map(chart => (
+                                {charts.map(chart => (
 
                                   <Paper
                                     key={chart.id}
@@ -255,11 +272,7 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
                                   >
                                     <Typography variant="body2">{chart.title}</Typography>
                                     <Checkbox
-                                      onChange={() => removeChart({
-                                        chartKey: chart.chartKey,
-                                        platform: chart.platform,
-                                        selectedPeriod: chart.selectedPeriod
-                                      })}
+                                      onChange={() => removeChart({id: chart?.id})}
                                       checked
                                     />
                                   </Paper>
@@ -414,9 +427,20 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
             fullWidth
           />
 
-          <Typography variant="subtitle2" sx={{ mt: 2 }}>
-            Gráficas que se añadirán:
-          </Typography>
+          <Box display={'flex'} flexDirection={'row'} gap={0.5}>
+            <Typography variant="subtitle2">
+              Gráficas que se añadirán
+            </Typography>
+            <Typography
+              component="span"
+              color="text.secondary"
+              fontWeight="normal"
+              fontSize={'0.7rem'}
+              mt={0.5}
+            >
+              ({totalCharts}):
+            </Typography>
+          </Box>
 
           <Box
             sx={{
@@ -433,7 +457,7 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
               borderRadius: 1,
             }}
           >
-            {selectedCharts.length === 0 ? (
+            {totalCharts === 0 ? (
               <Typography variant="body2" fontStyle="italic" textAlign="center">
                 No hay gráficas seleccionadas
               </Typography>
@@ -491,11 +515,7 @@ export const ReportModal = ({ open, onClose, reports = [] }) => {
                                 <Checkbox
                                   checked
                                   onChange={() =>
-                                    removeChart({
-                                      chartKey: chart.chartKey,
-                                      platform: chart.platform,
-                                      selectedPeriod: chart.selectedPeriod,
-                                    })
+                                    removeChart({id: chart?.id})
                                   }
                                 />
                               </Paper>

@@ -7,9 +7,9 @@ import { useEffect } from "react";
 import { ErrorScreen, NoResultsScreen, SpinnerLoading } from "../../../../../generalComponents";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import DashboardCard from "./DashboardCard";
+import { DashboardCard } from './DashboardCard';
 
-function FollowersCard({
+export const FollowersCard = ({
     loading,
     error,
     title = "Seguidores de la página",
@@ -19,7 +19,7 @@ function FollowersCard({
     selectable = true,
     onSelectChange,
     followersData = {}
-}) {
+}) => {
     const [showHighlight, setShowHighlight] = useState(true);
     const [showTooltip, setShowTooltip] = useState(true);
 
@@ -186,5 +186,3 @@ function FollowersCard({
         </DashboardCard>
     )
 }
-
-export default FollowersCard;

@@ -13,8 +13,7 @@ import { CheckBox } from "@mui/icons-material";
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import { ErrorScreen, NoResultsScreen, SpinnerLoading } from '../../../../../generalComponents';
-import DashboardCard from './DashboardCard';
+import { DashboardCard } from './DashboardCard';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -59,7 +58,7 @@ const colors = [
     'hsl(220, 20%, 25%)',
 ];
 
-export default function OrganicOrPaidViewsCard({
+export const OrganicOrPaidViewsCard = ({
     error = false,
     title = "Page impressions orgánicas vs pagadas",
     loading,
@@ -69,7 +68,7 @@ export default function OrganicOrPaidViewsCard({
     selected = true,
     selectable = true,
     onSelectChange,
-}) {
+}) => {
 
     const pieData = organicOrPaidViewsData?.chartData;
     const totalViews = organicOrPaidViewsData?.total;

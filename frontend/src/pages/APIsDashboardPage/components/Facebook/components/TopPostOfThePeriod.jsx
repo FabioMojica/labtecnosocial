@@ -1,10 +1,9 @@
 import { Box, Card, CardContent, Stack, Typography, Chip, LinearProgress, Button, useTheme } from "@mui/material";
-import DashboardCard from "./DashboardCard";
+import { DashboardCard } from './DashboardCard';
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import CommentOutlinedIcon from "@mui/icons-material/CommentOutlined";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import { REACTIONS_CONFIG } from '../utils/cards/reactionsConfig.js'
-
 
 const TopPostCard = ({ post, index }) => {
     const isTop = index === 0;
@@ -36,8 +35,6 @@ const TopPostCard = ({ post, index }) => {
                         </Stack>
                     </Stack>
 
-                    {/* Imagen */}
-                    {/* Imagen */}
                     {post.full_picture && (
                         <Box
                             component="img"
@@ -149,11 +146,6 @@ const TopPostCard = ({ post, index }) => {
                             Ver post
                         </Button>
 
-                        {/* {post.meta.is_eligible_for_promotion && (
-                            <Button size="small" variant="contained">
-                                Promocionar
-                            </Button>
-                        )} */}
                     </Stack>
 
                 </Stack>
@@ -162,7 +154,7 @@ const TopPostCard = ({ post, index }) => {
     );
 };
 
-const TopPostOfThePeriod = ({
+export const TopPostOfThePeriod = ({
     error = false,
     title = "Top 5 posts populares",
     loading,
@@ -191,13 +183,13 @@ const TopPostOfThePeriod = ({
             sxCard={{
                 height: {
                     xs: 'auto',
-                    sm: 540,
-                    lg: 540,
+                    sm: selectable ? 540 : 'auto',
+                    lg: selectable ? 540 : 'auto',
                 },
                 maxHeight: {
                     xs: 'auto',
-                    sm: 540,
-                    lg: 540
+                    sm: 'auto',
+                    lg: 'auto'
                 },
             }}
         >
@@ -209,8 +201,8 @@ const TopPostOfThePeriod = ({
                 "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
                 maxHeight: {
                     xs: 'auto',
-                    sm: 500,
-                    lg: 500
+                    sm: selectable ? 540 : 'auto',
+                    lg: selectable ? 540 : 'auto' 
                 },
                 mt: 4.5,
                 pb: 4.5,
@@ -248,5 +240,3 @@ const TopPostOfThePeriod = ({
         </DashboardCard>
     );
 }
-
-export default TopPostOfThePeriod;

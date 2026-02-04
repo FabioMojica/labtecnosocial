@@ -1,7 +1,7 @@
 import { Card, Box, Stack, Typography, CardContent, Checkbox } from "@mui/material";
 import { ErrorScreen, NoResultsScreen, SpinnerLoading } from "../../../../../generalComponents";
 
-export default function DashboardCard({
+export const DashboardCard = ({
   title,
   interval,
   titleSpinner,
@@ -18,7 +18,7 @@ export default function DashboardCard({
   height = 150,
   children,
   sxCard
-}) {
+}) => {
   return (
     <Card variant="outlined" sx={{ height, flexGrow: 1, position: "relative", ...sxCard }}>
       {/* Header */}

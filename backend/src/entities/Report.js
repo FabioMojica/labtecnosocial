@@ -13,6 +13,7 @@ export const Report = new EntitySchema({
       type: String,
       length: 100,
       nullable: false,
+      default: 'Reporte sin título',
     },
     created_at: {
       type: 'timestamp',
