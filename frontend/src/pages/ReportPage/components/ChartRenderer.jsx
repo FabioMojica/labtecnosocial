@@ -59,6 +59,7 @@ export const chartPropsMap = {
 
 export const ChartRenderer = ({ element }) => {
   const { id, id_name, data, content, title, integration_data, interval, period, type, ...rest } = element
+ 
 
   const parsed = parseChartId(id_name);
 

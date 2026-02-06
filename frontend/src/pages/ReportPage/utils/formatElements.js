@@ -1,5 +1,18 @@
 import { generateUUID } from "../../../utils";
 
+export const getElementLabel = (type) => {
+    switch (type) {
+      case 'text':
+        return 'Texto';
+      case 'chart':
+        return 'Gráfico';
+      case 'image':
+        return 'Imagen';
+      default:
+        return 'Elemento';
+    }
+  };
+
 export const formatElementsForFrontend = (backendReport) => {
   if (!backendReport) {
     return {

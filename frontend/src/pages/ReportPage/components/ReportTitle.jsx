@@ -12,7 +12,7 @@ export const ReportTitle = memo(({ value, onSave }) => {
     const debouncedSave = useRef(
         debounce((val) => {
             onSave(val);
-        }, 300)
+        }, 500)
     ).current;
 
     useEffect(() => {

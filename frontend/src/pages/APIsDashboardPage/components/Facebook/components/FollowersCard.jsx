@@ -152,7 +152,6 @@ export const FollowersCard = ({
 
                 {period !== 'all' && period !== 'today' &&
                     <SparkLineChart
-                        key={interval}
                         data={dataCard}
                         height={70}
                         area

@@ -30,7 +30,7 @@ export const ResizableImage = ({ element, onResize, onResizeStop }) => {
   };
 
   return (
-    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
       <ResizableBox
         width={width}
         height={height}
@@ -53,7 +53,7 @@ export const ResizableImage = ({ element, onResize, onResizeStop }) => {
           src={element.src}
           alt={getAlt()}
           style={{
-            width: '100%',
+            width: '100%', 
             height: 'auto',
             display: 'block',
             borderRadius: 8,

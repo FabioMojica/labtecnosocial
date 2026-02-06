@@ -5,7 +5,6 @@ import {
   Button,
   Typography,
   Stack,
-  TextField,
   IconButton,
   Menu,
   MenuItem,
@@ -31,12 +30,11 @@ import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
 
-import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import html2pdf from "html2pdf.js";
 import { createReportApi, getReportByIdApi, deleteReportApi, updateReportApi } from "../../api";
-import { ButtonWithLoader, FullScreenProgress } from "../../generalComponents";
+import { ButtonWithLoader, ErrorScreen, FullScreenProgress } from "../../generalComponents";
 import { useConfirm } from "material-ui-confirm";
 import { useLayout, useNotification, useReport } from "../../contexts";
 import { formatDateParts, generateUUID, integrationsConfig } from "../../utils";
@@ -46,15 +44,12 @@ import { v4 as uuidv4, validate as validateUUID } from 'uuid';
 import {
   InsertBlockDivider,
   ChartSelectorDialog,
-  ResizableImage,
-  ChartRenderer,
-  DeleteReportDialog
+  DeleteReportDialog,
+  ReportElementItem,
+  ReportTitle
 } from "./components";
-import { formatElementsForDb, formatElementsForFrontend } from "./utils/formatElements";
-import ReportElementItem from "./components/ReportElement";
-import { ReportTitle } from "./components/ReportTitle";
+import { getElementLabel, formatElementsForDb, formatElementsForFrontend } from "./utils";
 
-const ZOOM_OPTIONS = [0.5, 0.75, 1];
 
 export const ReportEditor = () => {
   const location = useLocation();
@@ -86,16 +81,20 @@ export const ReportEditor = () => {
   const navigate = useNavigate();
   const [fetchReport, setFetchReport] = useState(false);
   const [saveReport, setSaveReport] = useState(false);
-  const [currentReportId, setCurrentReportId] = useState(
-    Number(location.state?.id) ?? null
-  );
-  const isEditing = Boolean(currentReportId);
-  const isInitializing = useRef(true);
+  const [errorFetchReport, setErrorFecthReport] = useState(false);
+
+  const initialReportId = location.state?.id ? Number(location.state.id) : null;
+  const [currentReportId, setCurrentReportId] = useState(initialReportId);
+
+  const [isCreateNewReport, setIsCreateNewReport] = useState(initialReportId === null);
+
   const { selectedCharts, addChart, removeChart, clearCharts } = useReport();
+  const [reportMetadata, setReportMetadata] = useState(null);
 
   const originalReportRef = useRef({
     title: "Reporte sin título",
-    elements: [],
+    elements: {},
+    elementsOrder: [],
   });
 
   const [editedReport, setEditedReport] = useState({
@@ -106,37 +105,61 @@ export const ReportEditor = () => {
 
   const [title, setTitle] = useState(null)
 
-  console.log("renderiaiaiai")
+  const normalizeReportForCompare = (report) => {
+    return {
+      title: report.title?.trim() || "",
+      elementsOrder: report.elementsOrder,
+      elements: Object.values(report.elements)
+        .map(el => {
+          const { file, __local, ...rest } = el;
+          return rest;
+        })
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    };
+  };
+
+  const isDirty = useMemo(() => {
+    const current = normalizeReportForCompare(editedReport);
+    const original = normalizeReportForCompare(originalReportRef.current);
+    return JSON.stringify(current) !== JSON.stringify(original);
+  }, [editedReport]);
+
+
+  const fetchReportById = async () => {
+    try {
+      setErrorFecthReport(false);
+      setFetchReport(true);
+      const res = await getReportByIdApi(currentReportId);
+      const { created_at, updated_at, report_version } = res;
+      const { title, elements, elementsOrder } = formatElementsForFrontend(res);
+
+      setTitle(title)
+      setEditedReport({
+        title: title || "Reporte sin título",
+        elements: elements,
+        elementsOrder
+      });
+      setReportMetadata({
+        created_at,
+        updated_at,
+        report_version
+      });
+
+      const snapshot = structuredClone({ title, elements, elementsOrder });
+      originalReportRef.current = snapshot;
+      setHistory([snapshot]);
+      setHistoryIndex(0);
+    } catch (error) {
+      setErrorFecthReport(true);
+      notify(error.message, "error");
+    } finally {
+      setFetchReport(false);
+    }
+  };
 
   useEffect(() => {
-    if (!currentReportId) return;
-
-    const fetchReport = async () => {
-      try {
-        setFetchReport(true);
-        const res = await getReportByIdApi(currentReportId);
-        const { title, elements, elementsOrder } = formatElementsForFrontend(res);
-
-        setTitle(title)
-        setEditedReport({
-          title: title || "Reporte sin título",
-          elements: elements,
-          elementsOrder
-        });
-
-        const snapshot = structuredClone({ title, elements, elementsOrder });
-        originalReportRef.current = snapshot;
-        setHistory([snapshot]);
-        setHistoryIndex(0);
-      } catch (error) {
-        notify(error.message, "error");
-      } finally {
-        setFetchReport(false);
-        isInitializing.current = false;
-      }
-    };
-
-    fetchReport();
+    if (isCreateNewReport) return;
+    fetchReportById();
   }, [currentReportId]);
 
   const handleElementChange = (id, newElement) => {
@@ -149,31 +172,14 @@ export const ReportEditor = () => {
     }));
   };
 
-
   const handleOpenExportMenu = (event) => {
-    setExportAnchorEl(event.currentTarget);
+    if (event.currentTarget) {
+      setExportAnchorEl(event.currentTarget);
+    }
   };
-
   const handleCloseExportMenu = () => {
     setExportAnchorEl(null);
   };
-
-  // const insertElementAfter = (index, newElement) => {
-  //   setEditedReport(prev => {
-  //     const updated = [...prev.elements];
-  //     updated.splice(index + 1, 0, newElement);
-
-  //     pushToHistory({
-  //       title: prev.title,
-  //       elements: updated,
-  //     });
-
-  //     return {
-  //       ...prev,
-  //       elements: updated,
-  //     };
-  //   });
-  // };
 
   const insertElementAfter = (afterId, newElement) => {
     setEditedReport(prev => {
@@ -197,26 +203,6 @@ export const ReportEditor = () => {
       return { ...prev, elements: newElements, elementsOrder: newOrder };
     });
   };
-
-
-  // const onDragEnd = (result) => {
-  //   setIsDragging(false);
-
-  //   if (!result.destination) return;
-
-  //   const sourceIndex = result.source.index;
-  //   const destinationIndex = result.destination.index;
-  //   const items = Array.from(editedReport.elements);
-  //   const [moved] = items.splice(sourceIndex, 1);
-  //   items.splice(destinationIndex, 0, moved);
-
-  //   setEditedReport(prev => ({
-  //     ...prev,
-  //     elements: items,
-  //   }));
-
-  //   pushToHistory({ title: editedReport?.title, elements: items });
-  // };
 
   const onDragEnd = (result) => {
     setIsDragging(false);
@@ -276,7 +262,6 @@ export const ReportEditor = () => {
     event.target.value = '';
   };
 
-
   const removeElement = (id) => {
     setEditedReport(prev => {
       const { [id]: _, ...rest } = prev.elements;
@@ -287,20 +272,6 @@ export const ReportEditor = () => {
         elementsOrder: prev.elementsOrder.filter(eid => eid !== id),
       };
     });
-  };
-
-
-  const getElementLabel = (type) => {
-    switch (type) {
-      case 'text':
-        return 'Texto';
-      case 'chart':
-        return 'Gráfico';
-      case 'image':
-        return 'Imagen';
-      default:
-        return 'Elemento';
-    }
   };
 
   const normalizeCharts = (charts) => {
@@ -330,7 +301,6 @@ export const ReportEditor = () => {
 
       insertElementAfter(lastAfterId, newChart);
 
-      // ahora el siguiente se inserta después del anterior
       lastAfterId = newChart.id;
     });
 
@@ -338,12 +308,10 @@ export const ReportEditor = () => {
     setChartInsertIndex(null);
   };
 
-
-
   const handleCancel = () => {
     confirm({
       title: "Descartar cambios",
-      description: "¿Deseas restaurar el reporte original antes todos los cambios?",
+      description: "¿Deseas descartar todos los cambios no guardados?",
       confirmationText: "Sí, descartar",
       cancellationText: "Cancelar",
     })
@@ -351,7 +319,7 @@ export const ReportEditor = () => {
         if (result.confirmed === true) {
           const resetState = structuredClone(originalReportRef.current);
           setEditedReport(resetState);
-          notify("Reporte restaurado al original.", "success");
+          notify("Cambios descartados correctamente", "info");
         }
       })
       .catch(() => { });
@@ -408,6 +376,7 @@ export const ReportEditor = () => {
       notify("No puedes guardar un reporte vacío.", "warning");
       return;
     }
+
     try {
       setSaveReport(true);
 
@@ -416,57 +385,33 @@ export const ReportEditor = () => {
 
       const payload = formatElementsForDb(editedReport);
 
-      if (isEditing) {
-        const updatedReport = await updateReportApi(currentReportId, payload);
+      const response = isCreateNewReport
+        ? await createReportApi(payload)
+        : await updateReportApi(currentReportId, payload);
 
-        const { title, elements, elementsOrder } = formatElementsForFrontend(updatedReport);
+      const { title, elements, elementsOrder } = formatElementsForFrontend(response);
 
-        setEditedReport({
-          title: title || "Reporte sin título",
-          elements: elements,
-          elementsOrder
-        });
+      const snapshot = structuredClone({ title, elements, elementsOrder });
 
-        const snapshot = structuredClone({ title, elements, elementsOrder });
-        originalReportRef.current = snapshot;
-        setHistory([snapshot]);
-        setHistoryIndex(0);
-        setCurrentReportId(updatedReport.id);
-        originalReportRef.current = snapshot;
-        setEditedReport(snapshot);
+      setEditedReport(snapshot);
+      originalReportRef.current = snapshot;
+      setHistory([snapshot]);
+      setHistoryIndex(0);
+      setCurrentReportId(response.id);
 
-        notify("Reporte actualizado exitosamente.", "success");
-        navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
-          state: { id: updatedReport.id },
-          replace: true,
-        });
+      notify(
+        isCreateNewReport
+          ? "Reporte creado exitosamente."
+          : "Reporte actualizado exitosamente.",
+        "success"
+      );
 
-      } else {
+      navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
+        state: { id: response.id },
+        replace: true,
+      });
 
-        const createdReport = await createReportApi(payload);
-        const { title, elements, elementsOrder } = formatElementsForFrontend(createdReport);
-
-        setEditedReport({
-          title: title || "Reporte sin título",
-          elements: elements,
-          elementsOrder
-        });
-
-        const snapshot = structuredClone({ title, elements, elementsOrder });
-        originalReportRef.current = snapshot;
-        setHistory([snapshot]);
-        setHistoryIndex(0);
-        setCurrentReportId(createdReport.id);
-        originalReportRef.current = snapshot;
-        setEditedReport(snapshot);
-
-        notify("Reporte creado exitosamente.", "success");
-        navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
-          state: { id: createdReport.id },
-          replace: true,
-        });
-      }
-
+      setIsCreateNewReport(false);
     } catch (error) {
       notify(error.message, "error");
     } finally {
@@ -474,8 +419,13 @@ export const ReportEditor = () => {
     }
   };
 
+
   if (fetchReport) return (
     <FullScreenProgress text={'Obteniendo el reporte...'} />
+  )
+
+  if (errorFetchReport) return (
+    <ErrorScreen message="Ocurrió un error al obtener el reporte" buttonText='Volver a intentar' onButtonClick={() => { fetchReportById() }} />
   )
 
   if (saveReport) return (
@@ -527,115 +477,120 @@ export const ReportEditor = () => {
               <SummarizeRoundedIcon fontSize="large" />
             </IconButton>
 
-            <Menu
-              anchorEl={exportAnchorEl}
-              open={openExportMenu}
-              onClose={handleCloseExportMenu}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
-              slotProps={{
-                list: {
-                  sx: {
-                    pb: 0,
+            {!fetchReport &&
+              <Menu
+                anchorEl={exportAnchorEl}
+                open={openExportMenu}
+                onClose={handleCloseExportMenu}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+                slotProps={{
+                  list: {
+                    sx: {
+                      pb: 0,
+                    }
                   }
-                }
-              }}
-            >
-              <MenuItem onClick={exportToPDF}>
-                <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-                Exportar PDF
-              </MenuItem>
+                }}
+              >
+                <MenuItem onClick={exportToPDF}>
+                  <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
+                  Exportar PDF
+                </MenuItem>
 
-              <MenuItem onClick={exportToXLS}>
-                <TableChartIcon fontSize="small" sx={{ mr: 1 }} />
-                Exportar Excel (XLS)
-              </MenuItem>
-              {isEditing && [
-                <Divider key="divider" sx={{ mt: 2 }} />,
-                <MenuItem
-                  key="delete"
-                  onClick={() => {
-                    handleCloseExportMenu();
-                    setOpenDeleteReportDialog(true);
-                  }}
-                >
-                  <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" />
-                  Eliminar el reporte
-                </MenuItem>,
-                <Divider key="divider" sx={{ mt: 2 }} />,
-                // <MenuItem
-                //   sx={{
-                //     p: 0,
-                //     pointerEvents: "none",
-                //   }}>
-                //   {
-                //     <Box sx={{
-                //       display: 'flex',
-                //       flexDirection: 'column',
-                //       width: '100%',
-                //       backgroundColor: 'background.paper',
-                //       p: 1
-                //     }}>
-                //       <Typography fontWeight="bold" variant='caption' sx={{
-                //         display: 'flex',
-                //         flexDirection: 'column'
-                //       }}>
-                //         Creado:{" "}
-                //         <Typography
-                //           component="span"
-                //           variant="body1"
-                //           color="textSecondary"
-                //           sx={{
-                //             fontStyle: 'italic',
-                //             fontSize: '0.9rem',
-                //           }}
-                //         >
-                //           {formatDateParts(report?.created_at).date} {formatDateParts(report?.created_at).time}
-                //         </Typography>
-                //       </Typography>
-                //       <Typography fontWeight="bold" variant='caption' sx={{
-                //         display: 'flex',
-                //         flexDirection: 'column'
-                //       }}>
-                //         Actualizado:{" "}
-                //         <Typography
-                //           component="span"
-                //           variant="body1"
-                //           color="textSecondary"
-                //           sx={{
-                //             fontStyle: 'italic',
-                //             fontSize: '0.9rem',
-                //           }}
-                //         >
-                //           {formatDateParts(report?.updated_at).date} {formatDateParts(report?.updated_at).time}
-                //         </Typography>
-                //       </Typography>
+                <MenuItem onClick={exportToXLS}>
+                  <TableChartIcon fontSize="small" sx={{ mr: 1 }} />
+                  Exportar Excel (XLS)
+                </MenuItem>
+                {!isCreateNewReport && [
+                  <Divider key="divider-1" sx={{ mt: 2 }} />,
+                  <MenuItem
+                    key="delete"
+                    onClick={() => {
+                      handleCloseExportMenu();
+                      setOpenDeleteReportDialog(true);
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" />
+                    Eliminar el reporte
+                  </MenuItem>,
 
-                //       <Typography fontWeight="bold" variant='caption'>
-                //         Versión del reporte:{" "}
-                //         <Typography
-                //           component="span"
-                //           variant="body1"
-                //           color="textSecondary"
-                //           sx={{
-                //             fontStyle: 'italic',
-                //             fontSize: '0.9rem',
-                //           }}
-                //         >
-                //           {report?.report_version}
-                //         </Typography>
-                //       </Typography>
-                //     </Box>
-                //   }
-                // </MenuItem>
-              ]}
-            </Menu>
+                  <Divider key="divider-2" sx={{ mt: 2 }} />,
+
+                  <MenuItem
+                    key={'meta-data'}
+                    sx={{
+                      p: 0,
+                      pointerEvents: "none",
+                    }}>
+                    {reportMetadata && (
+                      <Box sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        width: '100%',
+                        backgroundColor: 'background.paper',
+                        p: 1
+                      }}>
+                        <Typography fontWeight="bold" variant='caption' sx={{
+                          display: 'flex',
+                          flexDirection: 'column'
+                        }}>
+                          Creado:{" "}
+                          <Typography
+                            component="span"
+                            variant="body1"
+                            color="textSecondary"
+                            sx={{
+                              fontStyle: 'italic',
+                              fontSize: '0.9rem',
+                            }}
+                          >
+                            {formatDateParts(reportMetadata?.created_at).date} {formatDateParts(reportMetadata?.created_at).time}
+                          </Typography>
+                        </Typography>
+                        <Typography fontWeight="bold" variant='caption' sx={{
+                          display: 'flex',
+                          flexDirection: 'column'
+                        }}>
+                          Actualizado:{" "}
+                          <Typography
+                            component="span"
+                            variant="body1"
+                            color="textSecondary"
+                            sx={{
+                              fontStyle: 'italic',
+                              fontSize: '0.9rem',
+                            }}
+                          >
+                            {formatDateParts(reportMetadata?.updated_at).date} {formatDateParts(reportMetadata?.updated_at).time}
+                          </Typography>
+                        </Typography>
+
+                        <Typography fontWeight="bold" variant='caption'>
+                          Versión del reporte:{" "}
+                          <Typography
+                            component="span"
+                            variant="body1"
+                            color="textSecondary"
+                            sx={{
+                              fontStyle: 'italic',
+                              fontSize: '0.9rem',
+                            }}
+                          >
+                            {reportMetadata?.report_version}
+                          </Typography>
+                        </Typography>
+                      </Box>
+                    )}
+                  </MenuItem>
+                ]}
+              </Menu>
+            }
 
             <ReportTitle
               value={editedReport.title}
@@ -644,42 +599,6 @@ export const ReportEditor = () => {
               }
             />
 
-
-            {/* <TextField
-              fullWidth
-              type="text"
-              variant="outlined"
-              // value={editedReport?.title}
-              // onChange={(e) => {
-              //   setEditedReport(prev => ({ ...prev, title: e.target.value }));
-              // }}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Escribe un título para tu reporte"
-              slotProps={{
-                htmlInput: {
-                  maxLength: 100
-                }
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  minHeight: {
-                    xs: 35,
-                    sm: 35
-                  },
-                  maxHeight: {
-                    xs: 35,
-                    sm: 35
-                  },
-                  width: '100%',
-                },
-                '& .MuiOutlinedInput-input': {
-                  padding: '0px 12px',
-                  fontSize: '0.95rem',
-                  lineHeight: '1',
-                },
-              }}
-            /> */}
             <Tooltip
               title={isFullscreen ? "Minimizar" : "Maximizar"}
             >
@@ -762,14 +681,14 @@ export const ReportEditor = () => {
               color="error"
               sx={{ width: '165px', height: '100%' }}
               onClick={() => handleCancel()}
-              disabled={saveReport}
+              disabled={!isDirty || saveReport}
             >
               Descartar cambios
             </Button>
             <ButtonWithLoader
               loading={saveReport}
               onClick={() => handleSave()}
-              disabled={isReportEmpty}
+              disabled={!isDirty || isReportEmpty}
               variant="contained"
               backgroundButton={theme => theme.palette.success.main}
               sx={{ color: 'white', px: 2, width: '170px' }}
@@ -797,7 +716,7 @@ export const ReportEditor = () => {
           open={openOutline}
           onClose={() => setOpenOutline(false)}
           variant="temporary"
-          sx={{ 
+          sx={{
             zIndex: isFullscreen && 2000,
             width: 270,
             flexShrink: 0,
