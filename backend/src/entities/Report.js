@@ -8,7 +8,7 @@ const reportElementSchema = z.object({
   src: z.string().nullable().optional(),
   alt: z.string().optional(),
   width: z.number().optional(),
-  imageKey: z.string().uuid().optional(),
+  imageKey: z.string().uuid().optional(), 
   height: z.number().optional(),
   data: z.any().optional(),
   integration_data: z.any().optional(),
@@ -22,9 +22,14 @@ const reportElementSchema = z.object({
 
 export const reportSchema = z.object({
   title: z.string().min(1),
-  data: z.array(reportElementSchema),
-});
 
+  elements: z.record(
+    z.string().uuid(),      
+    reportElementSchema    
+  ),
+
+  elementsOrder: z.array(z.string().uuid()),
+});
 export const Report = new EntitySchema({
   name: 'Report',
   tableName: 'reports',

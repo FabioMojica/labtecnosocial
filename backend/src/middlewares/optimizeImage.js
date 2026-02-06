@@ -2,49 +2,15 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
-// export const optimizeImage = async (req, res, next) => {
-//   if (!req.file) return next();
-
-//   const inputPath = req.file.path;
-//   const ext = path.extname(req.file.filename);
-
-//   if (ext === '.webp') {
-//     req.file.optimizedPath = `/uploads/${req.file.filename}`;
-//     return next();
-//   }
-
-//   const baseName = path.basename(req.file.filename, ext);
-//   const outputFileName = baseName + '.webp';
-//   const outputPath = path.join(process.cwd(), 'uploads', outputFileName);
-
-//   try {
-//     await sharp(inputPath)
-//       .resize(800)
-//       .webp({ quality: 80 })
-//       .toFile(outputPath);
-
-//     fs.unlinkSync(inputPath);
-
-
-//     req.file.optimizedPath = `/uploads/${outputFileName}`;
-
-//     next();
-//   } catch (err) {
-//     console.log("error al optimizar", err)
-//     next(err);
-//   }
-// };
-
-
 export const optimizeImage = async (req, res, next) => {
   if (!req.files || req.files.length === 0) return next();
 
   try {
     for (const file of req.files) {
       const inputPath = file.path;
-      const ext = path.extname(file.filename);
+      const ext = path.extname(file.filename).toLowerCase();
 
-      if (ext === '.webp') {
+      if (file.mimetype === 'image/webp') {
         file.optimizedPath = `/uploads/${file.filename}`;
         continue;
       }

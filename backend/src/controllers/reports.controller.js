@@ -50,52 +50,51 @@ export const getReportById = async (req, res) => {
   }
 };
 
-const ensureUniquePositions = (elements) => {
-  const positions = elements.map(el => el.position);
-  const uniquePositions = new Set(positions);
-  if (positions.length !== uniquePositions.size) {
-    return errorResponse(res, ERROR_CODES.VALIDATION_ERROR, 'Error al guardar por que hay elementos con posiciones duplicadas', 400);
-  }
-};
-
 export const createReport = async (req, res) => {
   try {
     const parsedReport = JSON.parse(req.body.report);
-    const { title, elements } = parsedReport;
+    const { title, elements, elementsOrder } = parsedReport;
 
+    // Map de imágenes subidas
     const imageMap = {};
     req.files?.forEach(file => {
       imageMap[file.originalname] = file.optimizedPath;
     });
 
-    const finalElements = elements.map(el => {
-      if (el.type === "image") {
-        return {
+    // Reemplazamos src de imágenes locales, manteniendo la estructura de objetos
+    const finalElements = { ...elements };
+    elementsOrder.forEach(id => {
+      const el = finalElements[id];
+      if (el?.type === "image") {
+        finalElements[id] = {
           ...el,
-          src: imageMap[el.imageKey] ?? null,
+          src: imageMap[el.imageKey] ?? el.src ?? "",
         };
       }
-      return el;
     });
 
+    // Validamos con Zod (si tu esquema espera 'data' como objeto en vez de array, ajústalo)
     const validated = reportSchema.parse({
       title,
-      data: finalElements,
+      elements: finalElements,
+      elementsOrder,
     });
 
-    ensureUniquePositions(validated.data);
-
     const reportRepo = AppDataSource.getRepository(Report);
+
     const report = reportRepo.create({
       title: validated.title,
-      data: validated.data,
+      data: {
+        elements: validated.elements,
+        elementsOrder: validated.elementsOrder,
+      },
       report_version: 1,
     });
 
     const saved = await reportRepo.save(report);
 
-
-    return successResponse(res,
+    return successResponse(
+      res,
       {
         id: saved.id,
         title: saved.title,
@@ -103,18 +102,17 @@ export const createReport = async (req, res) => {
         report_version: saved.report_version,
         created_at: saved.created_at,
         updated_at: saved.updated_at,
-      }
-      ,
-      'Reporte creado correctamente',
-      201);
-
+      },
+      "Reporte creado correctamente",
+      201
+    );
   } catch (error) {
-    console.error(error);
-    if (error.name === 'ZodError') {
+    console.log(error);
+    if (error.name === "ZodError") {
       return errorResponse(
         res,
         ERROR_CODES.BAD_REQUEST,
-        'Datos inválidos',
+        "Datos inválidos",
         400,
         error.errors
       );
@@ -122,7 +120,7 @@ export const createReport = async (req, res) => {
     return errorResponse(
       res,
       ERROR_CODES.SERVER_ERROR,
-      'Error del servidor',
+      "Error del servidor",
       500
     );
   }
@@ -146,51 +144,62 @@ const deleteImageIfExists = (imagePath) => {
   });
 };
 
+
 export const updateReport = async (req, res) => {
   try {
     const { reportId } = req.params;
     const parsedReport = JSON.parse(req.body.report);
-    const { title, elements } = parsedReport;
+    const { title, elements, elementsOrder } = parsedReport;
 
     const reportRepo = AppDataSource.getRepository(Report);
 
     const report = await reportRepo.findOneBy({ id: Number(reportId) });
 
     if (!report) {
-      return errorResponse(res, ERROR_CODES.RESOURCE_NOT_FOUND, 'Reporte no encontrado', 404);
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Reporte no encontrado',
+        404
+      );
     }
 
+    // 🔹 imágenes nuevas subidas
     const imageMap = {};
     req.files?.forEach(file => {
       imageMap[file.originalname] = file.optimizedPath;
     });
 
-    // 🔹 Mapa de imágenes antiguas (por imageKey)
+    // 🔹 imágenes antiguas (por imageKey)
     const oldImagesMap = {};
-    report.data?.forEach(el => {
-      console.log("elllll", el)
+    const oldElements = report.data?.elements || {};
+
+    Object.values(oldElements).forEach(el => {
       if (el.type === 'image' && el.imageKey && el.src) {
-        console.log("ahahahahaahah antigua")
         oldImagesMap[el.imageKey] = el.src;
       }
     });
 
-    // 🔹 Construir elementos finales
-    const finalElements = elements.map(el => {
-      if (el.type === 'image') {
-        return {
+    // 🔹 construir elementos finales (MISMA lógica que createReport)
+    const finalElements = { ...elements };
+
+    elementsOrder.forEach(id => {
+      const el = finalElements[id];
+
+      if (el?.type === 'image') {
+        finalElements[id] = {
           ...el,
           src:
-            imageMap[el.imageKey] ?? // imagen nueva
-            oldImagesMap[el.imageKey] ?? // imagen vieja
-            null,
+            imageMap[el.imageKey] ??      // imagen nueva
+            oldImagesMap[el.imageKey] ??  // imagen vieja
+            el.src ?? '',
         };
       }
-      return el;
     });
 
+    // 🔹 detectar imágenes eliminadas
     const newImageKeys = new Set(
-      finalElements
+      Object.values(finalElements)
         .filter(el => el.type === 'image')
         .map(el => el.imageKey)
     );
@@ -201,30 +210,39 @@ export const updateReport = async (req, res) => {
       }
     });
 
+    // 🔹 validar
     const validated = reportSchema.parse({
       title,
-      data: finalElements,
+      elements: finalElements,
+      elementsOrder,
     });
 
-    ensureUniquePositions(validated.data);
-
+    // 🔹 guardar
     report.title = validated.title;
-    report.data = validated.data;
+    report.data = {
+      elements: validated.elements,
+      elementsOrder: validated.elementsOrder,
+    };
     report.report_version += 1;
 
     const saved = await reportRepo.save(report);
 
-    return successResponse(res, {
-      id: saved.id,
-      title: saved.title,
-      data: saved.data,
-      report_version: saved.report_version,
-      created_at: saved.created_at,
-      updated_at: saved.updated_at,
-    }, 'Reporte actualizado correctamente', 200);
-
+    return successResponse(
+      res,
+      {
+        id: saved.id,
+        title: saved.title,
+        data: saved.data,
+        report_version: saved.report_version,
+        created_at: saved.created_at,
+        updated_at: saved.updated_at,
+      },
+      'Reporte actualizado correctamente',
+      200
+    );
   } catch (error) {
     console.error(error);
+
     if (error.name === 'ZodError') {
       return errorResponse(
         res,
@@ -234,9 +252,17 @@ export const updateReport = async (req, res) => {
         error.errors
       );
     }
-    return errorResponse(res, ERROR_CODES.SERVER_ERROR, 'Error del servidor', 500);
+
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor',
+      500
+    );
   }
 };
+
+
 
 // Eliminar un reporte
 export const deleteReport = async (req, res) => {
