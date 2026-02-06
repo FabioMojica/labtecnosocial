@@ -18,24 +18,24 @@ export const PageViewsCard = ({
     selected = true,
     selectable = true,
     onSelectChange,
-    viewsPageData = {}
+    data = {}
 }) => {
     const [showHighlight, setShowHighlight] = useState(true);
     const [showTooltip, setShowTooltip] = useState(true);
 
-    const finalData = viewsPageData?.chartData;
-    const [data, setData] = useState([]);
+    const finalData = data?.chartData;
+    const [dataCard, setDataCard] = useState([]);
     const [animDates, setAnimDates] = useState([]);
     const [animatedTotal, setAnimatedTotal] = useState(0);
 
     useEffect(() => {
-        if (!viewsPageData?.total) {
+        if (!data?.total) {
             setAnimatedTotal(0);
             return;
         }
 
         let start = 0;
-        const end = viewsPageData.total;
+        const end = data.total;
         const duration = 1000;
         const steps = 60;
         const increment = end / steps;
@@ -51,19 +51,19 @@ export const PageViewsCard = ({
         }, intervalTime);
 
         return () => clearInterval(intervalId);
-    }, [viewsPageData.total, interval]);
+    }, [data.total, interval]);
 
     useEffect(() => {
         if (!Array.isArray(finalData) || finalData.length === 0) {
-            setData([]);
+            setDataCard([]);
             setAnimDates([]);
             return;
         }
 
         // Si hay un solo punto
         if (finalData.length === 1) {
-            setData(finalData);
-            setAnimDates(viewsPageData.dates);
+            setDataCard(finalData);
+            setAnimDates(data.dates);
             return;
         }
 
@@ -71,28 +71,28 @@ export const PageViewsCard = ({
         const chunkSize = Math.ceil(totalPoints / 30);
         let currentIndex = 0;
 
-        setData([]);
+        setDataCard([]);
         setAnimDates([]);
 
         const intervalId = setInterval(() => {
             currentIndex += chunkSize;
 
-            // Slicing data y fechas juntos
+            // Slicing dataCard y fechas juntos
             const slicedData = finalData.slice(0, currentIndex);
-            const slicedDates = viewsPageData.dates.slice(0, currentIndex);
+            const slicedDates = data.dates.slice(0, currentIndex);
 
-            setData(slicedData);
+            setDataCard(slicedData);
             setAnimDates(slicedDates);
 
             if (currentIndex >= totalPoints) {
-                setData(finalData);
-                setAnimDates(viewsPageData.dates);
+                setDataCard(finalData);
+                setAnimDates(data.dates);
                 clearInterval(intervalId);
             }
         }, 20);
 
         return () => clearInterval(intervalId);
-    }, [interval, finalData, viewsPageData.dates]);
+    }, [interval, finalData, data.dates]);
 
     return (
         <DashboardCard
@@ -107,7 +107,7 @@ export const PageViewsCard = ({
             interval={interval}
             loading={loading}
             error={error}
-            isEmpty={viewsPageData?.chartData?.length === 0}
+            isEmpty={data?.chartData?.length === 0}
             selectable={selectable}
             selected={selected}
             onSelectChange={onSelectChange}
@@ -126,12 +126,12 @@ export const PageViewsCard = ({
                         bottom: -10,
                         right: -10
                     }}>
-                        {viewsPageData.delta > 0 && (
+                        {data.delta > 0 && (
                             <ArrowUpwardIcon
                                 sx={{ color: 'green', fontSize: 15, transform: 'scale(1.4)' }}
                             />
                         )}
-                        {viewsPageData.delta < 0 && (
+                        {data.delta < 0 && (
                             <ArrowDownwardIcon
                                 sx={{ color: 'red', fontSize: 15, transform: 'scale(1.4)' }}
                             />
@@ -152,7 +152,7 @@ export const PageViewsCard = ({
                 {period !== 'all' && period !== 'today' &&
                     <SparkLineChart
                         key={interval}
-                        data={data}
+                        data={dataCard}
                         height={70}
                         area
                         curve="natural"

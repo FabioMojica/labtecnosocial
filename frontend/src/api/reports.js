@@ -22,10 +22,10 @@ export const getAllReportsApi = async () => {
   }
 };
 
-export const getReportById = async (year) => {
+export const getReportByIdApi = async (reportId) => {
   const controller = loadAbort();
   try {
-    const { data } = await axiosInstance.get(`${Routes.STRATEGIC_PLAN}/${year}`, { signal: controller.signal });
+    const { data } = await axiosInstance.get(Routes.reports.GET_REPORT(reportId), { signal: controller.signal });
     
     if (data?.success !== true) {
       throw {

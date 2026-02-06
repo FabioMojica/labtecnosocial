@@ -45,7 +45,7 @@ export const DashboardCard = ({
         <ErrorScreen message={titleError || "Ocurrió un error al obtener los datos"}
           sx={{
             height: "100%",
-            pt: smallCard && 4,
+            pt: smallCard ? 4 : 0,
             gap: 0
           }}
           textSx={{
@@ -59,11 +59,11 @@ export const DashboardCard = ({
       ) : isEmpty ? (
         <NoResultsScreen message={titleNoResults || "No hay datos para mostrar"} sx={{
           height: "100%",
-          pt: smallCard && 4,
+          pt: smallCard ? 4 : 0,
           gap: 0
         }}
           textSx={{
-            fontSize: smallCard && '0.9rem',
+            fontSize: smallCard ? '0.9rem' : undefined,
           }}
           iconSX={{
             fontSize: smallCard ? 40 : 70

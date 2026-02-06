@@ -16,8 +16,6 @@ export * from './ProjectImageDates';
 export * from './ProjectProfileImage';
 export * from './QuestionModal';
 export * from './RenderAvatar';
-export * from './ReportBubble';
-export * from './ReportModal';
 export * from './SearchBar';
 export * from './SelectComponent';
 export * from './SelectProjectModal';

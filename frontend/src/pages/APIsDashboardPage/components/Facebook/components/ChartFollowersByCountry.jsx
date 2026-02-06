@@ -54,7 +54,7 @@ const colors = [
 export const ChartFollowersByCountry = ({ 
   loading,
   error,
-  countryFollowersData,
+  data,
   interval,
   title = "Seguidores por país",
   selected = true,
@@ -62,9 +62,9 @@ export const ChartFollowersByCountry = ({
   onSelectChange,
 }) => {
   const latest = React.useMemo(() => {
-    if (!countryFollowersData?.length) return {};
-    return countryFollowersData[countryFollowersData.length - 1];
-  }, [countryFollowersData]);
+    if (!data?.length) return {};
+    return data[data.length - 1];
+  }, [data]);
 
 
   const totalFollowers = Object.values(latest).reduce((acc, val) => acc + val, 0);
@@ -82,7 +82,7 @@ export const ChartFollowersByCountry = ({
       interval={interval}
       loading={loading}
       error={error}
-      isEmpty={countryFollowersData?.length === 0}
+      isEmpty={data?.length === 0}
       selectable={selectable}
       selected={selected}
       onSelectChange={onSelectChange}
@@ -127,6 +127,6 @@ export const ChartFollowersByCountry = ({
 }
 
 ChartFollowersByCountry.propTypes = {
-  countryFollowersData: PropTypes.array.isRequired,
+  data: PropTypes.array.isRequired,
   title: PropTypes.string.isRequired,
 };

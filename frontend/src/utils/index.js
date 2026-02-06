@@ -8,6 +8,7 @@ export * from './generalConfig/navBarOptions.config';
 export * from './generalConfig/role.config';
 export * from './generalConfig/session.config';
 export * from './generalConfig/state.config';
+export * from './generateUUID';
 export * from './getRoleAndStateData';
 export * from './load-abort-axios.utility';
 export * from './parseDuration';

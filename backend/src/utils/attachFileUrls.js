@@ -23,7 +23,7 @@ export const attachFileUrls = (req, res, next) => {
       if (obj && typeof obj === 'object') {
         return Object.fromEntries(
           Object.entries(obj).map(([key, value]) => {
-            if (key === 'image_url') {
+            if (key === 'image_url' || key === 'src') {
               return [key, buildUrl(value)];
             }
             return [key, walk(value)];

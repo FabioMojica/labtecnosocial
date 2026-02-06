@@ -15,24 +15,24 @@ export const TotalActionsCard = ({
     selected = true,
     selectable = true,
     onSelectChange,
-    totalActionsData = {}
+    data = {}
 }) => {
     const [showHighlight, setShowHighlight] = useState(true);
     const [showTooltip, setShowTooltip] = useState(true);
 
-    const finalData = totalActionsData?.chartData;
-    const [data, setData] = useState([]);
+    const finalData = data?.chartData;
+    const [dataCard, setDataCard] = useState([]);
     const [animDates, setAnimDates] = useState([]);
     const [animatedTotal, setAnimatedTotal] = useState(0);
 
     useEffect(() => {
-        if (!totalActionsData?.total) {
+        if (!data?.total) {
             setAnimatedTotal(0);
             return;
         }
 
         let start = 0;
-        const end = totalActionsData.total;
+        const end = data.total;
         const duration = 1000;
         const steps = 60;
         const increment = end / steps;
@@ -48,19 +48,19 @@ export const TotalActionsCard = ({
         }, intervalTime);
 
         return () => clearInterval(intervalId);
-    }, [totalActionsData.total, interval]);
+    }, [data.total, interval]);
 
     useEffect(() => {
         if (!Array.isArray(finalData) || finalData.length === 0) {
-            setData([]);
+            setDataCard([]);
             setAnimDates([]);
             return;
         }
 
         // Si hay un solo punto
         if (finalData.length === 1) {
-            setData(finalData);
-            setAnimDates(totalActionsData.dates);
+            setDataCard(finalData);
+            setAnimDates(data.dates);
             return;
         }
 
@@ -68,28 +68,28 @@ export const TotalActionsCard = ({
         const chunkSize = Math.ceil(totalPoints / 30);
         let currentIndex = 0;
 
-        setData([]);
+        setDataCard([]);
         setAnimDates([]);
 
         const intervalId = setInterval(() => {
             currentIndex += chunkSize;
 
-            // Slicing data y fechas juntos
+            // Slicing dataCard y fechas juntos
             const slicedData = finalData.slice(0, currentIndex);
-            const slicedDates = totalActionsData.dates.slice(0, currentIndex);
+            const slicedDates = data.dates.slice(0, currentIndex);
 
-            setData(slicedData);
+            setDataCard(slicedData);
             setAnimDates(slicedDates);
 
             if (currentIndex >= totalPoints) {
-                setData(finalData);
-                setAnimDates(totalActionsData.dates);
+                setDataCard(finalData);
+                setAnimDates(data.dates);
                 clearInterval(intervalId);
             }
         }, 20);
 
         return () => clearInterval(intervalId);
-    }, [interval, finalData, totalActionsData.dates]);
+    }, [interval, finalData, data.dates]);
 
     return (
         <DashboardCard
@@ -104,7 +104,7 @@ export const TotalActionsCard = ({
             interval={interval}
             loading={loading}
             error={error}
-            isEmpty={totalActionsData?.chartData?.length === 0}
+            isEmpty={data?.chartData?.length === 0}
             selectable={selectable}
             selected={selected}
             onSelectChange={onSelectChange}
@@ -121,12 +121,12 @@ export const TotalActionsCard = ({
                         bottom: -10,
                         right: -10
                     }}>
-                        {totalActionsData.delta > 0 && (
+                        {data.delta > 0 && (
                             <ArrowUpwardIcon
                                 sx={{ color: 'green', fontSize: 15, transform: 'scale(1.4)' }}
                             />
                         )}
-                        {totalActionsData.delta < 0 && (
+                        {data.delta < 0 && (
                             <ArrowDownwardIcon
                                 sx={{ color: 'red', fontSize: 15, transform: 'scale(1.4)' }}
                             />

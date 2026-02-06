@@ -8,43 +8,36 @@ export const chartPropsMap = {
   // ======================
 
   followersCard: {
-    dataProp: 'followersData',
     defaultTitle: 'Seguidores de la página',
     usesInterval: true,
   },
 
   pageViewsCard: {
-    dataProp: 'viewsPageData',
     defaultTitle: 'Visitas a la página',
     usesInterval: true,
   },
 
   pageImpressionsCard: {
-    dataProp: 'impressionsPageData',
     defaultTitle: 'Impresiones de la página',
     usesInterval: true,
   },
 
   organicOrPaidViewsCard: {
-    dataProp: 'organicOrPaidViewsData',
     defaultTitle: 'Impresiones orgánicas vs pagadas',
     usesInterval: true,
   },
 
   totalActionsCard: {
-    dataProp: 'totalActionsData',
     defaultTitle: 'Acciones totales',
     usesInterval: true,
   },
 
   postEngagementsCard: {
-    dataProp: 'postEngagementsData',
     defaultTitle: 'Interacciones con publicaciones',
     usesInterval: true,
   },
 
   totalReactionsCard: {
-    dataProp: 'totalReactionsOfPage',
     defaultTitle: 'Reacciones totales',
     usesInterval: true,
   },
@@ -54,21 +47,20 @@ export const chartPropsMap = {
   // ======================
 
   chartFollowersByCountry: {
-    dataProp: 'countryFollowersData',
     defaultTitle: 'Seguidores por país',
+    usesInterval: true,
   },
 
   topPostOfThePeriod: {
-    dataProp: 'topPostsData',
     defaultTitle: 'Top 5 posts populares',
+    usesInterval: true,
   },
 };
 
+export const ChartRenderer = ({ element }) => {
+  const { id, id_name, data, content, title, integration_data, interval, period, type, ...rest } = element
 
-const ChartRenderer = ({ element }) => {
-  const { id, data, content, platform, interval, selectedPeriod, type, ...rest } = element
-
-  const parsed = parseChartId(id);
+  const parsed = parseChartId(id_name);
 
   if (!parsed) {
     return (
@@ -80,18 +72,18 @@ const ChartRenderer = ({ element }) => {
 
   const { chartKey } = parsed;
 
-  const ChartComponent = getChartComponent(platform, chartKey);
+  const ChartComponent = getChartComponent(integration_data?.integration?.platform, chartKey);
 
-  if (!ChartComponent) {
+  if (!ChartComponent) { 
     return (
       <Typography variant="body2" color="text.secondary">
-        Componente no encontrado: {platform}/{chartKey}
+        Componente no encontrado: {integration_data?.integration?.platform}/{chartKey}
       </Typography>
     );
   }
 
   const chartConfig = chartPropsMap[chartKey];
-
+ 
   if (!chartConfig) {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -101,32 +93,26 @@ const ChartRenderer = ({ element }) => {
   }
 
   const {
-    dataProp,
     defaultTitle,
-    usesInterval,
-    usesPeriodAsProp,
   } = chartConfig;
 
   const baseProps = {
     ...rest,
-    selectable: false,
-    error: false,
+    integration_data: integration_data,
     loading: false,
-    title: content || defaultTitle,
+    error: false,
+    title: title || content || defaultTitle,
+    interval: interval || 'Unknow period',
+    period: period || 'Periodo desconodido',
+    selected: false,
+    selectable: false,
+    onSelectChange: () => {},
+    data: data
   };
 
   const finalProps = {
     ...baseProps,
-    [dataProp]: data,
-    ...(usesInterval && { interval: interval || 'Periodo' }),
-    ...(usesPeriodAsProp && { selectedPeriod: period || 'all' }),
-    ...(usesInterval && {
-      selected: false,
-      onSelectChange: () => {},
-    }),
   };
 
   return <ChartComponent {...finalProps} />;
 };
-
-export default ChartRenderer;

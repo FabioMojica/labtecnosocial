@@ -30,7 +30,7 @@ export const getChartComponent = (platform, chartKey) => {
 
 export const parseChartId = (chartId) => {
   if (!chartId) return null;
-
+ 
   const cleanId = chartId.replace('chart-', '');
   const parts = cleanId.split('-');
 

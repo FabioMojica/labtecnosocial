@@ -39,7 +39,7 @@ export const createOperationalProject = async (req, res) => {
     const integrationRepository = queryRunner.manager.getRepository(ProjectIntegration);
 
     // Manejo de imagen
-    const imagePath = req.file?.optimizedPath || null;
+    const imagePath = req.files?.[0]?.optimizedPath || null;
 
     // Crear proyecto 
 
@@ -435,7 +435,7 @@ export const updateOperationalProject = async (req, res) => {
       }
     }
 
-    const imagePath = req.file?.optimizedPath || null;
+    const imagePath = req.files?.[0]?.optimizedPath || null;
 
     if (imagePath) {
       if (project.image_url) {

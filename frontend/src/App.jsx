@@ -1,5 +1,6 @@
 import { Box, CssBaseline, Toolbar, useTheme } from '@mui/material';
 import { SnackbarProvider } from "notistack";
+import "react-quill-new/dist/quill.snow.css";
 
 import { AuthProvider, CustomThemeProvider, HeaderHeightProvider, useAuth } from './contexts';
 
@@ -24,8 +25,6 @@ import OperationalPlanningDashboardPage from './pages/OperationalPlan/Operationa
 import { ConfirmProvider } from 'material-ui-confirm';
 import { APIsDashboardPage } from './pages/APIsDashboardPage/ApisDashboardPage';
 import { ReportProvider } from './contexts/ReportContext';
-import { ReportBubble } from './generalComponents/ReportBubble';
-import { ReportModal } from './generalComponents/ReportModal';
 import { useEffect, useRef, useState } from 'react';
 import { ReportEditor } from './pages/ReportPage/ReportEditor';
 import { useSnackbarStyles } from './pages/StrategicPlan/hooks/useSnackBarStyles';
@@ -129,9 +128,6 @@ function App() {
                               width: '100%',
                               px: {xs: 0, lg: 1},
                             }}>
-                              {/* BURBUJA DEL REPORTE */}
-                              <ReportBubble onClick={() => setModalOpen(true)} />
-                              <ReportModal open={modalOpen} onClose={() => setModalOpen(false)} />
                               <AppContent /> 
                             </Box>
                           </Box>

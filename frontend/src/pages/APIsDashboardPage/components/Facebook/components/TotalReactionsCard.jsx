@@ -22,7 +22,7 @@ export const TotalReactionsCard = ({
     selected = true,
     selectable = true,
     onSelectChange,
-    totalReactionsOfPage = []
+    data = []
 }) => {
     const reactions = [
         { icon: "👍", label: "Me gusta / me importa" },
@@ -35,7 +35,7 @@ export const TotalReactionsCard = ({
 
     const icons = reactions.map(r => r.icon);
 
-    const data = totalReactionsOfPage || [];
+    const dataCard = data || [];
 
     return (
         <DashboardCard
@@ -50,7 +50,7 @@ export const TotalReactionsCard = ({
             interval={interval}
             loading={loading}
             error={error}
-            isEmpty={totalReactionsOfPage.length === 0}
+            isEmpty={data.length === 0}
             selectable={selectable}
             selected={selected}
             onSelectChange={onSelectChange}
@@ -76,7 +76,7 @@ export const TotalReactionsCard = ({
                     tickSize: 2000
                 }]}
                 series={[{
-                    data,
+                    data: dataCard,
                     color: 'url(#bar-gradient)',
                     valueFormatter: (value, context) => {
                         const reaction = reactions[context.dataIndex];

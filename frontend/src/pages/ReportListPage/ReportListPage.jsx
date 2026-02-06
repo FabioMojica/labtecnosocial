@@ -149,7 +149,7 @@ export function ReportsListPage() {
 
     return (
 
-        <Box sx={{ display: 'flex', px: 1, py: { xs: 1, lg: 0 } }}>
+        <Box sx={{ display: 'flex', px: 1, py: { xs: 1, lg: 0 }, maxWidth: {xs: '100vw'} }}>
             <CssBaseline />
 
             <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, width: '100%', mb: 1 }}>
@@ -280,7 +280,7 @@ export function ReportsListPage() {
                                     onClick={() => { 
                                         navigate(`/reportes/editor/${report?.title}`,{
                                             state: {
-                                                id: report?.id
+                                                id: Number(report?.id)
                                             }
                                         });
                                     }}

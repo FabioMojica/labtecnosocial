@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useRef, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import React, { Fragment, useEffect, useRef, useState } from "react";
+import { data, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -14,43 +14,56 @@ import {
   useTheme,
   Drawer,
   Toolbar,
+  Avatar,
 } from "@mui/material";
 import { Delete as DeleteIcon } from "@mui/icons-material";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import DescriptionIcon from '@mui/icons-material/Description';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import CloseIcon from '@mui/icons-material/Close';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
+import UndoIcon from '@mui/icons-material/Undo';
+import RedoIcon from '@mui/icons-material/Redo';
+import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
+
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import html2pdf from "html2pdf.js";
-import { useFetchAndLoad } from "../../hooks";
-import { createReportApi, deleteReportApi, updateReportApi } from "../../api/reports";
+import { createReportApi, getReportByIdApi, deleteReportApi, updateReportApi } from "../../api";
 import { ButtonWithLoader, FullScreenProgress } from "../../generalComponents";
-import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
-import DescriptionIcon from '@mui/icons-material/Description';
-import TableChartIcon from '@mui/icons-material/TableChart';
-import UndoIcon from '@mui/icons-material/Undo';
-import RedoIcon from '@mui/icons-material/Redo';
-import AddIcon from '@mui/icons-material/Add';
 import { useConfirm } from "material-ui-confirm";
-import DeleteReportDialog from "./components/DeleteReportDialog";
-import { useNotification } from "../../contexts";
-import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
-import ChartRenderer from "./components/ChartRenderer";
-import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import { integrationsConfig } from "../../utils";
-import { useElementSize } from "../../hooks/useElementSize";
-import CloseIcon from '@mui/icons-material/Close';
+import { useNotification, useReport } from "../../contexts";
+import { generateUUID, integrationsConfig } from "../../utils";
+import isEqual from "lodash/isEqual";
+
+
+import { v4 as uuidv4, validate as validateUUID } from 'uuid';
+
+import {
+  InsertBlockDivider,
+  ChartSelectorDialog,
+  ResizableImage,
+  ChartRenderer,
+  DeleteReportDialog
+} from "./components";
+import { formatElementsForDb, formatElementsForFrontend } from "./utils/formatElements";
 
 const ZOOM_OPTIONS = [0.5, 0.75, 1];
 
 export const ReportEditor = () => {
-  const { name } = useParams();
   const location = useLocation();
   const [exportAnchorEl, setExportAnchorEl] = useState(null);
   const openExportMenu = Boolean(exportAnchorEl);
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
   const confirm = useConfirm();
   const [openDeleteReportDialog, setOpenDeleteReportDialog] = useState(false);
   const [deletedReport, setDeletedReport] = useState(false);
@@ -63,10 +76,89 @@ export const ReportEditor = () => {
   const openZoomMenu = Boolean(zoomAnchorEl);
   const [openOutline, setOpenOutline] = useState(false);
   const headerRef = useRef(null);
-  const { height: headerHeight } = useElementSize(headerRef);
-
+  const [showCharts, setShowCharts] = useState(true);
+  const [openChartSelector, setOpenChartSelector] = useState(false);
   const handleOpenZoomMenu = (e) => setZoomAnchorEl(e.currentTarget);
   const handleCloseZoomMenu = () => setZoomAnchorEl(null);
+  const imageInputRef = useRef(null);
+  const [pendingInsertIndex, setPendingInsertIndex] = useState(null);
+  const [chartInsertIndex, setChartInsertIndex] = useState(null);
+  const navigate = useNavigate();
+  const [fetchReport, setFetchReport] = useState(false);
+  const [saveReport, setSaveReport] = useState(false);
+  const [currentReportId, setCurrentReportId] = useState(
+    Number(location.state?.id) ?? null
+  );
+  const isEditing = Boolean(currentReportId);
+  const isInitializing = useRef(true);
+  const { selectedCharts, addChart, removeChart, clearCharts } = useReport();
+
+  const originalReportRef = useRef({
+    title: "Reporte sin título",
+    elements: [],
+  });
+
+  const [editedReport, setEditedReport] = useState({
+    title: "Reporte sin título",
+    elements: [],
+  });
+
+
+  const [deletedItems, setDeletedItems] = useState([]);
+  const [hasChanges, setHasChanges] = useState(false);
+
+
+  useEffect(() => {
+    if (!currentReportId) return;
+
+    const fetchReport = async () => {
+      try {
+        setFetchReport(true);
+        const res = await getReportByIdApi(currentReportId);
+        console.log("editoooooooooooo", res)
+        const { title, elements } = formatElementsForFrontend(res);
+
+        const editorReport = {
+          title: title || "Reporte sin título",
+          elements: elements || [],
+        };
+
+        const snapshot = structuredClone(editorReport);
+
+        originalReportRef.current = snapshot;
+        setEditedReport(snapshot);
+
+        setHistory([structuredClone(snapshot)]);
+        setHistoryIndex(0);
+        setHasChanges(false);
+      } catch (error) {
+        notify(error.message, "error");
+      } finally {
+        setFetchReport(false);
+        isInitializing.current = false;
+      }
+    };
+
+    fetchReport();
+  }, [currentReportId]);
+
+  // useEffect(() => {
+  //   const original = originalReportRef.current;
+
+  //   const hasDiff = !isEqual(
+  //     {
+  //       title: original.title,
+  //       elements: original.elements,
+  //     },
+  //     {
+  //       title: editedReport.title,
+  //       elements: editedReport.elements,
+  //     }
+  //   );
+
+  //   setHasChanges(hasDiff);
+  // }, [editedReport]);
+
 
   const handleSelectZoom = (value) => {
     setZoom(value);
@@ -74,22 +166,9 @@ export const ReportEditor = () => {
   };
 
 
-  const [currentReportId, setCurrentReportId] = useState(
-    location.state?.id ?? null
-  );
-
-  const isEditing = Boolean(currentReportId);
-
-  useEffect(() => {
-    const initial = {
-      title: initialTitle,
-      elements: initialElements,
-    };
-    setHistory([JSON.parse(JSON.stringify(initial))]);
-    setHistoryIndex(0);
-  }, []);
-
   const pushToHistory = (newState) => {
+    if (saveReport || isInitializing.current) return;
+
     setHistory((prev) => {
       const currentIndex = prev.length - 1;
       const trimmed = prev.slice(0, currentIndex + 1);
@@ -100,15 +179,14 @@ export const ReportEditor = () => {
     setHistoryIndex((prev) => prev + 1);
   };
 
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
-
   const handleUndo = () => {
     if (!canUndo) return;
     const prevIndex = historyIndex - 1;
     const state = history[prevIndex];
-    setReportTitle(state.title);
-    setElements(state.elements);
+    setEditedReport({
+      title: state.title,
+      elements: state.elements,
+    });
     setHistoryIndex(prevIndex);
   };
 
@@ -116,8 +194,10 @@ export const ReportEditor = () => {
     if (!canRedo) return;
     const nextIndex = historyIndex + 1;
     const state = history[nextIndex];
-    setReportTitle(state.title);
-    setElements(state.elements);
+    setEditedReport({
+      title: state.title,
+      elements: state.elements,
+    });
     setHistoryIndex(nextIndex);
   };
 
@@ -129,66 +209,23 @@ export const ReportEditor = () => {
     setExportAnchorEl(null);
   };
 
-  const navigate = useNavigate();
-  const { loading, callEndpoint } = useFetchAndLoad();
-
-  const chartsFromModal = location.state?.charts || [];
-
-  const initialTitle = name || "Reporte sin título";
-  const initialElements = [
-    { id: "text-1", type: "text", content: "<p>Nuevo texto...</p>" },
-    ...chartsFromModal.map((chart) => ({
-      id: chart?.id,
-      selectedPeriod: chart?.selectedPeriod,
-      platform: chart?.platform,
-      interval: chart?.periodLabel,
-      type: "chart",
-      content: chart.title,
-      data: chart.data || null,
-    })),
-  ];
-
-  const [reportTitle, setReportTitle] = useState(initialTitle);
-  const [elements, setElements] = useState(initialElements);
-
-  const [originalState, setOriginalState] = useState({
-    title: initialTitle,
-    elements: initialElements,
-  });
-  const [deletedItems, setDeletedItems] = useState([]);
-  const [hasChanges, setHasChanges] = useState(false);
-
-  const reportForDelete = currentReportId
-    ? {
-      id: currentReportId,
-      title: reportTitle,
-    }
-    : null;
-
-  useEffect(() => {
-    if (!reportTitle) return;
-
-    const encodedTitle = encodeURIComponent(reportTitle);
-    const desiredPath = `/reportes/editor/${encodedTitle}`;
-
-    if (location.pathname !== desiredPath) {
-      navigate(desiredPath, { replace: true });
-    }
-  }, [reportTitle]);
-
-  useEffect(() => {
-    const original = JSON.stringify(originalState);
-    const current = JSON.stringify({ title: reportTitle, elements });
-    setHasChanges(original !== current);
-  }, [reportTitle, elements, originalState]);
-
   const insertElementAfter = (index, newElement) => {
-    const updated = [...elements];
-    updated.splice(index + 1, 0, newElement);
+    setEditedReport(prev => {
+      const updated = [...prev.elements];
+      updated.splice(index + 1, 0, newElement);
 
-    setElements(updated);
-    pushToHistory({ title: reportTitle, elements: updated });
+      pushToHistory({
+        title: prev.title,
+        elements: updated,
+      });
+
+      return {
+        ...prev,
+        elements: updated,
+      };
+    });
   };
+
 
   const onDragEnd = (result) => {
     setIsDragging(false);
@@ -197,107 +234,198 @@ export const ReportEditor = () => {
 
     const sourceIndex = result.source.index;
     const destinationIndex = result.destination.index;
-    const items = Array.from(elements);
+    const items = Array.from(editedReport.elements);
     const [moved] = items.splice(sourceIndex, 1);
     items.splice(destinationIndex, 0, moved);
 
-    setElements(items);
-    pushToHistory({ title: reportTitle, elements: items });
+    setEditedReport(prev => ({
+      ...prev,
+      elements: items,
+    }));
+
+    pushToHistory({ title: editedReport?.title, elements: items });
   };
 
+  const handleImageSelected = (event) => {
+    const file = event.target.files?.[0];
+    if (!file || pendingInsertIndex === null) return;
 
-  const InsertBlockDivider = ({ onAddText, onAddChart }) => {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 1,
-          justifyContent: 'center',
-          py: 1,
-          mb: 1,
-          width: '100%',
-        }}
-      >
-        <Button fullWidth size="small" startIcon={<AddIcon />} onClick={onAddText}>
-          Texto
-        </Button>
-      </Box>
-    );
+    if (!file.type.startsWith("image/")) {
+      notify("Solo se permiten imágenes", "warning");
+      return;
+    }
+
+    const MAX_SIZE_MB = 2;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_SIZE_MB}MB`, "warning");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+
+    const newImage = {
+      id: generateUUID(),
+      type: 'image',
+      src: previewUrl,
+      alt: file.name,
+      width: 400,
+      height: 400,
+      file,
+      __local: true
+    };
+
+    insertElementAfter(pendingInsertIndex, newImage);
+
+    setPendingInsertIndex(null);
+    event.target.value = '';
   };
+
 
   const removeElement = (id) => {
-    setElements((prev) => {
-      const newElements = prev.filter(el => el.id !== id);
+    setEditedReport(prev => {
+      const newElements = prev.elements.filter(el => el.id !== id);
 
       pushToHistory({
-        title: reportTitle,
+        title: prev.title,
         elements: newElements,
       });
 
-      return newElements;
+      return {
+        ...prev,
+        elements: newElements,
+      };
     });
   };
 
-  const normalizeElementsForApi = (elements) => {
-    return elements.map((el, index) => ({
-      type: el.type,
-      content: el.type === 'text' ? el.content : el.content ?? null,
-      position: index,
-      chartData: el.type === 'chart'
-        ? { data: el.data }
-        : null,
-    }));
-  };
 
   const handleSave = async () => {
+    if (editedReport?.elements.length === 0) {
+      notify("No puedes guardar un reporte vacío.", "warning");
+      return;
+    }
     try {
-      const normalizedTitle =
-        reportTitle?.trim() === "" ? "Reporte sin título" : reportTitle.trim();
+      setSaveReport(true);
 
-      const payload = {
-        title: normalizedTitle,
-        elements: normalizeElementsForApi(elements),
-      };
+      const normalizedTitle =
+        editedReport?.title?.trim() === "" ? "Reporte sin título" : editedReport?.title.trim();
+
+      const payload = formatElementsForDb(
+        editedReport.elements,
+        normalizedTitle
+      );
 
       if (isEditing) {
-        const editedReport = await callEndpoint(
-          updateReportApi(currentReportId, payload)
-        );
+        const updatedReport = await updateReportApi(currentReportId, payload);
 
-        setCurrentReportId(editedReport.id);
-        setReportTitle(normalizedTitle);
+        const { title, elements } = formatElementsForFrontend(updatedReport);
+
+        const cleanSnapshot = structuredClone({
+          title: title?.trim() === "" ? "Reporte sin título" : title,
+          elements: elements,
+        });
+
+        originalReportRef.current = cleanSnapshot;
+        setEditedReport(cleanSnapshot);
+        setHistory([structuredClone(cleanSnapshot)]);
+        setHistoryIndex(0);
+        setHasChanges(false);
+        setDeletedItems([]);
+
+        setCurrentReportId(updatedReport.id);
 
         navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
-          state: { id: editedReport.id },
+          state: { id: updatedReport.id },
           replace: true,
         });
 
         notify("Reporte actualizado exitosamente.", "success");
       } else {
-        const createdReport = await callEndpoint(createReportApi(payload));
+
+        const createdReport = await createReportApi(payload);
+        const { title, elements } = formatElementsForFrontend(createdReport);
 
         setCurrentReportId(createdReport.id);
-        setReportTitle(normalizedTitle);
+
+        const cleanSnapshot = structuredClone({
+          title: title?.trim() === "" ? "Reporte sin título" : title,
+          elements: elements,
+        });
+
+        originalReportRef.current = cleanSnapshot;
+        setEditedReport(cleanSnapshot);
+        setHistory([structuredClone(cleanSnapshot)]);
+        setHistoryIndex(0);
+        setHasChanges(false);
+        setDeletedItems([]);
 
         notify("Reporte creado exitosamente.", "success");
-
         navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
           state: { id: createdReport.id },
           replace: true,
         });
       }
 
-      setOriginalState({
-        title: normalizedTitle,
-        elements: JSON.parse(JSON.stringify(elements)),
-      });
-
       setHasChanges(false);
     } catch (error) {
       notify(error.message, "error");
+    } finally {
+      setSaveReport(false);
     }
   };
 
+  const getElementLabel = (type) => {
+    switch (type) {
+      case 'text':
+        return 'Texto';
+      case 'chart':
+        return 'Gráfico';
+      case 'image':
+        return 'Imagen';
+      default:
+        return 'Elemento';
+    }
+  };
+
+  const normalizeCharts = (charts) => {
+    return charts.map(chart => {
+      if (!chart.id || !validateUUID(chart.id)) {
+        return {
+          ...chart,
+          id: uuidv4(),
+        };
+      }
+      return chart;
+    });
+  };
+
+  const handleAddCharts = () => {
+    // Normalizamos los gráficos seleccionados
+    const chartsToAdd = normalizeCharts(selectedCharts);
+
+    if (chartInsertIndex === null) {
+      // Si no hay índice, los agregamos al final
+      chartsToAdd.forEach(chart => {
+        insertElementAfter(editedReport.elements.length - 1, {
+          ...chart,
+          type: 'chart',
+          content: chart.title || 'Gráfico sin título'
+        });
+      });
+    } else {
+      // Insertamos los gráficos en el índice seleccionado
+      chartsToAdd.forEach((chart, idx) => {
+        insertElementAfter(chartInsertIndex + idx, {
+          ...chart,
+          type: 'chart',
+          content: chart.title || 'Gráfico sin título'
+        });
+      });
+    }
+
+    // Limpiamos selección
+    clearCharts();
+    setChartInsertIndex(null);
+  };
 
 
   const handleCancel = () => {
@@ -309,17 +437,10 @@ export const ReportEditor = () => {
     })
       .then((result) => {
         if (result.confirmed === true) {
-          const resetState = {
-            title: originalState.title,
-            elements: JSON.parse(JSON.stringify(originalState.elements)),
-          };
+          const resetState = structuredClone(originalReportRef.current);
+          setEditedReport(resetState);
 
-          // Estado visible
-          setReportTitle(resetState.title);
-          setElements(resetState.elements);
-
-          // 🔥 RESET TOTAL DEL HISTORIAL
-          setHistory([resetState]);
+          setHistory([structuredClone(resetState)]);
           setHistoryIndex(0);
 
           setDeletedItems([]);
@@ -346,16 +467,16 @@ export const ReportEditor = () => {
   const exportToPDF = () => {
     handleCloseExportMenu();
     const content = document.getElementById("report-content");
-    html2pdf().from(content).save(`${reportTitle}.pdf`);
+    html2pdf().from(content).save(`${editedReport?.title}.pdf`);
   };
 
   const exportToXLS = () => {
     handleCloseExportMenu();
     console.log('Exportar XLS');
-    // acá después enchufás SheetJS / backend
   };
 
   const scrollToElement = (id) => {
+    console.log(id)
     const el = document.getElementById(id);
     if (!el) return;
 
@@ -364,23 +485,31 @@ export const ReportEditor = () => {
       block: 'center',
     });
 
-    // efecto visual de highlight
     el.classList.remove('flash-highlight');
     void el.offsetWidth;
     el.classList.add('flash-highlight');
   };
 
+  // Contadores por tipo
+  const typeCounters = {
+    text: 0,
+    chart: 0,
+    image: 0
+  };
 
+  const isReportEmpty = editedReport?.elements?.length === 0;
 
-  if (loading) return (
+  if (fetchReport) return (
+    <FullScreenProgress text={'Obteniendo el reporte...'} />
+  )
+
+  if (saveReport) return (
     <FullScreenProgress text={'Guardando el reporte...'} />
   )
 
   if (deletedReport) return (
     <FullScreenProgress text={'Eliminando el reporte...'} />
   )
-
-
 
   return (
     <Box
@@ -435,6 +564,13 @@ export const ReportEditor = () => {
                 vertical: 'top',
                 horizontal: 'left',
               }}
+              slotProps={{
+                list: {
+                  sx: {
+                    pb: 0,
+                  }
+                }
+              }}
             >
               <MenuItem onClick={exportToPDF}>
                 <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
@@ -445,33 +581,98 @@ export const ReportEditor = () => {
                 <TableChartIcon fontSize="small" sx={{ mr: 1 }} />
                 Exportar Excel (XLS)
               </MenuItem>
-              {isEditing &&
-                <>
-                  <Divider sx={{ mt: 20 }} />
-
-                  <MenuItem onClick={() => {
+              {isEditing && [
+                <Divider key="divider" sx={{ mt: 2 }} />,
+                <MenuItem
+                  key="delete"
+                  onClick={() => {
                     handleCloseExportMenu();
                     setOpenDeleteReportDialog(true);
-                  }}>
-                    <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" />
-                    Eliminar el reporte
-                  </MenuItem>
-                </>
-              }
+                  }}
+                >
+                  <DeleteIcon fontSize="small" sx={{ mr: 1 }} color="error" />
+                  Eliminar el reporte
+                </MenuItem>,
+                <Divider key="divider" sx={{ mt: 2 }} />,
+                // <MenuItem
+                //   sx={{
+                //     p: 0,
+                //     pointerEvents: "none",
+                //   }}>
+                //   {
+                //     <Box sx={{
+                //       display: 'flex',
+                //       flexDirection: 'column',
+                //       width: '100%',
+                //       backgroundColor: 'background.paper',
+                //       p: 1
+                //     }}>
+                //       <Typography fontWeight="bold" variant='caption' sx={{
+                //         display: 'flex',
+                //         flexDirection: 'column'
+                //       }}>
+                //         Creado:{" "}
+                //         <Typography
+                //           component="span"
+                //           variant="body1"
+                //           color="textSecondary"
+                //           sx={{
+                //             fontStyle: 'italic',
+                //             fontSize: '0.9rem',
+                //           }}
+                //         >
+                //           {formatDateParts(report?.created_at).date} {formatDateParts(report?.created_at).time}
+                //         </Typography>
+                //       </Typography>
+                //       <Typography fontWeight="bold" variant='caption' sx={{
+                //         display: 'flex',
+                //         flexDirection: 'column'
+                //       }}>
+                //         Actualizado:{" "}
+                //         <Typography
+                //           component="span"
+                //           variant="body1"
+                //           color="textSecondary"
+                //           sx={{
+                //             fontStyle: 'italic',
+                //             fontSize: '0.9rem',
+                //           }}
+                //         >
+                //           {formatDateParts(report?.updated_at).date} {formatDateParts(report?.updated_at).time}
+                //         </Typography>
+                //       </Typography>
+
+                //       <Typography fontWeight="bold" variant='caption'>
+                //         Versión del reporte:{" "}
+                //         <Typography
+                //           component="span"
+                //           variant="body1"
+                //           color="textSecondary"
+                //           sx={{
+                //             fontStyle: 'italic',
+                //             fontSize: '0.9rem',
+                //           }}
+                //         >
+                //           {report?.report_version}
+                //         </Typography>
+                //       </Typography>
+                //     </Box>
+                //   }
+                // </MenuItem>
+              ]}
             </Menu>
 
             <TextField
               fullWidth
+              type="text"
               variant="outlined"
-              value={reportTitle}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value.trim() === "") {
-                  setReportTitle("Reporte sin título");
-                } else {
-                  setReportTitle(value);
-                }
-              }}
+              value={editedReport?.title}
+              onChange={(e) =>
+                setEditedReport(prev => ({
+                  ...prev,
+                  title: e.target.value,
+                }))
+              }
               placeholder="Escribe un título para tu reporte"
               slotProps={{
                 htmlInput: {
@@ -571,6 +772,25 @@ export const ReportEditor = () => {
               </span>
             </Tooltip>
 
+            <Tooltip
+              title={
+                showCharts
+                  ? "Modo orden"
+                  : "Modo edición"
+              }
+            >
+              <span>
+                <IconButton
+                  disabled={isReportEmpty}
+                  color={showCharts ? "primary" : "default"}
+                  onClick={() => setShowCharts(prev => !prev)}
+                >
+                  {showCharts ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                </IconButton>
+              </span>
+            </Tooltip>
+
+
             <Menu
               anchorEl={zoomAnchorEl}
               open={openZoomMenu}
@@ -600,14 +820,14 @@ export const ReportEditor = () => {
               color="error"
               sx={{ width: '165px', height: '100%' }}
               onClick={() => handleCancel()}
-              disabled={loading || !hasChanges}
+              disabled={saveReport || !hasChanges}
             >
               Descartar cambios
             </Button>
             <ButtonWithLoader
-              loading={loading}
+              loading={saveReport}
               onClick={() => handleSave()}
-              disabled={!hasChanges}
+              disabled={!hasChanges || isReportEmpty}
               variant="contained"
               backgroundButton={theme => theme.palette.success.main}
               sx={{ color: 'white', px: 2, width: '170px' }}
@@ -626,7 +846,7 @@ export const ReportEditor = () => {
         minHeight: 0,
         borderTop: "1px solid #ccc",
         overflowY: 'auto',
-        "&::-webkit-scrollbar": { width: {xs: '2px', lg: '8px'} },
+        "&::-webkit-scrollbar": { width: { xs: '2px', lg: '8px' } },
         "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
         "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
         "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
@@ -685,127 +905,133 @@ export const ReportEditor = () => {
               <Droppable droppableId="outline">
                 {(provided) => (
                   <Box ref={provided.innerRef} {...provided.droppableProps}>
-                    {elements.map((el, index) => (
-                      <Draggable
-                        draggableId={`outline-${el.id}`}
-                        index={index}
-                        key={el.id}>
-                        {(provided, snapshot) => (
-                          <Box
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            sx={{
-                              display: 'flex',
-                              flexDirection: 'row',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              p: 1,
-                              mb: 1,
-                              borderRadius: 1,
-                              bgcolor: 'background.paper',
-                              boxShadow: 4,
-                              gap: 1,
-                              transition: 'background-color 0.2s, box-shadow 0.2s',
-                              cursor: snapshot.isDragging ? 'grabbing' : 'grab',
-                              '&:hover': { bgcolor: snapshot.isDragging ? 'action.hover' : 'action.hover' },
-                            }}
-                          >
-                            <Box display={'flex'} height={'100%'} alignItems={'center'} gap={1}>
-                              <DragIndicatorIcon fontSize="small" />
+                    {editedReport?.elements?.map((el, index) => {
+                      const numberOfPreviousSameType = editedReport.elements
+                        .slice(0, index)
+                        .filter(e => e.type === el.type).length + 1;
 
-                              <Box display={'flex'} flexDirection={'column'} alignContent={'start'}>
-                                <Typography variant="caption" fontWeight={'bold'} lineHeight={1} sx={{ flexGrow: 1 }}>
-                                  {el.type === 'text' ? 'Texto' : 'Gráfico'} #{index + 1}
-                                </Typography>
+                      return (
+                        <Draggable
+                          draggableId={`outline-${el.id}`}
+                          index={index}
+                          key={el.id}>
+                          {(provided, snapshot) => (
+                            <Box
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                p: 1,
+                                mb: 1,
+                                borderRadius: 1,
+                                bgcolor: 'background.paper',
+                                boxShadow: 4,
+                                gap: 1,
+                                transition: 'background-color 0.2s, box-shadow 0.2s',
+                                cursor: snapshot.isDragging ? 'grabbing' : 'grab',
+                                '&:hover': { bgcolor: snapshot.isDragging ? 'action.hover' : 'action.hover' },
+                              }}
+                            >
+                              <Box display={'flex'} height={'100%'} alignItems={'center'} gap={1}>
+                                <DragIndicatorIcon fontSize="small" />
 
-                                {el.type === 'text' && (
-                                  <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    sx={{
-                                      display: 'block',
-                                      whiteSpace: 'nowrap',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      maxWidth: '100%',
-                                    }}
-                                  >
-                                    {/* extraemos un snippet del texto sin tags HTML */}
-                                    {el.content.replace(/<[^>]+>/g, '').slice(0, 50)}
-                                    {el.content.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
+                                <Box display={'flex'} flexDirection={'column'} alignContent={'start'}>
+                                  <Typography variant="caption" fontWeight={'bold'} lineHeight={1} sx={{ flexGrow: 1 }}>
+                                    {getElementLabel(el.type)} #{numberOfPreviousSameType}
                                   </Typography>
-                                )}
 
-                                {el.type === 'chart' && (
-                                  <Box
-                                    sx={{
-                                      mt: 0.5,
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      gap: 0.5,
-                                      overflow: 'hidden',
-                                      maxWidth: '100%',
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="caption"
-                                      fontWeight={'bold'}
-                                      color={integrationsConfig[el?.platform].color}
-                                      lineHeight={1}
-                                      sx={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                      }}
-                                    >
-                                      {el.platform ?? 'N/A'}
-                                    </Typography>
-                                    <Typography
-                                      variant="caption"
-                                      color="textSecondary"
-                                      fontWeight={'semiBold'}
-                                      lineHeight={1}
-                                      sx={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        fontSize: 10
-                                      }}
-                                    >
-                                      {el.interval ?? 'N/A'}
-                                    </Typography>
+                                  {el.type === 'text' && (
                                     <Typography
                                       variant="caption"
                                       color="text.secondary"
                                       sx={{
+                                        display: 'block',
+                                        whiteSpace: 'nowrap',
                                         overflow: 'hidden',
                                         textOverflow: 'ellipsis',
-                                        whiteSpace: 'wrap',
+                                        maxWidth: 100,
                                       }}
                                     >
-                                      {el.content ?? 'Sin título'}
+                                      {/* extraemos un snippet del texto sin tags HTML */}
+                                      {el.content.replace(/<[^>]+>/g, '').slice(0, 50)}
+                                      {el.content.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
                                     </Typography>
-                                  </Box>
-                                )}
-                              </Box>
-                            </Box>
+                                  )}
 
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              disabled={isDragging}
-                              onClick={() => {
-                                scrollToElement(el.id);
-                                setOpenOutline(false);
-                              }}
-                            >
-                              Ir
-                            </Button>
-                          </Box>
-                        )}
-                      </Draggable>
-                    ))}
+                                  {el.type === 'chart' && (
+                                    <Box
+                                      sx={{
+                                        mt: 0.5,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 0.5,
+                                        overflow: 'hidden',
+                                        maxWidth: '100%',
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="caption"
+                                        fontWeight={'bold'}
+                                        color={integrationsConfig[el?.integration_data?.integration?.platform].color}
+                                        lineHeight={1}
+                                        sx={{
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                        }}
+                                      >
+                                        {`${el?.integration_data?.integration?.platform}` ?? 'N/A'}
+                                      </Typography>
+                                      <Typography
+                                        variant="caption"
+                                        color="textSecondary"
+                                        fontWeight={'semiBold'}
+                                        lineHeight={1}
+                                        sx={{
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                          fontSize: 10
+                                        }}
+                                      >
+                                        {el.interval ?? 'N/A'}
+                                      </Typography>
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'wrap',
+                                        }}
+                                      >
+                                        {el.content ?? 'Sin título'}
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                </Box>
+                              </Box>
+
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                disabled={isDragging}
+                                onClick={() => {
+                                  scrollToElement(el.id);
+                                  setOpenOutline(false);
+                                }}
+                              >
+                                Ir
+                              </Button>
+                            </Box>
+                          )}
+                        </Draggable>
+                      )
+                    })}
                     {provided.placeholder}
                   </Box>
                 )}
@@ -826,80 +1052,375 @@ export const ReportEditor = () => {
             minHeight: "80vh",
           }}
         >
-          {elements.map((el, index) => (
-            <Fragment key={el.id}>
-              <Box
-                id={el.id}
-                sx={{
-                  border: "1px solid #ddd",
-                  borderRadius: 2,
-                  bgcolor: "background.paper",
-                  px: 2,
-                  pb: 2,
-                  pt: 1,
-                  boxShadow: 3,
-                  mb: 1,
-                }}
-              >
-                <Box sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mb: 1
-                }}>
-                  <Typography variant="subtitle2" fontWeight={'bold'} lineHeight={1}>
-                    {el.type === 'text' ? 'Texto' : 'Gráfico'} #{index + 1}
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => removeElement(el.id)}
-                    sx={{p: 0, m: 0}}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+          <DragDropContext
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={onDragEnd}
+          >
+            <Droppable droppableId="report">
+              {(provided) => (
+                <Box ref={provided.innerRef} {...provided.droppableProps}>
+                  {(isReportEmpty) && (
+                    <Box mb={1}>
+                      <InsertBlockDivider
+                        onAddText={() =>
+                          insertElementAfter(-1, {
+                            id: generateUUID(),
+                            type: 'text',
+                            content: '<p>Nuevo texto...</p>',
+                          })
+                        }
+                        onAddImage={() => {
+                          setPendingInsertIndex(-1);
+                          imageInputRef.current.click();
+                        }}
+                        onAddChart={() => {
+                          setChartInsertIndex(-1);
+                          setOpenChartSelector(true);
+                        }}
+                      />
+                    </Box>
+                  )}
+                  {editedReport?.elements.map((el, index) => {
+                    const numberOfPreviousSameType = editedReport.elements
+                      .slice(0, index)
+                      .filter(e => e.type === el.type).length + 1;
+
+                    return (
+                      <Fragment key={el.id}>
+                        <Draggable
+                          draggableId={`report-dragable-${el.id}`}
+                          isDragDisabled={showCharts}
+                          index={index}
+                          key={el.id}>
+                          {(provided, snapshot) => (
+                            <Box
+                              id={el.id}
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                p: 1,
+                                mb: 1,
+                                borderRadius: 1,
+                                bgcolor: 'background.paper',
+                                boxShadow: 4,
+                                gap: 1,
+                                transition: 'background-color 0.2s, box-shadow 0.2s',
+                                cursor: showCharts
+                                  ? 'default'
+                                  : snapshot.isDragging
+                                    ? 'grabbing'
+                                    : 'grab',
+                                '&:hover': { bgcolor: snapshot.isDragging ? 'action.hover' : 'action.hover' },
+                              }}
+                            >
+                              <Box display={'flex'} width={'100%'} height={'100%'} alignItems={'center'} alignContent={'center'} justifyContent={'space-between'} gap={1}>
+                                {!showCharts &&
+                                  <Box width={'auto'} height={'100%'} display={'flex'} alignItems={'center'} gap={1} mr={1}>
+                                    <DragIndicatorIcon fontSize="medium" />
+                                    <Divider orientation="vertical" flexItem />
+                                  </Box>
+                                }
+                                <Box display={'flex'} flexDirection={'row'} alignContent={'start'} sx={{
+                                  width: '100%',
+                                  height: '100%',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center'
+                                }}>
+                                  <Box display={'flex'} flexDirection={'column'} justifyContent={'center'} gap={1}>
+                                    <Typography variant="caption" fontWeight={'bold'} lineHeight={1} sx={{ flexGrow: 1 }}>
+                                      {getElementLabel(el.type)} #{numberOfPreviousSameType}
+                                    </Typography>
+
+                                    {el.type === 'text' && !showCharts && (
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{
+                                          display: 'block',
+                                          whiteSpace: 'nowrap',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          maxWidth: '100%',
+                                        }}
+                                      >
+                                        {el.content.replace(/<[^>]+>/g, '').slice(0, 50)}
+                                        {el.content.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
+                                      </Typography>
+                                    )}
+
+                                    {el.type === 'chart' && (
+                                      <Box sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 0.5
+                                      }}>
+                                        <Typography
+                                          variant="caption"
+                                          color="textSecondary"
+                                          lineHeight={1}
+                                          sx={{
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                            fontSize: 11
+                                          }}
+                                        >
+                                          Proyecto: {el?.integration_data?.project?.name ?? 'N/A'}
+                                        </Typography>
+
+                                        <Box sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: 1
+                                        }}>
+                                          <Avatar
+                                            sx={{
+                                              bgcolor: integrationsConfig[el?.integration_data?.integration?.platform]?.color,
+                                              width: 20,
+                                              height: 20,
+                                              borderRadius: 1,
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              boxShadow: (theme) =>
+                                                theme.palette.mode === 'light'
+                                                  ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                                  : '0 0 0 1px rgba(255,255,255,0.3)',
+                                            }}
+                                          >
+                                            {React.createElement(
+                                              integrationsConfig[el?.integration_data?.integration?.platform]?.icon,
+                                              { fontSize: "small", htmlColor: "#fff" }
+                                            )}
+                                          </Avatar>
+                                          <Box sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                          }}>
+                                            <Typography
+                                              variant="caption"
+                                              fontWeight={'bold'}
+                                              color={integrationsConfig[el?.integration_data?.integration?.platform]?.color}
+                                              lineHeight={1}
+                                              sx={{
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                              }}
+                                            >
+                                              {el?.integration_data?.integration?.platform ?? 'N/A'}
+                                            </Typography>
+                                            <Typography
+                                              variant="caption"
+                                              color="textSecondary"
+                                              lineHeight={1}
+                                              sx={{
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                                fontSize: 11
+                                              }}
+                                            >
+                                              {el?.integration_data?.integration?.name ?? 'N/A'}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </Box>
+                                    )}
+                                  </Box>
+
+                                  {el.type === 'chart' && (
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: 0.5,
+                                        overflow: 'hidden',
+                                        maxWidth: '100%',
+                                      }}
+                                    >
+                                      {!showCharts &&
+                                        <Box sx={{
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          alignItems: 'end',
+                                        }}>
+                                          <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            sx={{
+                                              overflow: 'hidden',
+                                              textOverflow: 'ellipsis',
+                                              whiteSpace: 'wrap',
+                                            }}
+                                          >
+                                            {el.content ?? 'Sin título'}
+                                          </Typography>
+
+                                          <Typography
+                                            variant="caption"
+                                            color="textSecondary"
+                                            fontWeight={'semiBold'}
+                                            lineHeight={1}
+                                            sx={{
+                                              overflow: 'hidden',
+                                              textOverflow: 'ellipsis',
+                                              whiteSpace: 'nowrap',
+                                              fontSize: 10
+                                            }}
+                                          >
+                                            {el.interval ?? 'N/A'}
+                                          </Typography>
+
+                                        </Box>
+                                      }
+                                    </Box>
+                                  )}
+                                </Box>
+
+                                {
+                                  showCharts &&
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => removeElement(el.id)}
+                                    sx={{ p: 0, m: 0 }}
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                }
+                              </Box>
+
+                              {
+                                showCharts &&
+                                <Divider />
+                              }
+
+                              {
+                                showCharts &&
+                                <>
+                                  {el.type === "text" && (
+                                    <ReactQuill
+                                      theme="snow"
+                                      className="quill-dark"
+                                      value={el.content}
+                                      onChange={(val) => {
+                                        const updated = editedReport.elements.map((item, i) =>
+                                          i === index ? { ...item, content: val } : item
+                                        );
+
+                                        setEditedReport(prev => ({
+                                          ...prev,
+                                          elements: updated,
+                                        }));
+                                      }}
+                                      onBlur={() => pushToHistory({ title: editedReport?.title, elements: editedReport?.elements })}
+                                    />
+                                  )}
+
+                                  {el.type === "chart" && (
+                                    <ChartRenderer element={el} />
+                                  )}
+
+                                  {el.type === 'image' && showCharts && (
+                                    <ResizableImage
+                                      element={el}
+                                      onResize={(newWidth, newHeight, alt) => {
+                                        const updated = editedReport?.elements?.map((item, i) =>
+                                          i === index
+                                            ? { ...item, width: newWidth, height: newHeight, alt }
+                                            : item
+                                        );
+                                        setEditedReport(prev => ({
+                                          ...prev,
+                                          elements: updated,
+                                        }));
+                                      }}
+                                      onResizeStop={(newWidth, newHeight, alt) => {
+                                        const updated = editedReport?.elements?.map((item, i) =>
+                                          i === index
+                                            ? { ...item, width: newWidth, height: newHeight, alt }
+                                            : item
+                                        );
+
+                                        setEditedReport(prev => ({
+                                          ...prev,
+                                          elements: updated,
+                                        }));
+
+                                        pushToHistory({
+                                          title: editedReport?.title,
+                                          elements: updated,
+                                        });
+                                      }}
+                                    />
+                                  )}
+                                </>
+                              }
+                            </Box>
+                          )}
+                        </Draggable>
+
+                        {
+                          showCharts &&
+                          <InsertBlockDivider
+                            onAddText={() =>
+                              insertElementAfter(index, {
+                                id: generateUUID(),
+                                type: 'text',
+                                content: '<p>Nuevo texto...</p>',
+                              })
+                            }
+
+                            onAddImage={() => {
+                              setPendingInsertIndex(index);
+                              imageInputRef.current.click();
+                            }}
+
+                            onAddChart={() => {
+                              setChartInsertIndex(index);
+                              setOpenChartSelector(true);
+                            }}
+                          />
+                        }
+                      </Fragment>
+                    )
+                  })}
+
+                  {provided.placeholder}
                 </Box>
-
-                {el.type === "text" && (
-                  <ReactQuill
-                    theme="snow"
-                    value={el.content}
-                    onChange={(val) => {
-                      const updated = elements.map((item, i) =>
-                        i === index ? { ...item, content: val } : item
-                      );
-                      setElements(updated);
-                    }}
-                    onBlur={() => pushToHistory({ title: reportTitle, elements })}
-                  />
-                )}
-
-                {el.type === "chart" && (
-                  <ChartRenderer element={el} />
-                )}
-              </Box>
-
-              <InsertBlockDivider
-                onAddText={() =>
-                  insertElementAfter(index, {
-                    id: `text-${Date.now()}`,
-                    type: 'text',
-                    content: '<p>Nuevo texto...</p>',
-                  })
-                }
-              />
-            </Fragment>
-          ))}
+              )}
+            </Droppable>
+          </DragDropContext>
         </Box>
-
       </Box>
+
+      <ChartSelectorDialog
+        open={openChartSelector}
+        onClose={() => setOpenChartSelector(false)}
+        onAcept={() => handleAddCharts()}
+      />
 
       <DeleteReportDialog
         open={openDeleteReportDialog}
         onClose={() => setOpenDeleteReportDialog(false)}
-        report={reportForDelete}
+        report={{
+          id: currentReportId,
+          title: editedReport?.title,
+        }}
         onDeleteReport={handleDeleteReport}
+      />
+
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => handleImageSelected(e)}
       />
     </Box >
   );

@@ -9,7 +9,7 @@ import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import { useNotification } from "../../../../contexts";
 import { formatForFollowersCard } from "./utils/cards/formatForFollowersCard";
 import { formatForPageViewsCard } from "./utils/cards/formatForPageViewsCard";
-import { 
+import {
     ChartFollowersByCountry,
     TopPostOfThePeriod,
     OrganicOrPaidViewsCard,
@@ -19,7 +19,7 @@ import {
     TotalReactionsCard,
     PageImpressionsCard,
     PageViewsCard
-}from "./components/index.js";
+} from "./components/index.js";
 import { formatForFollowersByCountryCard } from "./utils/cards/formatForFollowersByCountryCard";
 import { formatForOrganicOrPaidViewsCard } from "./utils/cards/formatForOrganicOrPaidViewsCard";
 import { formatForTotalReactionsCard } from "./utils/cards/formatTotalReactionsCard";
@@ -28,7 +28,7 @@ import { useReport } from "../../../../contexts/ReportContext";
 import { CHART_IDS_FACEBOOK } from "./utils/chartsIds";
 
 
-export const FacebookDashboard = ({ project, useMock = true }) => {
+export const FacebookDashboard = ({ project, useMock = true, showingDialog = false }) => {
     const { scrollbarWidth } = useLayout();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [selectedPeriod, setSelectedPeriod] = useState('lastMonth');
@@ -162,12 +162,13 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                 width: isFullscreen ? '100vw' : '100%',
                 maxWidth: {
                     xs: '100vw',
-                    lg: isFullscreen ? '100vw' : `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`
+                    lg: showingDialog ? '100vw' : isFullscreen ? '100vw' : `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`
                 },
                 height: isFullscreen ? '100vh' : 'auto',
                 bgcolor: (theme) => theme.palette.background.default,
                 zIndex: isFullscreen ? 1500 : 'auto',
                 overflow: isFullscreen ? 'hidden' : 'visible',
+                p: showingDialog ? 1 : 0,
             }}
         >
             <Box
@@ -177,8 +178,8 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                     left: 0,
                     zIndex: isFullscreen ? 1600 : 999,
                     bgcolor: 'background.paper',
-                    borderTopLeftRadius: 5,
-                    borderTopRightRadius: 5,
+                    borderTopLeftRadius: !showingDialog ? 5 : 0,
+                    borderTopRightRadius: !showingDialog ? 5 : 0,
                     borderBottom: '1px solid',
                     borderColor: 'divider',
                     p: 1,
@@ -203,7 +204,6 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                         lg: 'row'
                     },
                     gap: 1,
-
                 }}>
                     <Box sx={{
                         display: 'flex',
@@ -275,7 +275,6 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                             </Box>
                         </Box>
                     </Box>
-
                 </Box>
 
                 <Tabs
@@ -285,7 +284,7 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                     allowScrollButtonsMobile
                     sx={{
                         mr: {
-                            lg: 5
+                            lg: !showingDialog ? 5 : 0,
                         }
                     }}
                     aria-label="secondary tabs example"
@@ -296,29 +295,31 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                     <Tab value="lastSixMonths" label="Últimos seis meses" disabled={isLoadingInsights} />
                 </Tabs>
 
-                <Tooltip
-                    title={isFullscreen ? "Minimizar" : "Maximizar"}
-                >
-                    <IconButton
-                        size="small"
-                        onClick={() => {
-                            setIsFullscreen(!isFullscreen);
-                            setTooltipOpen(false);
-                        }}
-                        sx={{
-                            transition: 'transform 0.3s ease',
-                            transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
-                            position: 'absolute',
-                            top: {
-                                xs: 10,
-                                lg: 15
-                            },
-                            right: 10
-                        }}
+                {!showingDialog &&
+                    <Tooltip
+                        title={isFullscreen ? "Minimizar" : "Maximizar"}
                     >
-                        {isFullscreen ? <CloseFullscreenIcon fontSize="small" /> : <FullscreenIcon fontSize="medium" />}
-                    </IconButton>
-                </Tooltip>
+                        <IconButton
+                            size="small"
+                            onClick={() => {
+                                setIsFullscreen(!isFullscreen);
+                                setTooltipOpen(false);
+                            }}
+                            sx={{
+                                transition: 'transform 0.3s ease',
+                                transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                position: 'absolute',
+                                top: {
+                                    xs: 10,
+                                    lg: 15
+                                },
+                                right: 10
+                            }}
+                        >
+                            {isFullscreen ? <CloseFullscreenIcon fontSize="small" /> : <FullscreenIcon fontSize="medium" />}
+                        </IconButton>
+                    </Tooltip>
+                }
             </Box>
 
             <Box sx={{
@@ -352,21 +353,27 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                                 loading={isLoadingInsights}
                                 interval={periodLabel}
                                 period={selectedPeriod}
-                                followersData={followersData}
-                                selected={selectedCharts.some(c => c.id === CHART_IDS_FACEBOOK.followersCard(selectedPeriod))}
+                                data={followersData}
+                                selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.followersCard(selectedPeriod))}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
-                                            id: CHART_IDS_FACEBOOK.followersCard(selectedPeriod),
-                                            selectedPeriod,
+                                            id_name: CHART_IDS_FACEBOOK.followersCard(selectedPeriod),
+                                            integration_data: {
+                                                project: {
+                                                    id: project?.id, 
+                                                    name: project?.name,
+                                                },
+                                                integration: facebookIntegration
+                                            }, 
+                                            period: selectedPeriod,
                                             periodLabel: periodLabel,
-                                            platform: 'facebook',
                                             title: 'Seguidores de la página',
                                             data: followersData,
                                             interval: periodLabel,
                                         });
                                     } else {
-                                        removeChart({ id: CHART_IDS_FACEBOOK.followersCard(selectedPeriod) });
+                                        removeChart({ id_name: CHART_IDS_FACEBOOK.followersCard(selectedPeriod) });
                                     }
                                 }}
                             />
@@ -379,21 +386,27 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                                 loading={isLoadingInsights}
                                 interval={periodLabel}
                                 period={selectedPeriod}
-                                viewsPageData={viewsPageData}
-                                selected={selectedCharts.some(c => c.id === CHART_IDS_FACEBOOK.pageViewsCard(selectedPeriod))}
+                                data={viewsPageData}
+                                selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.pageViewsCard(selectedPeriod))}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
-                                            id: CHART_IDS_FACEBOOK.pageViewsCard(selectedPeriod),
-                                            selectedPeriod,
+                                            id_name: CHART_IDS_FACEBOOK.pageViewsCard(selectedPeriod),
+                                            integration_data: {
+                                                project: {
+                                                    id: project?.id,
+                                                    name: project?.name,
+                                                },
+                                                integration: facebookIntegration
+                                            },
+                                            period: selectedPeriod,
                                             periodLabel: periodLabel,
-                                            platform: 'facebook',
                                             title: "Visitas a la página",
                                             data: viewsPageData,
                                             interval: periodLabel,
                                         });
                                     } else {
-                                        removeChart({ id: CHART_IDS_FACEBOOK.pageViewsCard(selectedPeriod) });
+                                        removeChart({ id_name: CHART_IDS_FACEBOOK.pageViewsCard(selectedPeriod) });
                                     }
                                 }}
                             />
@@ -406,21 +419,27 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                                 loading={isLoadingInsights}
                                 interval={periodLabel}
                                 period={selectedPeriod}
-                                impressionsPageData={impressionsPageData}
-                                selected={selectedCharts.some(c => c.id === CHART_IDS_FACEBOOK.pageImpressionsCard(selectedPeriod))}
+                                data={impressionsPageData}
+                                selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.pageImpressionsCard(selectedPeriod))}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
-                                            id: CHART_IDS_FACEBOOK.pageImpressionsCard(selectedPeriod),
-                                            selectedPeriod,
+                                            id_name: CHART_IDS_FACEBOOK.pageImpressionsCard(selectedPeriod),
+                                            integration_data: {
+                                                project: {
+                                                    id: project?.id,
+                                                    name: project?.name,
+                                                },
+                                                integration: facebookIntegration
+                                            },
+                                            period: selectedPeriod,
                                             periodLabel: periodLabel,
-                                            platform: 'facebook',
                                             title: "Page impressions",
                                             data: impressionsPageData,
                                             interval: periodLabel,
                                         });
                                     } else {
-                                        removeChart({ id: CHART_IDS_FACEBOOK.pageViewsCard(selectedPeriod) });
+                                        removeChart({ id_name: CHART_IDS_FACEBOOK.pageImpressionsCard(selectedPeriod) });
                                     }
                                 }}
                             />
@@ -434,21 +453,27 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                                 loading={isLoadingInsights}
                                 interval={periodLabel}
                                 period={selectedPeriod}
-                                totalActionsData={totalActionsData}
-                                selected={selectedCharts.some(c => c.id === CHART_IDS_FACEBOOK.totalActionsCard(selectedPeriod))}
+                                data={totalActionsData}
+                                selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.totalActionsCard(selectedPeriod))}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
-                                            id: CHART_IDS_FACEBOOK.totalActionsCard(selectedPeriod),
-                                            selectedPeriod,
-                                            title: "Total actions",
+                                            id_name: CHART_IDS_FACEBOOK.totalActionsCard(selectedPeriod),
+                                            integration_data: {
+                                                project: {
+                                                    id: project?.id,
+                                                    name: project?.name,
+                                                },
+                                                integration: facebookIntegration
+                                            },
+                                            period: selectedPeriod,
                                             periodLabel: periodLabel,
-                                            platform: 'facebook',
+                                            title: "Total actions",
                                             data: totalActionsData,
                                             interval: periodLabel,
                                         });
                                     } else {
-                                        removeChart({ id: CHART_IDS_FACEBOOK.totalActionsCard(selectedPeriod) });
+                                        removeChart({ id_name: CHART_IDS_FACEBOOK.totalActionsCard(selectedPeriod) });
                                     }
                                 }}
                             />
@@ -461,21 +486,27 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                                 loading={isLoadingInsights}
                                 interval={periodLabel}
                                 period={selectedPeriod}
-                                postEngagementsData={postEngagementsData}
-                                selected={selectedCharts.some(c => c.id === CHART_IDS_FACEBOOK.postEngagementsCard(selectedPeriod))}
+                                data={postEngagementsData}
+                                selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.postEngagementsCard(selectedPeriod))}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
-                                            id: CHART_IDS_FACEBOOK.postEngagementsCard(selectedPeriod),
-                                            selectedPeriod,
+                                            id_name: CHART_IDS_FACEBOOK.postEngagementsCard(selectedPeriod),
+                                            integration_data: {
+                                                project: {
+                                                    id: project?.id,
+                                                    name: project?.name,
+                                                },
+                                                integration: facebookIntegration
+                                            },
+                                            period: selectedPeriod,
                                             periodLabel: periodLabel,
-                                            platform: 'facebook',
                                             title: "Post engagements",
                                             data: postEngagementsData,
                                             interval: periodLabel,
                                         });
                                     } else {
-                                        removeChart({ id: CHART_IDS_FACEBOOK.postEngagementsCard(selectedPeriod) });
+                                        removeChart({ id_name: CHART_IDS_FACEBOOK.postEngagementsCard(selectedPeriod) });
                                     }
                                 }}
                             />
@@ -488,21 +519,27 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                                 loading={isLoadingInsights}
                                 interval={periodLabel}
                                 period={selectedPeriod}
-                                totalReactionsOfPage={totalReactionsOfPage}
-                                selected={selectedCharts.some(c => c.id === CHART_IDS_FACEBOOK.totalReactionsCard(selectedPeriod))}
+                                data={totalReactionsOfPage}
+                                selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.totalReactionsCard(selectedPeriod))}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
-                                            id: CHART_IDS_FACEBOOK.totalReactionsCard(selectedPeriod),
-                                            selectedPeriod,
+                                            id_name: CHART_IDS_FACEBOOK.totalReactionsCard(selectedPeriod),
+                                            integration_data: {
+                                                project: {
+                                                    id: project?.id,
+                                                    name: project?.name,
+                                                },
+                                                integration: facebookIntegration
+                                            },
+                                            period: selectedPeriod,
                                             periodLabel: periodLabel,
-                                            platform: 'facebook',
                                             title: "Reacciones totales",
                                             data: totalReactionsOfPage,
                                             interval: periodLabel,
                                         });
                                     } else {
-                                        removeChart({ id: CHART_IDS_FACEBOOK.totalReactionsCard(selectedPeriod) });
+                                        removeChart({ id_name: CHART_IDS_FACEBOOK.totalReactionsCard(selectedPeriod) });
                                     }
                                 }}
                             />
@@ -515,22 +552,28 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                             title="Page impressions orgánicas vs pagadas"
                             loading={isLoadingInsights}
                             interval={periodLabel}
-                            period={selectedPeriod} 
-                            organicOrPaidViewsData={organicOrPaidViewsData}
-                            selected={selectedCharts.some(c => c.id === CHART_IDS_FACEBOOK.organicOrPaidViewsCard(selectedPeriod))}
+                            period={selectedPeriod}
+                            data={organicOrPaidViewsData}
+                            selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.organicOrPaidViewsCard(selectedPeriod))}
                             onSelectChange={(checked) => {
                                 if (checked) {
                                     addChart({
-                                        id: CHART_IDS_FACEBOOK.organicOrPaidViewsCard(selectedPeriod),
-                                        selectedPeriod,
+                                        id_name: CHART_IDS_FACEBOOK.organicOrPaidViewsCard(selectedPeriod),
+                                        integration_data: {
+                                                project: {
+                                                    id: project?.id,
+                                                    name: project?.name,
+                                                },
+                                                integration: facebookIntegration
+                                            },
+                                        period: selectedPeriod,
                                         periodLabel: periodLabel,
-                                        platform: 'facebook',
                                         title: "Page impressions orgánicas vs pagadas",
                                         data: organicOrPaidViewsData,
                                         interval: periodLabel,
                                     });
                                 } else {
-                                    removeChart({ id: CHART_IDS_FACEBOOK.organicOrPaidViewsCard(selectedPeriod) });
+                                    removeChart({ id_name: CHART_IDS_FACEBOOK.organicOrPaidViewsCard(selectedPeriod) });
                                 }
                             }}
                         />
@@ -545,21 +588,27 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                             loading={isLoadingInsights}
                             interval={periodLabel}
                             period={selectedPeriod}
-                            countryFollowersData={countryFollowersData}
-                            selected={selectedCharts.some(c => c.id === CHART_IDS_FACEBOOK.chartFollowersByCountry(selectedPeriod))}
+                            data={countryFollowersData}
+                            selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.chartFollowersByCountry(selectedPeriod))}
                             onSelectChange={(checked) => {
                                 if (checked) {
                                     addChart({
-                                        id: CHART_IDS_FACEBOOK.chartFollowersByCountry(selectedPeriod),
-                                        selectedPeriod,
+                                        id_name: CHART_IDS_FACEBOOK.chartFollowersByCountry(selectedPeriod),
+                                        integration_data: {
+                                                project: {
+                                                    id: project?.id,
+                                                    name: project?.name,
+                                                },
+                                                integration: facebookIntegration
+                                            },
+                                        period: selectedPeriod,
                                         periodLabel: periodLabel,
-                                        platform: 'facebook',
                                         title: "Seguidores por país",
                                         data: countryFollowersData,
                                         interval: periodLabel,
                                     });
                                 } else {
-                                    removeChart({ id: CHART_IDS_FACEBOOK.chartFollowersByCountry(selectedPeriod) });
+                                    removeChart({ id_name: CHART_IDS_FACEBOOK.chartFollowersByCountry(selectedPeriod) });
                                 }
                             }}
                         />
@@ -571,21 +620,26 @@ export const FacebookDashboard = ({ project, useMock = true }) => {
                             loading={isLoadingInsights}
                             interval={periodLabel}
                             period={selectedPeriod}
-                            topPostsData={topPostsData}
-                            selected={selectedCharts.some(c => c.id === CHART_IDS_FACEBOOK.topPostOfThePeriod(selectedPeriod))}
+                            data={topPostsData}
+                            selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.topPostOfThePeriod(selectedPeriod))}
                             onSelectChange={(checked) => {
                                 if (checked) {
                                     addChart({
-                                        id: CHART_IDS_FACEBOOK.topPostOfThePeriod(selectedPeriod),
-                                        selectedPeriod,
-                                        periodLabel: periodLabel,
-                                        platform: 'facebook',
+                                        id_name: CHART_IDS_FACEBOOK.topPostOfThePeriod(selectedPeriod),
+                                        integration_data: {  
+                                                project: { 
+                                                    id: project?.id,
+                                                    name: project?.name,
+                                                },
+                                                integration: facebookIntegration
+                                            },
+                                        period: selectedPeriod,
                                         title: "Top 5 posts populares",
                                         data: topPostsData,
                                         interval: periodLabel,
                                     });
                                 } else {
-                                    removeChart({ id: CHART_IDS_FACEBOOK.topPostOfThePeriod(selectedPeriod) });
+                                    removeChart({ id_name: CHART_IDS_FACEBOOK.topPostOfThePeriod(selectedPeriod) });
                                 }
                             }}
                         />

@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ButtonWithLoader } from '../../../generalComponents';
 import { useFetchAndLoad } from '../../../hooks';
 
-const DeleteReportDialog = ({ open, onClose, report, onDeleteReport }) => {
+export const DeleteReportDialog = ({ open, onClose, report, onDeleteReport }) => {
   const [inputName, setInputName] = useState('');
   const inputRef = useRef(null);
   const { loading, callEndpoint } = useFetchAndLoad();
@@ -118,4 +118,3 @@ const DeleteReportDialog = ({ open, onClose, report, onDeleteReport }) => {
   );
 };
 
-export default DeleteReportDialog;

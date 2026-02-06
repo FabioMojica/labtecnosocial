@@ -35,3 +35,85 @@ body {
 
 
 
+
+.react-resizable {
+  position: relative;
+}
+
+.react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 5px;
+  right: 5px;
+  background-color: #1976d2; 
+  border-radius: 4px;
+  cursor: se-resize;
+  z-index: 10;
+}
+
+.react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+}
+
+.react-resizable:hover .react-resizable-handle {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+
+/* Contenedor general */
+.quill-dark .ql-container {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Editor */
+.quill-dark .ql-editor {
+  padding: 12px;
+}
+
+/* Placeholder */
+.quill-dark .ql-editor.ql-blank::before {
+  color: #888;
+  font-style: italic;
+}
+
+.quill-dark .ql-snow .ql-stroke {
+  stroke: white;
+}
+
+.quill-dark .ql-toolbar .ql-picker-options {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+}
+
+.quill-dark .ql-snow .ql-fill {
+  fill: white;
+}
+
+.quill-dark .ql-snow .ql-picker {
+  color: white;
+}
+
+/* Toolbar */
+.quill-dark .ql-toolbar {
+  background: #1e1e1e;
+  border-radius: 8px 8px 0 0;
+  border: none;
+}
+
+/* Botones */
+.quill-dark .ql-toolbar button {
+  color: #111;
+}
+
+.quill-dark .ql-toolbar button:hover {
+  color: #111;
+}

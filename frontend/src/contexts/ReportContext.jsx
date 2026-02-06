@@ -15,11 +15,11 @@ export const ReportProvider = ({ children }) => {
    * @param {any} options.data - Datos del chart
    * @param {string} options.interval - Label legible para mostrar, ej: 'Último mes'
    */
-  const addChart = (chart) => { 
+  const addChart = (chart) => {
     setSelectedCharts(prev => {
-      // Evitar duplicados por ID
-      if (prev.some(c => c.id === chart.id)) return prev;
-      return [...prev, chart];
+      const id = crypto.randomUUID();
+      if (prev.some(c => c.id === id)) return prev;
+      return [...prev, { ...chart, id }];
     });
   };
 
@@ -27,23 +27,15 @@ export const ReportProvider = ({ children }) => {
    * Remueve un chart por ID o por combinación de chartKey + platform + selectedPeriod
    */
 
-  const removeChart = ({ id, chartKey, platform, selectedPeriod }) => {
-    setSelectedCharts(prev => {
-      if (id) {
-        return prev.filter(c => c.id !== id);
-      } else if (chartKey && platform && selectedPeriod) {
-        const oldId = `${chartKey}-${platform}-${selectedPeriod}`;
-        return prev.filter(c => c.id !== oldId);
-      }
-      return prev;
-    });
+  const removeChart = ({ id_name }) => {
+    setSelectedCharts(prev => prev.filter(c => c.id_name !== id_name));
   };
 
   const clearCharts = () => setSelectedCharts([]);
 
   return (
     <ReportContext.Provider value={{ selectedCharts, addChart, removeChart, clearCharts }}>
-      {children} 
+      {children}
     </ReportContext.Provider>
   );
 };

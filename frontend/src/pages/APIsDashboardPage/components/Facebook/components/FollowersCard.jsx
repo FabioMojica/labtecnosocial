@@ -18,24 +18,25 @@ export const FollowersCard = ({
     selected = true,
     selectable = true,
     onSelectChange,
-    followersData = {}
+    data = {}
 }) => {
+
     const [showHighlight, setShowHighlight] = useState(true);
     const [showTooltip, setShowTooltip] = useState(true);
 
-    const finalData = followersData?.chartData;
-    const [data, setData] = useState([]);
+    const finalData = data?.chartData;
+    const [dataCard, setDataCard] = useState([]);
     const [animDates, setAnimDates] = useState([]);
     const [animatedTotal, setAnimatedTotal] = useState(0);
 
     useEffect(() => {
-        if (!followersData?.total) {
+        if (!data?.total) {
             setAnimatedTotal(0);
             return;
         }
 
         let start = 0;
-        const end = followersData.total;
+        const end = data.total;
         const duration = 1000; // duración de animación en ms
         const steps = 60; // cantidad de pasos (aprox 60 fps)
         const increment = end / steps;
@@ -51,19 +52,19 @@ export const FollowersCard = ({
         }, intervalTime);
 
         return () => clearInterval(intervalId);
-    }, [followersData.total, interval]);
+    }, [data.total, interval]);
 
     useEffect(() => {
         if (!Array.isArray(finalData) || finalData.length === 0) {
-            setData([]);
+            setDataCard([]);
             setAnimDates([]);
             return;
         }
 
         // Si hay un solo punto
         if (finalData.length === 1) {
-            setData(finalData);
-            setAnimDates(followersData.dates);
+            setDataCard(finalData);
+            setAnimDates(data.dates);
             return;
         }
 
@@ -71,28 +72,28 @@ export const FollowersCard = ({
         const chunkSize = Math.ceil(totalPoints / 30);
         let currentIndex = 0;
 
-        setData([]);
+        setDataCard([]);
         setAnimDates([]);
 
         const intervalId = setInterval(() => {
             currentIndex += chunkSize;
 
-            // Slicing data y fechas juntos
+            // Slicing dataCard y fechas juntos
             const slicedData = finalData.slice(0, currentIndex);
-            const slicedDates = followersData.dates.slice(0, currentIndex);
+            const slicedDates = data.dates.slice(0, currentIndex);
 
-            setData(slicedData);
+            setDataCard(slicedData);
             setAnimDates(slicedDates);
 
             if (currentIndex >= totalPoints) {
-                setData(finalData);
-                setAnimDates(followersData.dates);
+                setDataCard(finalData);
+                setAnimDates(data.dates);
                 clearInterval(intervalId);
             }
         }, 20);
 
         return () => clearInterval(intervalId);
-    }, [interval, finalData, followersData.dates]);
+    }, [interval, finalData, data.dates]);
 
     return (
         <DashboardCard
@@ -107,7 +108,7 @@ export const FollowersCard = ({
             interval={interval}
             loading={loading}
             error={error}
-            isEmpty={followersData?.chartData?.length === 0}
+            isEmpty={data?.chartData?.length === 0}
             selectable={selectable}
             selected={selected}
             onSelectChange={onSelectChange}
@@ -126,12 +127,12 @@ export const FollowersCard = ({
                         bottom: -10,
                         right: -10
                     }}>
-                        {followersData.delta > 0 && (
+                        {data.delta > 0 && (
                             <ArrowUpwardIcon
                                 sx={{ color: 'green', fontSize: 15, transform: 'scale(1.4)' }}
                             />
                         )}
-                        {followersData.delta < 0 && (
+                        {data.delta < 0 && (
                             <ArrowDownwardIcon
                                 sx={{ color: 'red', fontSize: 15, transform: 'scale(1.4)' }}
                             />
@@ -152,7 +153,7 @@ export const FollowersCard = ({
                 {period !== 'all' && period !== 'today' &&
                     <SparkLineChart
                         key={interval}
-                        data={data}
+                        data={dataCard}
                         height={70}
                         area
                         curve="natural"

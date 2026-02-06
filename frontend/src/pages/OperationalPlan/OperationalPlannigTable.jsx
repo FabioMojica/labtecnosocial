@@ -27,6 +27,7 @@ import { useFetchAndLoad } from '../../hooks';
 import { useDirty } from '../../contexts/DirtyContext';
 import { formatDate } from '../../utils/formatDate';
 import { useElementSize } from '../../hooks/useElementSize';
+import { generateUUID } from '../../utils';
 
 const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, projectWithoutPlan, onUnsavedChanges, onErrorFetchedPlan, onProjectLoading }) => {
     const confirm = useConfirm();
@@ -460,7 +461,7 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
     const handleAddRow = () => {
         if (!projectId) return;
 
-        const tempId = crypto.randomUUID();
+        const tempId = generateUUID();
 
         setRows(prev => [
             ...prev,
@@ -878,21 +879,19 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                 width: '100%',
                                 flex: 1,
                                 justifyContent: 'space-between',
-                                alignItems: 'center',
-                                display: 'flex',
                                 gap: 1,
                                 alignItems: 'center',
                             }}>
                                     <Tooltip
                                         title="Añadir fila"
                                         arrow
+                                        
                                         componentsProps={{
                                             tooltip: {
                                                 sx: {
                                                     fontSize: '0.8rem',
                                                     backgroundColor: 'rgba(0,0,0,0.75)',
-                                                    color: 'white',
-                                                    
+                                                    color: 'white',                                                 
                                                 },
                                             },
                                         }}
@@ -984,7 +983,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                                     xs: 'auto',
                                     lg: 'unset',
                                 },
-                                width: '100%',
                                 "&::-webkit-scrollbar": { height: "2px", width: "2px" },
                                 "&::-webkit-scrollbar-track": {
                                     backgroundColor: theme.palette.background.default,

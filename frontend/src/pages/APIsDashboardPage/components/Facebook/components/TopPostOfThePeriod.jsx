@@ -160,7 +160,7 @@ export const TopPostOfThePeriod = ({
     loading,
     interval, 
     period,
-    topPostsData,
+    data,
     selected = true,
     selectable = true,
     onSelectChange,
@@ -176,7 +176,7 @@ export const TopPostOfThePeriod = ({
             interval={interval}
             loading={loading}
             error={error}
-            isEmpty={topPostsData?.length === 0}
+            isEmpty={data?.length === 0}
             selectable={selectable}
             selected={selected}
             onSelectChange={onSelectChange}
@@ -208,12 +208,12 @@ export const TopPostOfThePeriod = ({
                 pb: 4.5,
             }}>
                 <Stack spacing={2}>
-                    {topPostsData.map((post, index) => (
+                    {data.map((post, index) => (
                         <TopPostCard key={post.id} post={post} index={index} />
                     ))}
 
                     {/* Mensaje si hay menos de 5 posts */}
-                    {topPostsData.length < 5 && topPostsData.length > 0 && (
+                    {data.length < 5 && data.length > 0 && (
                         <Typography
                             variant="body2"
                             color="text.secondary"
@@ -225,7 +225,7 @@ export const TopPostOfThePeriod = ({
                     )}
 
                     {/* Mensaje si no hay posts */}
-                    {topPostsData.length === 0 && (
+                    {data.length === 0 && (
                         <Typography
                             variant="body2"
                             color="text.secondary"

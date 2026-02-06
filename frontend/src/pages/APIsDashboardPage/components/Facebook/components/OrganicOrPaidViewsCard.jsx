@@ -64,14 +64,14 @@ export const OrganicOrPaidViewsCard = ({
     loading,
     interval,
     period,
-    organicOrPaidViewsData,
+    data,
     selected = true,
     selectable = true,
     onSelectChange,
 }) => {
 
-    const pieData = organicOrPaidViewsData?.chartData;
-    const totalViews = organicOrPaidViewsData?.total;
+    const pieData = data?.chartData;
+    const totalViews = data?.total;
 
     const colorsForPie = [...colors, 'hsl(220, 20%, 15%)'];
 

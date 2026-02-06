@@ -55,7 +55,7 @@ export const createUser = async (req, res) => {
 
     const hashedPassword = await hashPassword(password, 10);
 
-    const imagePath = req.file?.optimizedPath || null;
+    const imagePath = req.files?.[0]?.optimizedPath || null;
 
     const validatedState = ALLOWED_STATES.statesArray.includes(state) ? state : 'disabled';
 
@@ -503,7 +503,7 @@ export const updateUser = async (req, res) => {
       }
     }
 
-    const imagePath = req.file?.optimizedPath;
+    const imagePath = req.files?.[0]?.optimizedPath || null;
 
     if (imagePath) {
       if (user.image_url) {

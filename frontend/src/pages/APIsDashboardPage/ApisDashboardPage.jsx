@@ -22,7 +22,7 @@ import { InstagramDashboard } from './components/Instagram/InstagramDashboard';
 import { XDashboard } from './components/X/XDashboard';
 
 
-export const APIsDashboardPage = () => {
+export const APIsDashboardPage = (showingDialog = false) => {
     const { id } = useParams();
     const [projects, setProjects] = useState([]);
     const { loading, callEndpoint } = useFetchAndLoad();
@@ -68,13 +68,13 @@ export const APIsDashboardPage = () => {
     const renderIntegrationDashboard = () => {
         switch (selectedIntegration) {
             case 'github':
-                return <GitHubDashboard project={selectedProject} />;
-            case 'facebook':
-                return <FacebookDashboard project={selectedProject}/>;
+                return <GitHubDashboard showingDialog={showingDialog} project={selectedProject} />;
+            case 'facebook': 
+                return <FacebookDashboard showingDialog={showingDialog} project={selectedProject}/>;
             case 'instagram':
-                return <InstagramDashboard project={selectedProject}/>;
+                return <InstagramDashboard showingDialog={showingDialog} project={selectedProject}/>;
             case 'x':
-                return <XDashboard project={selectedProject} />;
+                return <XDashboard showingDialog={showingDialog} project={selectedProject} />;
             default:
                 return null;
         }
@@ -85,7 +85,7 @@ export const APIsDashboardPage = () => {
             width: '100%',
             height: '100%',
         }}>
-            <Box sx={{ mb: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ mt: showingDialog && 1, px: showingDialog && 1, mb: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>Dashboard</Typography>
 
                 <Box sx={{ display: 'flex', gap: { xs: 0.5, lg: 2 }, alignItems: 'center' }}>

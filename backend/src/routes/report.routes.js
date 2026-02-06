@@ -16,7 +16,7 @@ reportRoutes.get(
   getAllReports
 );
 
-reportRoutes.get(
+reportRoutes.get( 
   '/:reportId',
   authorize(PERMISSIONS.REPORT.READ_REPORT),
   getReportById

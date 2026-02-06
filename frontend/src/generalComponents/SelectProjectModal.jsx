@@ -69,7 +69,7 @@ export const SelectProjectModal = ({
         {loading ? (
           "Cargando..."
         ) : selectedProject ? (
-          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1, width: 100 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1, width: 100 }}>
             <Avatar
               src={selectedProject.image_url || null}
               sx={{
