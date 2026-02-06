@@ -27,8 +27,9 @@ import { formatForTotalActionsCard } from "./utils/cards/formatForTotalActionsCa
 import { useReport } from "../../../../contexts/ReportContext";
 import { CHART_IDS_FACEBOOK } from "./utils/chartsIds";
 
-
+ 
 export const FacebookDashboard = ({ project, useMock = true, showingDialog = false }) => {
+    console.log("ssssssssss", showingDialog);
     const { scrollbarWidth } = useLayout();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [selectedPeriod, setSelectedPeriod] = useState('lastMonth');

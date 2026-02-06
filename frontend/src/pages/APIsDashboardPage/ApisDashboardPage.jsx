@@ -22,7 +22,7 @@ import { InstagramDashboard } from './components/Instagram/InstagramDashboard';
 import { XDashboard } from './components/X/XDashboard';
 
 
-export const APIsDashboardPage = (showingDialog = false) => {
+export const APIsDashboardPage = ({showingDialog = false}) => {
     const { id } = useParams();
     const [projects, setProjects] = useState([]);
     const { loading, callEndpoint } = useFetchAndLoad();
@@ -85,7 +85,7 @@ export const APIsDashboardPage = (showingDialog = false) => {
             width: '100%',
             height: '100%',
         }}>
-            <Box sx={{ mt: showingDialog && 1, px: showingDialog && 1, mb: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ mt: showingDialog ? 1 : 0, px: showingDialog ? 1 : 0, mb: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>Dashboard</Typography>
 
                 <Box sx={{ display: 'flex', gap: { xs: 0.5, lg: 2 }, alignItems: 'center' }}>

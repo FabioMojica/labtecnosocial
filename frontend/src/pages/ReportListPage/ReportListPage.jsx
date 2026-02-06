@@ -3,6 +3,7 @@ import { Box, CssBaseline, Divider, FormControl, Grid, IconButton, InputLabel, M
 import { useEffect, useState } from "react";
 import { useFetchAndLoad } from '../../hooks';
 import { useAuth, useNotification } from '../../contexts';
+import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
 import {
     SearchBar,
     ButtonWithLoader,
@@ -41,7 +42,6 @@ export function ReportsListPage() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [roleFilter, setRoleFilter] = useState("all");
     const [searchedReports, setSearchedReports] = useState([]);
-    const { right } = useLayout();
     const { user, isAdmin, isSuperAdmin } = useAuth();
 
     useEffect(() => {
@@ -91,15 +91,7 @@ export function ReportsListPage() {
     }
 
     const filterReports = (reportsArray) => {
-        return reportsArray.filter((report) => {
-            const statusOk =
-                statusFilter === "all" || user.state === statusFilter;
-
-            const roleOk =
-                roleFilter === "all" || user.role === roleFilter;
-
-            return statusOk && roleOk;
-        });
+        return reportsArray;
     };
 
     const sortReports = (reportsArray) => {
@@ -109,16 +101,16 @@ export function ReportsListPage() {
             // 1️⃣ Alfabético
             case "name_asc":
                 sorted.sort((a, b) =>
-                    `${a.name}`.localeCompare(
-                        `${b.name}`
+                    `${a.title}`.localeCompare(
+                        `${b.title}`
                     )
                 );
                 break;
 
             case "name_desc":
                 sorted.sort((a, b) =>
-                    `${b.name}`.localeCompare(
-                        `${a.name}`
+                    `${b.title}`.localeCompare(
+                        `${a.title}`
                     )
                 );
                 break;
@@ -265,6 +257,7 @@ export function ReportsListPage() {
                                         width: { xs: 'auto', lg: 'auto' },
                                         height: { xs: 230, lg: 230 },
                                         borderRadius: 2,
+                                        boxShadow: 5,
                                         position: 'relative',
                                         overflow: 'hidden',
                                         cursor: 'pointer',
@@ -272,7 +265,7 @@ export function ReportsListPage() {
                                         flexDirection: 'column',
                                         justifyContent: 'flex-end',
                                         '&:hover': {
-                                            boxShadow: 6,
+                                            boxShadow: 8,
                                             transform: 'scale(1.05)',
                                             transition: '0.2s',
                                         },
@@ -311,7 +304,14 @@ export function ReportsListPage() {
                                         </Typography>
                                     </Box>
 
-                                    <Box sx={{ flexGrow: 1 }} />
+                                    <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
+                                        <SummarizeRoundedIcon sx={{
+                                            fontSize: {
+                                                xs: 70,
+                                                lg: 100
+                                            }
+                                        }} />
+                                    </Box>
 
                                     <Box
                                         sx={{
@@ -340,7 +340,7 @@ export function ReportsListPage() {
                                             <Typography
                                                 variant="caption"
                                                 lineHeight={0.5}
-                                                color="text.secondary"
+                                                color='textDisabled'
                                                 fontStyle={'italic'}
                                                 sx={{
                                                     textAlign: 'left',
@@ -364,7 +364,7 @@ export function ReportsListPage() {
                                             </Typography>
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                color='textDisabled'
                                                 lineHeight={0.5}
                                                 fontStyle={'italic'}
                                                 sx={{

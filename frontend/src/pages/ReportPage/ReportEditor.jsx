@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { data, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -38,10 +38,8 @@ import html2pdf from "html2pdf.js";
 import { createReportApi, getReportByIdApi, deleteReportApi, updateReportApi } from "../../api";
 import { ButtonWithLoader, FullScreenProgress } from "../../generalComponents";
 import { useConfirm } from "material-ui-confirm";
-import { useNotification, useReport } from "../../contexts";
-import { generateUUID, integrationsConfig } from "../../utils";
-import isEqual from "lodash/isEqual";
-
+import { useLayout, useNotification, useReport } from "../../contexts";
+import { formatDateParts, generateUUID, integrationsConfig } from "../../utils";
 
 import { v4 as uuidv4, validate as validateUUID } from 'uuid';
 
@@ -53,6 +51,8 @@ import {
   DeleteReportDialog
 } from "./components";
 import { formatElementsForDb, formatElementsForFrontend } from "./utils/formatElements";
+import ReportElementItem from "./components/ReportElement";
+import { ReportTitle } from "./components/ReportTitle";
 
 const ZOOM_OPTIONS = [0.5, 0.75, 1];
 
@@ -71,9 +71,9 @@ export const ReportEditor = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const theme = useTheme();
   const [isDragging, setIsDragging] = useState(false);
-  const [zoom, setZoom] = useState(1);
   const [zoomAnchorEl, setZoomAnchorEl] = useState(null);
   const openZoomMenu = Boolean(zoomAnchorEl);
+  const { right } = useLayout();
   const [openOutline, setOpenOutline] = useState(false);
   const headerRef = useRef(null);
   const [showCharts, setShowCharts] = useState(true);
@@ -100,13 +100,13 @@ export const ReportEditor = () => {
 
   const [editedReport, setEditedReport] = useState({
     title: "Reporte sin título",
-    elements: [],
+    elements: {},
+    elementsOrder: [],
   });
 
+  const [title, setTitle] = useState(null)
 
-  const [deletedItems, setDeletedItems] = useState([]);
-  const [hasChanges, setHasChanges] = useState(false);
-
+  console.log("renderiaiaiai")
 
   useEffect(() => {
     if (!currentReportId) return;
@@ -115,22 +115,19 @@ export const ReportEditor = () => {
       try {
         setFetchReport(true);
         const res = await getReportByIdApi(currentReportId);
-        console.log("editoooooooooooo", res)
-        const { title, elements } = formatElementsForFrontend(res);
+        const { title, elements, elementsOrder } = formatElementsForFrontend(res);
 
-        const editorReport = {
+        setTitle(title)
+        setEditedReport({
           title: title || "Reporte sin título",
-          elements: elements || [],
-        };
+          elements: elements,
+          elementsOrder
+        });
 
-        const snapshot = structuredClone(editorReport);
-
+        const snapshot = structuredClone({ title, elements, elementsOrder });
         originalReportRef.current = snapshot;
-        setEditedReport(snapshot);
-
-        setHistory([structuredClone(snapshot)]);
+        setHistory([snapshot]);
         setHistoryIndex(0);
-        setHasChanges(false);
       } catch (error) {
         notify(error.message, "error");
       } finally {
@@ -142,64 +139,16 @@ export const ReportEditor = () => {
     fetchReport();
   }, [currentReportId]);
 
-  // useEffect(() => {
-  //   const original = originalReportRef.current;
-
-  //   const hasDiff = !isEqual(
-  //     {
-  //       title: original.title,
-  //       elements: original.elements,
-  //     },
-  //     {
-  //       title: editedReport.title,
-  //       elements: editedReport.elements,
-  //     }
-  //   );
-
-  //   setHasChanges(hasDiff);
-  // }, [editedReport]);
-
-
-  const handleSelectZoom = (value) => {
-    setZoom(value);
-    handleCloseZoomMenu();
+  const handleElementChange = (id, newElement) => {
+    setEditedReport(prev => ({
+      ...prev,
+      elements: {
+        ...prev.elements,
+        [id]: newElement,
+      }
+    }));
   };
 
-
-  const pushToHistory = (newState) => {
-    if (saveReport || isInitializing.current) return;
-
-    setHistory((prev) => {
-      const currentIndex = prev.length - 1;
-      const trimmed = prev.slice(0, currentIndex + 1);
-
-      return [...trimmed, JSON.parse(JSON.stringify(newState))];
-    });
-
-    setHistoryIndex((prev) => prev + 1);
-  };
-
-  const handleUndo = () => {
-    if (!canUndo) return;
-    const prevIndex = historyIndex - 1;
-    const state = history[prevIndex];
-    setEditedReport({
-      title: state.title,
-      elements: state.elements,
-    });
-    setHistoryIndex(prevIndex);
-  };
-
-  const handleRedo = () => {
-    if (!canRedo) return;
-    const nextIndex = historyIndex + 1;
-    const state = history[nextIndex];
-    setEditedReport({
-      title: state.title,
-      elements: state.elements,
-    });
-    setHistoryIndex(nextIndex);
-  };
 
   const handleOpenExportMenu = (event) => {
     setExportAnchorEl(event.currentTarget);
@@ -209,42 +158,89 @@ export const ReportEditor = () => {
     setExportAnchorEl(null);
   };
 
-  const insertElementAfter = (index, newElement) => {
+  // const insertElementAfter = (index, newElement) => {
+  //   setEditedReport(prev => {
+  //     const updated = [...prev.elements];
+  //     updated.splice(index + 1, 0, newElement);
+
+  //     pushToHistory({
+  //       title: prev.title,
+  //       elements: updated,
+  //     });
+
+  //     return {
+  //       ...prev,
+  //       elements: updated,
+  //     };
+  //   });
+  // };
+
+  const insertElementAfter = (afterId, newElement) => {
     setEditedReport(prev => {
-      const updated = [...prev.elements];
-      updated.splice(index + 1, 0, newElement);
+      const newElements = { ...prev.elements, [newElement.id]: newElement };
 
-      pushToHistory({
-        title: prev.title,
-        elements: updated,
-      });
+      if (afterId === null) {
+        return {
+          ...prev,
+          elements: newElements,
+          elementsOrder: [newElement.id, ...prev.elementsOrder],
+        };
+      }
 
-      return {
-        ...prev,
-        elements: updated,
-      };
+      const index = prev.elementsOrder.indexOf(afterId);
+      const newOrder = [
+        ...prev.elementsOrder.slice(0, index + 1),
+        newElement.id,
+        ...prev.elementsOrder.slice(index + 1),
+      ];
+
+      return { ...prev, elements: newElements, elementsOrder: newOrder };
     });
   };
 
 
+  // const onDragEnd = (result) => {
+  //   setIsDragging(false);
+
+  //   if (!result.destination) return;
+
+  //   const sourceIndex = result.source.index;
+  //   const destinationIndex = result.destination.index;
+  //   const items = Array.from(editedReport.elements);
+  //   const [moved] = items.splice(sourceIndex, 1);
+  //   items.splice(destinationIndex, 0, moved);
+
+  //   setEditedReport(prev => ({
+  //     ...prev,
+  //     elements: items,
+  //   }));
+
+  //   pushToHistory({ title: editedReport?.title, elements: items });
+  // };
+
   const onDragEnd = (result) => {
     setIsDragging(false);
-
     if (!result.destination) return;
 
     const sourceIndex = result.source.index;
     const destinationIndex = result.destination.index;
-    const items = Array.from(editedReport.elements);
-    const [moved] = items.splice(sourceIndex, 1);
-    items.splice(destinationIndex, 0, moved);
+
+    const newOrder = Array.from(editedReport.elementsOrder);
+    const [movedId] = newOrder.splice(sourceIndex, 1);
+    newOrder.splice(destinationIndex, 0, movedId);
 
     setEditedReport(prev => ({
       ...prev,
-      elements: items,
+      elementsOrder: newOrder,
     }));
 
-    pushToHistory({ title: editedReport?.title, elements: items });
+    pushToHistory({
+      title: editedReport.title,
+      elements: editedReport.elements,
+      elementsOrder: newOrder,
+    });
   };
+
 
   const handleImageSelected = (event) => {
     const file = event.target.files?.[0];
@@ -283,95 +279,16 @@ export const ReportEditor = () => {
 
   const removeElement = (id) => {
     setEditedReport(prev => {
-      const newElements = prev.elements.filter(el => el.id !== id);
-
-      pushToHistory({
-        title: prev.title,
-        elements: newElements,
-      });
+      const { [id]: _, ...rest } = prev.elements;
 
       return {
         ...prev,
-        elements: newElements,
+        elements: rest,
+        elementsOrder: prev.elementsOrder.filter(eid => eid !== id),
       };
     });
   };
 
-
-  const handleSave = async () => {
-    if (editedReport?.elements.length === 0) {
-      notify("No puedes guardar un reporte vacío.", "warning");
-      return;
-    }
-    try {
-      setSaveReport(true);
-
-      const normalizedTitle =
-        editedReport?.title?.trim() === "" ? "Reporte sin título" : editedReport?.title.trim();
-
-      const payload = formatElementsForDb(
-        editedReport.elements,
-        normalizedTitle
-      );
-
-      if (isEditing) {
-        const updatedReport = await updateReportApi(currentReportId, payload);
-
-        const { title, elements } = formatElementsForFrontend(updatedReport);
-
-        const cleanSnapshot = structuredClone({
-          title: title?.trim() === "" ? "Reporte sin título" : title,
-          elements: elements,
-        });
-
-        originalReportRef.current = cleanSnapshot;
-        setEditedReport(cleanSnapshot);
-        setHistory([structuredClone(cleanSnapshot)]);
-        setHistoryIndex(0);
-        setHasChanges(false);
-        setDeletedItems([]);
-
-        setCurrentReportId(updatedReport.id);
-
-        navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
-          state: { id: updatedReport.id },
-          replace: true,
-        });
-
-        notify("Reporte actualizado exitosamente.", "success");
-      } else {
-
-        const createdReport = await createReportApi(payload);
-        const { title, elements } = formatElementsForFrontend(createdReport);
-
-        setCurrentReportId(createdReport.id);
-
-        const cleanSnapshot = structuredClone({
-          title: title?.trim() === "" ? "Reporte sin título" : title,
-          elements: elements,
-        });
-
-        originalReportRef.current = cleanSnapshot;
-        setEditedReport(cleanSnapshot);
-        setHistory([structuredClone(cleanSnapshot)]);
-        setHistoryIndex(0);
-        setHasChanges(false);
-        setDeletedItems([]);
-
-        notify("Reporte creado exitosamente.", "success");
-        navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
-          state: { id: createdReport.id },
-          replace: true,
-        });
-      }
-
-      setHasChanges(false);
-    } catch (error) {
-      notify(error.message, "error");
-    } finally {
-      setSaveReport(false);
-    }
-  };
 
   const getElementLabel = (type) => {
     switch (type) {
@@ -399,39 +316,34 @@ export const ReportEditor = () => {
   };
 
   const handleAddCharts = () => {
-    // Normalizamos los gráficos seleccionados
     const chartsToAdd = normalizeCharts(selectedCharts);
 
-    if (chartInsertIndex === null) {
-      // Si no hay índice, los agregamos al final
-      chartsToAdd.forEach(chart => {
-        insertElementAfter(editedReport.elements.length - 1, {
-          ...chart,
-          type: 'chart',
-          content: chart.title || 'Gráfico sin título'
-        });
-      });
-    } else {
-      // Insertamos los gráficos en el índice seleccionado
-      chartsToAdd.forEach((chart, idx) => {
-        insertElementAfter(chartInsertIndex + idx, {
-          ...chart,
-          type: 'chart',
-          content: chart.title || 'Gráfico sin título'
-        });
-      });
-    }
+    let lastAfterId = chartInsertIndex;
 
-    // Limpiamos selección
+    chartsToAdd.forEach(chart => {
+      const newChart = {
+        ...chart,
+        id: generateUUID(),
+        type: 'chart',
+        content: chart.title || 'Gráfico sin título',
+      };
+
+      insertElementAfter(lastAfterId, newChart);
+
+      // ahora el siguiente se inserta después del anterior
+      lastAfterId = newChart.id;
+    });
+
     clearCharts();
     setChartInsertIndex(null);
   };
 
 
+
   const handleCancel = () => {
     confirm({
       title: "Descartar cambios",
-      description: "¿Deseas descartar todos los cambios no guardados?",
+      description: "¿Deseas restaurar el reporte original antes todos los cambios?",
       confirmationText: "Sí, descartar",
       cancellationText: "Cancelar",
     })
@@ -439,12 +351,7 @@ export const ReportEditor = () => {
         if (result.confirmed === true) {
           const resetState = structuredClone(originalReportRef.current);
           setEditedReport(resetState);
-
-          setHistory([structuredClone(resetState)]);
-          setHistoryIndex(0);
-
-          setDeletedItems([]);
-          setHasChanges(false);
+          notify("Reporte restaurado al original.", "success");
         }
       })
       .catch(() => { });
@@ -476,7 +383,6 @@ export const ReportEditor = () => {
   };
 
   const scrollToElement = (id) => {
-    console.log(id)
     const el = document.getElementById(id);
     if (!el) return;
 
@@ -490,14 +396,83 @@ export const ReportEditor = () => {
     el.classList.add('flash-highlight');
   };
 
-  // Contadores por tipo
-  const typeCounters = {
-    text: 0,
-    chart: 0,
-    image: 0
-  };
+  const isReportEmpty = !editedReport || Object.keys(editedReport.elements || {}).length === 0;
+  const orderedElements = useMemo(() => {
+    return editedReport.elementsOrder
+      .map(id => editedReport.elements[id])
+      .filter(Boolean);
+  }, [editedReport.elementsOrder, editedReport.elements]);
 
-  const isReportEmpty = editedReport?.elements?.length === 0;
+  const handleSave = async () => {
+    if (isReportEmpty) {
+      notify("No puedes guardar un reporte vacío.", "warning");
+      return;
+    }
+    try {
+      setSaveReport(true);
+
+      const normalizedTitle =
+        editedReport?.title?.trim() === "" ? "Reporte sin título" : editedReport?.title.trim();
+
+      const payload = formatElementsForDb(editedReport);
+
+      if (isEditing) {
+        const updatedReport = await updateReportApi(currentReportId, payload);
+
+        const { title, elements, elementsOrder } = formatElementsForFrontend(updatedReport);
+
+        setEditedReport({
+          title: title || "Reporte sin título",
+          elements: elements,
+          elementsOrder
+        });
+
+        const snapshot = structuredClone({ title, elements, elementsOrder });
+        originalReportRef.current = snapshot;
+        setHistory([snapshot]);
+        setHistoryIndex(0);
+        setCurrentReportId(updatedReport.id);
+        originalReportRef.current = snapshot;
+        setEditedReport(snapshot);
+
+        notify("Reporte actualizado exitosamente.", "success");
+        navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
+          state: { id: updatedReport.id },
+          replace: true,
+        });
+
+      } else {
+
+        const createdReport = await createReportApi(payload);
+        const { title, elements, elementsOrder } = formatElementsForFrontend(createdReport);
+
+        setEditedReport({
+          title: title || "Reporte sin título",
+          elements: elements,
+          elementsOrder
+        });
+
+        const snapshot = structuredClone({ title, elements, elementsOrder });
+        originalReportRef.current = snapshot;
+        setHistory([snapshot]);
+        setHistoryIndex(0);
+        setCurrentReportId(createdReport.id);
+        originalReportRef.current = snapshot;
+        setEditedReport(snapshot);
+
+        notify("Reporte creado exitosamente.", "success");
+        navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
+          state: { id: createdReport.id },
+          replace: true,
+        });
+      }
+
+    } catch (error) {
+      notify(error.message, "error");
+    } finally {
+      setSaveReport(false);
+    }
+  };
 
   if (fetchReport) return (
     <FullScreenProgress text={'Obteniendo el reporte...'} />
@@ -662,17 +637,24 @@ export const ReportEditor = () => {
               ]}
             </Menu>
 
-            <TextField
+            <ReportTitle
+              value={editedReport.title}
+              onSave={(title) =>
+                setEditedReport(prev => ({ ...prev, title }))
+              }
+            />
+
+
+            {/* <TextField
               fullWidth
               type="text"
               variant="outlined"
-              value={editedReport?.title}
-              onChange={(e) =>
-                setEditedReport(prev => ({
-                  ...prev,
-                  title: e.target.value,
-                }))
-              }
+              // value={editedReport?.title}
+              // onChange={(e) => {
+              //   setEditedReport(prev => ({ ...prev, title: e.target.value }));
+              // }}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="Escribe un título para tu reporte"
               slotProps={{
                 htmlInput: {
@@ -697,7 +679,7 @@ export const ReportEditor = () => {
                   lineHeight: '1',
                 },
               }}
-            />
+            /> */}
             <Tooltip
               title={isFullscreen ? "Minimizar" : "Maximizar"}
             >
@@ -741,33 +723,10 @@ export const ReportEditor = () => {
             width: '100%'
           }}>
 
-            <Button variant='outlined' sx={{ px: 0.5 }} onClick={handleOpenZoomMenu}>
-              <ZoomInIcon />
-              <Typography variant="caption" sx={{ minWidth: 40, textAlign: 'center' }}>
-                {Math.round(zoom * 100)}%
-              </Typography>
-            </Button>
-
             <Tooltip title="Mostrar índice del reporte">
               <span>
                 <IconButton onClick={() => setOpenOutline(o => !o)}>
                   <ListAltIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-
-            <Tooltip title="Deshacer">
-              <span>
-                <IconButton onClick={handleUndo} disabled={!canUndo}>
-                  <UndoIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-
-            <Tooltip title="Rehacer">
-              <span>
-                <IconButton onClick={handleRedo} disabled={!canRedo}>
-                  <RedoIcon />
                 </IconButton>
               </span>
             </Tooltip>
@@ -782,7 +741,6 @@ export const ReportEditor = () => {
               <span>
                 <IconButton
                   disabled={isReportEmpty}
-                  color={showCharts ? "primary" : "default"}
                   onClick={() => setShowCharts(prev => !prev)}
                 >
                   {showCharts ? <VisibilityIcon /> : <VisibilityOffIcon />}
@@ -790,22 +748,6 @@ export const ReportEditor = () => {
               </span>
             </Tooltip>
 
-
-            <Menu
-              anchorEl={zoomAnchorEl}
-              open={openZoomMenu}
-              onClose={handleCloseZoomMenu}
-            >
-              {ZOOM_OPTIONS.map(z => (
-                <MenuItem
-                  key={z}
-                  selected={zoom === z}
-                  onClick={() => handleSelectZoom(z)}
-                >
-                  {Math.round(z * 100)}%
-                </MenuItem>
-              ))}
-            </Menu>
           </Box>
 
           <Box sx={{
@@ -820,14 +762,14 @@ export const ReportEditor = () => {
               color="error"
               sx={{ width: '165px', height: '100%' }}
               onClick={() => handleCancel()}
-              disabled={saveReport || !hasChanges}
+              disabled={saveReport}
             >
               Descartar cambios
             </Button>
             <ButtonWithLoader
               loading={saveReport}
               onClick={() => handleSave()}
-              disabled={!hasChanges || isReportEmpty}
+              disabled={isReportEmpty}
               variant="contained"
               backgroundButton={theme => theme.palette.success.main}
               sx={{ color: 'white', px: 2, width: '170px' }}
@@ -841,12 +783,11 @@ export const ReportEditor = () => {
       {/* Contenido editable */}
       <Box sx={{
         p: 1,
-        zoom: zoom,
         flex: 1,
         minHeight: 0,
         borderTop: "1px solid #ccc",
         overflowY: 'auto',
-        "&::-webkit-scrollbar": { width: { xs: '2px', lg: '8px' } },
+        "&::-webkit-scrollbar": { width: { xs: '2px', lg: '6px' } },
         "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
         "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
         "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
@@ -856,14 +797,15 @@ export const ReportEditor = () => {
           open={openOutline}
           onClose={() => setOpenOutline(false)}
           variant="temporary"
-          sx={{
+          sx={{ 
             zIndex: isFullscreen && 2000,
             width: 270,
             flexShrink: 0,
             '& .MuiDrawer-paper': {
               width: 260,
               boxSizing: 'border-box',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              right: `${right}px`,
             },
           }}
         >
@@ -905,11 +847,12 @@ export const ReportEditor = () => {
               <Droppable droppableId="outline">
                 {(provided) => (
                   <Box ref={provided.innerRef} {...provided.droppableProps}>
-                    {editedReport?.elements?.map((el, index) => {
-                      const numberOfPreviousSameType = editedReport.elements
-                        .slice(0, index)
-                        .filter(e => e.type === el.type).length + 1;
-
+                    {orderedElements.map((el, index) => {
+                      const numberOfPreviousSameType =
+                        orderedElements
+                          .slice(0, index)
+                          .filter(e => e.type === el.type)
+                          .length + 1;
                       return (
                         <Draggable
                           draggableId={`outline-${el.id}`}
@@ -1043,7 +986,7 @@ export const ReportEditor = () => {
         <Box
           id="report-content"
           sx={{
-            width: { lg: 900, xs: '100%' },
+            width: { lg: '80%', xs: '100%' },
             margin: "auto",
             p: { xs: 1, lg: 4 },
             bgcolor: "background.paper",
@@ -1063,27 +1006,29 @@ export const ReportEditor = () => {
                     <Box mb={1}>
                       <InsertBlockDivider
                         onAddText={() =>
-                          insertElementAfter(-1, {
+                          insertElementAfter(null, {
                             id: generateUUID(),
                             type: 'text',
                             content: '<p>Nuevo texto...</p>',
                           })
                         }
                         onAddImage={() => {
-                          setPendingInsertIndex(-1);
+                          setPendingInsertIndex(null);
                           imageInputRef.current.click();
                         }}
                         onAddChart={() => {
-                          setChartInsertIndex(-1);
+                          setChartInsertIndex(null);
                           setOpenChartSelector(true);
                         }}
                       />
                     </Box>
                   )}
-                  {editedReport?.elements.map((el, index) => {
-                    const numberOfPreviousSameType = editedReport.elements
-                      .slice(0, index)
-                      .filter(e => e.type === el.type).length + 1;
+                  {orderedElements.map((el, index) => {
+                    const numberOfPreviousSameType =
+                      orderedElements
+                        .slice(0, index)
+                        .filter(e => e.type === el.type)
+                        .length + 1;
 
                     return (
                       <Fragment key={el.id}>
@@ -1116,251 +1061,14 @@ export const ReportEditor = () => {
                                 '&:hover': { bgcolor: snapshot.isDragging ? 'action.hover' : 'action.hover' },
                               }}
                             >
-                              <Box display={'flex'} width={'100%'} height={'100%'} alignItems={'center'} alignContent={'center'} justifyContent={'space-between'} gap={1}>
-                                {!showCharts &&
-                                  <Box width={'auto'} height={'100%'} display={'flex'} alignItems={'center'} gap={1} mr={1}>
-                                    <DragIndicatorIcon fontSize="medium" />
-                                    <Divider orientation="vertical" flexItem />
-                                  </Box>
-                                }
-                                <Box display={'flex'} flexDirection={'row'} alignContent={'start'} sx={{
-                                  width: '100%',
-                                  height: '100%',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center'
-                                }}>
-                                  <Box display={'flex'} flexDirection={'column'} justifyContent={'center'} gap={1}>
-                                    <Typography variant="caption" fontWeight={'bold'} lineHeight={1} sx={{ flexGrow: 1 }}>
-                                      {getElementLabel(el.type)} #{numberOfPreviousSameType}
-                                    </Typography>
-
-                                    {el.type === 'text' && !showCharts && (
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                        sx={{
-                                          display: 'block',
-                                          whiteSpace: 'nowrap',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                          maxWidth: '100%',
-                                        }}
-                                      >
-                                        {el.content.replace(/<[^>]+>/g, '').slice(0, 50)}
-                                        {el.content.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
-                                      </Typography>
-                                    )}
-
-                                    {el.type === 'chart' && (
-                                      <Box sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: 0.5
-                                      }}>
-                                        <Typography
-                                          variant="caption"
-                                          color="textSecondary"
-                                          lineHeight={1}
-                                          sx={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            fontSize: 11
-                                          }}
-                                        >
-                                          Proyecto: {el?.integration_data?.project?.name ?? 'N/A'}
-                                        </Typography>
-
-                                        <Box sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: 1
-                                        }}>
-                                          <Avatar
-                                            sx={{
-                                              bgcolor: integrationsConfig[el?.integration_data?.integration?.platform]?.color,
-                                              width: 20,
-                                              height: 20,
-                                              borderRadius: 1,
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              boxShadow: (theme) =>
-                                                theme.palette.mode === 'light'
-                                                  ? '0 0 0 1px rgba(0,0,0,0.3)'
-                                                  : '0 0 0 1px rgba(255,255,255,0.3)',
-                                            }}
-                                          >
-                                            {React.createElement(
-                                              integrationsConfig[el?.integration_data?.integration?.platform]?.icon,
-                                              { fontSize: "small", htmlColor: "#fff" }
-                                            )}
-                                          </Avatar>
-                                          <Box sx={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                          }}>
-                                            <Typography
-                                              variant="caption"
-                                              fontWeight={'bold'}
-                                              color={integrationsConfig[el?.integration_data?.integration?.platform]?.color}
-                                              lineHeight={1}
-                                              sx={{
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                              }}
-                                            >
-                                              {el?.integration_data?.integration?.platform ?? 'N/A'}
-                                            </Typography>
-                                            <Typography
-                                              variant="caption"
-                                              color="textSecondary"
-                                              lineHeight={1}
-                                              sx={{
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                                fontSize: 11
-                                              }}
-                                            >
-                                              {el?.integration_data?.integration?.name ?? 'N/A'}
-                                            </Typography>
-                                          </Box>
-                                        </Box>
-                                      </Box>
-                                    )}
-                                  </Box>
-
-                                  {el.type === 'chart' && (
-                                    <Box
-                                      sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        gap: 0.5,
-                                        overflow: 'hidden',
-                                        maxWidth: '100%',
-                                      }}
-                                    >
-                                      {!showCharts &&
-                                        <Box sx={{
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          alignItems: 'end',
-                                        }}>
-                                          <Typography
-                                            variant="caption"
-                                            color="text.secondary"
-                                            sx={{
-                                              overflow: 'hidden',
-                                              textOverflow: 'ellipsis',
-                                              whiteSpace: 'wrap',
-                                            }}
-                                          >
-                                            {el.content ?? 'Sin título'}
-                                          </Typography>
-
-                                          <Typography
-                                            variant="caption"
-                                            color="textSecondary"
-                                            fontWeight={'semiBold'}
-                                            lineHeight={1}
-                                            sx={{
-                                              overflow: 'hidden',
-                                              textOverflow: 'ellipsis',
-                                              whiteSpace: 'nowrap',
-                                              fontSize: 10
-                                            }}
-                                          >
-                                            {el.interval ?? 'N/A'}
-                                          </Typography>
-
-                                        </Box>
-                                      }
-                                    </Box>
-                                  )}
-                                </Box>
-
-                                {
-                                  showCharts &&
-                                  <IconButton
-                                    size="small"
-                                    color="error"
-                                    onClick={() => removeElement(el.id)}
-                                    sx={{ p: 0, m: 0 }}
-                                  >
-                                    <DeleteIcon />
-                                  </IconButton>
-                                }
-                              </Box>
-
-                              {
-                                showCharts &&
-                                <Divider />
-                              }
-
-                              {
-                                showCharts &&
-                                <>
-                                  {el.type === "text" && (
-                                    <ReactQuill
-                                      theme="snow"
-                                      className="quill-dark"
-                                      value={el.content}
-                                      onChange={(val) => {
-                                        const updated = editedReport.elements.map((item, i) =>
-                                          i === index ? { ...item, content: val } : item
-                                        );
-
-                                        setEditedReport(prev => ({
-                                          ...prev,
-                                          elements: updated,
-                                        }));
-                                      }}
-                                      onBlur={() => pushToHistory({ title: editedReport?.title, elements: editedReport?.elements })}
-                                    />
-                                  )}
-
-                                  {el.type === "chart" && (
-                                    <ChartRenderer element={el} />
-                                  )}
-
-                                  {el.type === 'image' && showCharts && (
-                                    <ResizableImage
-                                      element={el}
-                                      onResize={(newWidth, newHeight, alt) => {
-                                        const updated = editedReport?.elements?.map((item, i) =>
-                                          i === index
-                                            ? { ...item, width: newWidth, height: newHeight, alt }
-                                            : item
-                                        );
-                                        setEditedReport(prev => ({
-                                          ...prev,
-                                          elements: updated,
-                                        }));
-                                      }}
-                                      onResizeStop={(newWidth, newHeight, alt) => {
-                                        const updated = editedReport?.elements?.map((item, i) =>
-                                          i === index
-                                            ? { ...item, width: newWidth, height: newHeight, alt }
-                                            : item
-                                        );
-
-                                        setEditedReport(prev => ({
-                                          ...prev,
-                                          elements: updated,
-                                        }));
-
-                                        pushToHistory({
-                                          title: editedReport?.title,
-                                          elements: updated,
-                                        });
-                                      }}
-                                    />
-                                  )}
-                                </>
-                              }
+                              <ReportElementItem
+                                key={el.id}
+                                element={el}
+                                showCharts={showCharts}
+                                numberOfPreviousSameType={numberOfPreviousSameType}
+                                onChange={handleElementChange}
+                                removeElement={removeElement}
+                              />
                             </Box>
                           )}
                         </Draggable>
@@ -1369,7 +1077,7 @@ export const ReportEditor = () => {
                           showCharts &&
                           <InsertBlockDivider
                             onAddText={() =>
-                              insertElementAfter(index, {
+                              insertElementAfter(el.id, {
                                 id: generateUUID(),
                                 type: 'text',
                                 content: '<p>Nuevo texto...</p>',
@@ -1377,12 +1085,12 @@ export const ReportEditor = () => {
                             }
 
                             onAddImage={() => {
-                              setPendingInsertIndex(index);
+                              setPendingInsertIndex(el.id);
                               imageInputRef.current.click();
                             }}
 
                             onAddChart={() => {
-                              setChartInsertIndex(index);
+                              setChartInsertIndex(el.id);
                               setOpenChartSelector(true);
                             }}
                           />

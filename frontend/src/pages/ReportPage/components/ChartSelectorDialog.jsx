@@ -58,7 +58,7 @@ export const ChartSelectorDialog = ({ open, onClose, onAcept }) => {
         },
       }}>
         <APIsDashboardPage
-          selectable
+          showingDialog={true}
         />
       </DialogContent>
 

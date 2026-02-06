@@ -69,7 +69,6 @@ body {
 /* Contenedor general */
 .quill-dark .ql-container {
   font-family: 'Roboto', sans-serif;
-  font-size: 14px;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
 }
