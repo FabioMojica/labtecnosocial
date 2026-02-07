@@ -41,12 +41,17 @@ export const formatElementsForFrontend = (backendReport) => {
       position: el.position ?? 0,
     };
 
+
     switch (el.type) {
       case "text":
         elements[id] = {
           ...base,
-          content: el.content || "<p>Nuevo texto...</p>",
+          content: { 
+            content_html: el.content.content_html ?? "<p>Nuevo texto...</p>",
+            content_delta: el.content.content_delta
+          },
         };
+
         break;
 
       case "image":
@@ -106,7 +111,11 @@ export const formatElementsForDb = (editedReport) => {
 
     switch (el.type) {
       case "text":
-        base.content = el.content ?? "<p>Nuevo texto...</p>";
+        base.content =  { 
+          content_html: el?.content?.content_html ?? "<p>Nuevo texto...</p>",
+          content_delta: el?.content?.content_delta
+        }
+
         break;
 
       case "image":

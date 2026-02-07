@@ -15,8 +15,6 @@ import { useReport } from "../../../contexts";
 export const ChartSelectorDialog = ({ open, onClose, onAcept }) => {
   const { selectedCharts, clearCharts } = useReport();
 
-  console.log("akakaka", selectedCharts) 
-
   const theme = useTheme();
 
   const handleAccept = () => {

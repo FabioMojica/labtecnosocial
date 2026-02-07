@@ -4,7 +4,7 @@ import { z } from "zod";
 const reportElementSchema = z.object({
   id: z.string().uuid(),
   type: z.enum(["text", "image", "chart"]),
-  content: z.string().optional(), 
+  content: z.any().optional(), 
   src: z.string().nullable().optional(),
   alt: z.string().optional(),
   width: z.number().optional(),

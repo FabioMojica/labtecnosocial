@@ -4,8 +4,9 @@ import { Delete as DeleteIcon, DragIndicator as DragIndicatorIcon } from "@mui/i
 import { ChartRenderer } from "./ChartRenderer";
 import { ResizableImage } from "./ResizableImage";
 import { integrationsConfig } from "../../../utils";
-import ReactQuill from "react-quill-new";
+import ReactQuill, { Quill } from "react-quill-new";
 import debounce from "lodash.debounce";
+const Delta = Quill.import('delta'); // <--- esto es clave
 
 const getElementLabel = (type) => {
     switch (type) {
@@ -30,6 +31,9 @@ const quillFormats = [
     'bullet',
     'link',
 ];
+
+
+
 const quillModules = {
     toolbar: [
         [{ header: [1, 2, 3, false] }],
@@ -41,11 +45,36 @@ const quillModules = {
 };
 
 export const ReportElementItem = memo(({ element, index, numberOfPreviousSameType, showCharts = true, onChange, removeElement }) => {
-    const [localValue, setLocalValue] = useState(element.content);
+    const [localValue, setLocalValue] = useState(
+        element?.content?.content_html ?? ""
+    );
+
+    const quillRef = useRef(null);
+
+    useEffect(() => {
+        if (!quillRef.current) return;
+
+        const quill = quillRef.current.getEditor();
+        const root = quill.root;
+
+        const handlePaste = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        };
+
+        root.addEventListener('paste', handlePaste, true);
+
+        return () => {
+            root.removeEventListener('paste', handlePaste, true);
+        };
+    }, []);
+
     const [localSize, setLocalSize] = useState({
         width: element.width,
         height: element.height,
     });
+
     useEffect(() => {
         setLocalSize({
             width: element.width,
@@ -55,10 +84,11 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
 
 
     const debouncedSave = useRef(
-        debounce((val) => {
-            onChange(element.id, { ...element, content: val });
+        debounce((payload) => {
+            onChange(element.id, payload);
         }, 500)
     ).current;
+
 
     const debouncedResize = useRef(
         debounce((payload) => {
@@ -89,8 +119,17 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
 
 
     useEffect(() => {
-        setLocalValue(element.content);
-    }, [element.content]);
+        if (!quillRef.current) return;
+
+        const quill = quillRef.current.getEditor();
+        const delta = element?.content?.content_delta;
+
+        if (delta) {
+            quill.setContents(delta);
+            setLocalValue(quill.root.innerHTML);
+        }
+    }, [element.id]);
+
 
     useEffect(() => {
         return () => {
@@ -144,15 +183,15 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
                             overflow: 'hidden',
                             textOverflow: 'ellipsis'
                         }}>
-                            {element.content.replace(/<[^>]+>/g, '').slice(0, 50)}
-                            {element.content.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
+                            {element?.content.content_html?.replace(/<[^>]+>/g, '').slice(0, 50)}
+                            {element?.content?.content_html?.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
                         </Typography>
                     )}
 
                     {element.type === 'chart' && (
                         <Box display="flex" flexDirection="column" gap={0.5}>
                             <Typography
-                                variant="caption" 
+                                variant="caption"
                                 color="textSecondary"
                                 sx={{
                                     overflow: 'hidden',
@@ -218,7 +257,7 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
 
                 {/* DELETE BUTTON */}
                 {showCharts && (
-                    <IconButton sx={{alignSelf: 'self-start'}} size="small" color="error" onClick={() => removeElement(element.id)}>
+                    <IconButton sx={{ alignSelf: 'self-start' }} size="small" color="error" onClick={() => removeElement(element.id)}>
                         <DeleteIcon />
                     </IconButton>
                 )}
@@ -231,16 +270,29 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
                 <>
                     {element.type === "text" && (
                         <ReactQuill
+                            ref={quillRef}
                             theme="snow"
                             className="quill-dark"
                             value={localValue}
                             modules={quillModules}
-                            onChange={(val) => {
-                                setLocalValue(val);
-                                debouncedSave(val);
+                            onKeyDown={(e) => {
+                                if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+                                    e.preventDefault();
+                                }
                             }}
-                        />
+                            onChange={(html, delta, source, editor) => {
+                                setLocalValue(html);
 
+                                debouncedSave({
+                                    ...element,
+                                    content: {
+                                        content_html: html,
+                                        content_delta: editor.getContents(),
+                                    },
+                                });
+                            }}
+
+                        />
                     )}
 
                     {element.type === "chart" && <ChartRenderer element={element} />}

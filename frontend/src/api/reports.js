@@ -60,7 +60,6 @@ export const createReportApi = async (updatedData) => {
  
 
 export const updateReportApi = async (reportId, updatedData) => {
-    console.log("akakakakaa", reportId)
   const controller = loadAbort();
   try {
     const { data } = await axiosInstance.put(Routes.reports.SAVE_REPORT(reportId), updatedData);

@@ -278,7 +278,6 @@ export const ViewProjectDrawer = ({ project }) => {
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 position: 'relative',
-                                                boxShadow: 1,
                                                  boxShadow:
                                                 theme.palette.mode === 'light'
                                                     ? '0 0 0 1px rgba(0,0,0,0.3)'

@@ -148,7 +148,6 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
                                 borderRadius: 2,
                                 bgcolor: 'background.paper',
                                 boxShadow: 3,
-                                fontWeight: 500,
                                 fontSize: "0.85rem",
                                 fontWeight: 'bold',
                                 display: 'flex',

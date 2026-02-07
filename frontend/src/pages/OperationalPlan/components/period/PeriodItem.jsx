@@ -54,7 +54,6 @@ const PeriodItem = ({ setGlobalModalOpen, value, onUpdate, onDelete }) => {
                 : 'rgba(255, 255, 255, 0.08)',
             transition: 'background-color 0.2s ease',
           },
-          borderRadius: 1,
           cursor: 'pointer',
           border: theme.palette.mode === "light"
             ? `1px solid #b9c0b3ff`

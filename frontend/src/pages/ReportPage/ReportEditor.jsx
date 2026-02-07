@@ -32,14 +32,11 @@ import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
 
 import "react-quill-new/dist/quill.snow.css";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import html2pdf from "html2pdf.js";
-import { createReportApi, getReportByIdApi, deleteReportApi, updateReportApi } from "../../api";
 import { ButtonWithLoader, ErrorScreen, FullScreenProgress } from "../../generalComponents";
-import { useConfirm } from "material-ui-confirm";
 import { useLayout, useNotification, useReport } from "../../contexts";
 import { formatDateParts, generateUUID, integrationsConfig } from "../../utils";
 
-import { v4 as uuidv4, validate as validateUUID } from 'uuid';
+import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 
 import {
   InsertBlockDivider,
@@ -49,305 +46,70 @@ import {
   ReportTitle
 } from "./components";
 import { getElementLabel, formatElementsForDb, formatElementsForFrontend } from "./utils";
+import { useReportEditor } from "./hooks/useReportEditor";
+import { ReportPDF } from "./components/ReportPdf";
 
 
 export const ReportEditor = () => {
-  const location = useLocation();
   const [exportAnchorEl, setExportAnchorEl] = useState(null);
   const openExportMenu = Boolean(exportAnchorEl);
-  const [history, setHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
-  const confirm = useConfirm();
   const [openDeleteReportDialog, setOpenDeleteReportDialog] = useState(false);
-  const [deletedReport, setDeletedReport] = useState(false);
-  const { notify } = useNotification();
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const theme = useTheme();
-  const [isDragging, setIsDragging] = useState(false);
-  const [zoomAnchorEl, setZoomAnchorEl] = useState(null);
-  const openZoomMenu = Boolean(zoomAnchorEl);
   const { right } = useLayout();
   const [openOutline, setOpenOutline] = useState(false);
   const headerRef = useRef(null);
   const [showCharts, setShowCharts] = useState(true);
   const [openChartSelector, setOpenChartSelector] = useState(false);
-  const handleOpenZoomMenu = (e) => setZoomAnchorEl(e.currentTarget);
-  const handleCloseZoomMenu = () => setZoomAnchorEl(null);
   const imageInputRef = useRef(null);
-  const [pendingInsertIndex, setPendingInsertIndex] = useState(null);
-  const [chartInsertIndex, setChartInsertIndex] = useState(null);
-  const navigate = useNavigate();
-  const [fetchReport, setFetchReport] = useState(false);
-  const [saveReport, setSaveReport] = useState(false);
-  const [errorFetchReport, setErrorFecthReport] = useState(false);
 
-  const initialReportId = location.state?.id ? Number(location.state.id) : null;
-  const [currentReportId, setCurrentReportId] = useState(initialReportId);
-
-  const [isCreateNewReport, setIsCreateNewReport] = useState(initialReportId === null);
-
-  const { selectedCharts, addChart, removeChart, clearCharts } = useReport();
-  const [reportMetadata, setReportMetadata] = useState(null);
-
-  const originalReportRef = useRef({
-    title: "Reporte sin título",
-    elements: {},
-    elementsOrder: [],
-  });
-
-  const [editedReport, setEditedReport] = useState({
-    title: "Reporte sin título",
-    elements: {},
-    elementsOrder: [],
-  });
-
-  const [title, setTitle] = useState(null)
-
-  const normalizeReportForCompare = (report) => {
-    return {
-      title: report.title?.trim() || "",
-      elementsOrder: report.elementsOrder,
-      elements: Object.values(report.elements)
-        .map(el => {
-          const { file, __local, ...rest } = el;
-          return rest;
-        })
-        .sort((a, b) => a.id.localeCompare(b.id)),
-    };
-  };
-
-  const isDirty = useMemo(() => {
-    const current = normalizeReportForCompare(editedReport);
-    const original = normalizeReportForCompare(originalReportRef.current);
-    return JSON.stringify(current) !== JSON.stringify(original);
-  }, [editedReport]);
-
-
-  const fetchReportById = async () => {
-    try {
-      setErrorFecthReport(false);
-      setFetchReport(true);
-      const res = await getReportByIdApi(currentReportId);
-      const { created_at, updated_at, report_version } = res;
-      const { title, elements, elementsOrder } = formatElementsForFrontend(res);
-
-      setTitle(title)
-      setEditedReport({
-        title: title || "Reporte sin título",
-        elements: elements,
-        elementsOrder
-      });
-      setReportMetadata({
-        created_at,
-        updated_at,
-        report_version
-      });
-
-      const snapshot = structuredClone({ title, elements, elementsOrder });
-      originalReportRef.current = snapshot;
-      setHistory([snapshot]);
-      setHistoryIndex(0);
-    } catch (error) {
-      setErrorFecthReport(true);
-      notify(error.message, "error");
-    } finally {
-      setFetchReport(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isCreateNewReport) return;
-    fetchReportById();
-  }, [currentReportId]);
-
-  const handleElementChange = (id, newElement) => {
-    setEditedReport(prev => ({
-      ...prev,
-      elements: {
-        ...prev.elements,
-        [id]: newElement,
-      }
-    }));
-  };
+  const {
+    isCreateNewReport,
+    editedReport,
+    setEditedReport,
+    currentReportId,
+    title,
+    setTitle,
+    isReportEmpty,
+    orderedElements,
+    isDirty,
+    canUndo,
+    canRedo,
+    isFullscreen,
+    setIsFullscreen,
+    isDragging,
+    setIsDragging,
+    fetchReport,
+    saveReport,
+    deletedReport,
+    errorFetchReport,
+    reportMetadata,
+    undo,
+    redo,
+    insertElementAfter,
+    removeElement,
+    handleElementChange,
+    onDragEnd,
+    handleImageSelected,
+    pendingInsertIndex,
+    setPendingInsertIndex,
+    chartInsertIndex,
+    setChartInsertIndex,
+    handleAddCharts,
+    fetchReportById,
+    handleSave,
+    handleCancel,
+    handleDeleteReport,
+    exportToXLS
+  } = useReportEditor();
 
   const handleOpenExportMenu = (event) => {
     if (event.currentTarget) {
       setExportAnchorEl(event.currentTarget);
     }
   };
+
   const handleCloseExportMenu = () => {
     setExportAnchorEl(null);
-  };
-
-  const insertElementAfter = (afterId, newElement) => {
-    setEditedReport(prev => {
-      const newElements = { ...prev.elements, [newElement.id]: newElement };
-
-      if (afterId === null) {
-        return {
-          ...prev,
-          elements: newElements,
-          elementsOrder: [newElement.id, ...prev.elementsOrder],
-        };
-      }
-
-      const index = prev.elementsOrder.indexOf(afterId);
-      const newOrder = [
-        ...prev.elementsOrder.slice(0, index + 1),
-        newElement.id,
-        ...prev.elementsOrder.slice(index + 1),
-      ];
-
-      return { ...prev, elements: newElements, elementsOrder: newOrder };
-    });
-  };
-
-  const onDragEnd = (result) => {
-    setIsDragging(false);
-    if (!result.destination) return;
-
-    const sourceIndex = result.source.index;
-    const destinationIndex = result.destination.index;
-
-    const newOrder = Array.from(editedReport.elementsOrder);
-    const [movedId] = newOrder.splice(sourceIndex, 1);
-    newOrder.splice(destinationIndex, 0, movedId);
-
-    setEditedReport(prev => ({
-      ...prev,
-      elementsOrder: newOrder,
-    }));
-
-    pushToHistory({
-      title: editedReport.title,
-      elements: editedReport.elements,
-      elementsOrder: newOrder,
-    });
-  };
-
-
-  const handleImageSelected = (event) => {
-    const file = event.target.files?.[0];
-    if (!file || pendingInsertIndex === null) return;
-
-    if (!file.type.startsWith("image/")) {
-      notify("Solo se permiten imágenes", "warning");
-      return;
-    }
-
-    const MAX_SIZE_MB = 2;
-    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_SIZE_MB}MB`, "warning");
-      return;
-    }
-
-    const previewUrl = URL.createObjectURL(file);
-
-    const newImage = {
-      id: generateUUID(),
-      type: 'image',
-      src: previewUrl,
-      alt: file.name,
-      width: 400,
-      height: 400,
-      file,
-      __local: true
-    };
-
-    insertElementAfter(pendingInsertIndex, newImage);
-
-    setPendingInsertIndex(null);
-    event.target.value = '';
-  };
-
-  const removeElement = (id) => {
-    setEditedReport(prev => {
-      const { [id]: _, ...rest } = prev.elements;
-
-      return {
-        ...prev,
-        elements: rest,
-        elementsOrder: prev.elementsOrder.filter(eid => eid !== id),
-      };
-    });
-  };
-
-  const normalizeCharts = (charts) => {
-    return charts.map(chart => {
-      if (!chart.id || !validateUUID(chart.id)) {
-        return {
-          ...chart,
-          id: uuidv4(),
-        };
-      }
-      return chart;
-    });
-  };
-
-  const handleAddCharts = () => {
-    const chartsToAdd = normalizeCharts(selectedCharts);
-
-    let lastAfterId = chartInsertIndex;
-
-    chartsToAdd.forEach(chart => {
-      const newChart = {
-        ...chart,
-        id: generateUUID(),
-        type: 'chart',
-        content: chart.title || 'Gráfico sin título',
-      };
-
-      insertElementAfter(lastAfterId, newChart);
-
-      lastAfterId = newChart.id;
-    });
-
-    clearCharts();
-    setChartInsertIndex(null);
-  };
-
-  const handleCancel = () => {
-    confirm({
-      title: "Descartar cambios",
-      description: "¿Deseas descartar todos los cambios no guardados?",
-      confirmationText: "Sí, descartar",
-      cancellationText: "Cancelar",
-    })
-      .then((result) => {
-        if (result.confirmed === true) {
-          const resetState = structuredClone(originalReportRef.current);
-          setEditedReport(resetState);
-          notify("Cambios descartados correctamente", "info");
-        }
-      })
-      .catch(() => { });
-  };
-
-  const handleDeleteReport = async () => {
-    try {
-      setDeletedReport(true);
-      const deletedReport = await deleteReportApi(currentReportId);
-      notify("Reporte eliminado correctamente del sistema.", "success");
-      navigate('/reportes', { replace: true });
-      setOpenDeleteReportDialog(false);
-    } catch (error) {
-      notify(error.message, "error");
-    } finally {
-      setDeletedReport(false);
-    }
-  }
-
-  const exportToPDF = () => {
-    handleCloseExportMenu();
-    const content = document.getElementById("report-content");
-    html2pdf().from(content).save(`${editedReport?.title}.pdf`);
-  };
-
-  const exportToXLS = () => {
-    handleCloseExportMenu();
-    console.log('Exportar XLS');
   };
 
   const scrollToElement = (id) => {
@@ -364,61 +126,16 @@ export const ReportEditor = () => {
     el.classList.add('flash-highlight');
   };
 
-  const isReportEmpty = !editedReport || Object.keys(editedReport.elements || {}).length === 0;
-  const orderedElements = useMemo(() => {
-    return editedReport.elementsOrder
-      .map(id => editedReport.elements[id])
-      .filter(Boolean);
-  }, [editedReport.elementsOrder, editedReport.elements]);
+  const exportToPDF = async () => {
+    const blob = await pdf(<ReportPDF title={editedReport.title} elements={orderedElements} />).toBlob();
+    const url = URL.createObjectURL(blob);
 
-  const handleSave = async () => {
-    if (isReportEmpty) {
-      notify("No puedes guardar un reporte vacío.", "warning");
-      return;
-    }
-
-    try {
-      setSaveReport(true);
-
-      const normalizedTitle =
-        editedReport?.title?.trim() === "" ? "Reporte sin título" : editedReport?.title.trim();
-
-      const payload = formatElementsForDb(editedReport);
-
-      const response = isCreateNewReport
-        ? await createReportApi(payload)
-        : await updateReportApi(currentReportId, payload);
-
-      const { title, elements, elementsOrder } = formatElementsForFrontend(response);
-
-      const snapshot = structuredClone({ title, elements, elementsOrder });
-
-      setEditedReport(snapshot);
-      originalReportRef.current = snapshot;
-      setHistory([snapshot]);
-      setHistoryIndex(0);
-      setCurrentReportId(response.id);
-
-      notify(
-        isCreateNewReport
-          ? "Reporte creado exitosamente."
-          : "Reporte actualizado exitosamente.",
-        "success"
-      );
-
-      navigate(`/reportes/editor/${encodeURIComponent(normalizedTitle)}`, {
-        state: { id: response.id },
-        replace: true,
-      });
-
-      setIsCreateNewReport(false);
-    } catch (error) {
-      notify(error.message, "error");
-    } finally {
-      setSaveReport(false);
-    }
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${editedReport.title}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
-
 
   if (fetchReport) return (
     <FullScreenProgress text={'Obteniendo el reporte...'} />
@@ -819,8 +536,8 @@ export const ReportEditor = () => {
                                       }}
                                     >
                                       {/* extraemos un snippet del texto sin tags HTML */}
-                                      {el.content.replace(/<[^>]+>/g, '').slice(0, 50)}
-                                      {el.content.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
+                                      {el?.content?.content_html.replace(/<[^>]+>/g, '').slice(0, 50)}
+                                      {el?.content?.content_html.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
                                     </Typography>
                                   )}
 
@@ -928,7 +645,12 @@ export const ReportEditor = () => {
                           insertElementAfter(null, {
                             id: generateUUID(),
                             type: 'text',
-                            content: '<p>Nuevo texto...</p>',
+                            content: {
+                              content_html: '<p>Nuevo texto...</p>',
+                              content_delta: {
+                                ops: [{ insert: 'Nuevo texto...\n' }]
+                              }
+                            }
                           })
                         }
                         onAddImage={() => {
@@ -999,7 +721,12 @@ export const ReportEditor = () => {
                               insertElementAfter(el.id, {
                                 id: generateUUID(),
                                 type: 'text',
-                                content: '<p>Nuevo texto...</p>',
+                                content: {
+                                  content_html: '<p>Nuevo texto...</p>',
+                                  content_delta: {
+                                    ops: [{ insert: 'Nuevo texto...\n' }]
+                                  }
+                                }
                               })
                             }
 
@@ -1039,7 +766,10 @@ export const ReportEditor = () => {
           id: currentReportId,
           title: editedReport?.title,
         }}
-        onDeleteReport={handleDeleteReport}
+        onDeleteReport={() => {
+          handleDeleteReport();
+          setOpenDeleteReportDialog(false);
+        }}
       />
 
       <input
@@ -1047,7 +777,7 @@ export const ReportEditor = () => {
         type="file"
         accept="image/*"
         hidden
-        onChange={(e) => handleImageSelected(e)}
+        onChange={(e) => handleImageSelected(e.target.files[0])}
       />
     </Box >
   );
