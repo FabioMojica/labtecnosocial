@@ -191,7 +191,7 @@ export const useReportEditor = () => {
 
     // --------- Images ----------
     const handleImageSelected = (file) => {
-        if (!file || pendingInsertIndex === null) return;
+        if (!file) return;
 
         if (!file.type.startsWith("image/")) {
             notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
