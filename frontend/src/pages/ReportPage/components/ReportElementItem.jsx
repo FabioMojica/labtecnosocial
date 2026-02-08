@@ -6,7 +6,7 @@ import { ResizableImage } from "./ResizableImage";
 import { integrationsConfig } from "../../../utils";
 import ReactQuill, { Quill } from "react-quill-new";
 import debounce from "lodash.debounce";
-const Delta = Quill.import('delta'); // <--- esto es clave
+const Delta = Quill.import('delta');
 
 const getElementLabel = (type) => {
     switch (type) {
@@ -21,16 +21,20 @@ const getElementLabel = (type) => {
     }
 };
 
-const quillFormats = [
-    'header',
-    'align',
-    'bold',
-    'italic',
-    'underline',
-    'list',
-    'bullet',
-    'link',
-];
+const cleanHtmlForQuill = (html, quill) => {
+    // Crear un div temporal para parsear
+    const div = document.createElement('div');
+    div.innerHTML = html;
+
+    // Solo extraer el texto plano
+    const plainText = div.textContent || div.innerText || "";
+
+    // Insertar en Quill en la posición actual
+    const range = quill.getSelection(true);
+    quill.deleteText(range.index, range.length); // eliminar selección si hay
+    quill.insertText(range.index, plainText);    // insertar texto plano
+    quill.setSelection(range.index + plainText.length, 0);
+};
 
 
 
@@ -53,22 +57,29 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
 
     useEffect(() => {
         if (!quillRef.current) return;
-
         const quill = quillRef.current.getEditor();
-        const root = quill.root;
 
         const handlePaste = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            return false;
+
+            // Sacamos el contenido pegado como HTML o texto plano
+            const clipboardData = e.clipboardData || window.clipboardData;
+            const html = clipboardData.getData('text/html') || clipboardData.getData('text/plain');
+            if (!html) return;
+
+            // Limpiar HTML con nuestra función
+            cleanHtmlForQuill(html, quill);
         };
 
-        root.addEventListener('paste', handlePaste, true);
+        quill.root.addEventListener('paste', handlePaste, true);
 
         return () => {
-            root.removeEventListener('paste', handlePaste, true);
+            quill.root.removeEventListener('paste', handlePaste, true);
         };
     }, []);
+
+
 
     const [localSize, setLocalSize] = useState({
         width: element.width,
@@ -275,14 +286,9 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
                             className="quill-dark"
                             value={localValue}
                             modules={quillModules}
-                            onKeyDown={(e) => {
-                                if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-                                    e.preventDefault();
-                                }
-                            }}
                             onChange={(html, delta, source, editor) => {
+                                
                                 setLocalValue(html);
-
                                 debouncedSave({
                                     ...element,
                                     content: {

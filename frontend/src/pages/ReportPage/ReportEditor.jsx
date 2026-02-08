@@ -39,7 +39,7 @@ import { formatDateParts, generateUUID, integrationsConfig } from "../../utils";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 
 import {
-  InsertBlockDivider,
+  InsertBlockDivider, 
   ChartSelectorDialog,
   DeleteReportDialog,
   ReportElementItem,
@@ -48,7 +48,6 @@ import {
 import { getElementLabel, formatElementsForDb, formatElementsForFrontend } from "./utils";
 import { useReportEditor } from "./hooks/useReportEditor";
 import { ReportPDF } from "./components/ReportPdf";
-
 
 export const ReportEditor = () => {
   const [exportAnchorEl, setExportAnchorEl] = useState(null);
@@ -62,6 +61,7 @@ export const ReportEditor = () => {
   const [openChartSelector, setOpenChartSelector] = useState(false);
   const imageInputRef = useRef(null);
   const { notify } = useNotification();
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   const {
     isCreateNewReport,
@@ -127,21 +127,86 @@ export const ReportEditor = () => {
     el.classList.add('flash-highlight');
   };
 
-  const exportToPDF = async () => {
-    const blob = await pdf(
-      <ReportPDF
-        title={editedReport.title}
-        elements={orderedElements}
-      />).toBlob();
 
-    const url = URL.createObjectURL(blob);
+  // const exportToPDF = () => {
+  //   setGeneratingPDF(true);
+  //   const worker = new Worker(new URL('./utils/pdfWorker.js', import.meta.url), {type: 'module'});
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${editedReport.title}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
+  //   worker.postMessage({
+  //     title: editedReport.title,
+  //     elements: orderedElements 
+  //   });
+
+  //   worker.onmessage = (e) => {
+  //     if (e.data.progress) {
+  //       console.log('Progreso PDF:', e.data.progress * 100, '%');
+  //       setGeneratingPDF(e.data.progress);
+  //     }
+
+  //     if (e.data.done) {
+  //       const blob = new Blob([e.data.pdfBytes], { type: 'application/pdf' });
+  //       const url = URL.createObjectURL(blob);
+  //       const a = document.createElement('a');
+  //       a.href = url;
+  //       a.download = `${editedReport.title}.pdf`;
+  //       a.click();
+  //       URL.revokeObjectURL(url);
+  //       setGeneratingPDF(false);
+  //       worker.terminate();
+  //     }
+  //   };
+  //   setGeneratingPDF(false);
+  // };
+
+  const exportToPDF = () => {
+    setGeneratingPDF(true);
+
+    const worker = new Worker(new URL('./utils/pdfWorker.js', import.meta.url), { type: 'module' });
+
+    worker.postMessage({
+      title: editedReport.title,
+      elements: orderedElements,
+    });
+
+    worker.onmessage = (e) => {
+      const data = e.data;
+
+      // Progreso
+      if (data.progress !== undefined) {
+        setGeneratingPDF(data.progress);
+      }
+
+      // PDF generado
+      if (data.done) {
+        const blob = new Blob([data.pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${editedReport.title}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        setGeneratingPDF(false);
+        worker.terminate();
+      }
+
+      if (data.error) {
+        console.error("Error desde worker:", data.message);
+        setGeneratingPDF(false);
+        notify(`Ocurrió un error al generar PDF: ${data.message}`, 'error');
+        worker.terminate();
+      }
+    };
+
+    worker.onerror = (err) => {
+      console.error("Error fatal en worker:", err);
+      setGeneratingPDF(false);
+      notify(`Ocurrió un error al generar PDF`, 'error');
+      worker.terminate();
+    };
   };
+
+
 
   if (fetchReport) return (
     <FullScreenProgress text={'Obteniendo el reporte...'} />
@@ -158,6 +223,9 @@ export const ReportEditor = () => {
   if (deletedReport) return (
     <FullScreenProgress text={'Eliminando el reporte...'} />
   )
+
+  if (generatingPDF) return (<FullScreenProgress text="Generando PDF..." />)
+
 
   return (
     <Box

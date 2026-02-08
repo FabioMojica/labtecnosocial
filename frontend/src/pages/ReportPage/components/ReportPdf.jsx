@@ -8,6 +8,7 @@ import { formatDateParts } from "../../../utils";
 const MAX_CHARS_PER_LINE = 80;
 
 
+
 Font.registerHyphenationCallback((word) => {
     const chunkSize = 1;
     const result = [];
@@ -32,7 +33,6 @@ const styles = StyleSheet.create({
         padding: 10,
         height: 60,
         width: '100%',
-        marginBottom: 20,
     },
     reportDataHeader: {
         flex: 1,
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
         color: '#f1eaea',
     },
     contentPage: {
-        paddingHorizontal: 20,
+        padding: 20,
     },
     paragraph: { marginBottom: 10, flexWrap: 'wrap', wordBreak: 'break-word' },
     bold: { fontWeight: "bold", flexWrap: 'wrap', wordBreak: 'break-word' },
