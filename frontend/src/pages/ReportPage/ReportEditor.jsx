@@ -61,6 +61,7 @@ export const ReportEditor = () => {
   const [showCharts, setShowCharts] = useState(true);
   const [openChartSelector, setOpenChartSelector] = useState(false);
   const imageInputRef = useRef(null);
+  const { notify } = useNotification();
 
   const {
     isCreateNewReport,
@@ -127,7 +128,12 @@ export const ReportEditor = () => {
   };
 
   const exportToPDF = async () => {
-    const blob = await pdf(<ReportPDF title={editedReport.title} elements={orderedElements} />).toBlob();
+    const blob = await pdf(
+      <ReportPDF
+        title={editedReport.title}
+        elements={orderedElements}
+      />).toBlob();
+
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
@@ -623,6 +629,7 @@ export const ReportEditor = () => {
           id="report-content"
           sx={{
             width: { lg: '80%', xs: '100%' },
+            maxWidth: 1000,
             margin: "auto",
             p: { xs: 1, lg: 4 },
             bgcolor: "background.paper",

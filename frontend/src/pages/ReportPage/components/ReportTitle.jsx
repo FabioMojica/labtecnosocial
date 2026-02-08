@@ -33,7 +33,7 @@ export const ReportTitle = memo(({ value, onSave }) => {
             placeholder="Escribe un título para tu reporte"
             slotProps={{
                 htmlInput: {
-                    maxLength: 100
+                    maxLength: 60
                 }
             }}
             sx={{

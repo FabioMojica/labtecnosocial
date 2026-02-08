@@ -41,7 +41,7 @@ export const Report = new EntitySchema({
     },
     title: {
       type: String,
-      length: 100,
+      length: 60,
       nullable: false,
       default: 'Reporte sin título',
     },

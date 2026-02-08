@@ -1,18 +1,94 @@
-import React from "react";
-import { Text, View, Image, StyleSheet, Page, Document } from "@react-pdf/renderer";
+
+import { Text, View, Image, StyleSheet, Page, Document, Font } from "@react-pdf/renderer";
 import { parseDocument } from "htmlparser2";
+import logoLight from "../../../assets/labTecnoSocialLogoLight.png"
+import { formatDateParts } from "../../../utils";
+
+
+const MAX_CHARS_PER_LINE = 80;
+
+
+Font.registerHyphenationCallback((word) => {
+    const chunkSize = 1;
+    const result = [];
+    for (let i = 0; i < word.length; i += chunkSize) {
+        result.push(word.slice(i, i + chunkSize));
+    }
+    return result;
+});
 
 const styles = StyleSheet.create({
-    page: { padding: 30, fontSize: 12, fontFamily: "Helvetica" },
-    paragraph: { marginBottom: 10 },
-    bold: { fontWeight: "bold" },
-    italic: { fontStyle: "italic" },
-    underline: { textDecoration: "underline" },
-    strike: { textDecoration: "line-through" },
-    list: { marginVertical: 5, paddingLeft: 15 },
-    listItem: { marginBottom: 2 },
+    page: {
+        display: 'flex',
+        flexDirection: 'column',
+        fontSize: 12,
+        fontFamily: "Helvetica"
+    },
+    headerPage: {
+        backgroundColor: '#1F7D53',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 10,
+        height: 60,
+        width: '100%',
+        marginBottom: 20,
+    },
+    reportDataHeader: {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 10,
+    },
+    logoHeader: {
+        width: 100,
+        height: 40
+    },
+    titleHeader: {
+        textAlign: 'center',
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        flex: 1,
+        flexGrow: 1,
+        flexBasis: 0,
+    },
+    metadataHeader: {
+        width: 120,
+        maxWidth: 120,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        paddingLeft: 10,
+    },
+    metaDataTitle: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+    },
+    metaDataDates: {
+        fontSize: 8,
+        fontWeight: 'bold',
+        color: '#f1eaea',
+    },
+    contentPage: {
+        paddingHorizontal: 20,
+    },
+    paragraph: { marginBottom: 10, flexWrap: 'wrap', wordBreak: 'break-word' },
+    bold: { fontWeight: "bold", flexWrap: 'wrap', wordBreak: 'break-word' },
+    italic: { fontStyle: "italic", flexWrap: 'wrap', wordBreak: 'break-word' },
+    underline: { textDecoration: "underline", flexWrap: 'wrap', wordBreak: 'break-word' },
+    strike: { textDecoration: "line-through", flexWrap: 'wrap', wordBreak: 'break-word' },
+    list: { marginVertical: 5, paddingLeft: 15, flexWrap: 'wrap', wordBreak: 'break-word' },
+    listItem: { marginBottom: 2, flexWrap: 'wrap', wordBreak: 'break-word' },
     image: { marginVertical: 5, maxWidth: "100%", height: "auto" },
 });
+
+const getFontSizeForTitle = (title) => {
+    if (!title) return 20;
+    if (title.length > 30) return 18;
+    return 25;
+};
 
 const cleanNode = (node) => {
     if (!node) return null;
@@ -39,7 +115,10 @@ const getTextFromNode = (node) => {
 };
 
 const getNumberedBullet = (counters, level) => {
+    console.log(counters, level);
+
     const numbers = counters.slice(0, level + 1);
+    console.log(numbers.join(".") + ".")
     return numbers.join(".") + ".";
 };
 
@@ -53,6 +132,7 @@ const renderList = (node, key, parentCounters = []) => {
         if (liNode.type !== "tag" || liNode.name !== "li") return null;
 
         const indentClass = liNode.attribs?.class || "";
+        console.log("indent", indentClass)
         const level = parseInt((indentClass.match(/ql-indent-(\d)/) || [0, 0])[1]);
 
         counters[level] = (counters[level] || 0) + 1;
@@ -69,9 +149,18 @@ const renderList = (node, key, parentCounters = []) => {
 
         const sublist = liNode.children?.find(n => n.name === "ol" || n.name === "ul");
 
+         const textAlign =
+            liNode.attribs?.class?.includes("ql-align-center")
+                ? "center"
+                : liNode.attribs?.class?.includes("ql-align-right")
+                    ? "right"
+                    : liNode.attribs?.class?.includes("ql-align-justify")
+                        ? "justify"
+                        : "left";
+
         return (
             <View key={`${key}-${i}`}>
-                <Text style={{ marginLeft, marginBottom: 2 }}>
+                <Text style={{ marginLeft, marginBottom: 2, textAlign }}>
                     {bullet} {renderNode(liNode, `${key}-${i}`)}
                 </Text>
                 {sublist && renderList(sublist, `${key}-${i}`, [...counters])}
@@ -141,21 +230,47 @@ export const ReportPDF = ({ title, elements }) => {
     console.log(elements);
     return (
         <Document>
-            <Page style={styles.page}>
-                <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 15 }}>
-                    {title}
-                </Text>
+            <Page size="A4" style={styles.page} wrap={true}>
+                <View style={styles.headerPage}>
+                    <View style={styles.reportDataHeader} wrap={true}>
+                        <Image src={logoLight} alt="Lab Tecno Social Logo" style={styles.logoHeader} />
+                        <View style={{display: 'flex', flexDirection: 'row', height: '100%', alignItems: 'center', flex: 1, paddingHorizontal: 10, borderLeft: '1px solid #FFFFFF', borderRight: '1px solid #FFFFFF'}}>
+                            <Text wrap={true} style={{ ...styles.titleHeader, fontSize: getFontSizeForTitle(title) }}>
+                                {title}
+                            </Text>
+                        </View>
+                    </View>
 
-                {elements.map((el, index) => {
-                    try {
+                    <View style={styles.metadataHeader}>
+                        <Text style={styles.metaDataTitle}>
+                            Datos de generación:
+                        </Text>
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 4 }}>
+                            <Text style={styles.metaDataTitle}>
+                                Fecha:
+                            </Text>
+                            <Text style={styles.metaDataDates}>
+                                {formatDateParts(Date.now()).date}
+                            </Text>
+                        </View>
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10 }}>
+                            <Text style={styles.metaDataTitle}>
+                                Hora:
+                            </Text>
+                            <Text style={styles.metaDataDates}>
+                                {formatDateParts(Date.now()).time}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+
+
+                <View style={styles.contentPage}>
+                    {elements.map((el, index) => {
                         return (
                             <View key={el.id} style={styles.section}>
-                                <Text style={{ fontWeight: "bold", marginBottom: 5 }}>
-                                    {el.type.toUpperCase()} #{index + 1}
-                                </Text>
-
                                 {el.type === "text" && (
-                                    <View>{renderQuillHTML(el.content)}</View>
+                                    <View>{renderQuillHTML(el?.content?.content_html)}</View>
                                 )}
 
                                 {el.type === "image" && el.src && (
@@ -163,18 +278,9 @@ export const ReportPDF = ({ title, elements }) => {
                                 )}
                             </View>
                         );
-                    } catch (error) {
-                        console.error("Error renderizando elemento:", el, error);
-                        return (
-                            <View key={el.id} style={styles.section}>
-                                <Text style={{ color: "red" }}>
-                                    ⚠️ No se puede renderizar este elemento
-                                </Text>
-                            </View>
-                        );
-                    }
-                })}
 
+                    })}
+                </View>
             </Page>
         </Document>
     );
