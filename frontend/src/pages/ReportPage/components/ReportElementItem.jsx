@@ -6,7 +6,7 @@ import { ResizableImage } from "./ResizableImage";
 import { integrationsConfig } from "../../../utils";
 import ReactQuill, { Quill } from "react-quill-new";
 import debounce from "lodash.debounce";
-const Delta = Quill.import('delta');
+import DOMPurify from 'dompurify';
 
 const getElementLabel = (type) => {
     switch (type) {
@@ -54,31 +54,35 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
     );
 
     const quillRef = useRef(null);
-
     useEffect(() => {
-        if (!quillRef.current) return;
-        const quill = quillRef.current.getEditor();
+    if (!quillRef.current) return;
+    const quill = quillRef.current.getEditor();
 
-        const handlePaste = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+    const handlePaste = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-            // Sacamos el contenido pegado como HTML o texto plano
-            const clipboardData = e.clipboardData || window.clipboardData;
-            const html = clipboardData.getData('text/html') || clipboardData.getData('text/plain');
-            if (!html) return;
+        const clipboardData = e.clipboardData || window.clipboardData;
+        const html = clipboardData.getData('text/html') || clipboardData.getData('text/plain');
+        if (!html) return;
 
-            // Limpiar HTML con nuestra función
-            cleanHtmlForQuill(html, quill);
-        };
+        const safeHtml = DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ['b', 'i', 'u', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'em', 'a'],
+            ALLOWED_ATTR: ['href', 'target', 'rel']
+        });
 
-        quill.root.addEventListener('paste', handlePaste, true);
+        const range = quill.getSelection(true);
+        quill.deleteText(range.index, range.length);
+        quill.clipboard.dangerouslyPasteHTML(range.index, safeHtml);
+        quill.setSelection(range.index + safeHtml.length, 0);
+    };
 
-        return () => {
-            quill.root.removeEventListener('paste', handlePaste, true);
-        };
-    }, []);
+    quill.root.addEventListener('paste', handlePaste, true);
 
+    return () => {
+        quill.root.removeEventListener('paste', handlePaste, true);
+    };
+}, []);
 
 
     const [localSize, setLocalSize] = useState({
@@ -134,11 +138,23 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
 
         const quill = quillRef.current.getEditor();
         const delta = element?.content?.content_delta;
+        let html = element?.content?.content_html ?? '';
+
+        // SANITIZAR el HTML antes de ponerlo en Quill
+        html = DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ['b', 'i', 'u', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'em', 'a'],
+            ALLOWED_ATTR: ['href', 'target', 'rel']
+        });
 
         if (delta) {
+            // Opción 1: convertir delta a HTML seguro
             quill.setContents(delta);
-            setLocalValue(quill.root.innerHTML);
+        } else {
+            // Opción 2: solo HTML seguro
+            quill.clipboard.dangerouslyPasteHTML(html);
         }
+
+        setLocalValue(html);
     }, [element.id]);
 
 
@@ -280,24 +296,47 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
             {showCharts && (
                 <>
                     {element.type === "text" && (
+                        // <ReactQuill
+                        //     ref={quillRef}
+                        //     theme="snow"
+                        //     className="quill-dark"
+                        //     value={localValue}
+                        //     modules={quillModules}
+                        //     onChange={(html, delta, source, editor) => {
+
+                        //         setLocalValue(html);
+                        //         debouncedSave({
+                        //             ...element,
+                        //             content: {
+                        //                 content_html: html,
+                        //                 content_delta: editor.getContents(),
+                        //             },
+                        //         });
+                        //     }}
+
+                        // />
+
                         <ReactQuill
                             ref={quillRef}
                             theme="snow"
-                            className="quill-dark"
                             value={localValue}
                             modules={quillModules}
                             onChange={(html, delta, source, editor) => {
-                                
-                                setLocalValue(html);
+                                // Sanitize HTML antes de guardar
+                                const safeHtml = DOMPurify.sanitize(html, {
+                                    ALLOWED_TAGS: ['b', 'i', 'u', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'em', 'a'],
+                                    ALLOWED_ATTR: ['href', 'target', 'rel']
+                                });
+
+                                setLocalValue(safeHtml);
                                 debouncedSave({
                                     ...element,
                                     content: {
-                                        content_html: html,
+                                        content_html: safeHtml,
                                         content_delta: editor.getContents(),
                                     },
                                 });
                             }}
-
                         />
                     )}
 

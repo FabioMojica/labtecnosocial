@@ -32,6 +32,7 @@
     "docx": "^9.5.1",
     "docxtemplater": "^3.67.1",
     "docxtemplater-image-module-free": "^1.1.1",
+    "dompurify": "^3.3.1",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.26.2",
     "howler": "^2.2.4",
