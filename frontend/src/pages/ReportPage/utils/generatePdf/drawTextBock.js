@@ -1,9 +1,11 @@
 import { rgb, StandardFonts } from 'pdf-lib';
 import { parseDocument } from "htmlparser2";
 import { DomUtils } from "htmlparser2";
+import { PdfRenderError } from '../pdfWorker';
+import { decode } from "entities";
+import { ensurePageSpace } from './generatePdf';
 
-const PAGE_MARGIN_TOP = 50;
-const PAGE_MARGIN_BOTTOM = 30;
+const MAX_LIST_DEPTH = 10;
 
 const BLOCK_STYLES = {
     p: {
@@ -35,30 +37,85 @@ const BLOCK_STYLES = {
     },
 };
 
+const safeDrawText = (page, text, options) => {
+    if (!page) {
+        throw new PdfRenderError("PDF_NO_PAGE", "Página PDF inexistente");
+    }
 
-const ensurePageSpace = ({ pdfDoc, cursor }) => {
-    if (cursor.y <= PAGE_MARGIN_BOTTOM) {
-        const newPage = pdfDoc.addPage();
-        cursor.page = newPage;
-        cursor.y = newPage.getSize().height - PAGE_MARGIN_TOP;
+    if (typeof text !== "string") {
+        throw new PdfRenderError("PDF_TEXT_NOT_STRING", "Texto inválido", { text });
+    }
+
+    try {
+        page.drawText(text, options);
+    } catch (err) {
+        throw new PdfRenderError(
+            "PDF_DRAW_TEXT_LIB_ERROR",
+            "pdf-lib falló al dibujar texto",
+            {
+                text,
+                options,
+                originalError: err?.message,
+            }
+        );
     }
 };
 
+
+const safeDrawLine = (page, line) => {
+    try {
+        page.drawLine(line);
+    } catch (err) {
+        throw new PdfRenderError(
+            "PDF_DRAW_LINE_ERROR",
+            "Error dibujando línea",
+            {
+                line,
+                originalError: err?.message,
+            }
+        );
+    }
+};
+
+
+const safeTextWidth = (font, text, size) => {
+    try {
+        return font.widthOfTextAtSize(text, size);
+    } catch {
+        throw new PdfRenderError(
+            "PDF_TEXT_WIDTH_ERROR",
+            "Error midiendo ancho de texto",
+            { text }
+        );
+    }
+};
 
 const sanitizeText = (text) => {
     if (!text) return "";
     return text
         .replace(/\t/g, "    ")
+        .replace(/\u00A0/g, " ")
         .replace(/[^\x09\x0A\x0D\x20-\x7E\u00A0-\u00FF]/g, "?");
+};
+
+const decodeHtmlEntities = (text) => {
+    if (!text) return "";
+    return decode(text);
 };
 
 const safeForPdf = (text) => {
     try {
-        return sanitizeText(text);
-    } catch {
-        return "?";
+        const decoded = decodeHtmlEntities(text);
+        return sanitizeText(decoded);
+    } catch (err) {
+        throw new PdfRenderError(
+            "PDF_SANITIZE_FAILED",
+            "No se pudo sanitizar el texto para PDF",
+            { text }
+        );
     }
 };
+
 
 const wrapText = (text, font, fontSize, maxWidth) => {
     if (!text) return [];
@@ -70,7 +127,17 @@ const wrapText = (text, font, fontSize, maxWidth) => {
     let currentWidth = 0;
 
     for (const char of safeText) {
-        const charWidth = font.widthOfTextAtSize(char, fontSize);
+        let charWidth;
+        try {
+            charWidth = safeTextWidth(font, char, fontSize);
+        } catch (err) {
+            throw new PdfRenderError(
+                "PDF_FONT_MEASURE_ERROR",
+                `No se pudo medir carácter "${char}"`,
+                { char }
+            );
+        }
+
         if (currentWidth + charWidth > maxWidth) {
             if (currentLine) lines.push(currentLine);
             currentLine = char;
@@ -82,7 +149,6 @@ const wrapText = (text, font, fontSize, maxWidth) => {
     }
 
     if (currentLine) lines.push(currentLine);
-
     return lines;
 };
 
@@ -107,142 +173,6 @@ const getTextAlign = (node) => {
     return "left";
 };
 
-// const renderList = async ({
-//     pdfDoc,
-//     node,
-//     cursor,
-//     fonts,
-//     maxWidth,
-//     parentCounters = [],
-//     baseIndent = 0,
-//     style = BLOCK_STYLES.p,
-// }) => {
-//     if (!node.children) return cursor;
-
-//     let counters = [...parentCounters];
-
-//     for (const liNode of node.children) {
-//         if (liNode.type !== "tag" || liNode.name !== "li") continue;
-
-//         const level = getIndentLevel(liNode);
-//         const indent = baseIndent + 15 * (level + 1);
-
-//         counters[level] = (counters[level] || 0) + 1;
-//         counters.length = level + 1;
-
-//         const isOrdered = liNode.attribs?.["data-list"] === "ordered";
-//         const bullet = isOrdered ? getNumberedBullet(counters, level) : "•";
-//         const bulletSpacing = 5;
-//         const bulletSize = style.fontSize ?? BLOCK_STYLES.p.fontSize;
-//         const bulletWidth = fonts.regular.widthOfTextAtSize(bullet, bulletSize);
-
-//         const align = getTextAlign(liNode);
-
-//         ensurePageSpace({ pdfDoc, cursor });
-//         cursor.page.drawText(bullet, {
-//             x: cursor.x + indent,
-//             y: cursor.y,
-//             size: bulletSize,
-//             font: fonts.regular,
-//         });
-
-//         // --- recoger fragments del LI ---
-//         const fragments = [];
-//         const collectFragments = (n, underline = false, italic = false, link = false, bold = false) => {
-//             n = cleanNode(n);
-//             if (!n) return;
-
-//             if (n.type === "text") {
-//                 fragments.push({
-//                     text: n.data,
-//                     isUnderline: underline,
-//                     isItalic: italic,
-//                     isLink: link,
-//                     isBold: bold,
-//                 });
-//             } else if (n.type === "tag") {
-//                 let u = underline || n.name === "u";
-//                 let i = italic || n.name === "i" || n.name === "em";
-//                 let l = link || n.name === "a";
-//                 const b = bold || n.name === "strong" || n.name === "b";
-//                 for (const child of n.children || []) {
-//                     collectFragments(child, u, i, l, b);
-//                 }
-//             }
-//         };
-
-//         for (const child of liNode.children || []) {
-//             if (child.name !== "ul" && child.name !== "ol") {
-//                 collectFragments(child);
-//             }
-//         }
-
-//         // --- renderizar fragments como bloque ---
-//         const fullText = fragments.map(f => f.text).join("");
-//         const font = fonts[style.font] || fonts.regular;
-//         const fontSize = style.fontSize;
-//         const lineHeight = style.lineHeight;
-//         const lines = wrapText(fullText, font, fontSize, maxWidth - indent - bulletWidth - bulletSpacing);
-
-//         let charIndex = 0;
-//         for (const line of lines) {
-//             ensurePageSpace({ pdfDoc, cursor });
-//             let lineRemaining = line;
-//             let lineX = cursor.x + indent + bulletWidth + bulletSpacing;
-
-//             while (lineRemaining.length > 0 && charIndex < fragments.length) {
-//                 const frag = fragments[charIndex];
-//                 const fragText = frag.text.slice(0, lineRemaining.length);
-//                 const fragFont = frag.isBold
-//                     ? frag.isItalic ? fonts.boldItalic : fonts.bold
-//                     : frag.isItalic ? fonts.italic : font;
-
-//                 drawTextFragment({
-//                     cursor,
-//                     text: fragText,
-//                     x: lineX,
-//                     y: cursor.y,
-//                     font: fragFont,
-//                     fontSize,
-//                     align,
-//                     isUnderline: frag.isUnderline,
-//                     isLink: frag.isLink,
-//                     isBold: frag.isBold,
-//                     maxWidth: maxWidth - indent - bulletWidth - bulletSpacing
-//                 });
-
-//                 const fragWidth = (frag.isItalic ? fonts.italic : font).widthOfTextAtSize(fragText, fontSize);
-//                 lineX += fragWidth;
-
-//                 lineRemaining = lineRemaining.slice(fragText.length);
-//                 frag.text = frag.text.slice(fragText.length);
-//                 if (frag.text.length === 0) charIndex++;
-//             }
-
-//             cursor.y -= lineHeight;
-//         }
-
-//         cursor.y -= style.marginBottom;
-
-//         // --- renderizar sublistas ---
-//         const sublist = liNode.children?.find(n => n.name === "ul" || n.name === "ol");
-//         if (sublist) {
-//             cursor = await renderList({
-//                 pdfDoc,
-//                 node: sublist,
-//                 cursor,
-//                 fonts,
-//                 maxWidth,
-//                 parentCounters: [...counters],
-//                 baseIndent: indent,
-//                 style,
-//             });
-//         }
-//     }
-
-//     return cursor;
-// };
-
 const renderList = async ({
     pdfDoc,
     node,
@@ -255,21 +185,22 @@ const renderList = async ({
 }) => {
     if (!node.children) return cursor;
 
+    if (parentCounters.length > MAX_LIST_DEPTH) {
+        throw new PdfRenderError(
+            "PDF_MAX_LIST_DEPTH",
+            "La lista excede la profundidad máxima permitida",
+            { depth: parentCounters.length }
+        );
+    }
+
     let counters = [...parentCounters];
 
     for (const liNode of node.children) {
         if (liNode.type !== "tag" || liNode.name !== "li") continue;
-
-        // const level = getIndentLevel(liNode);
-        
-        // counters[level] = (counters[level] || 0) + 1;
-        // counters.length = level + 1;
-        const level = getIndentLevel(liNode); // nivel del LI
+        const level = getIndentLevel(liNode);
         const indent = baseIndent + 15 * (level + 1);
-        if (counters[level] == null) counters[level] = 0; // si es undefined, inicializamos
-        counters[level]++; // incrementamos el nivel actual
-
-        // al subir niveles, reseteamos niveles más profundos
+        if (counters[level] == null) counters[level] = 0;
+        counters[level]++;
         for (let i = level + 1; i < counters.length; i++) {
             counters[i] = 0;
         }
@@ -279,7 +210,7 @@ const renderList = async ({
         const bullet = isOrdered ? getNumberedBullet(counters, level) : "•";
         const bulletSpacing = 5;
         const bulletSize = style.fontSize ?? BLOCK_STYLES.p.fontSize;
-        const bulletWidth = fonts.regular.widthOfTextAtSize(bullet, bulletSize);
+        const bulletWidth = safeTextWidth(fonts.regular, bullet, bulletSize);
 
         const align = getTextAlign(liNode);
 
@@ -289,7 +220,15 @@ const renderList = async ({
             n = cleanNode(n);
             if (!n) return;
             if (n.type === "text") {
-                fragments.push({ text: n.data, isUnderline: underline, isItalic: italic, isLink: link, isBold: bold });
+                fragments.push({
+                    text: safeForPdf(n.data),
+                    isUnderline:
+                        underline,
+                    isItalic: italic,
+                    isLink: link,
+                    isBold:
+                        bold
+                });
             } else if (n.type === "tag") {
                 let u = underline || n.name === "u";
                 let i = italic || n.name === "i" || n.name === "em";
@@ -302,11 +241,6 @@ const renderList = async ({
             if (child.name !== "ul" && child.name !== "ol") collectFragments(child);
         }
 
-        // --- renderizar fragments como bloque ---
-        // const fullText = fragments.map(f => f.text).join("");
-        // const font = fonts[style.font] || fonts.regular;
-        // const fontSize = style.fontSize;
-        // const lineHeight = style.lineHeight;
         // --- renderizar fragments como bloque ---
         let fullText = fragments.map(f => f.text).join("");
         const font = fonts[style.font] || fonts.regular;
@@ -326,8 +260,7 @@ const renderList = async ({
             ensurePageSpace({ pdfDoc, cursor });
             let lineRemaining = line;
 
-            // 1️⃣ Calculamos ancho total de esta línea (bullet + espacio + texto)
-            const lineTextWidth = font.widthOfTextAtSize(line, fontSize);
+            const lineTextWidth = safeTextWidth(font, bullet, bulletSize);
             const totalLineWidth = bulletWidth + bulletSpacing + lineTextWidth;
 
             // 2️⃣ Ajustamos posición inicial según align
@@ -336,7 +269,13 @@ const renderList = async ({
             if (align === "right") lineX += (maxWidth - indent - totalLineWidth);
 
             // 3️⃣ Dibujar bullet
-            cursor.page.drawText(bullet, { x: lineX, y: cursor.y, size: bulletSize, font: fonts.regular });
+            safeDrawText(
+                cursor.page,
+                bullet,
+                { x: lineX, y: cursor.y, size: bulletSize, font: fonts.regular }
+            );
+
+
             lineX += bulletWidth + bulletSpacing;
 
             // 4️⃣ Dibujar texto
@@ -354,14 +293,15 @@ const renderList = async ({
                     y: cursor.y,
                     font: fragFont,
                     fontSize,
-                    align: "left", // ya aplicamos align al lineX
+                    align: "left",
                     isUnderline: frag.isUnderline,
                     isLink: frag.isLink,
                     isBold: frag.isBold,
                     maxWidth: maxWidth - indent - bulletWidth - bulletSpacing
                 });
 
-                const fragWidth = (frag.isItalic ? fonts.italic : font).widthOfTextAtSize(fragText, fontSize);
+                const effectiveFont = frag.isItalic ? fonts.italic : fonts.regular;
+                const fragWidth = safeTextWidth(effectiveFont, fragText, fontSize);
                 lineX += fragWidth;
 
                 lineRemaining = lineRemaining.slice(fragText.length);
@@ -419,22 +359,28 @@ const drawAlignedText = ({
     if (align === "justify") {
         const words = safeText.split(" ");
         if (words.length <= 1) {
-            cursor.page.drawText(safeText, { x, y, size: fontSize, font, color: color ?? rgb(0, 0, 0), });
+            safeDrawText(
+                cursor.page,
+                safeText,
+                { x, y, size: fontSize, font, color: color ?? rgb(0, 0, 0) }
+            );
             return;
         }
 
         // ancho total sin espacios
         let wordsWidth = 0;
         for (const w of words) {
-            wordsWidth += font.widthOfTextAtSize(w, fontSize);
+            wordsWidth += safeTextWidth(font, w, fontSize);
         }
-
         const spaceCount = words.length - 1;
         const extraSpace = maxWidth - wordsWidth;
-
-        // si no hay espacio para justificar → left
         if (extraSpace <= 0) {
-            cursor.page.drawText(safeText, { x, y, size: fontSize, color: color ?? rgb(0, 0, 0), });
+            safeDrawText(
+                cursor.page,
+                safeText,
+                { x, y, size: fontSize, color: color ?? rgb(0, 0, 0) }
+            );
+
             return;
         }
 
@@ -443,27 +389,28 @@ const drawAlignedText = ({
         let cursorX = x;
 
         for (const word of words) {
-            cursor.page.drawText(word, {
-                x: cursorX,
-                y,
-                size: fontSize,
-                font,
-                color: color ?? rgb(0, 0, 0),
-            });
+            safeDrawText(
+                cursor.page,
+                word,
+                {
+                    x: cursorX,
+                    y,
+                    size: fontSize,
+                    font,
+                    color: color ?? rgb(0, 0, 0),
+                }
+            );
 
-            cursorX += font.widthOfTextAtSize(word, fontSize) + spaceWidth;
+            cursorX += safeTextWidth(font, word, fontSize); + spaceWidth;
         }
 
         return;
     }
 
     let textWidth;
-    try {
-        textWidth = font.widthOfTextAtSize(safeText, fontSize);
-    } catch (error) {
-        console.error("Error obteniendo el ancho del texto:", error);
-        return;
-    }
+
+    textWidth = safeTextWidth(font, safeText, fontSize);
+
 
     let drawX = x;
 
@@ -475,46 +422,65 @@ const drawAlignedText = ({
         drawX = x + maxWidth - textWidth;
     }
 
-    cursor.page.drawText(safeText, {
-        x: drawX,
-        y,
-        size: fontSize,
-        font,
-        color,
-    });
+    safeDrawText(
+        cursor.page,
+        safeText,
+        {
+            x: drawX,
+            y,
+            size: fontSize,
+            font,
+            color,
+        }
+    );
 };
 
 
 const drawTextFragment = ({ cursor, text, x, y, font, fontSize, align, isUnderline, isLink, maxWidth }) => {
+    const safeText = safeForPdf(text);
+    if (!safeText) return;
+
     const color = isLink ? rgb(0, 0, 1) : rgb(0, 0, 0);
 
-    // dibujar el texto alineado
-    drawAlignedText({ cursor, text, x, y, maxWidth, font, fontSize, align, color });
+    try {
+        drawAlignedText({ cursor, text: safeText, x, y, maxWidth, font, fontSize, align, color });
+    } catch (e) {
+        throw new PdfRenderError(
+            "PDF_DRAW_TEXT_ERROR",
+            "Error al dibujar fragmento de texto",
+            { text: safeText }
+        );
+    }
 
-    const textWidth = font.widthOfTextAtSize(text, fontSize);
+    const textWidth = font.widthOfTextAtSize(safeText, fontSize);
     let drawX = x;
 
     if (align === "center") drawX += (maxWidth - textWidth) / 2;
     if (align === "right") drawX += maxWidth - textWidth;
 
-    // subrayado
     if (isUnderline) {
-        cursor.page.drawLine({
-            start: { x: drawX, y: cursor.y - 2 },
-            end: { x: drawX + textWidth, y: cursor.y - 2 },
-            thickness: 0.5,
-            color: rgb(0, 0, 0),
-        });
+        safeDrawLine(
+            cursor.page,
+            {
+                start: { x: drawX, y: cursor.y - 2 },
+                end: { x: drawX + textWidth, y: cursor.y - 2 },
+                thickness: 0.5,
+                color: rgb(0, 0, 0),
+            }
+        );
+
     }
 
-    // link
     if (isLink) {
-        cursor.page.drawLine({
-            start: { x: drawX, y: cursor.y - 2 },
-            end: { x: drawX + textWidth, y: cursor.y - 2 },
-            thickness: 0.5,
-            color: rgb(0, 0, 1),
-        });
+        safeDrawLine(
+            cursor.page,
+            {
+                start: { x: drawX, y: cursor.y - 2 },
+                end: { x: drawX + textWidth, y: cursor.y - 2 },
+                thickness: 0.5,
+                color: rgb(0, 0, 1),
+            }
+        );
     }
 };
 
@@ -544,7 +510,7 @@ const renderNode = async ({
             text: node.data,
             x: cursor.x + indent,
             y: cursor.y,
-            font,
+            font: font,
             fontSize,
             align,
             isUnderline,
@@ -658,7 +624,7 @@ const renderNode = async ({
 
                 if (n.type === "text") {
                     fragments.push({
-                        text: n.data,
+                        text: safeForPdf(n.data),
                         isUnderline: underline,
                         isItalic: italic,
                         isLink: link,
@@ -693,7 +659,7 @@ const renderNode = async ({
             for (const line of lines) {
                 ensurePageSpace({ pdfDoc, cursor });
                 let lineRemaining = line;
-                let lineX = cursor.x + indent; // inicio horizontal de la línea
+                let lineX = cursor.x + indent;
                 while (lineRemaining.length > 0 && charIndex < fragments.length) {
                     const frag = fragments[charIndex];
                     const fragText = frag.text.slice(0, lineRemaining.length);
@@ -715,8 +681,12 @@ const renderNode = async ({
                         maxWidth: maxWidth - indent
                     });
 
-                    const fragWidth = (frag.isItalic ? fonts.italic : font).widthOfTextAtSize(fragText, fontSize);
-                    lineX += fragWidth; // <-- movemos el cursor horizontal
+                    const effectiveFont = frag.isBold
+                        ? frag.isItalic ? fonts.boldItalic : fonts.bold
+                        : frag.isItalic ? fonts.italic : font;
+
+                    const fragWidth = safeTextWidth(effectiveFont, fragText, fontSize);
+                    lineX += fragWidth;
 
                     lineRemaining = lineRemaining.slice(fragText.length);
                     frag.text = frag.text.slice(fragText.length);
@@ -750,18 +720,28 @@ export const renderQuillHTML = async ({
     let doc;
     try {
         doc = parseDocument(html || "");
-        console.log("html", html)
     } catch {
-        console.error("Error parseando el documento:");
-        return y;
+        throw new PdfRenderError(
+            "PDF_HTML_PARSE_ERROR",
+            "El HTML del documento es inválido",
+            { html }
+        );
     }
 
-    const fonts = {
-        regular: await pdfDoc.embedFont(StandardFonts.Helvetica),
-        bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
-        italic: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
-        boldItalic: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
-    };
+    let fonts;
+    try {
+        fonts = {
+            regular: await pdfDoc.embedFont(StandardFonts.Helvetica),
+            bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+            italic: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
+            boldItalic: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
+        };
+    } catch {
+        throw new PdfRenderError(
+            "PDF_FONT_EMBED_ERROR",
+            "No se pudieron cargar las fuentes del PDF"
+        );
+    }
 
     const cursor = {
         x,
@@ -778,13 +758,16 @@ export const renderQuillHTML = async ({
                 fonts,
                 maxWidth,
             });
-        }
-        catch (error) {
-            console.error("Error:", error, "node.data:", node.data);
+        } catch (error) {
+            console.error("REAL ERROR:", error);
+            throw new PdfRenderError(
+                "PDF_RENDER_NODE_ERROR",
+                "Error renderizando nodo HTML",
+                { nodeType: node?.type, nodeName: node?.name, data: node?.data }
+            );
         }
     }
-
-    return cursor.y;
+    return { y: cursor.y, page: cursor.page };
 };
 
 export const drawTextBlock = async ({

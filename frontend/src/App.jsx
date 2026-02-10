@@ -75,7 +75,7 @@ const AppContent = () => {
         <Route path="/planificacion-operativa/:name?" element={<PrivateRoute element={<OperationalPlanningDashboardPage />} allowedRoles={ROLES.ALL_ROLES} />} />
         <Route path="/dashboard" element={<PrivateRoute element={<APIsDashboardPage />} allowedRoles={ROLES.ALL_ROLES} />} />
         <Route path="/reportes" element={<PrivateRoute element={<ReportsListPage />} allowedRoles={ROLES.ALL_ROLES} />} />
-        <Route path="/reportes/editor/:name?" element={<PrivateRoute element={<ReportEditor />} allowedRoles={ROLES.ADMIN.ALL_ROLES} />} /> 
+        <Route path="/reportes/editor/:name?" element={<PrivateRoute element={<ReportEditor />} allowedRoles={ROLES.ALL_ROLES} />} /> 
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </>

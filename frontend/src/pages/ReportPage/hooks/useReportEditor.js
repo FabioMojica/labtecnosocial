@@ -56,6 +56,26 @@ export const useReportEditor = () => {
         [editedReport.elementsOrder, editedReport.elements]
     );
 
+    const normalizeObject = (obj) => {
+        if (Array.isArray(obj)) return obj.map(normalizeObject);
+        if (obj && typeof obj === "object") {
+            return Object.keys(obj)
+                .sort()
+                .reduce((acc, key) => {
+                    acc[key] = normalizeObject(obj[key]);
+                    return acc;
+                }, {});
+        }
+        return obj;
+    };
+    // Normaliza los deltas de Quill
+    const normalizeDelta = (delta) => {
+        if (!delta || !delta.ops) return { ops: [] };
+        return {
+            ops: delta.ops.map(op => normalizeObject(op))
+        };
+    };
+
     const normalizeReportForCompare = (report) => {
         return {
             title: report.title?.trim() || "",
@@ -69,8 +89,8 @@ export const useReportEditor = () => {
                         return {
                             ...rest,
                             content: {
-                                content_html: rest.content.content_html ?? "",
-                            },
+                                content_delta: normalizeDelta(rest.content.content_delta)
+                            }
                         };
                     }
 
@@ -80,12 +100,11 @@ export const useReportEditor = () => {
         };
     };
 
-
     const isDirty = useMemo(() => {
-        console.log("cuuren", editedReport);
-        console.log("original", originalReportRef.current)
         const current = normalizeReportForCompare(editedReport);
+        console.log("current", current)
         const original = normalizeReportForCompare(originalReportRef.current);
+        console.log("original", original)
 
         return JSON.stringify(current) !== JSON.stringify(original);
     }, [editedReport]);

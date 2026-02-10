@@ -21,23 +21,6 @@ const getElementLabel = (type) => {
     }
 };
 
-const cleanHtmlForQuill = (html, quill) => {
-    // Crear un div temporal para parsear
-    const div = document.createElement('div');
-    div.innerHTML = html;
-
-    // Solo extraer el texto plano
-    const plainText = div.textContent || div.innerText || "";
-
-    // Insertar en Quill en la posición actual
-    const range = quill.getSelection(true);
-    quill.deleteText(range.index, range.length); // eliminar selección si hay
-    quill.insertText(range.index, plainText);    // insertar texto plano
-    quill.setSelection(range.index + plainText.length, 0);
-};
-
-
-
 const quillModules = {
     toolbar: [
         [{ header: [1, 2, 3, false] }],
@@ -48,6 +31,34 @@ const quillModules = {
     ],
 };
 
+const MAX_INDENT = 10;
+const ALLOWED_CLASSES = {
+    li: Array.from({ length: MAX_INDENT }, (_, i) => `ql-indent-${i + 1}`),
+    ol: Array.from({ length: MAX_INDENT }, (_, i) => `ql-indent-${i + 1}`),
+    ul: Array.from({ length: MAX_INDENT }, (_, i) => `ql-indent-${i + 1}`),
+};
+
+const quillPurifyConfig = {
+    ALLOWED_TAGS: [
+        'h1', 'h2', 'h3',
+        'b', 'i', 'u',
+        'p', 'br', 'ul',
+        'ol', 'li', 'strong',
+        'em', 'a'
+    ],
+    ALLOWED_ATTR: [
+        'href',
+        'target',
+        'rel',
+        'class'
+    ],
+    ALLOWED_CLASSES: {
+        'li': ALLOWED_CLASSES.li,
+        'ol': ALLOWED_CLASSES.ol,
+        'ul': ALLOWED_CLASSES.ul,
+    }
+};
+
 export const ReportElementItem = memo(({ element, index, numberOfPreviousSameType, showCharts = true, onChange, removeElement }) => {
     const [localValue, setLocalValue] = useState(
         element?.content?.content_html ?? ""
@@ -55,34 +66,37 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
 
     const quillRef = useRef(null);
     useEffect(() => {
-    if (!quillRef.current) return;
-    const quill = quillRef.current.getEditor();
+        if (!quillRef.current) return;
+        const quill = quillRef.current.getEditor();
 
-    const handlePaste = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        if (quill.__pasteHandlerAttached) return;
 
-        const clipboardData = e.clipboardData || window.clipboardData;
-        const html = clipboardData.getData('text/html') || clipboardData.getData('text/plain');
-        if (!html) return;
+        const handlePaste = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
 
-        const safeHtml = DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: ['b', 'i', 'u', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'em', 'a'],
-            ALLOWED_ATTR: ['href', 'target', 'rel']
-        });
+            const clipboardData = e.clipboardData || window.clipboardData;
+            const text = clipboardData.getData('text/plain');
 
-        const range = quill.getSelection(true);
-        quill.deleteText(range.index, range.length);
-        quill.clipboard.dangerouslyPasteHTML(range.index, safeHtml);
-        quill.setSelection(range.index + safeHtml.length, 0);
-    };
+            if (!text) return;
 
-    quill.root.addEventListener('paste', handlePaste, true);
+            const cleanText = text.replace(/\r\n|\r/g, '\n');
 
-    return () => {
-        quill.root.removeEventListener('paste', handlePaste, true);
-    };
-}, []);
+            const range = quill.getSelection(true);
+            quill.deleteText(range.index, range.length);
+            quill.insertText(range.index, cleanText); 
+            quill.setSelection(range.index + cleanText.length, 0);
+        };
+
+
+        quill.root.addEventListener('paste', handlePaste, true);
+        quill.__pasteHandlerAttached = true;
+
+        return () => {
+            quill.root.removeEventListener('paste', handlePaste, true);
+            quill.__pasteHandlerAttached = false;
+        };
+    }, []);
 
 
     const [localSize, setLocalSize] = useState({
@@ -140,11 +154,7 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
         const delta = element?.content?.content_delta;
         let html = element?.content?.content_html ?? '';
 
-        // SANITIZAR el HTML antes de ponerlo en Quill
-        html = DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: ['b', 'i', 'u', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'em', 'a'],
-            ALLOWED_ATTR: ['href', 'target', 'rel']
-        });
+        html = DOMPurify.sanitize(html, quillPurifyConfig);
 
         if (delta) {
             // Opción 1: convertir delta a HTML seguro
@@ -156,7 +166,6 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
 
         setLocalValue(html);
     }, [element.id]);
-
 
     useEffect(() => {
         return () => {
@@ -189,9 +198,9 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
             {/* HEADER */}
             <Box display="flex" justifyContent="space-between" alignItems="center" gap={1}>
                 {!showCharts && (
-                    <Box display="flex" flexItem gap={1} mr={1}>
+                    <Box display="flex" alignItems={'center'} flexItem gap={1} mr={1}>
                         <DragIndicatorIcon fontSize="medium" />
-                        <Divider orientation="vertical" flexItem sx={{ alignSelf: 'stretch' }} />
+                        <Divider orientation="vertical" sx={{ alignSelf: 'stretch', height: 30 }} />
                     </Box>
                 )}
 
@@ -296,39 +305,17 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
             {showCharts && (
                 <>
                     {element.type === "text" && (
-                        // <ReactQuill
-                        //     ref={quillRef}
-                        //     theme="snow"
-                        //     className="quill-dark"
-                        //     value={localValue}
-                        //     modules={quillModules}
-                        //     onChange={(html, delta, source, editor) => {
-
-                        //         setLocalValue(html);
-                        //         debouncedSave({
-                        //             ...element,
-                        //             content: {
-                        //                 content_html: html,
-                        //                 content_delta: editor.getContents(),
-                        //             },
-                        //         });
-                        //     }}
-
-                        // />
-
                         <ReactQuill
                             ref={quillRef}
                             theme="snow"
+                            className="quill-dark"
+
                             value={localValue}
                             modules={quillModules}
                             onChange={(html, delta, source, editor) => {
-                                // Sanitize HTML antes de guardar
-                                const safeHtml = DOMPurify.sanitize(html, {
-                                    ALLOWED_TAGS: ['b', 'i', 'u', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'em', 'a'],
-                                    ALLOWED_ATTR: ['href', 'target', 'rel']
-                                });
+                                const safeHtml = DOMPurify.sanitize(html, quillPurifyConfig);
 
-                                setLocalValue(safeHtml);
+                                setLocalValue(html);
                                 debouncedSave({
                                     ...element,
                                     content: {
