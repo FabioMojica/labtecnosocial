@@ -66,6 +66,7 @@ export const getFacebookPageOverview = async (req, res) => {
   }
 };
 
+
 export const getFacebookPageInsights = async (req, res) => {
   try {
     const { pageId } = req.params;
@@ -132,7 +133,7 @@ export const getFacebookPageInsights = async (req, res) => {
     return errorResponse(res, ERROR_CODES.SERVER_ERROR, error.message, 500);
   }
 };
-
+ 
 export const getFacebookPagePosts = async (req, res) => {
   try {
     const { pageId } = req.params;

@@ -26,6 +26,7 @@ import { formatForTotalReactionsCard } from "./utils/cards/formatTotalReactionsC
 import { formatForTotalActionsCard } from "./utils/cards/formatForTotalActionsCard";
 import { useReport } from "../../../../contexts/ReportContext";
 import { CHART_IDS_FACEBOOK } from "./utils/chartsIds";
+import { formatForPageImpressionsCard } from "./utils/cards/formatForPageImpressionsCard.js";
 
  
 export const FacebookDashboard = ({ project, useMock = true, showingDialog = false }) => {
@@ -102,37 +103,34 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
             setErrorFetchData(false);
 
             const insights = await callEndpoint(getFacebookPageInsights(facebookIntegration?.integration_id, selectedPeriod));
-            const posts = await callEndpoint(getFacebookPagePosts(facebookIntegration?.integration_id, selectedPeriod));
-            setTopPostsData(posts);
-
-            console.log("insights", insights);
-            console.log("posts", posts);
+            // const posts = await callEndpoint(getFacebookPagePosts(facebookIntegration?.integration_id, selectedPeriod));
+            // setTopPostsData(posts);
 
             const followersInsight = insights.find(i => i.name === "page_follows");
             setFollowersData(formatForFollowersCard(followersInsight?.values, selectedPeriod));
 
-            const pageImpressionsInsight = insights.find(i => i.name === "page_media_view");
-            setImpressionsPageData(formatForPageViewsCard(pageImpressionsInsight?.values, selectedPeriod));
-            setOrganicOrPaidViewsData(formatForOrganicOrPaidViewsCard(pageImpressionsInsight?.values, selectedPeriod));
+            // const pageImpressionsInsight = insights.find(i => i.name === "page_media_view");
+            // setImpressionsPageData(formatForPageImpressionsCard(pageImpressionsInsight?.values, selectedPeriod));
+            // setOrganicOrPaidViewsData(formatForOrganicOrPaidViewsCard(pageImpressionsInsight?.values, selectedPeriod));
 
-            const pageViewsInsight = insights.find(i => i.name === "page_views_total");
-            setViewsPageData(formatForPageViewsCard(pageViewsInsight?.values, selectedPeriod));
+            // const pageViewsInsight = insights.find(i => i.name === "page_views_total");
+            // setViewsPageData(formatForPageViewsCard(pageViewsInsight?.values, selectedPeriod));
 
-            const reactionsInsights = insights.filter(i => i.name.includes("page_actions_post_reactions"));
-            const totalReactionsData = formatForTotalReactionsCard(reactionsInsights);
-            setTotalReactionsOfPage(totalReactionsData);
+            // const reactionsInsights = insights.filter(i => i.name.includes("page_actions_post_reactions"));
+            // const totalReactionsData = formatForTotalReactionsCard(reactionsInsights);
+            // setTotalReactionsOfPage(totalReactionsData);
 
-            const followersCountryInsight = insights.find(i => i.name === "page_follows_country");
-            const countryData = formatForFollowersByCountryCard(followersCountryInsight?.values, selectedPeriod);
-            setCountryFollowersData(countryData);
+            // const followersCountryInsight = insights.find(i => i.name === "page_follows_country");
+            // const countryData = formatForFollowersByCountryCard(followersCountryInsight?.values, selectedPeriod);
+            // setCountryFollowersData(countryData);
 
-            const totalActionsInsight = insights.find(i => i.name === "page_total_actions");
-            const totalActions = formatForTotalActionsCard(totalActionsInsight?.values, selectedPeriod);
-            setTotalActionsData(totalActions);
+            // const totalActionsInsight = insights.find(i => i.name === "page_total_actions");
+            // const totalActions = formatForTotalActionsCard(totalActionsInsight?.values, selectedPeriod);
+            // setTotalActionsData(totalActions);
 
-            const postEngagementsInsight = insights.find(i => i.name === "page_post_engagements");
-            const postEngagements = formatForTotalActionsCard(postEngagementsInsight?.values, selectedPeriod);
-            setPostEngagementsData(postEngagements);
+            // const postEngagementsInsight = insights.find(i => i.name === "page_post_engagements");
+            // const postEngagements = formatForTotalActionsCard(postEngagementsInsight?.values, selectedPeriod);
+            // setPostEngagementsData(postEngagements);
 
             setErrorFetchData(false);
 
@@ -150,6 +148,8 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
 
     const integration = integrationsConfig["facebook"];
     const IntegrationIcon = integration.icon;
+
+    const selectable = showingDialog; 
 
     return (
         <Box
@@ -348,13 +348,15 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                     <Grid container spacing={1} columns={{ xs: 12, sm: 12 }} size={{ xs: 12, lg: 9 }}>
                         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
                             <FollowersCard
+                                mode = 'dashboard'
                                 error={errorFetchData}
-                                title="Seguidores de la página"
+                                title="Nuevos seguidores de la página"
                                 loading={isLoadingInsights}
                                 interval={periodLabel}
                                 period={selectedPeriod}
                                 data={followersData}
                                 selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.followersCard(selectedPeriod))}
+                                selectable={selectable}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
@@ -381,6 +383,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
 
                         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
                             <PageViewsCard
+                                mode = 'dashboard'
                                 error={errorFetchData}
                                 title="Visitas a la página"
                                 loading={isLoadingInsights}
@@ -388,6 +391,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                                 period={selectedPeriod}
                                 data={viewsPageData}
                                 selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.pageViewsCard(selectedPeriod))}
+                                selectable={selectable}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
@@ -414,13 +418,15 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
 
                         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
                             <PageImpressionsCard
+                                mode = 'dashboard'
                                 title="Page impressions"
                                 error={errorFetchData}
-                                loading={isLoadingInsights}
+                                loading={isLoadingInsights} 
                                 interval={periodLabel}
                                 period={selectedPeriod}
                                 data={impressionsPageData}
                                 selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.pageImpressionsCard(selectedPeriod))}
+                                selectable={selectable}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
@@ -448,6 +454,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
 
                         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
                             <TotalActionsCard
+                                mode = 'dashboard'
                                 error={errorFetchData}
                                 title="Total actions"
                                 loading={isLoadingInsights}
@@ -455,6 +462,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                                 period={selectedPeriod}
                                 data={totalActionsData}
                                 selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.totalActionsCard(selectedPeriod))}
+                                selectable={selectable}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
@@ -481,6 +489,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
 
                         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
                             <PostEngagementsCard
+                                mode = 'dashboard'
                                 error={errorFetchData}
                                 title="Post engagements"
                                 loading={isLoadingInsights}
@@ -488,6 +497,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                                 period={selectedPeriod}
                                 data={postEngagementsData}
                                 selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.postEngagementsCard(selectedPeriod))}
+                                selectable={selectable}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
@@ -514,6 +524,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
 
                         <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
                             <TotalReactionsCard
+                                mode = 'dashboard'
                                 error={errorFetchData}
                                 title="Reacciones totales"
                                 loading={isLoadingInsights}
@@ -521,6 +532,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                                 period={selectedPeriod}
                                 data={totalReactionsOfPage}
                                 selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.totalReactionsCard(selectedPeriod))}
+                                selectable={selectable}
                                 onSelectChange={(checked) => {
                                     if (checked) {
                                         addChart({
@@ -548,6 +560,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
 
                     <Grid container size={{ xs: 12, sm: 12, lg: 3 }}>
                         <OrganicOrPaidViewsCard
+                            mode = 'dashboard'
                             error={errorFetchData}
                             title="Page impressions orgánicas vs pagadas"
                             loading={isLoadingInsights}
@@ -555,6 +568,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                             period={selectedPeriod}
                             data={organicOrPaidViewsData}
                             selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.organicOrPaidViewsCard(selectedPeriod))}
+                            selectable={selectable}
                             onSelectChange={(checked) => {
                                 if (checked) {
                                     addChart({
@@ -583,6 +597,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                 <Grid container columns={12} spacing={1} size={{ xs: 12, sm: 12, lg: 6 }} sx={{ mb: 1 }}>
                     <Grid size={{ xs: 12, sm: 6, lg: 3 }} >
                         <ChartFollowersByCountry
+                            mode = 'dashboard'
                             error={errorFetchData}
                             title="Seguidores por país"
                             loading={isLoadingInsights}
@@ -590,6 +605,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                             period={selectedPeriod}
                             data={countryFollowersData}
                             selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.chartFollowersByCountry(selectedPeriod))}
+                            selectable={selectable}
                             onSelectChange={(checked) => {
                                 if (checked) {
                                     addChart({
@@ -615,6 +631,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, lg: 9 }} >
                         <TopPostOfThePeriod
+                            mode = 'dashboard'
                             error={errorFetchData}
                             title="Top 5 posts populares"
                             loading={isLoadingInsights}
@@ -622,6 +639,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                             period={selectedPeriod}
                             data={topPostsData}
                             selected={selectedCharts.some(c => c.id_name === CHART_IDS_FACEBOOK.topPostOfThePeriod(selectedPeriod))}
+                            selectable={selectable}
                             onSelectChange={(checked) => {
                                 if (checked) {
                                     addChart({

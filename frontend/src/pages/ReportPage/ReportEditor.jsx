@@ -45,7 +45,6 @@ import {
 } from "./components";
 import { getElementLabel, formatElementsForDb, formatElementsForFrontend } from "./utils";
 import { useReportEditor } from "./hooks/useReportEditor";
-import { ReportPDF } from "./components/ReportPdf";
 
 export const ReportEditor = () => {
   const [exportAnchorEl, setExportAnchorEl] = useState(null);

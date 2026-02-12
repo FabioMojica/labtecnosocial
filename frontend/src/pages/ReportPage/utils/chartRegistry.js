@@ -27,30 +27,3 @@ export const chartRegistry = {
 export const getChartComponent = (platform, chartKey) => {
   return chartRegistry[platform]?.[chartKey] || null;
 };
-
-export const parseChartId = (chartId) => {
-  if (!chartId) return null;
- 
-  const cleanId = chartId.replace('chart-', '');
-  const parts = cleanId.split('-');
-
-  if (parts.length < 2) return null;
-
-  const chartKey = parts[0];
-
-  // 🔥 NORMALIZACIÓN DEL PLATFORM
-  let rawPlatform = parts[1];
-  let platform = rawPlatform.includes(':')
-    ? rawPlatform.split(':')[1]
-    : rawPlatform;
-
-  const period = parts[2] || null;
-
-  return {
-    chartKey,
-    platform,
-    period,
-    fullId: chartId,
-    rawPlatform,
-  };
-};

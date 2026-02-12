@@ -22,7 +22,7 @@ import { InstagramDashboard } from './components/Instagram/InstagramDashboard';
 import { XDashboard } from './components/X/XDashboard';
 
 
-export const APIsDashboardPage = ({showingDialog = false}) => {
+export const APIsDashboardPage = ({ showingDialog = false }) => {
     const { id } = useParams();
     const [projects, setProjects] = useState([]);
     const { loading, callEndpoint } = useFetchAndLoad();
@@ -32,14 +32,14 @@ export const APIsDashboardPage = ({showingDialog = false}) => {
     const { notify } = useNotification();
     const navigate = useNavigate();
     const [selectedIntegration, setSelectedIntegration] = useState(null);
-    
+
 
     const fetchProjectsWithIntegrations = async () => {
         try {
             setError(false);
             const res = await callEndpoint(getOperationalProjectsWithIntegrationsApi(user.email));
             setProjects(res);
-        } catch (error) { 
+        } catch (error) {
             setError(true);
             notify(error.message, "error");
         }
@@ -64,15 +64,15 @@ export const APIsDashboardPage = ({showingDialog = false}) => {
     if (projects.length === 0) {
         return <NoResultsScreen message='No tienes ningún proyecto registrado en el sistema' buttonText={'Crear uno'} onButtonClick={() => { navigate('/proyectos/crear') }} />
     }
- 
+
     const renderIntegrationDashboard = () => {
         switch (selectedIntegration) {
             case 'github':
                 return <GitHubDashboard showingDialog={showingDialog} project={selectedProject} />;
-            case 'facebook': 
-                return <FacebookDashboard showingDialog={showingDialog} project={selectedProject}/>;
+            case 'facebook':
+                return <FacebookDashboard showingDialog={showingDialog} project={selectedProject} />;
             case 'instagram':
-                return <InstagramDashboard showingDialog={showingDialog} project={selectedProject}/>;
+                return <InstagramDashboard showingDialog={showingDialog} project={selectedProject} />;
             case 'x':
                 return <XDashboard showingDialog={showingDialog} project={selectedProject} />;
             default:
@@ -94,26 +94,6 @@ export const APIsDashboardPage = ({showingDialog = false}) => {
                             <Box variant='outlined' sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', border: '1px solid #686666ff', borderRadius: 1, p: 1 }}>
                                 <Typography variant="h4" fontWeight={'bold'} sx={{ fontSize: { xs: '0.8rem', sm: '0.7rem' }, mb: 1 }}>Dashboards disponibles</Typography>
                                 <Box sx={{ display: 'flex', gap: 1 }}>
-                                    {/* 🔹 Icono adicional de resumen general */}
-                                    <Tooltip title="Resumen de todos los dashboards">
-                                        <IconButton
-                                            sx={(theme) => ({
-                                                backgroundColor: theme.palette.primary.dark,
-                                                color: "#ffffffff",
-                                                "&:hover": {
-                                                    backgroundColor:
-                                                        theme.palette.mode === "light"
-                                                            ? `${theme.palette.primary.main}CC`
-                                                            : `${theme.palette.primary.main}88`,
-                                                },
-                                            })}
-                                            onClick={() => setSelectedIntegration("resumen")}
-                                            size='small'
-                                        >
-                                            <DashboardOutlined sx={{ fontSize: 20 }} />
-                                        </IconButton>
-                                    </Tooltip>
-
                                     {/* 🔹 Íconos de integraciones dinámicas */}
                                     {selectedProject?.integrations?.map((integration) => {
                                         const config = integrationsConfig[integration.platform];
@@ -121,56 +101,34 @@ export const APIsDashboardPage = ({showingDialog = false}) => {
                                         const IconComponent = config.icon;
 
                                         return (
-                                            <Tooltip
-                                                key={integration.id}
-                                                title={
-                                                    <Box sx={{ display: "flex", flexDirection: "column" }}>
-                                                        <Typography sx={{ fontSize: "0.75rem" }}>
-                                                            Mantén presionado por 3 segundos para redirigirte al link de integración:
-                                                        </Typography>
-                                                        <Typography
-                                                            sx={{
-                                                                fontSize: "0.7rem",
-                                                                color: "#ccc",
-                                                                mt: 0.3,
-                                                                textDecoration: "underline",
-                                                                wordBreak: "break-all",
-                                                            }}
-                                                        >
-                                                            {integration.url}
-                                                        </Typography>
-                                                    </Box>
-                                                }
+                                            <IconButton
+                                                sx={(theme) => ({
+                                                    backgroundColor: config.color,
+                                                    color: "#fff",
+                                                    "&:hover": {
+                                                        backgroundColor:
+                                                            theme.palette.mode === "light"
+                                                                ? `${config.color}CC`
+                                                                : `${config.color}88`,
+                                                    },
+                                                })}
+                                                onClick={() => setSelectedIntegration(integration.platform)}
+                                                onMouseDown={(e) => {
+                                                    const timer = setTimeout(() => {
+                                                        window.open(integration.url, "_blank");
+                                                    }, 3000);
+                                                    e.currentTarget.dataset.holdTimer = timer;
+                                                }}
+                                                onMouseUp={(e) => {
+                                                    clearTimeout(e.currentTarget.dataset.holdTimer);
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    clearTimeout(e.currentTarget.dataset.holdTimer);
+                                                }}
+                                                size='small'
                                             >
-                                                <IconButton
-                                                    sx={(theme) => ({
-                                                        backgroundColor: config.color,
-                                                        color: "#fff",
-                                                        "&:hover": {
-                                                            backgroundColor:
-                                                                theme.palette.mode === "light"
-                                                                    ? `${config.color}CC`
-                                                                    : `${config.color}88`,
-                                                        },
-                                                    })}
-                                                    onClick={() => setSelectedIntegration(integration.platform)}
-                                                    onMouseDown={(e) => {
-                                                        const timer = setTimeout(() => {
-                                                            window.open(integration.url, "_blank");
-                                                        }, 3000);
-                                                        e.currentTarget.dataset.holdTimer = timer;
-                                                    }}
-                                                    onMouseUp={(e) => {
-                                                        clearTimeout(e.currentTarget.dataset.holdTimer);
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        clearTimeout(e.currentTarget.dataset.holdTimer);
-                                                    }}
-                                                    size='small'
-                                                >
-                                                    <IconComponent sx={{ fontSize: 20 }} />
-                                                </IconButton>
-                                            </Tooltip>
+                                                <IconComponent sx={{ fontSize: 20 }} />
+                                            </IconButton>
                                         );
                                     })}
                                 </Box>

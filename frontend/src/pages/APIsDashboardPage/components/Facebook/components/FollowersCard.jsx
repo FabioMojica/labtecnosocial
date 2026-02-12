@@ -1,18 +1,67 @@
 import { CheckBox } from "@mui/icons-material";
-import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
-import { SparkLineChart } from "@mui/x-charts";
+import { Box, Card, CardContent, Divider, Paper, Stack, Tooltip, Typography } from "@mui/material";
+import { ChartsTooltipContainer, SparkLineChart, useAxesTooltip } from "@mui/x-charts";
 import { useState } from "react";
 import { integrationsConfig } from "../../../../../utils";
 import { useEffect } from "react";
-import { ErrorScreen, NoResultsScreen, SpinnerLoading } from "../../../../../generalComponents";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { DashboardCard } from './DashboardCard';
+import { formatNumber } from "../utils/cards";
+
+
+function formatDailyValue(value = 0) {
+    const sign = value < 0 ? "" : "+";
+    return `${sign}${formatNumber(value)}`;
+}
+
+function getFollowerLabel(value = 0) {
+    const absValue = Math.abs(value);
+    return absValue === 1 ? "seguidor" : "seguidores";
+}
+
+const CustomTooltip = ({ sampledCombined }) => {
+    const tooltipData = useAxesTooltip();
+    if (!tooltipData || tooltipData.length === 0) return null;
+
+    const { dataIndex } = tooltipData[0];
+
+    const realPoint = sampledCombined[dataIndex];
+
+    return (
+        <ChartsTooltipContainer trigger="axis">
+            <Paper>
+                <Box sx={{ px: 1.5, pt: 1 }}>
+                    <Typography variant="body2" fontWeight={'bold'}>
+                        {realPoint?.date}
+                    </Typography>
+                </Box>
+
+                <Divider sx={{ my: 0.5 }} />
+
+                <Box sx={{ px: 1.5 }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={400}>
+                        {formatDailyValue(realPoint?.daily)} {getFollowerLabel(realPoint?.daily)}
+                    </Typography>
+                </Box>
+
+                <Divider sx={{ my: 0.5 }} />
+
+                <Box sx={{ px: 1.5, pb: 0.5 }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={400}>
+                        {formatNumber(realPoint?.cumulative)} acumulados
+                    </Typography>
+                </Box>
+            </Paper>
+        </ChartsTooltipContainer>
+    );
+};
 
 export const FollowersCard = ({
+    mode = 'dashboard',
     loading,
     error,
-    title = "Seguidores de la página",
+    title = "Nuevos seguidores de la página",
     interval = "Hoy",
     period,
     selected = true,
@@ -20,39 +69,12 @@ export const FollowersCard = ({
     onSelectChange,
     data = {}
 }) => {
-
-    const [showHighlight, setShowHighlight] = useState(true);
-    const [showTooltip, setShowTooltip] = useState(true);
+    console.log("ññññññññññññññññññ", data)
+    const isAnimated = mode === 'dashboard';
 
     const finalData = data?.chartData;
     const [dataCard, setDataCard] = useState([]);
     const [animDates, setAnimDates] = useState([]);
-    const [animatedTotal, setAnimatedTotal] = useState(0);
-
-    useEffect(() => {
-        if (!data?.total) {
-            setAnimatedTotal(0);
-            return;
-        }
-
-        let start = 0;
-        const end = data.total;
-        const duration = 1000; // duración de animación en ms
-        const steps = 60; // cantidad de pasos (aprox 60 fps)
-        const increment = end / steps;
-        const intervalTime = duration / steps;
-
-        const intervalId = setInterval(() => {
-            start += increment;
-            if (start >= end) {
-                start = end;
-                clearInterval(intervalId);
-            }
-            setAnimatedTotal(Math.round(start));
-        }, intervalTime);
-
-        return () => clearInterval(intervalId);
-    }, [data.total, interval]);
 
     useEffect(() => {
         if (!Array.isArray(finalData) || finalData.length === 0) {
@@ -61,7 +83,12 @@ export const FollowersCard = ({
             return;
         }
 
-        // Si hay un solo punto
+        if (!isAnimated) {
+            setDataCard(finalData);
+            setAnimDates(data.dates ?? []);
+            return;
+        }
+
         if (finalData.length === 1) {
             setDataCard(finalData);
             setAnimDates(data.dates);
@@ -78,12 +105,8 @@ export const FollowersCard = ({
         const intervalId = setInterval(() => {
             currentIndex += chunkSize;
 
-            // Slicing dataCard y fechas juntos
-            const slicedData = finalData.slice(0, currentIndex);
-            const slicedDates = data.dates.slice(0, currentIndex);
-
-            setDataCard(slicedData);
-            setAnimDates(slicedDates);
+            setDataCard(finalData.slice(0, currentIndex));
+            setAnimDates(data.dates.slice(0, currentIndex));
 
             if (currentIndex >= totalPoints) {
                 setDataCard(finalData);
@@ -93,13 +116,47 @@ export const FollowersCard = ({
         }, 20);
 
         return () => clearInterval(intervalId);
-    }, [interval, finalData, data.dates]);
+    }, [finalData, data.dates, isAnimated]);
+
+    function toCumulative(data = []) {
+        let acc = 0;
+        return data.map(v => {
+            acc += v;
+            return acc;
+        });
+    }
+
+    function downsampleObjects(data = [], maxPoints = 24) {
+        if (!Array.isArray(data) || data.length <= maxPoints) {
+            return data;
+        }
+
+        const result = [];
+        const step = (data.length - 1) / (maxPoints - 1);
+
+        for (let i = 0; i < maxPoints; i++) {
+            const index = Math.round(i * step);
+            result.push(data[index]);
+        }
+
+        return result;
+    }
+
+    const cumulativeData = toCumulative(dataCard);
+
+    const combined = dataCard.map((daily, index) => ({
+        date: animDates[index],
+        daily,
+        cumulative: cumulativeData[index],
+    }));
+
+    const sampledCombined = downsampleObjects(combined, 200);
 
     return (
         <DashboardCard
             title={title}
-            titleSpinner={'Obteniendo los seguidores de la página...'}
-            titleError={'Ocurrió un error al obtener los seguidores de la página'}
+            titleSpinner={'Obteniendo los nuevos seguidores de la página...'}
+            titleError={'Ocurrió un error al obtener los nuevos seguidores de la página'}
             sxSpinner={{
                 fontSize: '0.9rem',
                 pt: 3.5
@@ -113,31 +170,41 @@ export const FollowersCard = ({
             selected={selected}
             onSelectChange={onSelectChange}
         >
-            <Box display={'flex'} gap={0.5} justifyContent={'center'} alignItems={'flex-end'} sx={{
-                mt: 4.5
-            }}>
+            <Box
+                display={'flex'}
+                gap={0.5}
+                justifyContent={'center'}
+                alignItems={'flex-end'}
+                mt={4.5}
+                minHeight={70}
+                sx={{ whiteSpace: 'nowrap' }}>
                 <Box sx={{
                     position: 'relative',
                 }}>
-                    <Typography variant='h3'>
-                        +{animatedTotal}
-                    </Typography>
+                    <Tooltip title={data?.total} arrow>
+                        <Typography sx={{ cursor: 'pointer', color: data?.total === 0 ? "warning.main" : undefined }} variant="h3" fontWeight={500}>
+                            {formatNumber(data?.total)}
+                        </Typography>
+                    </Tooltip>
+
                     <Box sx={{
                         position: 'absolute',
-                        bottom: -10,
-                        right: -10
+                        bottom: -10, 
+                        right: -15
                     }}>
                         {data.delta > 0 && (
                             <ArrowUpwardIcon
-                                sx={{ color: 'green', fontSize: 15, transform: 'scale(1.4)' }}
+                                fontSize="medium"
+                                sx={{ color: 'green' }}
                             />
                         )}
                         {data.delta < 0 && (
                             <ArrowDownwardIcon
-                                sx={{ color: 'red', fontSize: 15, transform: 'scale(1.4)' }}
+                                sx={{ color: 'red' }}
                             />
                         )}
                     </Box>
+
                 </Box>
 
 
@@ -150,27 +217,21 @@ export const FollowersCard = ({
                     </defs>
                 </svg>
 
-                {period !== 'all' && period !== 'today' &&
+                {data?.total !== 0 &&
                     <SparkLineChart
-                        data={dataCard}
+                        key={interval}
+                        data={sampledCombined.map(p => p.cumulative)}
                         height={70}
                         area
-                        curve="natural"
-                        showHighlight={showHighlight}
-                        showTooltip={showTooltip}
+                        curve="monotoneX"
+                        showHighlight
+                        showTooltip
                         color={integrationsConfig.facebook.color}
-                        xAxis={{
-                            scaleType: 'point',
-                            data: animDates,
-                            valueFormatter: (value) =>
-                                new Date(value).toLocaleDateString('es-BO', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric',
-                                }),
+                        slots={{
+                            tooltip: () => <CustomTooltip sampledCombined={sampledCombined} />,
                         }}
-                        tooltip={{
-                            valueFormatter: (value) => `${value} seguidores`,
+                        slotProps={{
+                            tooltip: { trigger: "axis" },
                         }}
                         sx={{
                             '& .MuiAreaElement-root': {
@@ -182,7 +243,8 @@ export const FollowersCard = ({
                         }}
                     />
                 }
+
             </Box>
         </DashboardCard>
-    )
+    );
 }

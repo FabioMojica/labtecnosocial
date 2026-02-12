@@ -40,7 +40,7 @@ export const DashboardCard = ({
 
       {/* States */}
       {loading ? (
-        <SpinnerLoading size={30} text={titleSpinner} sx={{ height: "100%", ...sxSpinner }} />
+        <SpinnerLoading size={30} text={titleSpinner} sx={{ height: "100%", ...sxSpinner, fontStyle: 'italic', color: 'text.disabled' }} />
       ) : error ? (
         <ErrorScreen message={titleError || "Ocurrió un error al obtener los datos"}
           sx={{

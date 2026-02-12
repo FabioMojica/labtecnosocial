@@ -1,5 +1,4 @@
-import { CheckBox } from "@mui/icons-material";
-import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import { Box, Tooltip, Typography } from "@mui/material";
 import { SparkLineChart } from "@mui/x-charts";
 import { useState } from "react";
 import { integrationsConfig } from "../../../../../utils";
@@ -7,8 +6,10 @@ import { useEffect } from "react";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { DashboardCard } from './DashboardCard';
+import { formatNumber } from "../utils/cards";
 
 export const PageImpressionsCard = ({
+    mode = 'dashboard',
     loading,
     error,
     title = "Page impressions",
@@ -19,38 +20,13 @@ export const PageImpressionsCard = ({
     onSelectChange,
     data = {}
 }) => {
-    const [showHighlight, setShowHighlight] = useState(true);
-    const [showTooltip, setShowTooltip] = useState(true);
+    console.log("---------->", data)
+
+    const isAnimated = mode === 'dashboard';
 
     const finalData = data?.chartData;
     const [dataCard, setDataCard] = useState([]);
     const [animDates, setAnimDates] = useState([]);
-    const [animatedTotal, setAnimatedTotal] = useState(0);
-
-    useEffect(() => {
-        if (!data?.total) {
-            setAnimatedTotal(0);
-            return;
-        }
-
-        let start = 0;
-        const end = data.total;
-        const duration = 1000;
-        const steps = 60;
-        const increment = end / steps;
-        const intervalTime = duration / steps;
-
-        const intervalId = setInterval(() => {
-            start += increment;
-            if (start >= end) {
-                start = end;
-                clearInterval(intervalId);
-            }
-            setAnimatedTotal(Math.round(start));
-        }, intervalTime);
-
-        return () => clearInterval(intervalId);
-    }, [data.total, interval]);
 
     useEffect(() => {
         if (!Array.isArray(finalData) || finalData.length === 0) {
@@ -59,7 +35,12 @@ export const PageImpressionsCard = ({
             return;
         }
 
-        // Si hay un solo punto
+        if (!isAnimated) {
+            setDataCard(finalData);
+            setAnimDates(data.dates ?? []);
+            return;
+        }
+
         if (finalData.length === 1) {
             setDataCard(finalData);
             setAnimDates(data.dates);
@@ -76,12 +57,8 @@ export const PageImpressionsCard = ({
         const intervalId = setInterval(() => {
             currentIndex += chunkSize;
 
-            // Slicing dataCard y fechas juntos
-            const slicedData = finalData.slice(0, currentIndex);
-            const slicedDates = data.dates.slice(0, currentIndex);
-
-            setDataCard(slicedData);
-            setAnimDates(slicedDates);
+            setDataCard(finalData.slice(0, currentIndex));
+            setAnimDates(data.dates.slice(0, currentIndex));
 
             if (currentIndex >= totalPoints) {
                 setDataCard(finalData);
@@ -91,7 +68,41 @@ export const PageImpressionsCard = ({
         }, 20);
 
         return () => clearInterval(intervalId);
-    }, [interval, finalData, data.dates]);
+    }, [finalData, data.dates, isAnimated]);
+
+    function toCumulative(data) {
+        let acc = 0;
+        return data.map(v => {
+            acc += v;
+            return acc;
+        });
+    }
+
+    function downsample(data, maxPoints = 24) {
+        if (!Array.isArray(data) || data.length <= maxPoints) return data;
+
+        const step = Math.ceil(data.length / maxPoints);
+        const result = [];
+
+        for (let i = 0; i < data.length; i += step) {
+            result.push(data[i]);
+        }
+
+        const last = data[data.length - 1];
+        if (result[result.length - 1] !== last) {
+            result.push(last);
+        }
+
+        return result;
+    }
+
+
+    const sampledData = downsample(dataCard, 24); // ya son los valores reales
+    const sampledDates = downsample(animDates, 24);
+
+    const safeLength = Math.min(sampledData.length, sampledDates.length);
+    const safeData = sampledData.slice(0, safeLength);
+    const safeDates = sampledDates.slice(0, safeLength);
 
     return (
         <DashboardCard
@@ -111,29 +122,41 @@ export const PageImpressionsCard = ({
             selected={selected}
             onSelectChange={onSelectChange}
         >
-            <Box display={'flex'} gap={0.5} justifyContent={'center'} alignItems={'flex-end'} mt={4.5}>
+            <Box
+                display={'flex'}
+                gap={0.5}
+                justifyContent={'center'}
+                alignItems={'flex-end'}
+                mt={4.5}
+                minHeight={70}
+                sx={{ whiteSpace: 'nowrap' }}>
                 <Box sx={{
                     position: 'relative',
                 }}>
-                    <Typography variant='h3'>
-                        +{animatedTotal}
-                    </Typography>
+                    <Tooltip title={data?.total} arrow>
+                        <Typography sx={{ cursor: 'pointer' }} variant="h3" fontWeight={500}>
+                            {formatNumber(data?.total)}
+                        </Typography>
+                    </Tooltip>
+
                     <Box sx={{
                         position: 'absolute',
                         bottom: -10,
-                        right: -10
+                        right: -15
                     }}>
                         {data.delta > 0 && (
                             <ArrowUpwardIcon
-                                sx={{ color: 'green', fontSize: 15, transform: 'scale(1.4)' }}
+                                fontSize="medium"
+                                sx={{ color: 'green' }}
                             />
                         )}
                         {data.delta < 0 && (
                             <ArrowDownwardIcon
-                                sx={{ color: 'red', fontSize: 15, transform: 'scale(1.4)' }}
+                                sx={{ color: 'red' }}
                             />
                         )}
                     </Box>
+
                 </Box>
 
 
@@ -146,28 +169,25 @@ export const PageImpressionsCard = ({
                     </defs>
                 </svg>
 
-                {period !== 'all' && period !== 'today' &&
+                {data?.total > 0 &&
                     <SparkLineChart
                         key={interval}
-                        data={dataCard}
+                        data={safeData}
                         height={70}
                         area
-                        curve="natural"
-                        showHighlight={showHighlight}
-                        showTooltip={showTooltip}
+                        curve="linear"
+                        showHighlight 
+                        showTooltip
                         color={integrationsConfig.facebook.color}
                         xAxis={{
-                            scaleType: 'point',
-                            data: animDates,
-                            valueFormatter: (value) =>
-                                new Date(value).toLocaleDateString('es-BO', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric',
-                                }),
-                        }}
-                        tooltip={{
-                            valueFormatter: (value) => `${value} visitas`,
+                            data: safeDates,
+                            valueFormatter: (value, context) => {
+                                return (
+                                    <Typography variant="body2" lineHeight={1}>
+                                        {value}
+                                    </Typography>
+                                )
+                            }
                         }}
                         sx={{
                             '& .MuiAreaElement-root': {
@@ -179,7 +199,8 @@ export const PageImpressionsCard = ({
                         }}
                     />
                 }
+
             </Box>
         </DashboardCard>
-    )
+    );
 }

@@ -1,3 +1,4 @@
+
 import { subDays, subWeeks, subMonths, differenceInDays, addDays } from "date-fns";
 
 const MAX_DAYS = 93;
@@ -17,7 +18,7 @@ export const resolveDateRange = (range) => {
 
   switch (range) {
     case "today":
-      start = subDays(now, 1);
+      start = subDays(now, 2);
       break;
     case "lastWeek":
       start = subWeeks(now, 1);
@@ -34,13 +35,10 @@ export const resolveDateRange = (range) => {
 
   const totalDays = differenceInDays(end, start);
 
-  // Si el rango es menor a MAX_DAYS, devolvemos un solo intervalo
   if (totalDays <= MAX_DAYS) {
-    // return [{ since: start.toISOString(), until: end.toISOString() }];
     return [{ since: toFacebookDate(start), until: toFacebookDate(end) }];
   }
 
-  // Si es mayor, dividimos en chunks de MAX_DAYS
   const intervals = [];
   let chunkEnd = end;
   let chunkStart;
@@ -48,14 +46,13 @@ export const resolveDateRange = (range) => {
   while (differenceInDays(chunkEnd, start) > 0) {
     chunkStart = subDays(chunkEnd, MAX_DAYS); 
     if (differenceInDays(chunkStart, start) < 0) {
-      chunkStart = start; // último chunk
+      chunkStart = start;
     }
-    // intervals.push({ since: chunkStart.toISOString(), until: chunkEnd.toISOString() });
     intervals.push({
       since: toFacebookDate(chunkStart),
       until: toFacebookDate(chunkEnd)
     });
-    chunkEnd = subDays(chunkStart, 1); // movemos para el siguiente chunk
+    chunkEnd = subDays(chunkStart, 1);
   }
 
   return intervals;

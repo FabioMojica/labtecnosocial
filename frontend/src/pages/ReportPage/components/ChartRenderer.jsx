@@ -1,61 +1,6 @@
-import React from 'react';
-import { getChartComponent, parseChartId } from '../utils/chartRegistry';
+import { getChartComponent } from '../utils/chartRegistry';
 import { Typography } from '@mui/material';
-
-export const chartPropsMap = {
-  // ======================
-  // Facebook – Overview
-  // ======================
-
-  followersCard: {
-    defaultTitle: 'Seguidores de la página',
-    usesInterval: true,
-  },
-
-  pageViewsCard: {
-    defaultTitle: 'Visitas a la página',
-    usesInterval: true,
-  },
-
-  pageImpressionsCard: {
-    defaultTitle: 'Impresiones de la página',
-    usesInterval: true,
-  },
-
-  organicOrPaidViewsCard: {
-    defaultTitle: 'Impresiones orgánicas vs pagadas',
-    usesInterval: true,
-  },
-
-  totalActionsCard: {
-    defaultTitle: 'Acciones totales',
-    usesInterval: true,
-  },
-
-  postEngagementsCard: {
-    defaultTitle: 'Interacciones con publicaciones',
-    usesInterval: true,
-  },
-
-  totalReactionsCard: {
-    defaultTitle: 'Reacciones totales',
-    usesInterval: true,
-  },
-
-  // ======================
-  // Facebook – Detalle
-  // ======================
-
-  chartFollowersByCountry: {
-    defaultTitle: 'Seguidores por país',
-    usesInterval: true,
-  },
-
-  topPostOfThePeriod: {
-    defaultTitle: 'Top 5 posts populares',
-    usesInterval: true,
-  },
-};
+import { chartPropsMap, parseChartId } from '../utils/chartUtils';
 
 export const ChartRenderer = ({ element }) => {
   const { id, id_name, data, content, title, integration_data, interval, period, type, ...rest } = element
@@ -83,7 +28,8 @@ export const ChartRenderer = ({ element }) => {
     );
   }
 
-  const chartConfig = chartPropsMap[chartKey];
+  const platform = integration_data?.integration?.platform;
+  const chartConfig = chartPropsMap?.[platform]?.[chartKey];
  
   if (!chartConfig) {
     return (
@@ -99,6 +45,7 @@ export const ChartRenderer = ({ element }) => {
 
   const baseProps = {
     ...rest,
+    mode: 'report',
     integration_data: integration_data,
     loading: false,
     error: false,

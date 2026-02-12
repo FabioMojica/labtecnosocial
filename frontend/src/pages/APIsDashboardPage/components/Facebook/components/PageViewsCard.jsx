@@ -1,13 +1,13 @@
 import { CheckBox } from "@mui/icons-material";
-import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import { Box, Card, CardContent, Stack, Tooltip, Typography } from "@mui/material";
 import { SparkLineChart } from "@mui/x-charts";
 import { useState } from "react";
 import { integrationsConfig } from "../../../../../utils";
 import { useEffect } from "react";
-import { ErrorScreen, NoResultsScreen, SpinnerLoading } from "../../../../../generalComponents";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { DashboardCard } from './DashboardCard';
+import { formatNumber } from "../utils/cards";
 
 export const PageViewsCard = ({
     loading,
@@ -114,13 +114,15 @@ export const PageViewsCard = ({
         >
             <Box display={'flex'} gap={0.5} justifyContent={'center'} alignItems={'flex-end'} sx={{
                 mt: 4.5
-            }}> 
+            }}>
                 <Box sx={{
                     position: 'relative',
                 }}>
-                    <Typography variant='h3'>
-                        +{animatedTotal}
-                    </Typography>
+                    <Tooltip title={animatedTotal}>
+                        <Typography sx={{ cursor: 'pointer' }} variant="h3" fontWeight={500}>
+                            {formatNumber(animatedTotal)}
+                        </Typography>
+                    </Tooltip>
                     <Box sx={{
                         position: 'absolute',
                         bottom: -10,

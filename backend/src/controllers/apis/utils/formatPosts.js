@@ -22,8 +22,6 @@ function normalizeReactionsByType(reactions) {
 export function formatPopularPosts(posts, limit = 5) {
   if (!Array.isArray(posts)) return [];
 
-  console.dir(posts, { depth: null });
-
   const formatted = posts.map(post => {
     const reactionsByType = normalizeReactionsByType(post.reactions);
 

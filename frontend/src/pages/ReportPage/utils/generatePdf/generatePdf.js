@@ -4,24 +4,25 @@ import { drawHeader } from "./drawHeader";
 import { drawTextBlock } from "./drawTextBock";
 import { PdfRenderError } from "../pdfWorker";
 import { drawImageBlock } from "./drawImageBlock";
+import { drawChartBlock } from "./drawChartBlock";
 
 export const PAGE_MARGIN_TOP = 50;
 export const PAGE_MARGIN_BOTTOM = 30;
 
 export const ensurePageSpace = ({ pdfDoc, cursor }) => {
-    if (cursor.y <= PAGE_MARGIN_BOTTOM) {
-        try {
-            const newPage = pdfDoc.addPage();
-            cursor.page = newPage;
-            cursor.y = newPage.getSize().height - PAGE_MARGIN_TOP;
-        } catch (err) {
-            throw new PdfRenderError(
-                "PDF_ADD_PAGE_ERROR",
-                "No se pudo crear una nueva página",
-                { y: cursor.y }
-            );
-        }
+  if (cursor.y <= PAGE_MARGIN_BOTTOM) {
+    try {
+      const newPage = pdfDoc.addPage();
+      cursor.page = newPage;
+      cursor.y = newPage.getSize().height - PAGE_MARGIN_TOP;
+    } catch (err) {
+      throw new PdfRenderError(
+        "PDF_ADD_PAGE_ERROR",
+        "No se pudo crear una nueva página",
+        { y: cursor.y }
+      );
     }
+  }
 };
 
 const fetchLogoBytes = async () => {
@@ -53,10 +54,24 @@ const drawElement = async (pdfDoc, page, el, x, y, maxWidth) => {
       width: el.width,
       height: el.height,
       maxWidth,
-      y, 
+      y,
     });
     return result;
   }
+
+  if (el.type === "chart") {
+    console.log("CHART STRINGIFIED:", JSON.stringify(el, null, 2));
+    const result = drawChartBlock({
+      pdfDoc,
+      page,
+      element: el,
+      x,
+      y,
+      maxWidth
+    })
+    return result;
+  }
+
   return { y, page };
 };
 

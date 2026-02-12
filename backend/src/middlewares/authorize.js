@@ -5,6 +5,8 @@ export const authorize = (requiredPermission) => {
   return (req, res, next) => {
     const user = req.user;
 
+    console.log(user);
+
     if (!user?.role) {
       return errorResponse(
         res,
