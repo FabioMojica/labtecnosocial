@@ -6,7 +6,7 @@ import { integrationsConfig } from "../../../../../utils";
 import { useEffect } from "react";
 
 function FollowersCard({
-    title = "Seguidores de la página",
+    title = "Nuevos seguidores de la página",
     interval = "Hoy",
     selected = true,
     selectable = true,

@@ -1,8 +1,8 @@
 export const REACTIONS_CONFIG = {
-  LIKE:  { emoji: "👍", label: "Me gusta / Me importa" },
-  LOVE:  { emoji: "❤️", label: "Me encanta" },
-  HAHA:  { emoji: "😆", label: "Me divierte" },
-  WOW:   { emoji: "😮", label: "Me asombra" },
-  SAD:   { emoji: "😢", label: "Me entristece" },
-  ANGRY: { emoji: "😡", label: "Me enoja" },
+  LIKE: { label: "Me gusta / Me importa", color: "#1877F2" },
+  LOVE: { label: "Me encanta", color: "#F33E58" },
+  HAHA: { label: "Me divierte", color: "#F7B125" },
+  WOW: { label: "Me asombra", color: "#F7B125" },
+  SAD: { label: "Me entristece", color: "#F7B125" },
+  ANGRY: { label: "Me enoja", color: "#E9710F" },
 };

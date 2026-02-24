@@ -1,5 +1,4 @@
-import { CheckBox } from "@mui/icons-material";
-import { Box, Card, CardContent, Divider, Paper, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Divider, Paper, Tooltip, Typography } from "@mui/material";
 import { ChartsTooltipContainer, SparkLineChart, useAxesTooltip } from "@mui/x-charts";
 import { useState } from "react";
 import { integrationsConfig } from "../../../../../utils";
@@ -20,39 +19,48 @@ function getFollowerLabel(value = 0) {
     return absValue === 1 ? "seguidor" : "seguidores";
 }
 
-const CustomTooltip = ({ sampledCombined }) => {
+const CustomTooltip = ({ sampledCombined, ...props }) => {
     const tooltipData = useAxesTooltip();
-    if (!tooltipData || tooltipData.length === 0) return null;
+    const dataIndex = tooltipData?.[0]?.dataIndex;
+    const hasValidIndex = Number.isInteger(dataIndex) && dataIndex >= 0;
+    let resolvedIndex = hasValidIndex ? dataIndex : -1;
 
-    const { dataIndex } = tooltipData[0];
+    if (props?.isLargeDataset && resolvedIndex >= 0) {
+        const snapWindow = 5;
+        if (resolvedIndex >= sampledCombined.length - snapWindow) {
+            resolvedIndex = sampledCombined.length - 1;
+        }
+    }
 
-    const realPoint = sampledCombined[dataIndex];
+    const realPoint = resolvedIndex >= 0 ? sampledCombined[resolvedIndex] : null;
 
     return (
-        <ChartsTooltipContainer trigger="axis">
-            <Paper>
-                <Box sx={{ px: 1.5, pt: 1 }}>
-                    <Typography variant="body2" fontWeight={'bold'}>
-                        {realPoint?.date}
-                    </Typography>
-                </Box>
+        <ChartsTooltipContainer {...props}>
+            {realPoint && (
+                <Paper>
+                    <Box sx={{ px: 1.5, pt: 1 }}>
+                        <Typography variant="body2" fontWeight={'bold'}>
+                            {realPoint?.date}
+                        </Typography>
+                    </Box>
 
-                <Divider sx={{ my: 0.5 }} />
+                    <Divider sx={{ my: 0.5 }} />
 
-                <Box sx={{ px: 1.5 }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={400}>
-                        {formatDailyValue(realPoint?.daily)} {getFollowerLabel(realPoint?.daily)}
-                    </Typography>
-                </Box>
+                    <Box sx={{ px: 1.5 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={400}>
+                            {formatDailyValue(realPoint?.daily)} {getFollowerLabel(realPoint?.daily)}
+                        </Typography>
+                    </Box>
 
-                <Divider sx={{ my: 0.5 }} />
+                    <Divider sx={{ my: 0.5 }} />
 
-                <Box sx={{ px: 1.5, pb: 0.5 }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={400}>
-                        {formatNumber(realPoint?.cumulative)} acumulados
-                    </Typography>
-                </Box>
-            </Paper>
+                    <Box sx={{ px: 1.5, pb: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={400}>
+                            {formatNumber(realPoint?.cumulative)} acumulados
+                        </Typography>
+                    </Box>
+                </Paper>
+            )}
         </ChartsTooltipContainer>
     );
 };
@@ -69,10 +77,9 @@ export const FollowersCard = ({
     onSelectChange,
     data = {}
 }) => {
-    console.log("ññññññññññññññññññ", data)
-    const isAnimated = mode === 'dashboard';
-
     const finalData = data?.chartData;
+    const isLargeDataset = Array.isArray(finalData) && finalData.length > 120;
+    const isAnimated = mode === 'dashboard' && !isLargeDataset;
     const [dataCard, setDataCard] = useState([]);
     const [animDates, setAnimDates] = useState([]);
 
@@ -150,7 +157,8 @@ export const FollowersCard = ({
         cumulative: cumulativeData[index],
     }));
 
-    const sampledCombined = downsampleObjects(combined, 200);
+    const maxPointsForChart = 500;
+    const sampledCombined = downsampleObjects(combined, maxPointsForChart);
 
     return (
         <DashboardCard
@@ -219,19 +227,24 @@ export const FollowersCard = ({
 
                 {data?.total !== 0 &&
                     <SparkLineChart
+                        
                         key={interval}
                         data={sampledCombined.map(p => p.cumulative)}
                         height={70}
+                        margin={{ top: 5, bottom: 5, left: 0, right: 18 }}
                         area
                         curve="monotoneX"
                         showHighlight
                         showTooltip
                         color={integrationsConfig.facebook.color}
-                        slots={{
-                            tooltip: () => <CustomTooltip sampledCombined={sampledCombined} />,
-                        }}
+                        slots={{ tooltip: CustomTooltip }}
                         slotProps={{
-                            tooltip: { trigger: "axis" },
+                            tooltip: {
+                                trigger: "axis",
+                                sampledCombined,
+                                isLargeDataset,
+                                placement: "right-start",
+                            },
                         }}
                         sx={{
                             '& .MuiAreaElement-root': {

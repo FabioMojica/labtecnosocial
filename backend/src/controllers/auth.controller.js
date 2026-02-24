@@ -226,7 +226,7 @@ export const login = async (req, res) => {
       secure: false,
       sameSite: 'lax',
     });
-
+    
     return (
       successResponse(
         res,

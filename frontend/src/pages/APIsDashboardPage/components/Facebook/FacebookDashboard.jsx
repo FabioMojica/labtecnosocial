@@ -103,26 +103,26 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
             setErrorFetchData(false);
 
             const insights = await callEndpoint(getFacebookPageInsights(facebookIntegration?.integration_id, selectedPeriod));
-            // const posts = await callEndpoint(getFacebookPagePosts(facebookIntegration?.integration_id, selectedPeriod));
-            // setTopPostsData(posts);
+            const posts = await callEndpoint(getFacebookPagePosts(facebookIntegration?.integration_id, selectedPeriod));
+            setTopPostsData(posts);
 
             const followersInsight = insights.find(i => i.name === "page_follows");
             setFollowersData(formatForFollowersCard(followersInsight?.values, selectedPeriod));
 
-            // const pageImpressionsInsight = insights.find(i => i.name === "page_media_view");
-            // setImpressionsPageData(formatForPageImpressionsCard(pageImpressionsInsight?.values, selectedPeriod));
-            // setOrganicOrPaidViewsData(formatForOrganicOrPaidViewsCard(pageImpressionsInsight?.values, selectedPeriod));
+            const pageImpressionsInsight = insights.find(i => i.name === "page_media_view");
+            setImpressionsPageData(formatForPageImpressionsCard(pageImpressionsInsight?.values, selectedPeriod));
+            setOrganicOrPaidViewsData(formatForOrganicOrPaidViewsCard(pageImpressionsInsight?.values, selectedPeriod));
 
-            // const pageViewsInsight = insights.find(i => i.name === "page_views_total");
-            // setViewsPageData(formatForPageViewsCard(pageViewsInsight?.values, selectedPeriod));
+            const pageViewsInsight = insights.find(i => i.name === "page_views_total");
+            setViewsPageData(formatForPageViewsCard(pageViewsInsight?.values, selectedPeriod));
 
-            // const reactionsInsights = insights.filter(i => i.name.includes("page_actions_post_reactions"));
-            // const totalReactionsData = formatForTotalReactionsCard(reactionsInsights);
-            // setTotalReactionsOfPage(totalReactionsData);
+            const reactionsInsights = insights.filter(i => i.name.includes("page_actions_post_reactions"));
+            const totalReactionsData = formatForTotalReactionsCard(reactionsInsights);
+            setTotalReactionsOfPage(totalReactionsData);
 
-            // const followersCountryInsight = insights.find(i => i.name === "page_follows_country");
-            // const countryData = formatForFollowersByCountryCard(followersCountryInsight?.values, selectedPeriod);
-            // setCountryFollowersData(countryData);
+            const followersCountryInsight = insights.find(i => i.name === "page_follows_country");
+            const countryData = formatForFollowersByCountryCard(followersCountryInsight?.values, selectedPeriod);
+            setCountryFollowersData(countryData);
 
             // const totalActionsInsight = insights.find(i => i.name === "page_total_actions");
             // const totalActions = formatForTotalActionsCard(totalActionsInsight?.values, selectedPeriod);
@@ -370,7 +370,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                                             }, 
                                             period: selectedPeriod,
                                             periodLabel: periodLabel,
-                                            title: 'Seguidores de la página',
+                                            title: 'Nuevos seguidores de la página',
                                             data: followersData,
                                             interval: periodLabel,
                                         });

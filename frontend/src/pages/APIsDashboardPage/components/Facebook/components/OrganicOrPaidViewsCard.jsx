@@ -4,16 +4,14 @@ import { PieChart } from '@mui/x-charts/PieChart';
 import { useDrawingArea } from '@mui/x-charts/hooks';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-import { CheckBox } from "@mui/icons-material";
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { DashboardCard } from './DashboardCard';
+import { formatNumber } from "../utils/cards";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -70,10 +68,8 @@ export const OrganicOrPaidViewsCard = ({
     onSelectChange,
 }) => {
 
-    const pieData = data?.chartData;
-    const totalViews = data?.total;
-
-    const colorsForPie = [...colors, 'hsl(220, 20%, 15%)'];
+    const pieData = data?.chartData ?? [];
+    const totalViews = Number(data?.total) || 0;
 
     return (
         <DashboardCard
@@ -106,28 +102,32 @@ export const OrganicOrPaidViewsCard = ({
                         hideLegend
                     >
                         {totalViews > 0 &&
-                            <PieCenterLabel primaryText={totalViews.toString()} secondaryText="Total" />
+                            <PieCenterLabel primaryText={formatNumber(totalViews)} secondaryText="Total" />
                         }
                     </PieChart>
                 </Box>
                 <Stack direction="column" gap={1}>
-                    {pieData.map((item, index) => (
-                        <Stack key={index} direction="row" sx={{ alignItems: 'center' }}>
-                            <Stack sx={{ gap: 1, flexGrow: 1 }}>
-                                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: '500' }}>{item.name}</Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                        {Math.round((item.value / totalViews) * 100)}%
-                                    </Typography>
+                    {pieData.map((item, index) => {
+                        const percent = totalViews > 0 ? (item.value / totalViews) * 100 : 0;
+
+                        return (
+                            <Stack key={index} direction="row" sx={{ alignItems: 'center' }}>
+                                <Stack sx={{ gap: 1, flexGrow: 1 }}>
+                                    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+                                        <Typography variant="body2" sx={{ fontWeight: '500' }}>{item.name}</Typography>
+                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                            {Math.round(percent)}%
+                                        </Typography>
+                                    </Stack>
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={percent}
+                                        sx={{ [`& .${linearProgressClasses.bar}`]: { backgroundColor: colors[index % colors.length] } }}
+                                    />
                                 </Stack>
-                                <LinearProgress
-                                    variant="determinate"
-                                    value={(item.value / totalViews) * 100}
-                                    sx={{ [`& .${linearProgressClasses.bar}`]: { backgroundColor: colors[index % colors.length] } }}
-                                />
                             </Stack>
-                        </Stack>
-                    ))}
+                        );
+                    })}
                 </Stack>
             </Box>
         </DashboardCard>

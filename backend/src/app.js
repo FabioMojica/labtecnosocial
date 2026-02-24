@@ -29,7 +29,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'https://npml7czc-5173.brs.devtunnels.ms',
-  'https://mi-dominio.com'
+  'https://mi-dominio.com',
 ];
 
 app.use(cors({

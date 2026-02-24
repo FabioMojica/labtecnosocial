@@ -156,6 +156,7 @@ export const getFacebookPagePosts = async (req, res) => {
           fields: `
             id,
             message,
+            story,
             created_time,
             updated_time,
             scheduled_publish_time,
@@ -165,9 +166,16 @@ export const getFacebookPagePosts = async (req, res) => {
             is_hidden,
             is_popular,
             is_eligible_for_promotion,
-            comments,
-            reactions,
-            shares
+            comments.summary(total_count).limit(0),
+            reactions.summary(total_count).limit(0),
+            reactions.type(LIKE).summary(total_count).limit(0).as(reactions_like),
+            reactions.type(LOVE).summary(total_count).limit(0).as(reactions_love),
+            reactions.type(WOW).summary(total_count).limit(0).as(reactions_wow),
+            reactions.type(HAHA).summary(total_count).limit(0).as(reactions_haha),
+            reactions.type(SAD).summary(total_count).limit(0).as(reactions_sad),
+            reactions.type(ANGRY).summary(total_count).limit(0).as(reactions_angry),
+            shares,
+            attachments{title,description}
           `
         },
       });

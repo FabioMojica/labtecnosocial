@@ -9,6 +9,56 @@ import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import { formatDateParts } from "../../../../../utils/formatDate.js";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import Tooltip from "@mui/material/Tooltip";
+import ThumbUpAltRoundedIcon from "@mui/icons-material/ThumbUpAltRounded";
+import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
+import SentimentVerySatisfiedRoundedIcon from "@mui/icons-material/SentimentVerySatisfiedRounded";
+import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
+import SentimentDissatisfiedRoundedIcon from "@mui/icons-material/SentimentDissatisfiedRounded";
+import MoodBadRoundedIcon from "@mui/icons-material/MoodBadRounded";
+
+const REACTION_ICON_COMPONENTS = {
+    LIKE: ThumbUpAltRoundedIcon,
+    LOVE: FavoriteRoundedIcon,
+    HAHA: SentimentVerySatisfiedRoundedIcon,
+    WOW: VisibilityRoundedIcon,
+    SAD: SentimentDissatisfiedRoundedIcon,
+    ANGRY: MoodBadRoundedIcon,
+};
+
+const REACTION_BADGE_STYLES = {
+    LIKE: { bg: "#1877F2", color: "#FFFFFF" },
+    LOVE: { bg: "#F33E58", color: "#FFFFFF" },
+    HAHA: { bg: "#F7B125", color: "#1C1E21" },
+    WOW: { bg: "#F7B125", color: "#1C1E21" },
+    SAD: { bg: "#F7B125", color: "#1C1E21" },
+    ANGRY: { bg: "#E9710F", color: "#FFFFFF" },
+};
+
+const ReactionBadge = ({ type, size = 18 }) => {
+    const ReactionIcon = REACTION_ICON_COMPONENTS[type];
+    const style = REACTION_BADGE_STYLES[type];
+
+    if (!ReactionIcon || !style) return null;
+
+    return (
+        <Box
+            sx={{
+                width: size,
+                height: size,
+                borderRadius: "50%",
+                bgcolor: style.bg,
+                color: style.color,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 0 0 1px rgba(255,255,255,0.25)",
+                flexShrink: 0,
+            }}
+        >
+            <ReactionIcon sx={{ fontSize: Math.max(11, size - 6), color: "inherit" }} />
+        </Box>
+    );
+};
 
 const TopPostCard = ({ post, index }) => {
     const isTop = index === 0;
@@ -23,69 +73,6 @@ const TopPostCard = ({ post, index }) => {
                 position: 'relative'
             }}
         >
-            <Box sx={{
-                position: 'absolute',
-                top: 55,
-                right: 15,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 0.5
-            }}>
-                <Box>
-                    <Box sx={{
-                        display: 'flex',
-                        gap: 1,
-                        alignItems: 'center',
-                        mb: 0.2
-                    }}>
-                        <CalendarMonthIcon fontSize="small" />
-                        <Typography
-                            variant="caption"
-                            lineHeight={1}
-                        >
-                            Publicado
-                        </Typography>
-                    </Box>
-                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
-                        <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            lineHeight={1}
-                            fontSize={10}
-                        >
-                            {formatDateParts(post?.created_time).date}
-                        </Typography>
-                    </Box>
-                </Box>
-                {post?.updated_time &&
-                    <Box>
-                        <Box sx={{
-                            display: 'flex',
-                            gap: 1,
-                            alignItems: 'center',
-                            mb: 0.2
-                        }}>
-                            <EditCalendarIcon fontSize="small" />
-                            <Typography
-                                variant="caption"
-                                lineHeight={1}
-                            >
-                                Editado
-                            </Typography>
-                        </Box>
-                        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
-                            <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                lineHeight={1}
-                                fontSize={10}
-                            >
-                                {formatDateParts(post?.updated_time).date}
-                            </Typography>
-                        </Box>
-                    </Box>
-                }
-            </Box>
             <CardContent>
                 <Stack spacing={2}>
                     {/* Header */}
@@ -114,17 +101,29 @@ const TopPostCard = ({ post, index }) => {
 
                                         <Divider sx={{ my: 0.5 }} />
 
-                                        <Typography variant="caption" display="block">
-                                            👍 {post.reactions.total}
-                                        </Typography>
+                                        <Box display="flex" alignItems="center" gap={0.8}>
+                                            <Box display="flex" alignItems="center" sx={{ mr: 0.3 }}>
+                                                <ReactionBadge type="LIKE" size={14} />
+                                                <Box sx={{ ml: -0.4 }}>
+                                                    <ReactionBadge type="LOVE" size={14} />
+                                                </Box>
+                                            </Box>
+                                            <Typography variant="caption">{post.reactions.total}</Typography>
+                                        </Box>
 
-                                        <Typography variant="caption" display="block">
-                                            💬 {post.comments} × 2 = {post.comments * 2}
-                                        </Typography>
+                                        <Box display="flex" alignItems="center" gap={0.8}>
+                                            <CommentOutlinedIcon sx={{ fontSize: 14 }} />
+                                            <Typography variant="caption">
+                                                {post.comments} × 2 = {post.comments * 2}
+                                            </Typography>
+                                        </Box>
 
-                                        <Typography variant="caption" display="block">
-                                            🔁 {post.shares} × 3 = {post.shares * 3}
-                                        </Typography>
+                                        <Box display="flex" alignItems="center" gap={0.8}>
+                                            <ShareOutlinedIcon sx={{ fontSize: 14 }} />
+                                            <Typography variant="caption">
+                                                {post.shares} × 3 = {post.shares * 3}
+                                            </Typography>
+                                        </Box>
 
                                         <Divider sx={{ my: 0.5 }} />
 
@@ -147,8 +146,59 @@ const TopPostCard = ({ post, index }) => {
                                 />
                             </Tooltip>
                         </Stack>
+                    </Stack>
 
+                    <Stack
+                        direction={{ xs: "column", sm: "row" }}
+                        spacing={1.5}
+                        justifyContent="flex-end"
+                        alignItems={{ xs: "flex-start", sm: "center" }}
+                    >
+                        <Box>
+                            <Box sx={{
+                                display: 'flex',
+                                gap: 0.8,
+                                alignItems: 'center',
+                                mb: 0.2
+                            }}>
+                                <CalendarMonthIcon sx={{ fontSize: 14 }} />
+                                <Typography variant="caption" lineHeight={1}>
+                                    Publicado
+                                </Typography>
+                            </Box>
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                lineHeight={1}
+                                fontSize={10}
+                            >
+                                {formatDateParts(post?.created_time).date}
+                            </Typography>
+                        </Box>
 
+                        {post?.updated_time && (
+                            <Box>
+                                <Box sx={{
+                                    display: 'flex',
+                                    gap: 0.8,
+                                    alignItems: 'center',
+                                    mb: 0.2
+                                }}>
+                                    <EditCalendarIcon sx={{ fontSize: 14 }} />
+                                    <Typography variant="caption" lineHeight={1}>
+                                        Editado
+                                    </Typography>
+                                </Box>
+                                <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    lineHeight={1}
+                                    fontSize={10}
+                                >
+                                    {formatDateParts(post?.updated_time).date}
+                                </Typography>
+                            </Box>
+                        )}
                     </Stack>
 
                     {post.full_picture && (
@@ -242,9 +292,7 @@ const TopPostCard = ({ post, index }) => {
                                                 cursor: 'pointer'
                                             }}
                                         >
-                                            <Typography fontSize={16}>
-                                                {config.emoji}
-                                            </Typography>
+                                            <ReactionBadge type={type} />
                                             <Typography variant="caption">
                                                 {value}
                                             </Typography>
@@ -357,6 +405,7 @@ export const TopPostOfThePeriod = ({
                 },
                 mt: 4.5,
                 pb: 4.5,
+                pr: 1
             }}>
                 <Stack spacing={2} sx={{
                     mb: 5

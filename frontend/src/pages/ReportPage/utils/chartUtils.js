@@ -3,7 +3,7 @@ export const chartPropsMap = {
     facebook: {
         followersCard: {
             component: 'followersCard',
-            defaultTitle: 'Seguidores de la página',
+            defaultTitle: 'Nuevos seguidores de la página',
             usesInterval: true,
         },
 
@@ -42,7 +42,7 @@ export const chartPropsMap = {
             defaultTitle: 'Reacciones totales',
             usesInterval: true,
         },
-        
+
         chartFollowersByCountry: {
             component: 'chartFollowersByCountry',
             defaultTitle: 'Seguidores por país',

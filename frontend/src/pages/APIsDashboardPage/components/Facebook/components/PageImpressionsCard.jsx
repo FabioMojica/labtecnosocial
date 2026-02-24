@@ -1,5 +1,5 @@
-import { Box, Tooltip, Typography } from "@mui/material";
-import { SparkLineChart } from "@mui/x-charts";
+import { Box, Divider, Paper, Tooltip, Typography } from "@mui/material";
+import { ChartsTooltipContainer, SparkLineChart, useAxesTooltip } from "@mui/x-charts";
 import { useState } from "react";
 import { integrationsConfig } from "../../../../../utils";
 import { useEffect } from "react";
@@ -7,6 +7,64 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { DashboardCard } from './DashboardCard';
 import { formatNumber } from "../utils/cards";
+
+function formatDailyValue(value = 0) {
+    const sign = value < 0 ? "" : "+";
+    return `${sign}${formatNumber(value)}`;
+}
+
+function getImpressionsLabel(value = 0) {
+    const absValue = Math.abs(value);
+    return absValue === 1 ? "impresión" : "impresiones";
+}
+
+const CustomTooltip = ({ sampledCombined, ...props }) => {
+    const tooltipData = useAxesTooltip();
+    const dataIndex = tooltipData?.[0]?.dataIndex;
+    const hasValidIndex = Number.isInteger(dataIndex) && dataIndex >= 0;
+    let resolvedIndex = hasValidIndex ? dataIndex : -1;
+
+    // En periodos largos, al borde derecho MUI puede devolver 1-3 índices antes.
+    // Si estamos muy cerca del final, forzamos el último punto real.
+    if (props?.isLargeDataset && resolvedIndex >= 0) {
+        const snapWindow = 5;
+        if (resolvedIndex >= sampledCombined.length - snapWindow) {
+            resolvedIndex = sampledCombined.length - 1;
+        }
+    }
+
+    const realPoint = resolvedIndex >= 0 ? sampledCombined[resolvedIndex] : null;
+
+    return (
+        <ChartsTooltipContainer {...props}>
+            {realPoint && (
+                <Paper>
+                    <Box sx={{ px: 1.5, pt: 1 }}>
+                        <Typography variant="body2" fontWeight={'bold'}>
+                            {realPoint?.date}
+                        </Typography>
+                    </Box>
+
+                    <Divider sx={{ my: 0.5 }} />
+
+                    <Box sx={{ px: 1.5 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={400}>
+                            {formatDailyValue(realPoint?.daily)} {getImpressionsLabel(realPoint?.daily)}
+                        </Typography>
+                    </Box>
+
+                    <Divider sx={{ my: 0.5 }} />
+
+                    <Box sx={{ px: 1.5, pb: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={400}>
+                            {formatNumber(realPoint?.cumulative)} acumuladas
+                        </Typography>
+                    </Box>
+                </Paper>
+            )}
+        </ChartsTooltipContainer>
+    );
+};
 
 export const PageImpressionsCard = ({
     mode = 'dashboard',
@@ -20,11 +78,9 @@ export const PageImpressionsCard = ({
     onSelectChange,
     data = {}
 }) => {
-    console.log("---------->", data)
-
-    const isAnimated = mode === 'dashboard';
-
     const finalData = data?.chartData;
+    const isLargeDataset = Array.isArray(finalData) && finalData.length > 120;
+    const isAnimated = mode === 'dashboard' && !isLargeDataset;
     const [dataCard, setDataCard] = useState([]);
     const [animDates, setAnimDates] = useState([]);
 
@@ -70,7 +126,7 @@ export const PageImpressionsCard = ({
         return () => clearInterval(intervalId);
     }, [finalData, data.dates, isAnimated]);
 
-    function toCumulative(data) {
+    function toCumulative(data = []) {
         let acc = 0;
         return data.map(v => {
             acc += v;
@@ -78,31 +134,33 @@ export const PageImpressionsCard = ({
         });
     }
 
-    function downsample(data, maxPoints = 24) {
-        if (!Array.isArray(data) || data.length <= maxPoints) return data;
-
-        const step = Math.ceil(data.length / maxPoints);
-        const result = [];
-
-        for (let i = 0; i < data.length; i += step) {
-            result.push(data[i]);
+    function downsampleObjects(data = [], maxPoints = 24) {
+        if (!Array.isArray(data) || data.length <= maxPoints) {
+            return data;
         }
 
-        const last = data[data.length - 1];
-        if (result[result.length - 1] !== last) {
-            result.push(last);
+        const result = [];
+        const step = (data.length - 1) / (maxPoints - 1);
+
+        for (let i = 0; i < maxPoints; i++) {
+            const index = Math.round(i * step);
+            result.push(data[index]);
         }
 
         return result;
     }
 
+    const cumulativeData = toCumulative(dataCard);
 
-    const sampledData = downsample(dataCard, 24); // ya son los valores reales
-    const sampledDates = downsample(animDates, 24);
+    const combined = dataCard.map((daily, index) => ({
+        date: animDates[index],
+        daily,
+        cumulative: cumulativeData[index],
+    }));
 
-    const safeLength = Math.min(sampledData.length, sampledDates.length);
-    const safeData = sampledData.slice(0, safeLength);
-    const safeDates = sampledDates.slice(0, safeLength);
+    const maxPointsForChart = 500;
+    const sampledCombined = downsampleObjects(combined, maxPointsForChart);
+    const plottedData = sampledCombined.map((p) => p.cumulative);
 
     return (
         <DashboardCard
@@ -134,7 +192,7 @@ export const PageImpressionsCard = ({
                     position: 'relative',
                 }}>
                     <Tooltip title={data?.total} arrow>
-                        <Typography sx={{ cursor: 'pointer' }} variant="h3" fontWeight={500}>
+                        <Typography sx={{ cursor: 'pointer', color: data?.total === 0 ? "warning.main" : undefined }} variant="h3" fontWeight={500}>
                             {formatNumber(data?.total)}
                         </Typography>
                     </Tooltip>
@@ -172,22 +230,22 @@ export const PageImpressionsCard = ({
                 {data?.total > 0 &&
                     <SparkLineChart
                         key={interval}
-                        data={safeData}
+                        data={plottedData}
                         height={70}
+                        margin={{ top: 5, bottom: 5, left: 0, right: 18 }}
                         area
-                        curve="linear"
-                        showHighlight 
+                        curve="monotoneX"
+                        showHighlight
                         showTooltip
                         color={integrationsConfig.facebook.color}
-                        xAxis={{
-                            data: safeDates,
-                            valueFormatter: (value, context) => {
-                                return (
-                                    <Typography variant="body2" lineHeight={1}>
-                                        {value}
-                                    </Typography>
-                                )
-                            }
+                        slots={{ tooltip: CustomTooltip }}
+                        slotProps={{
+                            tooltip: {
+                                trigger: "axis",
+                                sampledCombined,
+                                isLargeDataset,
+                                placement: "right-start",
+                            },
                         }}
                         sx={{
                             '& .MuiAreaElement-root': {

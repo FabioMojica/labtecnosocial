@@ -1,6 +1,5 @@
-import { CheckBox } from "@mui/icons-material";
-import { Box, Card, CardContent, Stack, Tooltip, Typography } from "@mui/material";
-import { SparkLineChart } from "@mui/x-charts";
+import { Box, Divider, Paper, Tooltip, Typography } from "@mui/material";
+import { ChartsTooltipContainer, SparkLineChart, useAxesTooltip } from "@mui/x-charts";
 import { useState } from "react";
 import { integrationsConfig } from "../../../../../utils";
 import { useEffect } from "react";
@@ -9,7 +8,64 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { DashboardCard } from './DashboardCard';
 import { formatNumber } from "../utils/cards";
 
+function formatDailyValue(value = 0) {
+    const sign = value < 0 ? "" : "+";
+    return `${sign}${formatNumber(value)}`;
+}
+
+function getViewsLabel(value = 0) {
+    const absValue = Math.abs(value);
+    return absValue === 1 ? "visita" : "visitas";
+}
+
+const CustomTooltip = ({ sampledCombined, ...props }) => {
+    const tooltipData = useAxesTooltip();
+    const dataIndex = tooltipData?.[0]?.dataIndex;
+    const hasValidIndex = Number.isInteger(dataIndex) && dataIndex >= 0;
+    let resolvedIndex = hasValidIndex ? dataIndex : -1;
+
+    if (props?.isLargeDataset && resolvedIndex >= 0) {
+        const snapWindow = 5;
+        if (resolvedIndex >= sampledCombined.length - snapWindow) {
+            resolvedIndex = sampledCombined.length - 1;
+        }
+    }
+
+    const realPoint = resolvedIndex >= 0 ? sampledCombined[resolvedIndex] : null;
+
+    return (
+        <ChartsTooltipContainer {...props}>
+            {realPoint && (
+                <Paper>
+                    <Box sx={{ px: 1.5, pt: 1 }}>
+                        <Typography variant="body2" fontWeight={'bold'}>
+                            {realPoint?.date}
+                        </Typography>
+                    </Box>
+
+                    <Divider sx={{ my: 0.5 }} />
+
+                    <Box sx={{ px: 1.5 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={400}>
+                            {formatDailyValue(realPoint?.daily)} {getViewsLabel(realPoint?.daily)}
+                        </Typography>
+                    </Box>
+
+                    <Divider sx={{ my: 0.5 }} />
+
+                    <Box sx={{ px: 1.5, pb: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={400}>
+                            {formatNumber(realPoint?.cumulative)} acumuladas
+                        </Typography>
+                    </Box>
+                </Paper>
+            )}
+        </ChartsTooltipContainer>
+    );
+};
+
 export const PageViewsCard = ({
+    mode = 'dashboard',
     loading,
     error,
     title = "Visitas a la página",
@@ -20,38 +76,11 @@ export const PageViewsCard = ({
     onSelectChange,
     data = {}
 }) => {
-    const [showHighlight, setShowHighlight] = useState(true);
-    const [showTooltip, setShowTooltip] = useState(true);
-
     const finalData = data?.chartData;
+    const isLargeDataset = Array.isArray(finalData) && finalData.length > 120;
+    const isAnimated = mode === 'dashboard' && !isLargeDataset;
     const [dataCard, setDataCard] = useState([]);
     const [animDates, setAnimDates] = useState([]);
-    const [animatedTotal, setAnimatedTotal] = useState(0);
-
-    useEffect(() => {
-        if (!data?.total) {
-            setAnimatedTotal(0);
-            return;
-        }
-
-        let start = 0;
-        const end = data.total;
-        const duration = 1000;
-        const steps = 60;
-        const increment = end / steps;
-        const intervalTime = duration / steps;
-
-        const intervalId = setInterval(() => {
-            start += increment;
-            if (start >= end) {
-                start = end;
-                clearInterval(intervalId);
-            }
-            setAnimatedTotal(Math.round(start));
-        }, intervalTime);
-
-        return () => clearInterval(intervalId);
-    }, [data.total, interval]);
 
     useEffect(() => {
         if (!Array.isArray(finalData) || finalData.length === 0) {
@@ -60,7 +89,12 @@ export const PageViewsCard = ({
             return;
         }
 
-        // Si hay un solo punto
+        if (!isAnimated) {
+            setDataCard(finalData);
+            setAnimDates(data.dates ?? []);
+            return;
+        }
+
         if (finalData.length === 1) {
             setDataCard(finalData);
             setAnimDates(data.dates);
@@ -77,12 +111,8 @@ export const PageViewsCard = ({
         const intervalId = setInterval(() => {
             currentIndex += chunkSize;
 
-            // Slicing dataCard y fechas juntos
-            const slicedData = finalData.slice(0, currentIndex);
-            const slicedDates = data.dates.slice(0, currentIndex);
-
-            setDataCard(slicedData);
-            setAnimDates(slicedDates);
+            setDataCard(finalData.slice(0, currentIndex));
+            setAnimDates(data.dates.slice(0, currentIndex));
 
             if (currentIndex >= totalPoints) {
                 setDataCard(finalData);
@@ -92,7 +122,42 @@ export const PageViewsCard = ({
         }, 20);
 
         return () => clearInterval(intervalId);
-    }, [interval, finalData, data.dates]);
+    }, [finalData, data.dates, isAnimated]);
+
+    function toCumulative(data = []) {
+        let acc = 0;
+        return data.map(v => {
+            acc += v;
+            return acc;
+        });
+    }
+
+    function downsampleObjects(data = [], maxPoints = 24) {
+        if (!Array.isArray(data) || data.length <= maxPoints) {
+            return data;
+        }
+
+        const result = [];
+        const step = (data.length - 1) / (maxPoints - 1);
+
+        for (let i = 0; i < maxPoints; i++) {
+            const index = Math.round(i * step);
+            result.push(data[index]);
+        }
+
+        return result;
+    }
+
+    const cumulativeData = toCumulative(dataCard);
+
+    const combined = dataCard.map((daily, index) => ({
+        date: animDates[index],
+        daily,
+        cumulative: cumulativeData[index],
+    }));
+
+    const maxPointsForChart = 500;
+    const sampledCombined = downsampleObjects(combined, maxPointsForChart);
 
     return (
         <DashboardCard
@@ -112,35 +177,41 @@ export const PageViewsCard = ({
             selected={selected}
             onSelectChange={onSelectChange}
         >
-            <Box display={'flex'} gap={0.5} justifyContent={'center'} alignItems={'flex-end'} sx={{
-                mt: 4.5
-            }}>
+            <Box
+                display={'flex'}
+                gap={0.5}
+                justifyContent={'center'}
+                alignItems={'flex-end'}
+                mt={4.5}
+                minHeight={70}
+                sx={{ whiteSpace: 'nowrap' }}
+            >
                 <Box sx={{
                     position: 'relative',
                 }}>
-                    <Tooltip title={animatedTotal}>
-                        <Typography sx={{ cursor: 'pointer' }} variant="h3" fontWeight={500}>
-                            {formatNumber(animatedTotal)}
+                    <Tooltip title={data?.total} arrow>
+                        <Typography sx={{ cursor: 'pointer', color: data?.total === 0 ? "warning.main" : undefined }} variant="h3" fontWeight={500}>
+                            {formatNumber(data?.total)}
                         </Typography>
                     </Tooltip>
                     <Box sx={{
                         position: 'absolute',
                         bottom: -10,
-                        right: -10
+                        right: -15
                     }}>
                         {data.delta > 0 && (
                             <ArrowUpwardIcon
-                                sx={{ color: 'green', fontSize: 15, transform: 'scale(1.4)' }}
+                                fontSize="medium"
+                                sx={{ color: 'green' }}
                             />
                         )}
                         {data.delta < 0 && (
                             <ArrowDownwardIcon
-                                sx={{ color: 'red', fontSize: 15, transform: 'scale(1.4)' }}
+                                sx={{ color: 'red' }}
                             />
                         )}
                     </Box>
                 </Box>
-
 
                 <svg width="0" height="0">
                     <defs>
@@ -151,28 +222,25 @@ export const PageViewsCard = ({
                     </defs>
                 </svg>
 
-                {period !== 'all' && period !== 'today' &&
+                {data?.total !== 0 && (
                     <SparkLineChart
                         key={interval}
-                        data={dataCard}
+                        data={sampledCombined.map(p => p.cumulative)}
                         height={70}
+                        margin={{ top: 5, bottom: 5, left: 0, right: 18 }}
                         area
-                        curve="natural"
-                        showHighlight={showHighlight}
-                        showTooltip={showTooltip}
+                        curve="monotoneX"
+                        showHighlight
+                        showTooltip
                         color={integrationsConfig.facebook.color}
-                        xAxis={{
-                            scaleType: 'point',
-                            data: animDates,
-                            valueFormatter: (value) =>
-                                new Date(value).toLocaleDateString('es-BO', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric',
-                                }),
-                        }}
-                        tooltip={{
-                            valueFormatter: (value) => `${value} visitas`,
+                        slots={{ tooltip: CustomTooltip }}
+                        slotProps={{
+                            tooltip: {
+                                trigger: "axis",
+                                sampledCombined,
+                                isLargeDataset,
+                                placement: "right-start",
+                            },
                         }}
                         sx={{
                             '& .MuiAreaElement-root': {
@@ -183,8 +251,8 @@ export const PageViewsCard = ({
                             },
                         }}
                     />
-                }
+                )}
             </Box>
         </DashboardCard>
-    )
-}
+    );
+};
