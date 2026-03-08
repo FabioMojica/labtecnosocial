@@ -61,9 +61,14 @@ export const Routes = {
 
   instagram: { 
     PAGES: "apis/instagram/pages", 
+    PAGE_OVERVIEW: (instagramId) => `/apis/instagram/${instagramId}/overview`,
+    PAGE_INSIGHTS: (instagramId) => `/apis/instagram/${instagramId}/insights`,
+    PAGE_MEDIA: (instagramId) => `/apis/instagram/${instagramId}/media`,
   },
 
   x: { 
-    ACCOUNTS: "apis/x/accounts", 
+    ACCOUNTS: "apis/X/accounts", 
+    ACCOUNT_OVERVIEW: (accountId) => `/apis/X/${accountId}/overview`,
+    ACCOUNT_TWEETS: (accountId) => `/apis/X/${accountId}/tweets`,
   },
 };

@@ -114,7 +114,7 @@ export const TotalReactionsCard = ({
                     overflow: "hidden",
                 }}
             >
-                <Box mt={2.5} display="flex" justifyContent="center" alignItems="baseline" gap={0.5}>
+                <Box mt={3} display="flex" justifyContent="center" alignItems="baseline" gap={0.5}>
                     <Typography variant="h4" fontWeight={500} lineHeight={1}>
                         {formatNumber(animatedTotal)}
                     </Typography>

@@ -15,6 +15,7 @@ import SentimentVerySatisfiedRoundedIcon from "@mui/icons-material/SentimentVery
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import SentimentDissatisfiedRoundedIcon from "@mui/icons-material/SentimentDissatisfiedRounded";
 import MoodBadRoundedIcon from "@mui/icons-material/MoodBadRounded";
+import { useEffect, useState } from "react";
 
 const REACTION_ICON_COMPONENTS = {
     LIKE: ThumbUpAltRoundedIcon,
@@ -61,7 +62,53 @@ const ReactionBadge = ({ type, size = 18 }) => {
 };
 
 const TopPostCard = ({ post, index }) => {
+    const [imageSrc, setImageSrc] = useState(post?.full_picture || post?.meta?.thumbnail_url || null);
+
+    useEffect(() => {
+        setImageSrc(post?.full_picture || post?.meta?.thumbnail_url || null);
+    }, [post?.full_picture, post?.meta?.thumbnail_url]);
+
     const isTop = index === 0;
+    const rank = index + 1;
+    const reactionsCount = Number(post?.reactions?.total ?? 0);
+    const commentsCount = Number(post?.comments ?? 0);
+    const sharesCount = Number(post?.shares ?? 0);
+    const reactionsScore = reactionsCount;
+    const commentsScore = commentsCount * 2;
+    const sharesScore = sharesCount * 3;
+    const computedPopularityScore = reactionsScore + commentsScore + sharesScore;
+    const rankTheme =
+        rank === 1
+            ? {
+                bg: "linear-gradient(135deg, rgba(255,193,7,0.95) 0%, rgba(255,160,0,0.95) 100%)",
+                border: "rgba(255, 213, 79, 0.75)",
+                text: "#1C1E21",
+                shadow: "0 6px 16px rgba(255, 179, 0, 0.35)",
+                label: "Top 1",
+            }
+            : rank === 2
+                ? {
+                    bg: "linear-gradient(135deg, rgba(176,190,197,0.95) 0%, rgba(120,144,156,0.95) 100%)",
+                    border: "rgba(176, 190, 197, 0.75)",
+                    text: "#0f1419",
+                    shadow: "0 4px 12px rgba(96, 125, 139, 0.25)",
+                    label: "Top 2",
+                }
+                : rank === 3
+                    ? {
+                        bg: "linear-gradient(135deg, rgba(205,127,50,0.95) 0%, rgba(141,110,99,0.95) 100%)",
+                        border: "rgba(188, 170, 164, 0.7)",
+                        text: "#ffffff",
+                        shadow: "0 4px 12px rgba(141, 110, 99, 0.3)",
+                        label: "Top 3",
+                    }
+                    : {
+                        bg: "linear-gradient(135deg, rgba(120,144,156,0.24) 0%, rgba(84,110,122,0.24) 100%)",
+                        border: "rgba(144, 164, 174, 0.35)",
+                        text: "text.primary",
+                        shadow: "none",
+                        label: `Top ${rank}`,
+                    };
 
     return (
         <Card
@@ -78,9 +125,23 @@ const TopPostCard = ({ post, index }) => {
                     {/* Header */}
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Chip
-                            label={`#${index + 1} Top Post`}
-                            color={isTop ? "primary" : "default"}
+                            label={`${rankTheme.label} - Post destacado`}
                             size="small"
+                            sx={{
+                                height: 30,
+                                borderRadius: 999,
+                                px: 0.7,
+                                fontWeight: 700,
+                                letterSpacing: 0.2,
+                                bgcolor: "transparent",
+                                background: rankTheme.bg,
+                                color: rankTheme.text,
+                                border: `1px solid ${rankTheme.border}`,
+                                boxShadow: rankTheme.shadow,
+                                '& .MuiChip-label': {
+                                    px: 1,
+                                },
+                            }}
                         />
 
                         <Stack direction="row" spacing={0.5} alignItems="center">
@@ -94,46 +155,69 @@ const TopPostCard = ({ post, index }) => {
                                 arrow
                                 placement="top"
                                 title={
-                                    <Box>
-                                        <Typography variant="caption" fontWeight="bold">
-                                            Cómo se calcula la popularidad
+                                    <Box sx={{ minWidth: 230 }}>
+                                        <Typography variant="caption" fontWeight="bold" display="block">
+                                            Como se calcula la popularidad
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary" display="block">
+                                            Puntaje = Reacciones + (Comentarios x 2) + (Compartidos x 3)
                                         </Typography>
 
-                                        <Divider sx={{ my: 0.5 }} />
+                                        <Divider sx={{ my: 0.75 }} />
 
-                                        <Box display="flex" alignItems="center" gap={0.8}>
-                                            <Box display="flex" alignItems="center" sx={{ mr: 0.3 }}>
-                                                <ReactionBadge type="LIKE" size={14} />
-                                                <Box sx={{ ml: -0.4 }}>
-                                                    <ReactionBadge type="LOVE" size={14} />
+                                        <Stack spacing={0.6}>
+                                            <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+                                                <Box display="flex" alignItems="center" gap={0.8}>
+                                                    <Box display="flex" alignItems="center" sx={{ mr: 0.3 }}>
+                                                        <ReactionBadge type="LIKE" size={14} />
+                                                        <Box sx={{ ml: -0.4 }}>
+                                                            <ReactionBadge type="LOVE" size={14} />
+                                                        </Box>
+                                                    </Box>
+                                                    <Typography variant="caption">
+                                                        Reacciones: {reactionsCount} x 1
+                                                    </Typography>
                                                 </Box>
+                                                <Typography variant="caption" fontWeight="bold">
+                                                    {reactionsScore}
+                                                </Typography>
                                             </Box>
-                                            <Typography variant="caption">{post.reactions.total}</Typography>
-                                        </Box>
 
-                                        <Box display="flex" alignItems="center" gap={0.8}>
-                                            <CommentOutlinedIcon sx={{ fontSize: 14 }} />
-                                            <Typography variant="caption">
-                                                {post.comments} × 2 = {post.comments * 2}
+                                            <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+                                                <Box display="flex" alignItems="center" gap={0.8}>
+                                                    <CommentOutlinedIcon sx={{ fontSize: 14 }} />
+                                                    <Typography variant="caption">
+                                                        Comentarios: {commentsCount} x 2
+                                                    </Typography>
+                                                </Box>
+                                                <Typography variant="caption" fontWeight="bold">
+                                                    {commentsScore}
+                                                </Typography>
+                                            </Box>
+
+                                            <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+                                                <Box display="flex" alignItems="center" gap={0.8}>
+                                                    <ShareOutlinedIcon sx={{ fontSize: 14 }} />
+                                                    <Typography variant="caption">
+                                                        Compartidos: {sharesCount} x 3
+                                                    </Typography>
+                                                </Box>
+                                                <Typography variant="caption" fontWeight="bold">
+                                                    {sharesScore}
+                                                </Typography>
+                                            </Box>
+                                        </Stack>
+
+                                        <Divider sx={{ my: 0.75 }} />
+
+                                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                                            <Typography variant="caption" fontWeight="bold">
+                                                Total
+                                            </Typography>
+                                            <Typography variant="caption" fontWeight="bold">
+                                                {computedPopularityScore}
                                             </Typography>
                                         </Box>
-
-                                        <Box display="flex" alignItems="center" gap={0.8}>
-                                            <ShareOutlinedIcon sx={{ fontSize: 14 }} />
-                                            <Typography variant="caption">
-                                                {post.shares} × 3 = {post.shares * 3}
-                                            </Typography>
-                                        </Box>
-
-                                        <Divider sx={{ my: 0.5 }} />
-
-                                        <Typography
-                                            variant="caption"
-                                            fontWeight="bold"
-                                            display="block"
-                                        >
-                                            Total: {post.popularityScore}
-                                        </Typography>
                                     </Box>
                                 }
                             >
@@ -201,7 +285,7 @@ const TopPostCard = ({ post, index }) => {
                         )}
                     </Stack>
 
-                    {post.full_picture && (
+                    {imageSrc && (
                         <Box sx={{
                             width: '100%',
                             display: 'flex',
@@ -220,7 +304,8 @@ const TopPostCard = ({ post, index }) => {
                             }}>
                                 <Box
                                     component="img"
-                                    src={post.full_picture}
+                                    src={imageSrc}
+                                    onError={() => setImageSrc(null)}
                                     sx={{
                                         width: "100%",
                                         maxWidth: 500,
@@ -358,7 +443,6 @@ export const TopPostOfThePeriod = ({
     title = "Top 5 posts populares",
     loading,
     interval,
-    period,
     data,
     selected = true,
     selectable = true,
@@ -442,3 +526,4 @@ export const TopPostOfThePeriod = ({
         </DashboardCard>
     );
 }
+

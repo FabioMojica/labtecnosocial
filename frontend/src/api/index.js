@@ -1,5 +1,7 @@
 export * from './apis';
 export * from './apis/facebookAPI';
+export * from './apis/instagramAPI';
+export * from './apis/xAPI';
 export * from './apis/githubAPI';
 export * from './auth';
 export * from './config/authConfig';

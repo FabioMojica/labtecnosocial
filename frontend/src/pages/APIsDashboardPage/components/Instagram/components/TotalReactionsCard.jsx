@@ -1,95 +1,165 @@
-import { CheckBox } from "@mui/icons-material";
-import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
-import {
-    BarChart
-} from '@mui/x-charts/BarChart';
-import { integrationsConfig } from "../../../../../utils";
+import { Box, Stack, Tooltip, Typography, LinearProgress, linearProgressClasses } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
+import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
+import { DashboardCard } from "../../Facebook/components/DashboardCard";
+import { formatNumber } from "../../Facebook/utils/cards";
 
+function BreakdownRow({ icon, label, value, total, color }) {
+    const percentage = total > 0 ? (value / total) * 100 : 0;
 
-function Gradient(props) {
     return (
-        <linearGradient gradientTransform="rotate(90)" {...props}>
-            <stop offset="5%" stopColor={integrationsConfig.facebook.color} stopOpacity={1} />
-            <stop offset="95%" stopColor={integrationsConfig.facebook.color} stopOpacity={0.3} />
-        </linearGradient>
+        <Stack spacing={0.25}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.8}>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                    {icon}
+                    <Typography variant="caption">{label}</Typography>
+                </Stack>
+                <Typography variant="caption" color="text.secondary">
+                    {formatNumber(value)} ({Math.round(percentage)}%)
+                </Typography>
+            </Stack>
+            <LinearProgress
+                variant="determinate"
+                value={percentage}
+                sx={{
+                    height: 4,
+                    borderRadius: 999,
+                    [`& .${linearProgressClasses.bar}`]: {
+                        backgroundColor: color,
+                    },
+                }}
+            />
+        </Stack>
     );
 }
 
 function TotalReactionsCard({
-    title = "Reacciones totales",
+    mode = "dashboard",
+    loading,
+    error,
+    title = "Interacciones",
     interval = "Hoy",
     selected = true,
     selectable = true,
     onSelectChange,
+    data = {},
 }) {
+    const [animatedTotal, setAnimatedTotal] = useState(0);
+    const isAnimated = mode === "dashboard";
 
-    const reactions = [
-        { icon: "👍", label: "Me gusta" },
-        { icon: "❤️", label: "Me encanta" },
-        { icon: "🤗", label: "Me importa" },
-        { icon: "😆", label: "Me divierte" },
-        { icon: "😮", label: "Me asombra" },
-        { icon: "😢", label: "Me entristece" },
-        { icon: "😡", label: "Me enoja" },
-    ];
-    const icons = reactions.map(r => r.icon);
+    const total = Number(data?.total ?? 0);
+    const delta = Number(data?.delta ?? 0);
+    const likesTotal = Number(data?.likesTotal ?? 0);
+    const commentsTotal = Number(data?.commentsTotal ?? 0);
+    const hasData = Array.isArray(data?.chartData) && data.chartData.length > 0;
+    const breakdownItems = useMemo(() => {
+        const rows = [
+            {
+                key: "likes",
+                icon: <FavoriteBorderRoundedIcon sx={{ fontSize: 14, color: "#E1306C" }} />,
+                label: "Likes",
+                value: likesTotal,
+                color: "#E1306C",
+            },
+            {
+                key: "comments",
+                icon: <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 14, color: "#8E44AD" }} />,
+                label: "Comentarios",
+                value: commentsTotal,
+                color: "#8E44AD",
+            },
+        ];
 
+        const nonZeroRows = rows.filter((row) => row.value > 0);
+        return nonZeroRows.length > 0 ? nonZeroRows : rows;
+    }, [commentsTotal, likesTotal]);
 
-    const data = [120, 85, 46, 69, 34, 29, 29];
+    const deltaText = useMemo(() => {
+        if (delta === 0) return "Sin cambio vs dia anterior";
+        return `${delta > 0 ? "+" : ""}${formatNumber(delta)} vs dia anterior`;
+    }, [delta]);
+
+    useEffect(() => {
+        if (!isAnimated) {
+            setAnimatedTotal(total);
+            return;
+        }
+
+        if (!total) {
+            setAnimatedTotal(0);
+            return;
+        }
+
+        const duration = 650;
+        const startTime = performance.now();
+        let frameId = 0;
+
+        const tick = (now) => {
+            const progress = Math.min(1, (now - startTime) / duration);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setAnimatedTotal(Math.round(total * eased));
+
+            if (progress < 1) {
+                frameId = requestAnimationFrame(tick);
+            }
+        };
+
+        setAnimatedTotal(0);
+        frameId = requestAnimationFrame(tick);
+
+        return () => cancelAnimationFrame(frameId);
+    }, [interval, isAnimated, total]);
 
     return (
-        <Card variant="outlined" sx={{ height: 150, flexGrow: 1, position: 'relative' }}>
-            {selectable && (
-                <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                    <CheckBox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
+        <DashboardCard
+            title={title}
+            titleSpinner={"Obteniendo interacciones de Instagram..."}
+            titleError={"Ocurrio un error al obtener interacciones de Instagram"}
+            sxSpinner={{
+                fontSize: "0.9rem",
+                pt: 3.5,
+            }}
+            smallCard
+            interval={interval}
+            loading={loading}
+            error={error}
+            isEmpty={!hasData}
+            selectable={selectable}
+            selected={selected}
+            onSelectChange={onSelectChange}
+        >
+            <Box sx={{ mt: 1.4, minHeight: 0, display: "flex", flexDirection: "column", gap: 0.55 }}>
+                <Box display="flex" alignItems="center" justifyContent="center" gap={0.6}>
+                    <Tooltip title={total.toLocaleString("es-BO")} arrow>
+                        <Typography variant="h4" fontWeight={500} lineHeight={1}>
+                            {formatNumber(animatedTotal)}
+                        </Typography>
+                    </Tooltip>
+
+                    {delta > 0 && <ArrowUpwardIcon fontSize="small" sx={{ color: "success.main", mb: -0.2 }} />}
+                    {delta < 0 && <ArrowDownwardIcon fontSize="small" sx={{ color: "error.main", mb: -0.2 }} />}
                 </Box>
-            )}
-            <CardContent>
-                <Stack direction="column" justifyContent="flex-start" alignItems="flex-start">
-                    <Typography component="h2" variant="subtitle2">{title}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
-                </Stack>
 
+                <Typography variant="caption" color="text.secondary" textAlign="center" lineHeight={1}>
+                    {deltaText}
+                </Typography>
 
-                <BarChart
-                    borderRadius={2}
-                    xAxis={[
-                        {
-                            categoryGapRatio: 0.1,
-                            barGapRatio: 0.5,
-                            scaleType: "band",
-                            data: icons,
-                            tickLabelPlacement: "middle",
-                            disableTicks: true,
-                            disableLine: true,
-                        },
-                    ]}
-                    yAxis={[{
-                        width: 0,
-                        disableTicks: true,
-                        disableLine: true,
-                        tickSize: 2000
-                    }]}
-                    series={[{
-                        data,
-                        color: 'url(#bar-gradient)',
-                        valueFormatter: (value, context) => {
-                            const reaction = reactions[context.dataIndex];
-                            return `${reaction.label}: ${value}`;
-                        },
-                    }]}
-                    height={105}
-                    grid={{ horizontal: false, vertical: false }}
-                >
-                    <defs>
-                        <Gradient id="bar-gradient" />
-                    </defs>
-                </BarChart>
-
-
-            </CardContent>
-        </Card>
-    )
+                {breakdownItems.map((item) => (
+                    <BreakdownRow
+                        key={item.key}
+                        icon={item.icon}
+                        label={item.label}
+                        value={item.value}
+                        total={total}
+                        color={item.color}
+                    />
+                ))}
+            </Box>
+        </DashboardCard>
+    );
 }
 
 export default TotalReactionsCard;

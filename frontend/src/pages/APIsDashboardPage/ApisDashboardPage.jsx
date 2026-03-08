@@ -99,9 +99,14 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
                                         const config = integrationsConfig[integration.platform];
                                         if (!config) return null;
                                         const IconComponent = config.icon;
+                                        const integrationKey =
+                                            integration.integration_id ??
+                                            integration.id ??
+                                            `${integration.platform}-${integration.url ?? "no-url"}`;
 
                                         return (
                                             <IconButton
+                                                key={integrationKey}
                                                 sx={(theme) => ({
                                                     backgroundColor: config.color,
                                                     color: "#fff",

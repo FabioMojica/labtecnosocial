@@ -1,215 +1,295 @@
-import { Avatar, Box, Grid, Icon, IconButton, Tab, Tabs, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
+import {
+    Avatar,
+    Box,
+    Chip,
+    Grid,
+    IconButton,
+    Tab,
+    Tabs,
+    Tooltip,
+    Typography,
+    useMediaQuery,
+    useTheme,
+} from "@mui/material";
 import { useLayout } from "../../../../contexts/LayoutContext";
 import { integrationsConfig, useDrawerClosedWidth } from "../../../../utils";
+import { useEffect, useState } from "react";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
+import { useFetchAndLoad } from "../../../../hooks";
+import { getXOverview, getXTweets } from "../../../../api";
+import { useNotification } from "../../../../contexts";
 import FollowersCard from "./components/FollowersCard";
 import TotalLikesCard from "./components/TotalLikesCard";
 import TotalReactionsCard from "./components/TotalReactionsCard";
 import PageViewsCard from "./components/PageViewsCard";
-import { useEffect, useState } from "react";
-import { useFetchAndLoad } from "../../../../hooks";
-import { getFacebookPageInsights, getFacebookPageOverview } from "../../../../api";
+import MetricSparkCard from "./components/MetricSparkCard";
+import { TopPostOfThePeriod } from "../Facebook/components/TopPostOfThePeriod";
+import { DashboardCard } from "../Facebook/components/DashboardCard";
+import { formatNumber } from "../Facebook/utils/cards";
 
-import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
+const EMPTY_METRIC = {
+    chartData: [],
+    dates: [],
+    total: 0,
+    delta: 0,
+};
 
+function ActivityRateCard({ loading, error, interval, interactionsTotal, postsTotal, hasData }) {
+    const activityRate = postsTotal > 0 ? interactionsTotal / postsTotal : 0;
 
-export const XDashboard = ({ project, useMock = true }) => {
+    return (
+        <DashboardCard
+            title="Interacciones por post"
+            titleSpinner="Obteniendo ratio de actividad de X..."
+            titleError="Ocurrio un error al obtener el ratio de actividad"
+            sxSpinner={{
+                fontSize: "0.9rem",
+                pt: 3.5,
+            }}
+            interval={interval}
+            loading={loading}
+            error={error}
+            isEmpty={!hasData}
+            smallCard
+            selectable={false}
+            selected={false}
+        >
+            <Box
+                sx={{
+                    mt: 3.2,
+                    minHeight: 92,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 0.45,
+                }}
+            >
+                <Typography variant="h3" fontWeight={500} lineHeight={1}>
+                    {activityRate.toLocaleString("es-BO", {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                    })}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" lineHeight={1}>
+                    Interacciones promedio por publicacion
+                </Typography>
+                <Typography variant="caption" color="text.secondary" lineHeight={1} textAlign="center">
+                    {formatNumber(interactionsTotal)} interacciones en {formatNumber(postsTotal)} publicaciones
+                </Typography>
+            </Box>
+        </DashboardCard>
+    );
+}
+
+export const XDashboard = ({ project, useMock = true, showingDialog = false }) => {
     const { scrollbarWidth } = useLayout();
-    const { loading, callEndpoint } = useFetchAndLoad();
-    const [selectedPeriod, setSelectedPeriod] = useState('lastMonth');
+    const { callEndpoint } = useFetchAndLoad();
+    const [selectedPeriod, setSelectedPeriod] = useState("lastMonth");
     const navBarWidth = useDrawerClosedWidth();
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+    const [errorFetchData, setErrorFetchData] = useState(false);
     const theme = useTheme();
     const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
+    const { notify } = useNotification();
 
+    const [overviewData, setOverviewData] = useState(null);
+    const [postsData, setPostsData] = useState(EMPTY_METRIC);
+    const [likesData, setLikesData] = useState(EMPTY_METRIC);
+    const [repostsData, setRepostsData] = useState(EMPTY_METRIC);
+    const [repliesData, setRepliesData] = useState(EMPTY_METRIC);
+    const [quotesData, setQuotesData] = useState(EMPTY_METRIC);
+    const [interactionsData, setInteractionsData] = useState({
+        ...EMPTY_METRIC,
+        likesTotal: 0,
+        repostsTotal: 0,
+        repliesTotal: 0,
+        quotesTotal: 0,
+        topPosts: [],
+    });
 
-    const xIntegration = project?.integrations?.find(i => i.platform === 'x');
+    const xIntegration = project?.integrations?.find((item) => item.platform === "x");
 
-    const fetchFacebookPageData = async () => {
+    const periodLabel =
+        selectedPeriod === "today"
+            ? "Hoy"
+            : selectedPeriod === "lastWeek"
+                ? "Ultima semana"
+                : selectedPeriod === "lastMonth"
+                    ? "Ultimo mes"
+                    : "Ultimos seis meses";
+
+    const fetchXData = async () => {
         try {
-            // const resp = await callEndpoint(getFacebookPageOverview(xIntegration?.integration_id));
-            // const insights = await callEndpoint(getFacebookPageInsights(xIntegration?.integration_id, "today"));
+            setIsLoadingInsights(true);
+            setErrorFetchData(false);
 
-            // console.log("hola", resp);
-            // console.log("insights", insights);
+            const [overview, tweetsPayload] = await Promise.all([
+                callEndpoint(getXOverview(xIntegration?.integration_id)),
+                callEndpoint(getXTweets(xIntegration?.integration_id, selectedPeriod)),
+            ]);
 
+            const metrics = tweetsPayload?.metrics || {};
+            const totals = tweetsPayload?.totals || {};
+
+            setOverviewData(overview ?? null);
+            setPostsData(metrics?.posts ?? EMPTY_METRIC);
+            setLikesData(metrics?.likes ?? EMPTY_METRIC);
+            setRepostsData(metrics?.reposts ?? EMPTY_METRIC);
+            setRepliesData(metrics?.replies ?? EMPTY_METRIC);
+            setQuotesData(metrics?.quotes ?? EMPTY_METRIC);
+            setInteractionsData({
+                ...(metrics?.interactions ?? EMPTY_METRIC),
+                likesTotal: Number(totals?.likes ?? 0),
+                repostsTotal: Number(totals?.reposts ?? 0),
+                repliesTotal: Number(totals?.replies ?? 0),
+                quotesTotal: Number(totals?.quotes ?? 0),
+                topPosts: Array.isArray(tweetsPayload?.topPosts) ? tweetsPayload.topPosts : [],
+            });
+
+            setErrorFetchData(false);
         } catch (err) {
-            console.error(err);
+            setErrorFetchData(true);
+            notify(err?.message, "error");
+        } finally {
+            setIsLoadingInsights(false);
         }
     };
 
     useEffect(() => {
-        fetchFacebookPageData();
-    }, []);
+        if (!xIntegration?.integration_id) return;
+        fetchXData();
+    }, [selectedPeriod, xIntegration?.integration_id]);
 
     const integration = integrationsConfig["x"];
     const IntegrationIcon = integration.icon;
 
+    const activityHasData =
+        (Array.isArray(interactionsData?.chartData) && interactionsData.chartData.length > 0) ||
+        (Array.isArray(postsData?.chartData) && postsData.chartData.length > 0);
+
+    const followerCount = Number(overviewData?.public_metrics?.followers_count ?? 0);
+    const followingCount = Number(overviewData?.public_metrics?.following_count ?? 0);
+    const tweetCount = Number(overviewData?.public_metrics?.tweet_count ?? 0);
+
     return (
         <Box
             sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                position: isFullscreen ? 'fixed' : 'relative',
-                top: isFullscreen ? 0 : 'auto',
-                left: isFullscreen ? 0 : 'auto',
-                width: isFullscreen ? '100vw' : '100%',
+                display: "flex",
+                flexDirection: "column",
+                position: isFullscreen ? "fixed" : "relative",
+                top: isFullscreen ? 0 : "auto",
+                left: isFullscreen ? 0 : "auto",
+                width: isFullscreen ? "100vw" : "100%",
                 maxWidth: {
-                    xs: '100vw',
-                    lg: isFullscreen ? '100vw' : `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`
+                    xs: "100vw",
+                    lg: showingDialog
+                        ? "100vw"
+                        : isFullscreen
+                            ? "100vw"
+                            : `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`,
                 },
-                height: isFullscreen ? '100vh' : 'auto',
-                bgcolor: (theme) => theme.palette.background.default,
-                zIndex: isFullscreen ? 1500 : 'auto',
-                overflow: isFullscreen ? 'hidden' : 'visible',
+                height: isFullscreen ? "100vh" : "auto",
+                bgcolor: (themeArg) => themeArg.palette.background.default,
+                zIndex: isFullscreen ? 1500 : "auto",
+                overflow: isFullscreen ? "hidden" : "visible",
+                p: showingDialog ? 1 : 0,
             }}
         >
             <Box
                 sx={{
-                    position: isFullscreen ? 'fixed' : 'sticky',
+                    position: isFullscreen ? "fixed" : "sticky",
                     top: 0,
                     left: 0,
                     zIndex: isFullscreen ? 1600 : 999,
-                    bgcolor: 'background.paper',
+                    bgcolor: "background.paper",
                     borderTopLeftRadius: 5,
                     borderTopRightRadius: 5,
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
+                    borderBottom: "1px solid",
+                    borderColor: "divider",
                     p: 1,
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between',
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "space-between",
                     flexDirection: {
-                        xs: 'column',
-                        md: 'row',
-                    },
-                    gap: 1
-                }}
-            >
-                <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: {
-                        xs: 'column',
-                        sm: 'row',
-                        md: 'row',
-                        lg: 'row'
+                        xs: "column",
+                        md: "row",
                     },
                     gap: 1,
+                }}
+            >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+                    <Avatar
+                        sx={{
+                            bgcolor: integration.color,
+                            width: 48,
+                            height: 48,
+                            borderRadius: 2,
+                            boxShadow: (themeArg) =>
+                                themeArg.palette.mode === "light"
+                                    ? "0 0 0 1px rgba(0,0,0,0.3)"
+                                    : "0 0 0 1px rgba(255,255,255,0.3)",
+                        }}
+                    >
+                        <IntegrationIcon sx={{ color: "#fff", fontSize: 38 }} />
+                    </Avatar>
 
-                }}>
-                    <Box sx={{
-                        display: 'flex',
-                        gap: 1,
-                        justifyContent: {
-                            xs: 'space-between',
-                            sm: 'left'
-                        },
-                        width: '100%',
-                        alignItems: 'center'
-                    }}>
-                        <Box display={'flex'} alignItems={'center'} gap={1}>
-                            <Avatar
+                    <Box display="flex" flexDirection="column" gap={0.3}>
+                        <Typography fontWeight="bold" variant="h5" noWrap>
+                            X
+                        </Typography>
+
+                        <Box display="flex" alignItems="center" gap={0.8} flexWrap="wrap">
+                            <Typography
+                                fontWeight="bold"
+                                variant="subtitle2"
                                 sx={{
-                                    bgcolor: integration.color,
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: 2,
-                                    boxShadow: (theme) =>
-                                        theme.palette.mode === 'light'
-                                            ? '0 0 0 1px rgba(0,0,0,0.3)'
-                                            : '0 0 0 1px rgba(255,255,255,0.3)',
+                                    cursor: "pointer",
+                                    textDecoration: "underline",
+                                    color: "primary.main",
+                                    "&:hover": { color: "primary.dark" },
+                                }}
+                                onClick={() => {
+                                    if (xIntegration?.url) {
+                                        window.open(xIntegration.url, "_blank");
+                                    }
                                 }}
                             >
-                                <IntegrationIcon sx={{ color: "#fff", fontSize: 38 }} />
-                            </Avatar>
-                            <Box display={'flex'} flexDirection={'column'}>
-                                <Typography fontWeight="bold" variant="h5" noWrap>
-                                    X
-                                </Typography>
-                                <Box
-                                    display="flex"
-                                    gap={1}
-                                    alignItems="center"
-                                    sx={{
-                                        cursor: "pointer",
-                                        textDecoration: "underline",
-                                        color: "primary.main",
-                                        "&:hover": {
-                                            color: "primary.dark",
-                                        },
-                                    }}
-                                    onClick={() => {
-                                        window.open(xIntegration?.url, "_blank");
-                                    }}
-                                >
-                                    <Avatar
-                                        //src={`https://graph.facebook.com/${xIntegration?.integration_id}/picture?type=square`}
-                                        sx={{
-                                            bgcolor: integration.color,
-                                            width: 15,
-                                            height: 15,
-                                            borderRadius: 1,
-                                            boxShadow: (theme) =>
-                                                theme.palette.mode === "light"
-                                                    ? "0 0 0 1px rgba(0,0,0,0.3)"
-                                                    : "0 0 0 1px rgba(255,255,255,0.3)",
-                                        }}
-                                    >
-                                        {String(xIntegration?.name[0]).toUpperCase()}
-                                    </Avatar>
+                                {overviewData?.username || xIntegration?.name || "Cuenta de X"}
+                            </Typography>
 
-                                    <Typography fontWeight="bold" variant="subtitle2" noWrap>
-                                        {xIntegration?.name}
-                                    </Typography>
-                                </Box>
-
-                            </Box>
+                            <Chip size="small" label={`Seguidores: ${formatNumber(followerCount)}`} />
+                            <Chip size="small" label={`Siguiendo: ${formatNumber(followingCount)}`} />
+                            <Chip size="small" label={`Tweets: ${formatNumber(tweetCount)}`} />
                         </Box>
                     </Box>
-
                 </Box>
 
                 <Tabs
                     value={selectedPeriod}
                     onChange={(event, newValue) => setSelectedPeriod(newValue)}
-                    variant='scrollable'
+                    variant="scrollable"
                     allowScrollButtonsMobile
-                    sx={{
-                        mr: {
-                            lg: 5
-                        }
-                    }}
-                    aria-label="secondary tabs example"
+                    sx={{ mr: { lg: 5 } }}
                 >
                     <Tab value="today" label="Hoy" />
-                    <Tab value="lastWeek" label="Última semana" />
-                    <Tab value="lastMonth" label="Último mes" />
-                    <Tab value="lastSixMonths" label="Últimos seis meses" />
-                    <Tab value="all" label="Todo" />
+                    <Tab value="lastWeek" label="Ultima semana" />
+                    <Tab value="lastMonth" label="Ultimo mes" />
+                    <Tab value="lastSixMonths" label="Ultimos seis meses" />
                 </Tabs>
 
-                <Tooltip
-                    title={isFullscreen ? "Minimizar" : "Maximizar"}
-                    onOpen={() => setTooltipOpen(true)}
-                    onClose={() => setTooltipOpen(false)}
-                >
+                <Tooltip title={isFullscreen ? "Minimizar" : "Maximizar"}>
                     <IconButton
                         size="small"
-                        onClick={() => {
-                            setIsFullscreen(!isFullscreen);
-                            setTooltipOpen(false);
-                        }}
+                        onClick={() => setIsFullscreen((current) => !current)}
                         sx={{
-                            transition: 'transform 0.3s ease',
-                            transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)',
-                            position: 'absolute',
-                            top: {
-                                xs: 10,
-                                lg: 15
-                            },
-                            right: 10
+                            transition: "transform 0.3s ease",
+                            transform: isFullscreen ? "rotate(180deg)" : "rotate(0deg)",
+                            position: "absolute",
+                            top: { xs: 10, lg: 15 },
+                            right: 10,
                         }}
                     >
                         {isFullscreen ? <CloseFullscreenIcon fontSize="small" /> : <FullscreenIcon fontSize="medium" />}
@@ -217,43 +297,139 @@ export const XDashboard = ({ project, useMock = true }) => {
                 </Tooltip>
             </Box>
 
-            <Box sx={{
-                mt: isFullscreen ? isLaptop ? 10 : 17 : 1,
-                px: {
-                    xs: 1,
-                    lg: isFullscreen ? 1 : 0,
-                },
-                width: '100%',
-                height: 'auto',
-                overflowY: isFullscreen ? 'auto' : 'visible',
-                "&::-webkit-scrollbar": { height: "2px", width: "2px" },
-                "&::-webkit-scrollbar-track": {
-                    backgroundColor: theme.palette.background.default,
-                    borderRadius: "2px",
-                },
-                "&::-webkit-scrollbar-thumb": {
-                    backgroundColor: theme.palette.primary.main,
-                    borderRadius: "2px",
-                },
-                "&::-webkit-scrollbar-thumb:hover": {
-                    backgroundColor: theme.palette.primary.dark,
-                },
-            }}>
-                <Grid container columns={12} spacing={1} size={{ xs: 12, sm: 12, lg: 6 }} sx={{ mb: 1 }}>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <FollowersCard />
+            <Box
+                sx={{
+                    mt: isFullscreen ? (isLaptop ? 10 : 17) : 1,
+                    px: {
+                        xs: 1,
+                        lg: isFullscreen ? 1 : 0,
+                    },
+                    width: "100%",
+                    height: "auto",
+                    overflowY: isFullscreen ? "auto" : "visible",
+                    "&::-webkit-scrollbar": { height: "2px", width: "2px" },
+                    "&::-webkit-scrollbar-track": {
+                        backgroundColor: theme.palette.background.default,
+                        borderRadius: "2px",
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                        backgroundColor: theme.palette.primary.main,
+                        borderRadius: "2px",
+                    },
+                    "&::-webkit-scrollbar-thumb:hover": {
+                        backgroundColor: theme.palette.primary.dark,
+                    },
+                }}
+            >
+                <Grid container columns={12} spacing={1} sx={{ mb: 1 }}>
+                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                        <FollowersCard
+                            mode="dashboard"
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Publicaciones"
+                            interval={periodLabel}
+                            data={postsData}
+                            selectable={false}
+                        />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <TotalLikesCard />
+
+                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                        <PageViewsCard
+                            mode="dashboard"
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Likes"
+                            interval={periodLabel}
+                            data={likesData}
+                            selectable={false}
+                        />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <TotalReactionsCard />
+
+                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                        <TotalLikesCard
+                            mode="dashboard"
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Reposts"
+                            interval={periodLabel}
+                            data={repostsData}
+                            selectable={false}
+                        />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <PageViewsCard />
+
+                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                        <MetricSparkCard
+                            mode="dashboard"
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Respuestas"
+                            titleSpinner="Obteniendo respuestas de X..."
+                            titleError="Ocurrio un error al obtener respuestas de X"
+                            interval={periodLabel}
+                            data={repliesData}
+                            singular="respuesta"
+                            plural="respuestas"
+                            cumulativeLabel="acumuladas"
+                            gradientId="x-replies-gradient"
+                            selectable={false}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                        <MetricSparkCard
+                            mode="dashboard"
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Citas"
+                            titleSpinner="Obteniendo citas de X..."
+                            titleError="Ocurrio un error al obtener citas de X"
+                            interval={periodLabel}
+                            data={quotesData}
+                            singular="cita"
+                            plural="citas"
+                            cumulativeLabel="acumuladas"
+                            gradientId="x-quotes-gradient"
+                            selectable={false}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                        <ActivityRateCard
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            interval={periodLabel}
+                            interactionsTotal={interactionsData.total}
+                            postsTotal={postsData.total}
+                            hasData={activityHasData}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12 }}>
+                        <TotalReactionsCard
+                            mode="dashboard"
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Interacciones totales"
+                            interval={periodLabel}
+                            data={interactionsData}
+                            selectable={false}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12 }}>
+                        <TopPostOfThePeriod
+                            mode="dashboard"
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Top tweets de X"
+                            interval={periodLabel}
+                            data={interactionsData?.topPosts ?? []}
+                            selectable={false}
+                        />
                     </Grid>
                 </Grid>
             </Box>
         </Box>
     );
-}
+};

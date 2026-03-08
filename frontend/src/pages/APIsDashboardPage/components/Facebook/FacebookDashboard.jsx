@@ -24,6 +24,7 @@ import { formatForFollowersByCountryCard } from "./utils/cards/formatForFollower
 import { formatForOrganicOrPaidViewsCard } from "./utils/cards/formatForOrganicOrPaidViewsCard";
 import { formatForTotalReactionsCard } from "./utils/cards/formatTotalReactionsCard";
 import { formatForTotalActionsCard } from "./utils/cards/formatForTotalActionsCard";
+import { formatForPostEngagementCard } from "./utils/cards/formatForPostEngagementCard";
 import { useReport } from "../../../../contexts/ReportContext";
 import { CHART_IDS_FACEBOOK } from "./utils/chartsIds";
 import { formatForPageImpressionsCard } from "./utils/cards/formatForPageImpressionsCard.js";
@@ -55,6 +56,8 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
     });
 
     const [postEngagementsData, setPostEngagementsData] = useState({
+        chartData: [],
+        dates: [],
         total: 0,
         delta: 0
     });
@@ -124,13 +127,13 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
             const countryData = formatForFollowersByCountryCard(followersCountryInsight?.values, selectedPeriod);
             setCountryFollowersData(countryData);
 
-            // const totalActionsInsight = insights.find(i => i.name === "page_total_actions");
-            // const totalActions = formatForTotalActionsCard(totalActionsInsight?.values, selectedPeriod);
-            // setTotalActionsData(totalActions);
+            const totalActionsInsight = insights.find(i => i.name === "page_total_actions");
+            const totalActions = formatForTotalActionsCard(totalActionsInsight?.values, selectedPeriod);
+            setTotalActionsData(totalActions);
 
-            // const postEngagementsInsight = insights.find(i => i.name === "page_post_engagements");
-            // const postEngagements = formatForTotalActionsCard(postEngagementsInsight?.values, selectedPeriod);
-            // setPostEngagementsData(postEngagements);
+            const postEngagementsInsight = insights.find(i => i.name === "page_post_engagements");
+            const postEngagements = formatForPostEngagementCard(postEngagementsInsight?.values, selectedPeriod);
+            setPostEngagementsData(postEngagements);
 
             setErrorFetchData(false);
 
@@ -230,6 +233,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                             >
                                 <IntegrationIcon sx={{ color: "#fff", fontSize: 38 }} />
                             </Avatar>
+                            
                             <Box display={'flex'} flexDirection={'column'}>
                                 <Typography fontWeight="bold" variant="h5" noWrap>
                                     Facebook
@@ -247,7 +251,6 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                                         },
                                     }}
                                     onClick={() => {
-                                        // acción al hacer click, ejemplo abrir url
                                         window.open(facebookIntegration?.url, "_blank");
                                     }}
                                 >
@@ -271,8 +274,8 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
                                         {facebookIntegration?.name}
                                     </Typography>
                                 </Box>
-
                             </Box>
+
                         </Box>
                     </Box>
                 </Box>
