@@ -13,8 +13,8 @@ self.onmessage = async (e) => {
   const { elements, title } = e.data;
 
   try {
-    const pdfBytes = await generatePDF(elements, title, (progress) => {
-      self.postMessage({ progress });
+    const pdfBytes = await generatePDF(elements, title, (progressPayload) => {
+      self.postMessage({ progress: progressPayload });
     });
 
     self.postMessage({ done: true, pdfBytes });

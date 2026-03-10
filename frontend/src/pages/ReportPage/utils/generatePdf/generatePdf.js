@@ -74,24 +74,40 @@ const drawElement = async (pdfDoc, page, el, x, y, maxWidth) => {
 };
 
 
-export const generatePDF = async (elements, title) => {
+export const generatePDF = async (elements, title, onProgress = () => { }) => {
+  const reportProgress = (percentage, stage) => {
+    const safePercentage = Math.max(0, Math.min(100, Math.round(Number(percentage) || 0)));
+    if (typeof onProgress === "function") {
+      onProgress({ percentage: safePercentage, stage });
+    }
+  };
+
+  reportProgress(2, "Inicializando documento...");
   const pdfDoc = await PDFDocument.create();
   let page = pdfDoc.addPage();
   const { width } = page.getSize();
   const MARGIN_X = 50;
   const MAX_WIDTH = width - MARGIN_X * 2;
 
+  reportProgress(8, "Cargando recursos...");
   const logoBytes = await fetchLogoBytes();
   const HEADER_SPACING = 30;
+  reportProgress(14, "Construyendo encabezado...");
   let y = await drawHeader(pdfDoc, page, title, logoBytes);
   y -= HEADER_SPACING;
 
 
   for (let i = 0; i < elements.length; i++) {
+    const doneRatio = elements.length > 0 ? i / elements.length : 1;
+    reportProgress(16 + doneRatio * 74, `Procesando elemento ${i + 1} de ${elements.length}...`);
     const result = await drawElement(pdfDoc, page, elements[i], MARGIN_X, y, MAX_WIDTH);
     y = result.y;
     page = result.page;
 
   }
-  return await pdfDoc.save();
+
+  reportProgress(94, "Finalizando PDF...");
+  const pdfBytes = await pdfDoc.save();
+  reportProgress(100, "PDF generado");
+  return pdfBytes;
 };

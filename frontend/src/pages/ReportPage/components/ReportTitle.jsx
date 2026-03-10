@@ -2,7 +2,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import debounce from "lodash.debounce";
 import { TextField } from "@mui/material";
 
-export const ReportTitle = memo(({ value, onSave }) => {
+export const ReportTitle = memo(({ value, onSave, disabled = false }) => {
     const [localValue, setLocalValue] = useState(value);
 
     useEffect(() => {
@@ -25,6 +25,7 @@ export const ReportTitle = memo(({ value, onSave }) => {
             fullWidth
             type="text"
             variant="outlined"
+            disabled={disabled}
             value={localValue}
             onChange={(e) => {
                 setLocalValue(e.target.value);

@@ -59,7 +59,7 @@ const quillPurifyConfig = {
     }
 };
 
-export const ReportElementItem = memo(({ element, index, numberOfPreviousSameType, showCharts = true, onChange, removeElement }) => {
+export const ReportElementItem = memo(({ element, numberOfPreviousSameType, showCharts = true, onChange, removeElement, disabled = false }) => {
     const [localValue, setLocalValue] = useState(
         element?.content?.content_html ?? ""
     );
@@ -191,8 +191,9 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
                 boxShadow: 4,
                 gap: 1,
                 transition: 'background-color 0.2s, box-shadow 0.2s',
-                cursor: showCharts ? 'default' : 'grab',
+                cursor: disabled ? 'not-allowed' : showCharts ? 'default' : 'grab',
                 '&:hover': { bgcolor: 'action.hover' },
+                pointerEvents: disabled ? 'none' : 'auto',
             }}
         >
             {/* HEADER */}
@@ -293,7 +294,13 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
 
                 {/* DELETE BUTTON */}
                 {showCharts && (
-                    <IconButton sx={{ alignSelf: 'self-start' }} size="small" color="error" onClick={() => removeElement(element.id)}>
+                    <IconButton
+                        sx={{ alignSelf: 'self-start' }}
+                        size="small"
+                        color="error"
+                        disabled={disabled}
+                        onClick={() => removeElement(element.id)}
+                    >
                         <DeleteIcon />
                     </IconButton>
                 )}
@@ -309,6 +316,7 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
                             ref={quillRef}
                             theme="snow"
                             className="quill-dark"
+                            readOnly={disabled}
 
                             value={localValue}
                             modules={quillModules}
@@ -330,15 +338,31 @@ export const ReportElementItem = memo(({ element, index, numberOfPreviousSameTyp
                     {element.type === "chart" && <ChartRenderer element={element} />}
 
                     {element.type === 'image' && (
-                        <ResizableImage
-                            element={{
-                                ...element,
-                                width: localSize.width,
-                                height: localSize.height,
-                            }}
-                            onResize={(w, h, alt) => handleResize(w, h, alt, false)}
-                            onResizeStop={(w, h, alt) => handleResize(w, h, alt, true)}
-                        />
+                        disabled ? (
+                            <Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                                <img
+                                    src={element.src}
+                                    alt={element.alt || `Imagen_${element.id || Date.now()}`}
+                                    style={{
+                                        maxWidth: "100%",
+                                        maxHeight: 400,
+                                        height: "auto",
+                                        objectFit: "cover",
+                                        borderRadius: 8,
+                                    }}
+                                />
+                            </Box>
+                        ) : (
+                            <ResizableImage
+                                element={{
+                                    ...element,
+                                    width: localSize.width,
+                                    height: localSize.height,
+                                }}
+                                onResize={(w, h, alt) => handleResize(w, h, alt, false)}
+                                onResizeStop={(w, h, alt) => handleResize(w, h, alt, true)}
+                            />
+                        )
                     )}
                 </>
             )}

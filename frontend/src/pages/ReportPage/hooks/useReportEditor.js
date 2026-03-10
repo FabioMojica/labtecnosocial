@@ -322,7 +322,6 @@ export const useReportEditor = () => {
     };
 
     const exportToXLS = () => {
-        handleCloseExportMenu();
         console.log('Exportar XLS');
     };
 

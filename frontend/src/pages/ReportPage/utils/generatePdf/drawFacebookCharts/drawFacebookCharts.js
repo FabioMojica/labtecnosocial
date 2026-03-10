@@ -15,6 +15,7 @@ const COLORS = {
   barTrack: rgb(0.9, 0.93, 0.97),
 };
 
+const REACTION_KEYS = ["LIKE", "LOVE", "WOW", "HAHA", "SAD", "ANGRY"];
 const REACTION_LABELS = ["Like", "Love", "Wow", "Haha", "Sad", "Angry"];
 const REACTION_COLORS = [
   rgb(0.09, 0.47, 0.95),
@@ -55,6 +56,25 @@ const COUNTRY_NAME_FALLBACK_ES = {
 function toNumber(value) {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
   if (typeof value === "string") return Number(value) || 0;
+  return 0;
+}
+
+function getReactionValueByType(byType = {}, type) {
+  const candidatesByType = {
+    LIKE: ["LIKE"],
+    LOVE: ["LOVE"],
+    WOW: ["WOW"],
+    HAHA: ["HAHA"],
+    SAD: ["SAD", "SORRY"],
+    ANGRY: ["ANGRY", "ANGER"],
+  };
+
+  const aliases = candidatesByType[type] ?? [type];
+  for (const alias of aliases) {
+    const value = byType?.[alias];
+    if (value !== undefined && value !== null) return toNumber(value);
+  }
+
   return 0;
 }
 
@@ -319,10 +339,27 @@ function drawLineChart({ page, font, x, y, width, height, values, dates }) {
       .filter((idx, pos, arr) => idx >= 0 && arr.indexOf(idx) === pos);
 
     sampleIndexes.forEach((idx) => {
-      const label = truncateText(labels[idx], font, 7.5, 44);
-      const lx = labels.length > 1 ? x + idx * scaleX - 12 : x - 12;
+      const label = truncateText(labels[idx], font, 7.5, 52);
+      const labelW = safeWidthOfText(font, label, 7.5);
+      const minX = x;
+      const maxX = x + width - labelW;
+      let lx;
+
+      if (labels.length === 1) {
+        lx = x + (width - labelW) / 2;
+      } else if (idx === 0) {
+        lx = minX;
+      } else if (idx === labels.length - 1) {
+        lx = maxX;
+      } else {
+        const anchorX = x + idx * scaleX;
+        lx = anchorX - labelW / 2;
+      }
+
+      const safeX = Math.max(minX, Math.min(maxX, lx));
+
       page.drawText(label, {
-        x: lx,
+        x: safeX,
         y: y - 12,
         size: 7.5,
         font,
@@ -508,8 +545,11 @@ async function drawOrganicPaidCard({ pdfDoc, page, element, x, y, maxWidth }) {
       font,
       color: COLORS.text,
     });
-    page.drawText(`${compactNumber(value)} (${Math.round(pct)}%)`, {
-      x: x + width - 140,
+    const valueText = `${compactNumber(value)} (${Math.round(pct)}%)`;
+    const valueTextWidth = safeWidthOfText(boldFont, valueText, 9.5);
+    const valueTextX = Math.max(x + 14, x + width - 14 - valueTextWidth);
+    page.drawText(valueText, {
+      x: valueTextX,
       y: rowY,
       size: 9.5,
       font: boldFont,
@@ -792,6 +832,9 @@ async function drawTopPostsCard({ pdfDoc, page, element, x, y, maxWidth }) {
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const posts = Array.isArray(element?.data) ? element.data : [];
   const topPosts = posts.slice(0, 5);
+  const reactionIcons = await Promise.all(
+    REACTION_ICON_SOURCES.map((src) => fetchAndEmbedPostImage(pdfDoc, src))
+  );
   const rowCount = Math.max(topPosts.length, 1);
   const rowHeight = 96;
   const rowGap = 8;
@@ -841,6 +884,7 @@ async function drawTopPostsCard({ pdfDoc, page, element, x, y, maxWidth }) {
       const reactions = toNumber(post?.reactions?.total);
       const comments = toNumber(post?.comments);
       const shares = toNumber(post?.shares);
+      const reactionsByType = post?.reactions?.byType ?? {};
       const imageUrl = getPostImageUrl(post);
 
       page.drawRectangle({
@@ -923,11 +967,49 @@ async function drawTopPostsCard({ pdfDoc, page, element, x, y, maxWidth }) {
         color: COLORS.text,
       });
 
-      const metrics = `R:${compactNumber(reactions)}  C:${compactNumber(comments)}  S:${compactNumber(shares)}`;
-      page.drawText(metrics, {
-        x: textX,
-        y: rowTop - 50,
-        size: 8.8,
+      const reactionY = rowTop - 50;
+      const iconSize = 9;
+      let reactionX = textX;
+      REACTION_KEYS.forEach((type, reactionIndex) => {
+        const icon = reactionIcons[reactionIndex];
+        const value = getReactionValueByType(reactionsByType, type);
+        const valueText = compactNumber(value);
+        const valueWidth = safeWidthOfText(boldFont, valueText, 8.2);
+
+        if (icon) {
+          const fit = fitImageInsideBox(icon.width, icon.height, iconSize, iconSize);
+          page.drawImage(icon, {
+            x: reactionX + fit.offsetX,
+            y: reactionY + fit.offsetY - 1,
+            width: fit.width,
+            height: fit.height,
+          });
+        } else {
+          page.drawCircle({
+            x: reactionX + iconSize / 2,
+            y: reactionY + iconSize / 2 - 1,
+            size: iconSize / 2,
+            color: REACTION_COLORS[reactionIndex] ?? COLORS.primary,
+          });
+        }
+
+        page.drawText(valueText, {
+          x: reactionX + iconSize + 2,
+          y: reactionY - 0.5,
+          size: 8.2,
+          font: boldFont,
+          color: COLORS.text,
+        });
+
+        reactionX += iconSize + 2 + valueWidth + 8;
+      });
+
+      const engagementText = `C:${compactNumber(comments)}  S:${compactNumber(shares)}  R:${compactNumber(reactions)}`;
+      const engagementTextW = safeWidthOfText(font, engagementText, 8.2);
+      page.drawText(engagementText, {
+        x: x + width - 16 - engagementTextW,
+        y: reactionY - 0.5,
+        size: 8.2,
         font,
         color: COLORS.muted,
       });

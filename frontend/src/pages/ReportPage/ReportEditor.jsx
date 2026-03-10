@@ -1,5 +1,4 @@
-import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { data, useLocation, useNavigate } from "react-router-dom";
+import React, { Fragment, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -33,7 +32,7 @@ import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
 import "react-quill-new/dist/quill.snow.css";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ButtonWithLoader, ErrorScreen, FullScreenProgress } from "../../generalComponents";
-import { useLayout, useNotification, useReport } from "../../contexts";
+import { useLayout, usePdfExport } from "../../contexts";
 import { formatDateParts, generateUUID, integrationsConfig } from "../../utils";
 
 import {
@@ -43,7 +42,7 @@ import {
   ReportElementItem,
   ReportTitle
 } from "./components";
-import { getElementLabel, formatElementsForDb, formatElementsForFrontend } from "./utils";
+import { getElementLabel } from "./utils";
 import { useReportEditor } from "./hooks/useReportEditor";
 
 export const ReportEditor = () => {
@@ -57,8 +56,7 @@ export const ReportEditor = () => {
   const [showCharts, setShowCharts] = useState(true);
   const [openChartSelector, setOpenChartSelector] = useState(false);
   const imageInputRef = useRef(null);
-  const { notify } = useNotification();
-  const [generatingPDF, setGeneratingPDF] = useState(false);
+  const { isPdfGenerating, startPdfExport } = usePdfExport();
 
   const {
     isCreateNewReport,
@@ -125,61 +123,11 @@ export const ReportEditor = () => {
   };
 
   const exportToPDF = () => {
-    setGeneratingPDF(true);
-
-    const worker = new Worker(new URL('./utils/pdfWorker.js', import.meta.url), { type: 'module' });
-
-    console.log(orderedElements);
-
-    worker.postMessage({
-      title: editedReport.title,
+    if (isPdfGenerating) return;
+    startPdfExport({
+      title: editedReport?.title,
       elements: orderedElements,
     });
-
-    worker.onmessage = (e) => {
-      const data = e.data;
-
-      // Progreso
-      if (data.progress !== undefined) {
-        setGeneratingPDF(data.progress);
-      }
-
-      // PDF generado
-      if (data.done) {
-        const blob = new Blob([data.pdfBytes], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${editedReport.title}.pdf`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        setGeneratingPDF(false);
-        worker.terminate();
-      }
-
-      if (data.error) {
-        console.error("PDF Error:", data.code, data.meta);
-
-        const userMessage =
-          data.code === "PDF_FONT_MEASURE_ERROR"
-            ? "El documento contiene caracteres no compatibles con PDF."
-            : data.message;
-
-        notify(`Ocurrió un error al generar PDF: ${userMessage}`, "error");
-
-        setGeneratingPDF(false);
-        worker.terminate();
-      }
-    };
-
-    worker.onerror = (err) => {
-      console.error("Fatal worker error:", err);
-      console.error("Error fatal en worker:", err);
-      setGeneratingPDF(false);
-      notify(`Ocurrió un error al generar PDF`, 'error');
-      worker.terminate();
-    };
   };
 
 
@@ -200,9 +148,6 @@ export const ReportEditor = () => {
     <FullScreenProgress text={'Eliminando el reporte...'} />
   )
 
-  if (generatingPDF) return (<FullScreenProgress text="Generando PDF..." />)
-
-
   return (
     <Box>
       <Box sx={{ display: "flex", height: 48, flexDirection: { xs: 'column', lg: 'row' }, alignItems: "center", width: "100%", gap: 2, justifyContent: 'space-between' }}>
@@ -211,6 +156,7 @@ export const ReportEditor = () => {
                 onClick={handleOpenExportMenu}
                 size="large"
                 color="primary"
+                disabled={isPdfGenerating}
               >
                 <SummarizeRoundedIcon fontSize="large" />
               </IconButton>
@@ -218,7 +164,7 @@ export const ReportEditor = () => {
               {!fetchReport &&
                 <Menu
                   anchorEl={exportAnchorEl}
-                  open={openExportMenu}
+                  open={openExportMenu && !isPdfGenerating}
                   disablePortal
                   onClose={handleCloseExportMenu}
                   anchorOrigin={{
@@ -237,15 +183,24 @@ export const ReportEditor = () => {
                     }
                   }}
                 >
-                  <MenuItem onClick={() => {
+                  <MenuItem
+                    disabled={isPdfGenerating}
+                    onClick={() => {
                     handleCloseExportMenu();
                     exportToPDF();
-                  }}>
+                    }}
+                  >
                     <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
                     Exportar PDF
                   </MenuItem>
 
-                  <MenuItem onClick={exportToXLS}>
+                  <MenuItem
+                    disabled={isPdfGenerating}
+                    onClick={() => {
+                      handleCloseExportMenu();
+                      exportToXLS();
+                    }}
+                  >
                     <TableChartIcon fontSize="small" sx={{ mr: 1 }} />
                     Exportar Excel (XLS)
                   </MenuItem>
@@ -253,6 +208,7 @@ export const ReportEditor = () => {
                     <Divider key="divider-1" sx={{ mt: 2 }} />,
                     <MenuItem
                       key="delete"
+                      disabled={isPdfGenerating}
                       onClick={() => {
                         handleCloseExportMenu();
                         setOpenDeleteReportDialog(true);
@@ -336,14 +292,13 @@ export const ReportEditor = () => {
 
               <ReportTitle
                 value={editedReport.title}
+                disabled={isPdfGenerating}
                 onSave={(title) =>
                   setEditedReport(prev => ({ ...prev, title }))
                 }
               />
             </Box>
           </Box>
-
-
       <Box
         sx={{
           display: 'flex',
@@ -402,6 +357,7 @@ export const ReportEditor = () => {
                 title={isFullscreen ? "Minimizar" : "Maximizar"}
               >
                 <IconButton
+                  disabled={isPdfGenerating}
                   onClick={() => {
                     setIsFullscreen(!isFullscreen);
                   }}
@@ -416,7 +372,7 @@ export const ReportEditor = () => {
 
               <Tooltip title="Mostrar índice del reporte">
                 <span>
-                  <IconButton onClick={() => setOpenOutline(o => !o)}>
+                  <IconButton disabled={isPdfGenerating} onClick={() => setOpenOutline(o => !o)}>
                     <ListAltIcon />
                   </IconButton>
                 </span>
@@ -431,7 +387,7 @@ export const ReportEditor = () => {
               >
                 <span>
                   <IconButton
-                    disabled={isReportEmpty}
+                    disabled={isReportEmpty || isPdfGenerating}
                     onClick={() => setShowCharts(prev => !prev)}
                   >
                     {showCharts ? <VisibilityIcon /> : <VisibilityOffIcon />}
@@ -453,14 +409,14 @@ export const ReportEditor = () => {
                 color="error"
                 sx={{ width: '165px', height: '100%' }}
                 onClick={() => handleCancel()}
-                disabled={!isDirty || saveReport}
+                disabled={!isDirty || saveReport || isPdfGenerating}
               >
                 Descartar cambios
               </Button>
               <ButtonWithLoader
                 loading={saveReport}
                 onClick={() => handleSave()}
-                disabled={!isDirty || isReportEmpty}
+                disabled={!isDirty || isReportEmpty || isPdfGenerating}
                 variant="contained"
                 backgroundButton={theme => theme.palette.success.main}
                 sx={{ color: 'white', px: 2, width: '170px' }}
@@ -548,6 +504,7 @@ export const ReportEditor = () => {
                         return (
                           <Draggable
                             draggableId={`outline-${el.id}`}
+                            isDragDisabled={isPdfGenerating}
                             index={index}
                             key={el.id}>
                             {(provided, snapshot) => (
@@ -654,7 +611,7 @@ export const ReportEditor = () => {
                                 <Button
                                   size="small"
                                   variant="outlined"
-                                  disabled={isDragging}
+                                  disabled={isDragging || isPdfGenerating}
                                   onClick={() => {
                                     scrollToElement(el.id);
                                     setOpenOutline(false);
@@ -718,6 +675,7 @@ export const ReportEditor = () => {
                             setChartInsertIndex(null);
                             setOpenChartSelector(true);
                           }}
+                          disabled={isPdfGenerating}
                         />
                       </Box>
                     )}
@@ -732,7 +690,7 @@ export const ReportEditor = () => {
                         <Fragment key={el.id}>
                           <Draggable
                             draggableId={`report-dragable-${el.id}`}
-                            isDragDisabled={showCharts}
+                            isDragDisabled={showCharts || isPdfGenerating}
                             index={index}
                             key={el.id}>
                             {(provided, snapshot) => (
@@ -762,6 +720,7 @@ export const ReportEditor = () => {
                                 <ReportElementItem
                                   key={el.id}
                                   element={el}
+                                  disabled={isPdfGenerating}
                                   showCharts={showCharts}
                                   numberOfPreviousSameType={numberOfPreviousSameType}
                                   onChange={handleElementChange}
@@ -796,6 +755,7 @@ export const ReportEditor = () => {
                                 setChartInsertIndex(el.id);
                                 setOpenChartSelector(true);
                               }}
+                              disabled={isPdfGenerating}
                             />
                           }
                         </Fragment>
@@ -811,9 +771,9 @@ export const ReportEditor = () => {
         </Box>
 
         <ChartSelectorDialog
-          open={openChartSelector}
-          onClose={() => setOpenChartSelector(false)}
-          onAcept={() => handleAddCharts()}
+          open={openChartSelector && !isPdfGenerating}
+          onClose={() => !isPdfGenerating && setOpenChartSelector(false)}
+          onAcept={() => !isPdfGenerating && handleAddCharts()}
         />
 
         <DeleteReportDialog
@@ -834,9 +794,11 @@ export const ReportEditor = () => {
           type="file"
           accept="image/*"
           hidden
+          disabled={isPdfGenerating}
           onChange={(e) => handleImageSelected(e.target.files[0])}
         />
       </Box >
     </Box>
   );
 };
+

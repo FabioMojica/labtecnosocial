@@ -3,61 +3,48 @@ import { DashboardCard } from './DashboardCard';
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import CommentOutlinedIcon from "@mui/icons-material/CommentOutlined";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import { REACTIONS_CONFIG } from '../utils/cards/reactionsConfig.js'
+import { REACTIONS_CONFIG, REACTION_ORDER } from '../utils/cards/reactionsConfig.js'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import { formatDateParts } from "../../../../../utils/formatDate.js";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import Tooltip from "@mui/material/Tooltip";
-import ThumbUpAltRoundedIcon from "@mui/icons-material/ThumbUpAltRounded";
-import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
-import SentimentVerySatisfiedRoundedIcon from "@mui/icons-material/SentimentVerySatisfiedRounded";
-import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
-import SentimentDissatisfiedRoundedIcon from "@mui/icons-material/SentimentDissatisfiedRounded";
-import MoodBadRoundedIcon from "@mui/icons-material/MoodBadRounded";
 import { useEffect, useState } from "react";
 
-const REACTION_ICON_COMPONENTS = {
-    LIKE: ThumbUpAltRoundedIcon,
-    LOVE: FavoriteRoundedIcon,
-    HAHA: SentimentVerySatisfiedRoundedIcon,
-    WOW: VisibilityRoundedIcon,
-    SAD: SentimentDissatisfiedRoundedIcon,
-    ANGRY: MoodBadRoundedIcon,
+const REACTION_ALIASES = {
+    SAD: ["SAD", "SORRY"],
+    ANGRY: ["ANGRY", "ANGER"],
 };
 
-const REACTION_BADGE_STYLES = {
-    LIKE: { bg: "#1877F2", color: "#FFFFFF" },
-    LOVE: { bg: "#F33E58", color: "#FFFFFF" },
-    HAHA: { bg: "#F7B125", color: "#1C1E21" },
-    WOW: { bg: "#F7B125", color: "#1C1E21" },
-    SAD: { bg: "#F7B125", color: "#1C1E21" },
-    ANGRY: { bg: "#E9710F", color: "#FFFFFF" },
+const getReactionValue = (byType = {}, type) => {
+    const aliases = REACTION_ALIASES[type] ?? [type];
+    for (const alias of aliases) {
+        const rawValue = byType?.[alias];
+        if (rawValue !== undefined && rawValue !== null) {
+            return Number(rawValue) || 0;
+        }
+    }
+    return 0;
 };
 
 const ReactionBadge = ({ type, size = 18 }) => {
-    const ReactionIcon = REACTION_ICON_COMPONENTS[type];
-    const style = REACTION_BADGE_STYLES[type];
+    const config = REACTIONS_CONFIG[type];
 
-    if (!ReactionIcon || !style) return null;
+    if (!config?.iconSrc) return null;
 
     return (
         <Box
+            component="img"
+            src={config.iconSrc}
+            alt={config.label}
             sx={{
                 width: size,
                 height: size,
                 borderRadius: "50%",
-                bgcolor: style.bg,
-                color: style.color,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 0 0 1px rgba(255,255,255,0.25)",
+                objectFit: "cover",
                 flexShrink: 0,
             }}
-        >
-            <ReactionIcon sx={{ fontSize: Math.max(11, size - 6), color: "inherit" }} />
-        </Box>
+        />
     );
 };
 
@@ -361,10 +348,10 @@ const TopPostCard = ({ post, index }) => {
                         lg: 'row'
                     }} spacing={1} justifyContent={'space-between'}>
                         <Stack direction="row" spacing={1} alignItems="center">
-                            {Object.entries(post.reactions.byType)
-                                .map(([type, value]) => {
+                            {REACTION_ORDER.map((type) => {
                                     const config = REACTIONS_CONFIG[type];
                                     if (!config) return null;
+                                    const value = getReactionValue(post?.reactions?.byType, type);
 
                                     return (
                                         <Box

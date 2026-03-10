@@ -1,44 +1,32 @@
 import { Box, Stack, Tooltip, Typography } from "@mui/material";
-import ThumbUpAltRoundedIcon from "@mui/icons-material/ThumbUpAltRounded";
-import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
-import SentimentVerySatisfiedRoundedIcon from "@mui/icons-material/SentimentVerySatisfiedRounded";
-import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
-import SentimentDissatisfiedRoundedIcon from "@mui/icons-material/SentimentDissatisfiedRounded";
-import MoodBadRoundedIcon from "@mui/icons-material/MoodBadRounded";
 import { alpha } from "@mui/material/styles";
 import { useEffect, useMemo, useState } from "react";
 import { DashboardCard } from "./DashboardCard";
 import { formatNumber } from "../utils/cards";
 
 const REACTIONS = [
-    { key: "LIKE", label: "Me gusta / me importa", icon: ThumbUpAltRoundedIcon, bg: "#1877F2", fg: "#FFFFFF" },
-    { key: "LOVE", label: "Me encanta", icon: FavoriteRoundedIcon, bg: "#F33E58", fg: "#FFFFFF" },
-    { key: "HAHA", label: "Me divierte", icon: SentimentVerySatisfiedRoundedIcon, bg: "#F7B125", fg: "#1C1E21" },
-    { key: "WOW", label: "Me asombra", icon: VisibilityRoundedIcon, bg: "#F7B125", fg: "#1C1E21" },
-    { key: "SAD", label: "Me entristece", icon: SentimentDissatisfiedRoundedIcon, bg: "#F7B125", fg: "#1C1E21" },
-    { key: "ANGRY", label: "Me enoja", icon: MoodBadRoundedIcon, bg: "#E9710F", fg: "#FFFFFF" },
+    { key: "LIKE", label: "Like", iconSrc: "/reactions/facebook/like.png", bg: "#1877F2" },
+    { key: "LOVE", label: "Love", iconSrc: "/reactions/facebook/love.png", bg: "#F33E58" },
+    { key: "WOW", label: "Wow", iconSrc: "/reactions/facebook/wow.png", bg: "#F7B125" },
+    { key: "HAHA", label: "Haha", iconSrc: "/reactions/facebook/haha.png", bg: "#F7B125" },
+    { key: "SAD", label: "Sad", iconSrc: "/reactions/facebook/sad.png", bg: "#F7B125" },
+    { key: "ANGRY", label: "Angry", iconSrc: "/reactions/facebook/angry.png", bg: "#E9710F" },
 ];
 
 const ReactionBadge = ({ reaction, size = 14 }) => {
-    const Icon = reaction.icon;
-
     return (
         <Box
+            component="img"
+            src={reaction.iconSrc}
+            alt={reaction.label}
             sx={{
                 width: size,
                 height: size,
                 borderRadius: "50%",
-                bgcolor: reaction.bg,
-                color: reaction.fg,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 0 0 1px rgba(255,255,255,0.2)",
+                objectFit: "cover",
                 flexShrink: 0,
             }}
-        >
-            <Icon sx={{ fontSize: Math.max(10, size - 5), color: "inherit" }} />
-        </Box>
+        />
     );
 };
 

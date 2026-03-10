@@ -2,7 +2,7 @@ import { Box, CssBaseline, Toolbar, useTheme } from '@mui/material';
 import { SnackbarProvider } from "notistack";
 import "react-quill-new/dist/quill.snow.css";
 
-import { AuthProvider, CustomThemeProvider, HeaderHeightProvider, useAuth } from './contexts';
+import { AuthProvider, CustomThemeProvider, HeaderHeightProvider, PdfExportProvider, useAuth } from './contexts';
 
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import {
@@ -18,7 +18,7 @@ import {
 } from './pages';
 
 
-import { Header, PrivateRoute, SessionExpirationModal } from './generalComponents';
+import { GlobalPdfExportProgress, Header, PrivateRoute, SessionExpirationModal } from './generalComponents';
 import { useDrawerClosedWidth } from './utils';
 import StrategicPlanningDashboardPage from './pages/StrategicPlan/StrategicPlanningDashboardPage';
 import OperationalPlanningDashboardPage from './pages/OperationalPlan/OperationalPlanningDashboardPage';
@@ -107,31 +107,34 @@ function App() {
                 <ConfirmProvider>
                   <HeaderHeightProvider>
                       <ReportProvider>
-                        <CssBaseline />
-                        <SessionExpirationModal />
-                        <Box sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          <Box
-                            ref={containerRef}
-                            sx={{
-                              flexGrow: 1,
-                              minHeight: '100vh',
-                              pl: { 
-                                lg: useDrawerClosedWidth(), 
-                              }, 
-                              maxWidth: 2000,
-                            }}> 
-                            <Box sx={{
-                              width: '100%',
-                              px: {xs: 0, lg: 1},
-                            }}>
-                              <AppContent /> 
+                        <PdfExportProvider>
+                          <CssBaseline />
+                          <SessionExpirationModal />
+                          <Box sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <Box
+                              ref={containerRef}
+                              sx={{
+                                flexGrow: 1,
+                                minHeight: '100vh',
+                                pl: {
+                                  lg: useDrawerClosedWidth(),
+                                },
+                                maxWidth: 2000,
+                              }}>
+                              <Box sx={{
+                                width: '100%',
+                                px: { xs: 0, lg: 1 },
+                              }}>
+                                <AppContent />
+                              </Box>
                             </Box>
                           </Box>
-                        </Box>
+                          <GlobalPdfExportProgress />
+                        </PdfExportProvider>
                       </ReportProvider>
                   </HeaderHeightProvider>
                 </ConfirmProvider>

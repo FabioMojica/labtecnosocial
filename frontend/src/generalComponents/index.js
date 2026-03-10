@@ -6,6 +6,7 @@ export * from './DrawerNavBar';
 export * from './ErrorScreen';
 export * from './FloatingActionButtons';
 export * from './FullScreenProgress';
+export * from './GlobalPdfExportProgress';
 export * from './Header';
 export * from './Image';
 export * from './Item';

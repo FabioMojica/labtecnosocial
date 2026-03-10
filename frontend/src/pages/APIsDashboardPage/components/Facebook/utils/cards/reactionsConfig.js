@@ -1,8 +1,10 @@
 export const REACTIONS_CONFIG = {
-  LIKE: { label: "Me gusta / Me importa", color: "#1877F2" },
-  LOVE: { label: "Me encanta", color: "#F33E58" },
-  HAHA: { label: "Me divierte", color: "#F7B125" },
-  WOW: { label: "Me asombra", color: "#F7B125" },
-  SAD: { label: "Me entristece", color: "#F7B125" },
-  ANGRY: { label: "Me enoja", color: "#E9710F" },
+  LIKE: { label: "Like", color: "#1877F2", iconSrc: "/reactions/facebook/like.png" },
+  LOVE: { label: "Love", color: "#F33E58", iconSrc: "/reactions/facebook/love.png" },
+  WOW: { label: "Wow", color: "#F7B125", iconSrc: "/reactions/facebook/wow.png" },
+  HAHA: { label: "Haha", color: "#F7B125", iconSrc: "/reactions/facebook/haha.png" },
+  SAD: { label: "Sad", color: "#F7B125", iconSrc: "/reactions/facebook/sad.png" },
+  ANGRY: { label: "Angry", color: "#E9710F", iconSrc: "/reactions/facebook/angry.png" },
 };
+
+export const REACTION_ORDER = ["LIKE", "LOVE", "WOW", "HAHA", "SAD", "ANGRY"];
