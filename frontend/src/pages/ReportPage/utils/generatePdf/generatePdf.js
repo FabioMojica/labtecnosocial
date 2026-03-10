@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import logoLight from "../../../../assets/labTecnoSocialLogoLight.png";
 import { drawHeader } from "./drawHeader";
 import { drawTextBlock } from "./drawTextBock";
@@ -15,7 +15,7 @@ export const ensurePageSpace = ({ pdfDoc, cursor }) => {
       const newPage = pdfDoc.addPage();
       cursor.page = newPage;
       cursor.y = newPage.getSize().height - PAGE_MARGIN_TOP;
-    } catch (err) {
+    } catch {
       throw new PdfRenderError(
         "PDF_ADD_PAGE_ERROR",
         "No se pudo crear una nueva página",
@@ -46,7 +46,6 @@ const drawElement = async (pdfDoc, page, el, x, y, maxWidth) => {
   }
 
   if (el.type === "image" && el.src) {
-    console.log(el)
     const result = await drawImageBlock({
       pdfDoc,
       page,
@@ -60,8 +59,7 @@ const drawElement = async (pdfDoc, page, el, x, y, maxWidth) => {
   }
 
   if (el.type === "chart") {
-    console.log("CHART STRINGIFIED:", JSON.stringify(el, null, 2));
-    const result = drawChartBlock({
+    const result = await drawChartBlock({
       pdfDoc,
       page,
       element: el,
@@ -76,14 +74,13 @@ const drawElement = async (pdfDoc, page, el, x, y, maxWidth) => {
 };
 
 
-export const generatePDF = async (elements, title, onProgress = () => { }) => {
+export const generatePDF = async (elements, title) => {
   const pdfDoc = await PDFDocument.create();
   let page = pdfDoc.addPage();
-  const { width, height } = page.getSize();
+  const { width } = page.getSize();
   const MARGIN_X = 50;
   const MAX_WIDTH = width - MARGIN_X * 2;
 
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const logoBytes = await fetchLogoBytes();
   const HEADER_SPACING = 30;
   let y = await drawHeader(pdfDoc, page, title, logoBytes);

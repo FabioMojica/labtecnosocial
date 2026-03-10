@@ -52,6 +52,37 @@ const colors = [
   'hsl(50, 70%, 60%)',
 ];
 
+const COUNTRY_CODE_LABEL_OVERRIDES = {
+  AP: 'Asia-Pacifico',
+  EU: 'Union Europea',
+  LA: 'Latinoamerica',
+  ZZ: 'Desconocido',
+  XK: 'Kosovo',
+  A1: 'Anonimo',
+  A2: 'Satelite/Proxy',
+  O1: 'Otro',
+};
+
+const toCountryDisplayLabel = (rawCode, regionDisplayNames) => {
+  const code = String(rawCode ?? '').trim().toUpperCase();
+  if (!code) return 'Sin datos';
+
+  if (COUNTRY_CODE_LABEL_OVERRIDES[code]) {
+    return `${code} (${COUNTRY_CODE_LABEL_OVERRIDES[code]})`;
+  }
+
+  if (!/^[A-Z]{2}$/.test(code)) {
+    return code;
+  }
+
+  const resolvedName = regionDisplayNames?.of(code);
+  if (resolvedName && resolvedName !== code) {
+    return `${code} (${resolvedName})`;
+  }
+
+  return code;
+};
+
 export const ChartFollowersByCountry = ({
   mode = 'dashboard',
   loading,
@@ -75,6 +106,14 @@ export const ChartFollowersByCountry = ({
   };
 
   const theme = useTheme();
+  const regionDisplayNames = React.useMemo(() => {
+    try {
+      return new Intl.DisplayNames(['es-BO', 'es'], { type: 'region' });
+    } catch {
+      return null;
+    }
+  }, []);
+
   const latest = React.useMemo(() => {
     if (!data?.length) return {};
     return data[data.length - 1];
@@ -85,11 +124,13 @@ export const ChartFollowersByCountry = ({
 
   const pieData = Object.entries(latest)
     .map(([country, value]) => {
+      const countryCode = String(country ?? '').trim().toUpperCase();
       const absoluteValue = Number(value ?? 0);
       const percentage = totalFollowers > 0 ? (absoluteValue / totalFollowers) * 100 : 0;
 
       return {
-        label: country,
+        code: countryCode || 'N/A',
+        label: toCountryDisplayLabel(countryCode, regionDisplayNames),
         value: absoluteValue,
         percentage,
       };
@@ -162,11 +203,22 @@ export const ChartFollowersByCountry = ({
         </Box>
 
         {pieData.map((c, index) => (
-          <Stack key={c.label} direction="row" sx={{ alignItems: 'center', gap: 2, pb: 2 }}>
+          <Stack key={`${c.code}-${index}`} direction="row" sx={{ alignItems: 'center', gap: 2, pb: 2 }}>
             <Box sx={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: colors[index % colors.length] }} />
             <Stack sx={{ gap: 1, flexGrow: 1 }}>
               <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: '500' }}>{c.label}</Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: '500',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                  title={c.label}
+                >
+                  {c.label}
+                </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>{formatPercentage(c.percentage)}</Typography>
               </Stack>
               <LinearProgress

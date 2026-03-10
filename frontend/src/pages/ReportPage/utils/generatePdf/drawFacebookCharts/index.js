@@ -1,1 +1,1 @@
-export * from './drawFollowersChart';
+export { drawFacebookChart, drawFollowersChart } from "./drawFacebookCharts";
