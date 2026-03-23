@@ -29,6 +29,16 @@ export const drawChartBlock = async ({
         y,
         maxWidth,
       });
+    case "instagram":
+      return drawFacebookChart({
+        pdfDoc,
+        page,
+        element,
+        component: chartConfig.component,
+        x,
+        y,
+        maxWidth,
+      });
     default:
       return { y, page };
   }

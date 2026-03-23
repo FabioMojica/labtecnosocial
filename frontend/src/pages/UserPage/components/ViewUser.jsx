@@ -166,8 +166,6 @@ export const ViewUser = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
                     <Stack direction="row" spacing={1}>
                         <Box
                             sx={{
-                                display: "inline-flex",
-                                alignItems: "center",
                                 gap: 0.8,
                                 px: 1.5,
                                 py: 0.6,
@@ -216,7 +214,6 @@ export const ViewUser = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
                                         borderRadius: 2,
                                         bgcolor: 'background.paper',
                                         boxShadow: 3,
-                                        fontWeight: 500,
                                         fontSize: "0.85rem",
                                         fontWeight: 'bold',
                                         display: 'flex',

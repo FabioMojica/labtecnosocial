@@ -30,7 +30,6 @@ export const ViewUserDrawer = ({ user }) => {
             }}>
                 <Box
                     sx={{
-                        width: "100%",
                         height: "40%",
                         display: 'flex',
                         flexDirection: 'column',

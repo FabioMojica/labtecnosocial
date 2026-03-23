@@ -894,7 +894,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
           },
           bottom: 20,
           right: right + 20,
-          display: 'flex',
           gap: 1,
           width: '100%',
           display: 'flex',

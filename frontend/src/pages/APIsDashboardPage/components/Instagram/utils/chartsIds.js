@@ -1,0 +1,13 @@
+export const CHART_IDS_INSTAGRAM = {
+  followersCard: (period) => `chart-followersCard-platform:instagram-period:${period}`,
+  reachCard: (period) => `chart-pageViewsCard-platform:instagram-period:${period}`,
+  impressionsCard: (period) => `chart-pageImpressionsCard-platform:instagram-period:${period}`,
+  profileViewsCard: (period) => `chart-profileViewsCard-platform:instagram-period:${period}`,
+  engagedAccountsCard: (period) => `chart-engagedAccountsCard-platform:instagram-period:${period}`,
+  interactionsCard: (period) => `chart-interactionsCard-platform:instagram-period:${period}`,
+  engagementRateCard: (period) => `chart-engagementRateCard-platform:instagram-period:${period}`,
+  postsCard: (period) => `chart-postingFrequencyCard-platform:instagram-period:${period}`,
+  avgInteractionsPerPostCard: (period) => `chart-avgInteractionsPerPostCard-platform:instagram-period:${period}`,
+  contentTypePerformanceCard: (period) => `chart-contentTypePerformanceCard-platform:instagram-period:${period}`,
+  topPostsCard: (period) => `chart-topPostOfThePeriod-platform:instagram-period:${period}`,
+};

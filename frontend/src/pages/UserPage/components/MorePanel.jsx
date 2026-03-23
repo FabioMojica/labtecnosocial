@@ -74,7 +74,6 @@ export const MorePanel = ({ user, panelHeight, isOwnProfile, userRoleSession, is
             sx={{
                 width: "100%",
                 height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-                maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
                 maxWidth: {
                     xs: '100vw',
                     lg: '100%',

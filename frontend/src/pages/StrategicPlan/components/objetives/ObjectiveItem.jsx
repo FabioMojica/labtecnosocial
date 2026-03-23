@@ -48,7 +48,7 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected, highl
                 maxHeight: '300px',
             }}
             onClick={onClick}
-            className={highlightedItem === objective.id ? 'flash-highlight' : ''}
+            className={highlightedItem === `objective-${objective.id}` ? 'flash-highlight' : ''}
         >
             <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                 <Typography variant="body2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>

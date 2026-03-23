@@ -49,7 +49,6 @@ export const MorePanel = ({ project, panelHeight, isActive }) => {
         <Box
             sx={{
                 height: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
-                maxHeight: `calc(100vh - ${headerHeight}px - ${panelHeight}px)`,
                 maxWidth: {
                     xs: '100vw',
                     lg: `calc(100vw - ${drawerWidth}px)`,

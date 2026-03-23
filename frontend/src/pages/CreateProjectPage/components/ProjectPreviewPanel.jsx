@@ -273,7 +273,6 @@ export const ProjectPreviewPanel = ({
                 </Box>
 
                 <Box sx={{
-                    display: 'flex',
                     flexDirection: 'column',
                     gap: 1,
                     width: '100%',

@@ -30,7 +30,6 @@ const TeamItem = ({ setGlobalModalOpen, value, onUpdate, onDelete }) => {
       <Box
         sx={{
           padding: 1,
-          borderRadius: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

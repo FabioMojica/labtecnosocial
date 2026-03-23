@@ -18,6 +18,21 @@ function toIsoDate(value) {
   return date.toISOString().split("T")[0];
 }
 
+function getInstagramMediaTypeLabel(type = "") {
+  switch (String(type || "").toUpperCase()) {
+    case "IMAGE":
+      return "Imagen";
+    case "VIDEO":
+      return "Video";
+    case "REELS":
+      return "Reel";
+    case "CAROUSEL_ALBUM":
+      return "Carrusel";
+    default:
+      return "Otro";
+  }
+}
+
 function getRangeBounds(range = "lastMonth") {
   const intervals = resolveDateRange(range);
   const latestChunk = intervals[0] || {};
@@ -94,6 +109,65 @@ function mapMediaToTopPosts(media = []) {
     .slice(0, 5);
 }
 
+function buildInstagramMediaAnalytics(media = []) {
+  const byDateMap = {};
+  const byTypeMap = {};
+
+  for (const item of media) {
+    const date = toIsoDate(item?.timestamp);
+    if (!date) continue;
+
+    const likes = safeNumber(item?.like_count);
+    const comments = safeNumber(item?.comments_count);
+    const interactions = likes + comments;
+    const mediaType = getInstagramMediaTypeLabel(item?.media_type);
+
+    if (!byDateMap[date]) {
+      byDateMap[date] = {
+        date,
+        posts: 0,
+        likes: 0,
+        comments: 0,
+        interactions: 0,
+      };
+    }
+    byDateMap[date].posts += 1;
+    byDateMap[date].likes += likes;
+    byDateMap[date].comments += comments;
+    byDateMap[date].interactions += interactions;
+
+    if (!byTypeMap[mediaType]) {
+      byTypeMap[mediaType] = {
+        type: mediaType,
+        posts: 0,
+        likes: 0,
+        comments: 0,
+        interactions: 0,
+      };
+    }
+    byTypeMap[mediaType].posts += 1;
+    byTypeMap[mediaType].likes += likes;
+    byTypeMap[mediaType].comments += comments;
+    byTypeMap[mediaType].interactions += interactions;
+  }
+
+  const byDate = Object.values(byDateMap).sort(
+    (a, b) => new Date(a.date) - new Date(b.date)
+  );
+
+  const byMediaType = Object.values(byTypeMap)
+    .map((item) => ({
+      ...item,
+      avgInteractionsPerPost: item.posts > 0 ? item.interactions / item.posts : 0,
+    }))
+    .sort((a, b) => b.interactions - a.interactions);
+
+  return {
+    byDate,
+    byMediaType,
+  };
+}
+
 export const getInstagramPages = async (req, res) => {
   try {
     const fbResponse = await axios.get(`${BASE_URL}/me/accounts`, {
@@ -140,10 +214,10 @@ export const getInstagramPages = async (req, res) => {
     const normalizedData = normalizeGetAPIsData("instagram", { pages: instagramPages });
     return res.status(200).json(normalizedData);
   } catch (error) {
-    console.error("Error obteniendo páginas de Instagram:", error.response?.data || error.message);
+    console.error("Error obteniendo paginas de Instagram:", error.response?.data || error.message);
     return res.status(500).json({
       success: false,
-      message: "No se pudieron obtener las páginas de Instagram",
+      message: "No se pudieron obtener las paginas de Instagram",
       error: error.response?.data || error.message,
     });
   }
@@ -183,7 +257,7 @@ export const getInstagramInsights = async (req, res) => {
     const { range = "lastMonth" } = req.query;
 
     const { intervals } = getRangeBounds(range);
-    const metrics = ["follower_count", "reach", "impressions", "profile_views"];
+    const metrics = ["follower_count", "reach", "impressions", "profile_views", "accounts_engaged"];
 
     const allInsights = [];
 
@@ -206,7 +280,7 @@ export const getInstagramInsights = async (req, res) => {
         } catch (metricError) {
           // Some metrics may not be available for all account types; skip those metrics without breaking the dashboard.
           console.warn(
-            `Métrica de Instagram no disponible (${metric}):`,
+            `Metrica de Instagram no disponible (${metric}):`,
             metricError.response?.data?.error?.message || metricError.message
           );
         }
@@ -279,17 +353,21 @@ export const getInstagramMedia = async (req, res) => {
       (acc, item) => {
         const likes = safeNumber(item?.like_count);
         const comments = safeNumber(item?.comments_count);
+        acc.posts += 1;
         acc.likes += likes;
         acc.comments += comments;
         acc.interactions += likes + comments;
         return acc;
       },
-      { likes: 0, comments: 0, interactions: 0 }
+      { posts: 0, likes: 0, comments: 0, interactions: 0 }
     );
+
+    const analytics = buildInstagramMediaAnalytics(allMedia);
 
     const payload = {
       media: allMedia,
       totals,
+      analytics,
       topPosts: mapMediaToTopPosts(allMedia),
       meta: {
         range,
@@ -314,3 +392,4 @@ export const getInstagramMedia = async (req, res) => {
     );
   }
 };
+

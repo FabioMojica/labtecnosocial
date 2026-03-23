@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Tooltip, Grid, Typography, useMediaQuery, useTheme, TextField } from '@mui/material';
+import { Box, Button, Tooltip, Grid, Typography, useTheme } from '@mui/material';
 import MisionColumn from './components/mision/MisionColumn';
 import CreateMisionItemModal from './components/mision/CreateMisionItemModal';
 import ObjectivesColumn from './components/objetives/ObjectiveColumn';
@@ -33,7 +33,6 @@ import { useDirty } from '../../contexts/DirtyContext.jsx';
 import { formatDate } from '../../utils/formatDate.js';
 import { useLayout } from '../../contexts/LayoutContext.jsx';
 import { useDrawerClosedWidth } from '../../utils/index.js';
-import { useLayoutOffsets } from '../../hooks/useLayoutOffsets.js';
 
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
   const confirm = useConfirm();
@@ -80,9 +79,6 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const headerRef = useRef(null);
   const { height: headerHeight } = useElementSize(headerRef);
 
-  const isXs = useMediaQuery(theme.breakpoints.down('sm')); 
-  const isSm = useMediaQuery(theme.breakpoints.between('sm', 'md')); 
-
   const [canScroll, setCanScroll] = useState(false);
 
   const { setIsDirtyContext, registerAutoSave } = useDirty();
@@ -101,42 +97,138 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   }, [mission, objectives]);
 
 
-  const scrollToRef = (ref) => {
-    if (!ref) return;
+  const getScrollableParent = (element) => {
+    let parent = element?.parentElement;
 
-    const element = ref instanceof HTMLElement ? ref : ref.current;
+    while (parent) {
+      const style = window.getComputedStyle(parent);
+      const overflowY = style.overflowY;
+      const isScrollable = /(auto|scroll|overlay)/.test(overflowY);
+
+      if (isScrollable && parent.scrollHeight > parent.clientHeight) {
+        return parent;
+      }
+
+      parent = parent.parentElement;
+    }
+
+    return document.scrollingElement || document.documentElement;
+  };
+
+  const getClosestStickyHeader = (element) => {
+    let node = element?.parentElement;
+
+    while (node) {
+      const previousSibling = node.previousElementSibling;
+      if (previousSibling) {
+        const siblingStyle = window.getComputedStyle(previousSibling);
+        if (siblingStyle.position === 'sticky') {
+          return previousSibling;
+        }
+      }
+      node = node.parentElement;
+    }
+
+    return null;
+  };
+
+  const getTopOverlayOffset = (element, containerRect, isWindowScrollContainer) => {
+    let maxBottomOffset = 0;
+    const stickyElements = [];
+
+    if (headerRef.current) stickyElements.push(headerRef.current);
+
+    const columnStickyHeader = getClosestStickyHeader(element);
+    if (columnStickyHeader) stickyElements.push(columnStickyHeader);
+
+    stickyElements.forEach((stickyEl) => {
+      const style = window.getComputedStyle(stickyEl);
+      if (style.position !== 'sticky' && style.position !== 'fixed') return;
+
+      const rect = stickyEl.getBoundingClientRect();
+      const parsedTop = Number.parseFloat(style.top);
+      const hasExplicitTop = Number.isFinite(parsedTop);
+
+      const topInViewport = hasExplicitTop
+        ? (isWindowScrollContainer ? parsedTop : containerRect.top + parsedTop)
+        : rect.top;
+
+      const bottomOffsetInContainer = topInViewport + rect.height - containerRect.top;
+      maxBottomOffset = Math.max(maxBottomOffset, bottomOffsetInContainer);
+    });
+
+    return Math.max(0, maxBottomOffset + 12);
+  };
+
+  const scrollToRef = (target) => {
+    const element = target instanceof HTMLElement ? target : target?.current;
     if (!element) return;
 
-    const container = isFullscreen ? containerRef.current : window;
-    if (!container) return;
+    const fullscreenContainer = containerRef.current;
+    const preferredContainer =
+      isFullscreen &&
+        fullscreenContainer &&
+        fullscreenContainer.scrollHeight > fullscreenContainer.clientHeight
+        ? fullscreenContainer
+        : null;
 
-    let extraOffset = 50;
-    if (isXs) extraOffset = isFullscreen ? -200 : -150;
-    else if (isSm) extraOffset = 40;
-    else if (isMdUp) extraOffset = isFullscreen ? 0 : 0;
+    const container = preferredContainer || getScrollableParent(element);
 
-    // sumamos headerHeight
-    const totalOffset = extraOffset + (headerHeight || 0);
+    const isWindowScrollContainer =
+      container === window ||
+      container === document.body ||
+      container === document.documentElement ||
+      container === document.scrollingElement;
 
-    const elementTop = element.getBoundingClientRect().top +
-      (isFullscreen ? container.scrollTop : window.scrollY);
+    const containerRect = isWindowScrollContainer
+      ? { top: 0, height: window.innerHeight }
+      : container.getBoundingClientRect();
 
-    const scrollPosition = elementTop -
-      (isFullscreen ? container.clientHeight : window.innerHeight) / 2 +
-      totalOffset;
+    const currentScrollTop = isWindowScrollContainer
+      ? window.scrollY
+      : container.scrollTop;
 
-    if (isFullscreen) {
-      container.scrollTo({ top: scrollPosition, behavior: 'smooth' });
-    } else {
-      window.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+    const elementRect = element.getBoundingClientRect();
+    const elementTopInContainer =
+      elementRect.top - containerRect.top + currentScrollTop;
+
+    const topOverlayOffset = getTopOverlayOffset(
+      element,
+      containerRect,
+      isWindowScrollContainer
+    );
+
+    const visibleHeight = Math.max(120, containerRect.height - topOverlayOffset);
+    const desiredTopInContainer =
+      topOverlayOffset +
+      Math.max((visibleHeight - elementRect.height) / 2, 16);
+
+    const targetTop = elementTopInContainer - desiredTopInContainer;
+
+    const maxScroll = isWindowScrollContainer
+      ? Math.max(
+        0,
+        (document.scrollingElement?.scrollHeight ||
+          document.documentElement.scrollHeight) - window.innerHeight
+      )
+      : Math.max(0, container.scrollHeight - container.clientHeight);
+
+    const clampedTop = Math.max(0, Math.min(targetTop, maxScroll));
+
+    if (isWindowScrollContainer) {
+      window.scrollTo({ top: clampedTop, behavior: 'smooth' });
+      return;
     }
+
+    container.scrollTo({ top: clampedTop, behavior: 'smooth' });
   };
 
   const flashElement = (ref, id) => {
-    if (!ref?.current) return;
+    const element = ref instanceof HTMLElement ? ref : ref?.current;
+    if (!element) return;
     setHighlightedItem(id);
     setTimeout(() => setHighlightedItem(null), 1000);
-    scrollToRef(ref.current);
+    scrollToRef(element);
   };
 
   const goToMission = () => {
@@ -145,12 +237,18 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
 
   const goToSelectedObjective = () => {
     if (!selectedObjectiveId) return;
-    flashElement(objectiveRefs.current[selectedObjectiveId], selectedObjectiveId);
+    flashElement(
+      objectiveRefs.current[selectedObjectiveId],
+      `objective-${selectedObjectiveId}`
+    );
   };
 
   const goToSelectedProgram = () => {
     if (!selectedProgramId) return;
-    flashElement(programRefs.current[selectedProgramId], selectedProgramId);
+    flashElement(
+      programRefs.current[selectedProgramId],
+      `program-${selectedProgramId}`
+    );
   };
 
   const goToProjects = () => {
@@ -480,7 +578,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
       description: "¿Deseas descartar todos los cambios no guardados?",
       confirmationText: "Sí, descartar",
       cancellationText: "Cancelar",
-    }) 
+    })
       .then((result) => {
         if (result.confirmed === true) {
           setMission(originalDataRef.current.mission || '');
@@ -499,29 +597,31 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
     });
   }, []);
 
-  console.log("scbw", scrollbarWidth)
-
   return (
     <>
       <Box
         sx={{
           display: 'flex',
-          flexDirection: 'column', 
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',  
+          justifyContent: 'center',
           position: isFullscreen ? 'fixed' : 'relative',
           top: isFullscreen ? 0 : 'auto',
           left: isFullscreen ? 0 : 'auto',
+          right: isFullscreen ? 0 : 'auto',
           width: isFullscreen ? '100vw' : '100%', 
-          maxWidth: {
-            xs: '100vw',
-            lg: `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`},
+          maxWidth: isFullscreen
+            ? '100vw'
+            : {
+              xs: '100vw',
+              lg: `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`
+            },
           height: isFullscreen ? '100vh' : 'auto',
           bgcolor: (theme) => theme.palette.background.default,
           zIndex: isFullscreen ? 1500 : 'auto',
-          overflow: isFullscreen ? 'auto' : 'visible',  
+          overflow: isFullscreen ? 'auto' : 'visible',
         }}
-      >  
+      >
         <Box
           ref={headerRef}
           sx={{
@@ -534,7 +634,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             borderBottom: '1px solid',
             borderColor: 'divider',
             p: 1,
-            width: '100%', 
+            width: '100%',
             display: 'flex',
             justifyContent: 'space-between',
             flexDirection: {
@@ -718,10 +818,9 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
           ref={containerRef}
           spacing={2}
           sx={{
-            width: '100%',  
             px: 1,
             flex: isFullscreen ? 1 : 'unset',
-            overflowY: isFullscreen ? 'auto' : 'visible', 
+            overflowY: isFullscreen ? 'auto' : 'visible',
             width: '100%',
             pb: 2,
             "&::-webkit-scrollbar": { height: "2px", width: "2px" },
@@ -743,16 +842,16 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
           }}
           justifyContent="center"
         >
-          <Grid 
-          size={{
-            xs: 12,
-            sm: 6,
-            md: 6,
-            lg: 3
-          }}
-          sx={{mt: 1}}
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 6,
+              lg: 3
+            }}
+            sx={{ mt: 1 }}
           >
-            <MisionColumn 
+            <MisionColumn
               missionRef={missionRef}
               mission={mission}
               onEdit={handleEditMission}
@@ -772,7 +871,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             md: 6,
             lg: 3,
           }}
-          sx={{mt: 1}}
+            sx={{ mt: 1 }}
           >
             <ObjectivesColumn
               objectives={objectives}
@@ -795,7 +894,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             md: 6,
             lg: 3
           }}
-          sx={{mt: 1}}
+            sx={{ mt: 1 }}
           >
             <ProgramsColumn
               objectives={objectives}
@@ -821,7 +920,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             md: 6,
             lg: 3
           }}
-          sx={{mt: 1}}
+            sx={{ mt: 1 }}
           >
             <ProjectsColumn
               projectsRef={projectsRef}

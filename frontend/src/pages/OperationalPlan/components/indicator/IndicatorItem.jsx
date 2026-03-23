@@ -36,7 +36,6 @@ const IndicatorItem = ({ setGlobalModalOpen, value, onUpdate, onDelete }) => {
       <Box
         sx={{
           padding: 0.5,
-          borderRadius: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

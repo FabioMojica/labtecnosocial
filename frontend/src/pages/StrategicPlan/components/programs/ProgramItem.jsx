@@ -54,7 +54,7 @@ const ProgramItem = ({ program, index, onClick, onDelete, onView, onEdit, isSele
         boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
       }}
       onClick={onClick}
-      className={highlightedItem === program.id ? 'flash-highlight' : ''}
+      className={highlightedItem === `program-${program.id}` ? 'flash-highlight' : ''}
     >
 
       <Box sx={{ marginBottom: 1 }}>

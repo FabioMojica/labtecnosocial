@@ -41,7 +41,6 @@ export const ProjectItem = ({ project, onClick }) => {
             display: "flex",
             flexDirection: "row",
             gap: 1,  
-            alignItems: "center",
             justifyContent: "start",
             alignItems: 'center'
           }}

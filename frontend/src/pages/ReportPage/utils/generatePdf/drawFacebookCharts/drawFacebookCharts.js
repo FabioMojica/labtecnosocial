@@ -1047,6 +1047,120 @@ async function drawTopPostsCard({ pdfDoc, page, element, x, y, maxWidth }) {
   return { y: cardY - 20, page };
 }
 
+async function drawEngagementRateCard({ pdfDoc, page, element, x, y, maxWidth }) {
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const width = maxWidth;
+  const height = 210;
+  const space = ensureSpace(pdfDoc, page, y, height + 24);
+  page = space.page;
+  y = space.y;
+
+  const cardY = drawCardFrame(page, x, y, width, height);
+  const title = element?.title || "KPI";
+  const interval = element?.interval || "Periodo";
+  const total = toNumber(element?.data?.total);
+  const interactionsTotal = toNumber(element?.data?.interactionsTotal);
+  const reachTotal = toNumber(element?.data?.reachTotal);
+  const postsTotal = toNumber(element?.data?.totalPosts);
+  const hasReachBase = reachTotal > 0;
+
+  const mainValue = hasReachBase
+    ? `${total.toLocaleString("es-BO", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      })}%`
+    : total.toLocaleString("es-BO", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      });
+
+  const subtitle = hasReachBase
+    ? "Interacciones / Alcance"
+    : "Interacciones promedio por publicación";
+  const detail = hasReachBase
+    ? `${compactNumber(interactionsTotal)} interacciones sobre ${compactNumber(reachTotal)} de alcance`
+    : `${compactNumber(interactionsTotal)} interacciones en ${compactNumber(postsTotal)} publicaciones`;
+
+  page.drawText(truncateText(title, boldFont, 13, width - 30), {
+    x: x + 14,
+    y: y - 20,
+    size: 13,
+    font: boldFont,
+    color: COLORS.title,
+  });
+  page.drawText(interval, {
+    x: x + 14,
+    y: y - 36,
+    size: 9,
+    font,
+    color: COLORS.muted,
+  });
+
+  const mainW = safeWidthOfText(boldFont, mainValue, 32);
+  page.drawText(mainValue, {
+    x: x + (width - mainW) / 2,
+    y: y - 94,
+    size: 32,
+    font: boldFont,
+    color: COLORS.title,
+  });
+
+  const subtitleW = safeWidthOfText(font, subtitle, 10);
+  page.drawText(subtitle, {
+    x: x + (width - subtitleW) / 2,
+    y: y - 112,
+    size: 10,
+    font,
+    color: COLORS.text,
+  });
+
+  const detailText = truncateText(detail, font, 9, width - 28);
+  const detailW = safeWidthOfText(font, detailText, 9);
+  page.drawText(detailText, {
+    x: x + (width - detailW) / 2,
+    y: y - 128,
+    size: 9,
+    font,
+    color: COLORS.muted,
+  });
+
+  if (hasReachBase) {
+    const barX = x + 18;
+    const barY = cardY + 42;
+    const barW = width - 36;
+    const barH = 7;
+    const rateClamped = Math.max(0, Math.min(100, total));
+
+    page.drawRectangle({
+      x: barX,
+      y: barY,
+      width: barW,
+      height: barH,
+      color: COLORS.barTrack,
+    });
+    page.drawRectangle({
+      x: barX,
+      y: barY,
+      width: barW * (rateClamped / 100),
+      height: barH,
+      color: COLORS.primary,
+    });
+  }
+
+  drawChartSource({
+    page,
+    font,
+    x,
+    width,
+    y: cardY + 10,
+    integrationData: element?.integration_data,
+    align: "center",
+  });
+
+  return { y: cardY - 20, page };
+}
+
 export async function drawFacebookChart({
   pdfDoc,
   page,
@@ -1061,10 +1175,16 @@ export async function drawFacebookChart({
       return drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, metricLabel: "seguidores", useCumulative: true });
     case "pageViewsCard":
       return drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, metricLabel: "visitas", useCumulative: true });
+    case "profileViewsCard":
+      return drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, metricLabel: "visitas", useCumulative: true });
+    case "engagedAccountsCard":
+      return drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, metricLabel: "cuentas", useCumulative: true });
     case "pageImpressionsCard":
       return drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, metricLabel: "impresiones", useCumulative: true });
     case "totalActionsCard":
       return drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, metricLabel: "acciones", useCumulative: false });
+    case "postingFrequencyCard":
+      return drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, metricLabel: "publicaciones", useCumulative: true });
     case "postEngagementsCard":
       return drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, metricLabel: "interacciones", useCumulative: false });
     case "organicOrPaidViewsCard":
@@ -1075,6 +1195,8 @@ export async function drawFacebookChart({
       return drawTotalReactionsCard({ pdfDoc, page, element, x, y, maxWidth });
     case "topPostOfThePeriod":
       return drawTopPostsCard({ pdfDoc, page, element, x, y, maxWidth });
+    case "engagementRateCard":
+      return drawEngagementRateCard({ pdfDoc, page, element, x, y, maxWidth });
     default:
       return drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, metricLabel: "valor", useCumulative: true });
   }
