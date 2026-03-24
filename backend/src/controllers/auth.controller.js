@@ -117,7 +117,7 @@ export const refresh = async (req, res) => {
     const newToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role, sessionVersion: user.session_version },
       SECRET_KEY,
-      { expiresIn: "1h" }
+      { expiresIn: "2h" }
     );
     return (
       successResponse(
@@ -207,7 +207,7 @@ export const login = async (req, res) => {
         sessionVersion: user.session_version,
       },
       SECRET_KEY,
-      { expiresIn: '1h' }
+      { expiresIn: '2h' }
     );
 
     const refreshToken = jwt.sign(

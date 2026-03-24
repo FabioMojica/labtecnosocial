@@ -1,17 +1,17 @@
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, useTheme, Box } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography, Box } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useAuth, useNotification } from "../contexts";
+import { useAuth } from "../contexts";
 import { ButtonWithLoader } from "./ButtonWithLoader";
-import WarningIcon from '@mui/icons-material/Warning';
+import WarningIcon from "@mui/icons-material/Warning";
+import CloseIcon from "@mui/icons-material/Close";
 
 export const SessionExpirationModal = () => {
   const {
     showSessionModal,
     expiresAt,
-    logout,
     refreshSession,
+    setShowSessionModal,
   } = useAuth();
-  const theme = useTheme();
 
   const [remaining, setRemaining] = useState(0);
   const [loadingButton, setLoadingButton] = useState(null);
@@ -34,15 +34,8 @@ export const SessionExpirationModal = () => {
     return `${m}:${r.toString().padStart(2, "0")}`;
   };
 
-
-  const handleLogoutClick = async () => {
-    setLoadingButton('logout');
-    await logout(true, true);
-    setLoadingButton(null);
-  };
-
   const handleRefreshClick = async () => {
-    setLoadingButton('refresh');
+    setLoadingButton("refresh");
     try {
       await refreshSession(true);
     } finally {
@@ -53,69 +46,66 @@ export const SessionExpirationModal = () => {
   return (
     <Dialog
       open={showSessionModal}
+      onClose={() => setShowSessionModal(false)}
       disableEscapeKeyDown
       maxWidth="xs"
       fullWidth
     >
       <DialogTitle>
-        <Box sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'left',
-          gap: 1
-        }}>
-          <WarningIcon />
-          <Typography
-            variant="h5"
-            fontWeight={'bold'}
-            fontSize={{
-              xs: '1.2rem',
-              sm: '1.5rem',
-            }}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <WarningIcon />
+            <Typography
+              variant="h5"
+              fontWeight={"bold"}
+              fontSize={{
+                xs: "1.2rem",
+                sm: "1.5rem",
+              }}
+            >
+              Informacion de la sesion
+            </Typography>
+          </Box>
+
+          <IconButton
+            aria-label="cerrar modal"
+            size="small"
+            onClick={() => setShowSessionModal(false)}
           >
-            Información de la sesión
-          </Typography>
+            <CloseIcon fontSize="small" />
+          </IconButton>
         </Box>
       </DialogTitle>
 
       <DialogContent>
         <Typography>
-          Tu sesión expirará en <strong>{formatTime(remaining)}</strong>
+          Tu sesion expirara en <strong>{formatTime(remaining)}</strong>
         </Typography>
       </DialogContent>
 
       <DialogActions
-      sx={{
-        height: '50px'
-      }}
+        sx={{
+          height: "50px",
+        }}
       >
         <ButtonWithLoader
-          loading={loadingButton === 'logout'}
-          onClick={handleLogoutClick}
-          variant="contained"
-          backgroundButton={theme => theme.palette.error.main}
-          sx={{
-            width: '130px',
-            color: "white",
-            minHeight: '100%',
-            "&:hover": {
-              backgroundColor: theme => theme.palette.error.dark,
-            },
-          }}
-        >
-          Cerrar sesión
-        </ButtonWithLoader>
-        <ButtonWithLoader
-          loading={loadingButton === 'refresh'}
+          loading={loadingButton === "refresh"}
           onClick={handleRefreshClick}
           variant="contained"
-          backgroundButton={theme => theme.palette.success.main}
+          backgroundButton={(themeValue) => themeValue.palette.success.main}
           sx={{
-            width: '100px',
+            width: "100px",
             color: "white",
-            minHeight: '100%',
+            minHeight: "100%",
             "&:hover": {
-              backgroundColor: theme => theme.palette.success.dark,
+              backgroundColor: (themeValue) => themeValue.palette.success.dark,
             },
           }}
         >

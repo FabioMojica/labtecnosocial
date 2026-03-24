@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
-const ExportMenu = ({ onExportExcel, onExportPDF }) => {
+const ExportMenu = ({ onExportExcel, onExportPDF, disabled = false }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
@@ -33,6 +33,7 @@ const ExportMenu = ({ onExportExcel, onExportPDF }) => {
           onClick={handleClick}
           size="small"
           aria-label="exportar"
+          disabled={disabled}
         >
           <FileDownloadIcon />
         </IconButton>
@@ -52,8 +53,8 @@ const ExportMenu = ({ onExportExcel, onExportPDF }) => {
           horizontal: 'right',
         }}
       >
-        <MenuItem onClick={handleExportExcel}>Exportar a Excel</MenuItem>
-        <MenuItem onClick={handleExportPDF}>Exportar a PDF</MenuItem>
+        <MenuItem onClick={handleExportExcel} disabled={disabled}>Exportar a Excel</MenuItem>
+        <MenuItem onClick={handleExportPDF} disabled={disabled}>Exportar a PDF</MenuItem>
       </Menu>
     </>
   );

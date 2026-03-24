@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Typography, CircularProgress, FormControl, TextField, Autocomplete, IconButton, Tooltip,
+  Box, Typography, IconButton, Tooltip,
   useTheme,
   Divider
 } from "@mui/material";
@@ -8,21 +8,15 @@ import { DataGrid } from "@mui/x-data-grid";
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 import ExportMenu from "./components/ExportMenu.jsx";
-import { useNotification } from "../../contexts/ToastContext.jsx";
+import { usePdfExport } from "../../contexts";
 import { formatDate } from "../../utils/formatDate.js";
 
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-
-import { getAllOperationalProjectsApi, getOperationalPlanOfProjectApi } from "../../api";
+import { getOperationalPlanOfProjectApi } from "../../api";
 import { NoResultsScreen } from "../../generalComponents/NoResultsScreen.jsx";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { FullScreenProgress } from "../../generalComponents/FullScreenProgress.jsx";
 import { ErrorScreen } from "../../generalComponents/ErrorScreen.jsx";
-
-
-const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const defaultColumns = [
   {
@@ -255,145 +249,11 @@ const handleExportExcel = (rows, project) => {
   saveAs(blob, `plan_operativo_proyecto_${safeName}.xlsx`);
 };
 
-const drawInitialAvatar = (doc, projectName, x, y, size) => {
-  const initial = (projectName?.charAt(0) || '?').toUpperCase();
-
-  // Círculo de fondo
-  doc.setFillColor(41, 128, 185); // Azul elegante
-  doc.circle(x + size / 2, y + size / 2, size / 2, 'F');
-
-  // Inicial centrada
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(size * 0.6);
-  doc.setFont('helvetica', 'bold');
-  doc.text(initial, x + size / 2 - size * 0.18, y + size / 2 + size * 0.2);
-};
-
-const handleExportPDF = async (rows, project) => {
-  if (!rows || !rows.length) return;
-
-  const doc = new jsPDF('landscape', 'pt', 'a4');
-
-  // Fecha actual
-  const now = new Date();
-  const formattedDate = now.toLocaleString('es-BO', {
-    dateStyle: 'short',
-    timeStyle: 'short'
-  });
-
-  const avatarX = 40;
-  const avatarY = 30;
-  const avatarSize = 40;
- 
-  let imageUrl = project?.image_url || null;
-
-  // --- Dibuja avatar o imagen ---
-  let titleY;
-  if (imageUrl) {
-    try {
-      const img = await fetch(imageUrl);
-      const blob = await img.blob();
-      const reader = new FileReader();
-      await new Promise((resolve) => {
-        reader.onload = () => {
-          doc.addImage(reader.result, 'JPEG', avatarX, avatarY, avatarSize, avatarSize, '', 'FAST');
-          resolve();
-        };
-        reader.readAsDataURL(blob);
-      });
-      titleY = avatarY + avatarSize * 0.6; // ✅ altura ideal si hay imagen
-    } catch (err) {
-      console.warn('⚠️ Error cargando imagen, se usará inicial:', err);
-      drawInitialAvatar(doc, project.name, avatarX, avatarY, avatarSize);
-      titleY = avatarY + avatarSize * 0.7; // ✅ ligeramente más bajo
-    }
-  } else {
-    drawInitialAvatar(doc, project.name, avatarX, avatarY, avatarSize);
-    titleY = avatarY + avatarSize * 0.7;
-  }
-
-  // --- Título ---
-  doc.setTextColor(0, 0, 0); // 🔥 <-- esto arregla el color del texto
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text(
-    `Planificación Operativa - ${project.name}`,
-    avatarX + avatarSize + 20,
-    titleY
-  );
-
-
-
-  // --- Encabezados ---
-  const headers = [
-    { content: 'Objetivo', colSpan: 1, styles: { halign: 'center', fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' } },
-    { content: 'Indicador', colSpan: 2, styles: { halign: 'center', fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' } },
-    { content: 'Equipo', colSpan: 2, styles: { halign: 'center', fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' } },
-    { content: 'Recursos', colSpan: 2, styles: { halign: 'center', fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' } },
-    { content: 'Presupuesto', colSpan: 2, styles: { halign: 'center', fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' } },
-    { content: 'Periodo', colSpan: 2, styles: { halign: 'center', fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' } },
-  ];
-
-  const subHeaders = [
-    { content: '' },
-    { content: 'Cantidad' }, { content: 'Concepto' },
-    { content: 'Num' }, { content: 'Miembro' },
-    { content: 'Num' }, { content: 'Recurso' },
-    { content: 'Monto' }, { content: 'Descripción' },
-    { content: 'Inicio' }, { content: 'Fin' }
-  ];
-
-  // --- Datos ---
-  const data = [];
-  rows.forEach((row, index) => {
-    const maxTeam = row.team.length || 1;
-    const maxResources = row.resources.length || 1;
-    const maxSubRows = Math.max(maxTeam, maxResources, 1);
-
-    for (let i = 0; i < maxSubRows; i++) {
-      data.push([
-        i === 0 ? row.objective : '',
-        i === 0 ? row.indicator.quantity : '',
-        i === 0 ? row.indicator.concept : '',
-        row.team[i] ? i + 1 : '',
-        row.team[i] || '',
-        row.resources[i] ? i + 1 : '',
-        row.resources[i] || '',
-        i === 0 ? row.budget.amount : '',
-        i === 0 ? row.budget.description : '',
-        i === 0 ? formatDate(row.period.start) : '',
-        i === 0 ? formatDate(row.period.end) : ''
-      ]);
-    }
-
-    if (index < rows.length - 1) data.push([]);
-  });
-
-  // --- Tabla ---
-  autoTable(doc, {
-    startY: avatarY + avatarSize + 20,
-    head: [headers, subHeaders],
-    body: data,
-    styles: { fontSize: 10, cellPadding: 4, overflow: 'linebreak' },
-    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
-    alternateRowStyles: { fillColor: [245, 245, 245] },
-    theme: 'grid',
-    tableWidth: 'auto',
-    didDrawPage: (data) => {
-      const pageHeight = doc.internal.pageSize.height;
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      doc.text(`Generado el ${formattedDate}`, 40, pageHeight - 20);
-    }
-  });
-
-  const safeName = project.name.replace(/[^a-z0-9]/gi, '_');
-  doc.save(`plan_operativo_proyecto_${safeName}.pdf`);
-};
 
 
 const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithoutPlan, projectWithoutPlan, onErrorFetchedPlan }) => {
   const theme = useTheme();
+  const { startPdfExport, isPdfGenerating } = usePdfExport();
   const [rows, setRows] = useState([]);
   const [planInfo, setPlanInfo] = useState({ operationalPlan_created_at: null, operationalPlan_updated_at: null, operationalPlan_version: 0 });
   const [loadingRows, setLoadingRows] = useState(false);
@@ -469,6 +329,24 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
     setGridKey(prev => prev + 1);
   };
 
+  const handleExportPDF = () => {
+    if (isPdfGenerating) return;
+    if (!Array.isArray(rows) || rows.length === 0 || !project) return;
+
+    const safeName = String(project?.name || "sin_nombre").replace(/[^a-z0-9]/gi, "_");
+
+    startPdfExport({
+      title: `plan_operativo_proyecto_${safeName}`,
+      fileName: `plan_operativo_proyecto_${safeName}`,
+      workerType: "operational",
+      payload: {
+        rows,
+        project,
+        title: `Planificaci\u00f3n Operativa - ${project?.name || "Proyecto"}`,
+      },
+    });
+  };
+
   if (loadingRows) {
     return (
       <FullScreenProgress text={"Obteniendo el plan operativo"} />
@@ -506,7 +384,7 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
   return (
     <Box sx={{
       display: 'flex', flexDirection: 'column', gap: 2,
-      maxWidth: { xs: '100vw', lg: '100%' }
+      maxWidth: { xs: '100vw', lg: '99%' }
     }}>
 
       <Box
@@ -542,7 +420,8 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
               <Box display={'flex'}>
                 <ExportMenu
                   onExportExcel={() => { handleExportExcel(rows, project) }}
-                  onExportPDF={() => { handleExportPDF(rows, project) }}
+                  onExportPDF={handleExportPDF}
+                  disabled={isPdfGenerating}
                 />
 
                 <Tooltip title="Resetear anchos a por defecto">

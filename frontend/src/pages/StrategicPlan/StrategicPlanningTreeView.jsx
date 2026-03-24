@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { Box, Paper, Typography, Divider, Avatar, useTheme } from '@mui/material';
 import RenderAvatar from '../../generalComponents/RenderAvatar';
 import Bullet from './components/Bullet';
-import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ExportMenu from './components/ExportMenu';
-import { exportStrategicPlanPDF } from './utils/exportStrategicPlanPDF';
 import { exportStrategicPlanDOCX } from './utils/exportStrategicPlanDOCX';
 import { formatDate } from '../../utils/formatDate';
+import { usePdfExport } from '../../contexts';
 
 const getRandomSoftColor = (bgColor) => {
   let color;
@@ -26,6 +24,25 @@ const StrategicPlanningTreeView = ({ data, year }) => {
 
   const theme = useTheme();
   const [planVersion, setPlanVersion] = useState(data?.plan_version || 0);
+  const { startPdfExport, isPdfGenerating } = usePdfExport();
+
+  const handleExportPDF = () => {
+    if (isPdfGenerating) return;
+
+    const safeYear = year || "sin_anio";
+    const headerTitle = `Plan Estratégico del año ${year ? `(${year})` : ""}`;
+
+    startPdfExport({
+      title: `Plan_Estrategico_${safeYear}`,
+      fileName: `Plan_Estrategico_${safeYear}`,
+      workerType: "strategic",
+      payload: {
+        title: headerTitle,
+        year,
+        data,
+      },
+    });
+  };
 
   if (!data) {
     return (
@@ -293,8 +310,9 @@ const StrategicPlanningTreeView = ({ data, year }) => {
           </Typography>
 
           <ExportMenu
-            onExportPDF={() => exportStrategicPlanPDF(data, year)}
+            onExportPDF={handleExportPDF}
             onExportDOCX={() => exportStrategicPlanDOCX(data, year)}
+            disabled={isPdfGenerating}
           />
         </Box>
 

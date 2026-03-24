@@ -27,7 +27,7 @@ dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
 
-export const GitHubDashboard = ({ project, useMock = true }) => {
+export const GitHubDashboard = ({ project, useMock = true, showingDialog = false }) => {
     const { loading, callEndpoint } = useFetchAndLoad();
     const [branches, setBranches] = useState([]);
     const [selectedBranch, setSelectedBranch] = useState('');
@@ -46,6 +46,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
     const IntegrationIcon = integration.icon;
 
     const githubIntegration = project?.integrations?.find(i => i.platform === 'github');
+    const selectable = showingDialog;
 
     if (!githubIntegration) {
         console.warn("No se encontró una integración de GitHub en este proyecto.");
@@ -344,7 +345,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             commits={stats?.commits || []}
                             title="Cantidad de commits"
                             interval={periodLabel}
-                            selectable
+                            selectable={selectable}
                             selected={selectedCharts.some(c => c.id === 'commitsInPeriod')}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
@@ -369,7 +370,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             commits={stats?.commits || []}
                             title="Top Colaboradores del Periodo"
                             interval={periodLabel}
-                            selectable
+                            selectable={selectable}
                             selected={selectedCharts.some(c => c.id === 'topCollaborators')}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
@@ -392,7 +393,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             prs={stats?.pullRequests || []}
                             title="Pull Requests"
                             interval={periodLabel}
-                            selectable
+                            selectable={selectable}
                             selected={selectedCharts.some(c => c.id === 'pullRequests')}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
@@ -418,7 +419,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             branch={selectedBranch}
                             title="Colaboradores sin push"
                             interval={periodLabel}
-                            selectable
+                            selectable={selectable}
                             selected={selectedCharts.some(c => c.id === 'collaboratorsWithoutPush')}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
@@ -446,7 +447,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             commitsData={stats?.commits || []}
                             title="Historial de commits"
                             interval={periodLabel}
-                            selectable
+                            selectable={selectable}
                             selected={selectedCharts.some(c => c.id === 'topCollaborators')}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
@@ -465,7 +466,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             commitsData={stats?.commits || []}
                             title="Horas con más commits"
                             interval={periodLabel}
-                            selectable
+                            selectable={selectable}
                             selected={selectedCharts.some(c => c.id === 'topCollaborators')}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
@@ -486,7 +487,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                             commits={stats?.commits || []}
                             title="Historial de Commits"
                             interval={periodLabel}
-                            selectable
+                            selectable={selectable}
                             selected={selectedCharts.some(c => c.id === 'commitGrid')}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
@@ -513,7 +514,7 @@ export const GitHubDashboard = ({ project, useMock = true }) => {
                                 commits={stats?.commits || []}
                                 title="Porcentaje de Commits"
                                 interval={periodLabel}
-                                selectable
+                                selectable={selectable}
                                 selected={selectedCharts.some(c => c.id === 'commitGrid')}
                                 selectedPeriod={selectedPeriod}
                                 onSelectChange={(checked) => {

@@ -12,6 +12,12 @@ const PdfExportContext = createContext(null);
 
 const clampProgress = (value) => Math.max(1, Math.min(100, Math.round(Number(value) || 0)));
 
+const PDF_WORKER_URLS = {
+  report: new URL("../pages/ReportPage/utils/pdfWorker.js", import.meta.url),
+  strategic: new URL("../pages/StrategicPlan/utils/strategicPdfWorker.js", import.meta.url),
+  operational: new URL("../pages/OperationalPlan/utils/operationalPdfWorker.js", import.meta.url),
+};
+
 export const PdfExportProvider = ({ children }) => {
   const workerRef = useRef(null);
   const { notify } = useNotification();
@@ -25,31 +31,43 @@ export const PdfExportProvider = ({ children }) => {
   }, []);
 
   const startPdfExport = useCallback(
-    ({ elements = [], title = "Reporte sin titulo" } = {}) => {
+    ({
+      elements = [],
+      title = "Reporte sin titulo",
+      payload = null,
+      workerType = "report",
+      fileName = "",
+    } = {}) => {
       if (pdfState.active) {
         return { started: false, reason: "in_progress" };
       }
 
       const safeBaseTitle = String(title || "Reporte sin titulo").trim() || "Reporte sin titulo";
-      const fileName = `${safeBaseTitle}.pdf`;
+      const normalizedFileName = String(fileName || `${safeBaseTitle}.pdf`).trim() || `${safeBaseTitle}.pdf`;
+      const downloadFileName = normalizedFileName.toLowerCase().endsWith(".pdf")
+        ? normalizedFileName
+        : `${normalizedFileName}.pdf`;
+      const selectedWorkerUrl = PDF_WORKER_URLS[workerType] || PDF_WORKER_URLS.report;
 
       terminateWorker();
       setPdfState({
         active: true,
         percentage: 1,
         stage: "Inicializando generacion...",
-        fileName,
+        fileName: downloadFileName,
       });
 
-      const worker = new Worker(new URL("../pages/ReportPage/utils/pdfWorker.js", import.meta.url), {
+      const worker = new Worker(selectedWorkerUrl, {
         type: "module",
       });
       workerRef.current = worker;
 
-      worker.postMessage({
-        title: safeBaseTitle,
-        elements,
-      });
+      worker.postMessage(
+        payload || {
+          title: safeBaseTitle,
+          elements,
+        }
+      );
 
       worker.onmessage = (e) => {
         const data = e.data;
@@ -77,7 +95,7 @@ export const PdfExportProvider = ({ children }) => {
           const url = URL.createObjectURL(blob);
           const anchor = document.createElement("a");
           anchor.href = url;
-          anchor.download = fileName;
+          anchor.download = downloadFileName;
           anchor.click();
           URL.revokeObjectURL(url);
 
@@ -86,10 +104,10 @@ export const PdfExportProvider = ({ children }) => {
             active: false,
             percentage: 100,
             stage: "PDF generado",
-            fileName,
+            fileName: downloadFileName,
           });
 
-          notify(`PDF generado: ${fileName}`, "success");
+          notify(`PDF generado: ${downloadFileName}`, "success");
         }
 
         if (data.error) {
