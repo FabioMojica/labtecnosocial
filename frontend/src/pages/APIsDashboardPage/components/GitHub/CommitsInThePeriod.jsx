@@ -191,7 +191,7 @@ export default function CommitsInThePeriod({
                             type="number"
                             label="Meta"
                             value={customGoal}
-                            disabled={!selectable}
+                            disabled={selectable}
                             onChange={e => {
                                 const val = Number(e.target.value);
                                 setCustomGoal(isNaN(val) ? 0 : val);
