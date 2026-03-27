@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Tooltip, Grid, Typography, useTheme } from '@mui/material';
+import { Box, Button, Tooltip, Typography, useTheme } from '@mui/material';
 import MisionColumn from './components/mision/MisionColumn';
 import CreateMisionItemModal from './components/mision/CreateMisionItemModal';
 import ObjectivesColumn from './components/objetives/ObjectiveColumn';
@@ -31,8 +31,6 @@ import IconButton from '@mui/material/IconButton';
 import { useElementSize } from '../../hooks/useElementSize.js';
 import { useDirty } from '../../contexts/DirtyContext.jsx';
 import { formatDate } from '../../utils/formatDate.js';
-import { useLayout } from '../../contexts/LayoutContext.jsx';
-import { useDrawerClosedWidth } from '../../utils/index.js';
 
 const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }) => {
   const confirm = useConfirm();
@@ -82,10 +80,6 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
   const [canScroll, setCanScroll] = useState(false);
 
   const { setIsDirtyContext, registerAutoSave } = useDirty();
-
-  const { scrollbarWidth } = useLayout();
-
-  const navBarWidth = useDrawerClosedWidth();
 
   const currentPlanRef = useRef({
     mission: data?.mission || '',
@@ -603,19 +597,15 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
+          alignItems: 'stretch',
           justifyContent: 'center',
+          boxSizing: 'border-box',
           position: isFullscreen ? 'fixed' : 'relative',
           top: isFullscreen ? 0 : 'auto',
           left: isFullscreen ? 0 : 'auto',
           right: isFullscreen ? 0 : 'auto',
-          width: isFullscreen ? '100vw' : '100%', 
-          maxWidth: isFullscreen
-            ? '100vw'
-            : {
-              xs: '100vw',
-              lg: `calc(100vw - ${navBarWidth} - ${scrollbarWidth}px - 16px)`
-            },
+          width: isFullscreen ? '100vw' : '100%',
+          maxWidth: isFullscreen ? '100vw' : '100%',
           height: isFullscreen ? '100vh' : 'auto',
           bgcolor: (theme) => theme.palette.background.default,
           zIndex: isFullscreen ? 1500 : 'auto',
@@ -625,6 +615,7 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
         <Box
           ref={headerRef}
           sx={{
+            boxSizing: 'border-box',
             position: isFullscreen ? 'relative' : 'sticky',
             top: isFullscreen ? 0 : 64,
             zIndex: isFullscreen ? 1600 : 999,
@@ -813,16 +804,23 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
         </Box>
 
 
-        <Grid
-          container
+        <Box
           ref={containerRef}
-          spacing={2}
           sx={{
+            boxSizing: 'border-box',
             px: 1,
             flex: isFullscreen ? 1 : 'unset',
             overflowY: isFullscreen ? 'auto' : 'visible',
             width: '100%',
             pb: 2,
+            display: 'grid',
+            gap: 2,
+            gridTemplateColumns: {
+              xs: 'minmax(0, 1fr)',
+              sm: 'repeat(2, minmax(0, 1fr))',
+              lg: 'repeat(4, minmax(0, 1fr))',
+            },
+            alignItems: 'start',
             "&::-webkit-scrollbar": { height: "2px", width: "2px" },
             "&::-webkit-scrollbar-track": {
               backgroundColor: theme.palette.background.default,
@@ -840,17 +838,8 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
             borderBottomLeftRadius: (data?.created_at && data?.updated_at) ? 0 : 5,
             borderBottomRightRadius: (data?.created_at && data?.updated_at) ? 0 : 5,
           }}
-          justifyContent="center"
         >
-          <Grid
-            size={{
-              xs: 12,
-              sm: 6,
-              md: 6,
-              lg: 3
-            }}
-            sx={{ mt: 1 }}
-          >
+          <Box sx={{ mt: 1, minWidth: 0 }}>
             <MisionColumn
               missionRef={missionRef}
               mission={mission}
@@ -863,16 +852,9 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
               isFullscreen={isFullscreen}
               headerHeight={headerHeight}
             />
-          </Grid>
+          </Box>
 
-          <Grid size={{
-            xs: 12,
-            sm: 6,
-            md: 6,
-            lg: 3,
-          }}
-            sx={{ mt: 1 }}
-          >
+          <Box sx={{ mt: 1, minWidth: 0 }}>
             <ObjectivesColumn
               objectives={objectives}
               selectedObjectiveId={selectedObjectiveId}
@@ -886,16 +868,9 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
               isFullscreen={isFullscreen}
               headerHeight={headerHeight}
             />
-          </Grid>
+          </Box>
 
-          <Grid size={{
-            xs: 12,
-            sm: 6,
-            md: 6,
-            lg: 3
-          }}
-            sx={{ mt: 1 }}
-          >
+          <Box sx={{ mt: 1, minWidth: 0 }}>
             <ProgramsColumn
               objectives={objectives}
               selectedProgramId={selectedProgramId}
@@ -912,16 +887,9 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
               isFullscreen={isFullscreen}
               headerHeight={headerHeight}
             />
-          </Grid>
+          </Box>
 
-          <Grid size={{
-            xs: 12,
-            sm: 6,
-            md: 6,
-            lg: 3
-          }}
-            sx={{ mt: 1 }}
-          >
+          <Box sx={{ mt: 1, minWidth: 0 }}>
             <ProjectsColumn
               projectsRef={projectsRef}
               objectives={objectives}
@@ -953,8 +921,8 @@ const StrategicPlanningColumnsView = ({ data, year, onDirtyChange, onPlanSaved }
               isFullscreen={isFullscreen}
               headerHeight={headerHeight}
             />
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
       {data?.mission !== '' && (
         <Box sx={{

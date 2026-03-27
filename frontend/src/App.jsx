@@ -19,7 +19,6 @@ import {
 
 
 import { GlobalPdfExportProgress, Header, PrivateRoute, SessionExpirationModal } from './generalComponents';
-import { useDrawerClosedWidth } from './utils';
 import StrategicPlanningDashboardPage from './pages/StrategicPlan/StrategicPlanningDashboardPage';
 import OperationalPlanningDashboardPage from './pages/OperationalPlan/OperationalPlanningDashboardPage';
 import { ConfirmProvider } from 'material-ui-confirm';
@@ -120,13 +119,12 @@ function App() {
                               sx={{
                                 flexGrow: 1,
                                 minHeight: '100vh',
-                                pl: {
-                                  lg: useDrawerClosedWidth(),
-                                },
+                                pl: 0,
                                 maxWidth: 2000,
                               }}>
                               <Box sx={{
                                 width: '100%',
+                                boxSizing: 'border-box',
                                 px: { xs: 0, lg: 1 },
                               }}>
                                 <AppContent />

@@ -165,7 +165,7 @@ const StrategicPlanningDashboardPage = () => {
   }
 
   return (
-    <Box sx={{mt: { xs: 2, lg: 0}}} maxWidth>
+    <Box sx={{ mt: { xs: 2, lg: 0 }, width: '100%', maxWidth: '100%', boxSizing: 'border-box', px: 1 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', }}>
         <Box
           sx={{
@@ -178,6 +178,7 @@ const StrategicPlanningDashboardPage = () => {
             justifyContent: "space-between",
             gap: 2,
             width: '100%',
+            boxSizing: 'border-box',
             mb: 1,
             px: 1,
             pr: 2,

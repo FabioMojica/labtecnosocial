@@ -72,7 +72,7 @@ export const getFacebookPageInsights = async (req, res) => {
     const { pageId } = req.params;
     const { range = "lastMonth" } = req.query;
 
-    const pageAccessToken = getFacebookPageAccessToken(pageId);
+    const pageAccessToken = await getFacebookPageAccessToken(pageId);
 
     const intervals = resolveDateRange(range);
 
@@ -139,7 +139,7 @@ export const getFacebookPagePosts = async (req, res) => {
     const { pageId } = req.params;
     const { range = "lastMonth" } = req.query;
 
-    const pageAccessToken = getFacebookPageAccessToken(pageId);
+    const pageAccessToken = await getFacebookPageAccessToken(pageId);
     const [{ since, until }] = resolveDateRange(range);
 
     const sinceDate = since ? new Date(`${since}T00:00:00Z`) : null;

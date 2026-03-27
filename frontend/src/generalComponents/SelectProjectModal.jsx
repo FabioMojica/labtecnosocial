@@ -1,10 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
   Modal,
   Typography,
-  TextField,
   CircularProgress,
   List,
   ListItemButton,
@@ -14,10 +13,13 @@ import {
   useTheme,
   IconButton,
   Divider,
+  Chip,
 } from "@mui/material";
 import { NoResultsScreen, SearchBar } from ".";
 import { useNavigate } from "react-router-dom";
 import CloseIcon from '@mui/icons-material/Close';
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import { useAuth } from "../contexts";
 import { roleConfig } from "../utils";
 
@@ -55,61 +57,87 @@ export const SelectProjectModal = ({
         variant="outlined"
         onClick={() => setOpen(true)}
         disabled={disabled}
+        endIcon={<KeyboardArrowDownRoundedIcon />}
         sx={{
-          fontSize: "1rem",
           textTransform: "none",
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          p: 1,
-          overflow: 'hidden',
+          minWidth: { xs: "100%", sm: 260 },
+          maxWidth: { xs: "100%", sm: 340 },
+          borderRadius: 2,
+          borderColor: "divider",
+          backgroundColor: "background.paper",
+          justifyContent: "space-between",
+          alignItems: "center",
+          px: 1.2,
+          py: 0.9,
+          gap: 1.2,
+          overflow: "hidden",
+          "& .MuiButton-endIcon": {
+            ml: 0.5,
+            color: "text.secondary",
+          },
+          "&:hover": {
+            borderColor: "primary.main",
+            backgroundColor: "action.hover",
+          },
           ...sx
         }}
       >
         {loading ? (
-          "Cargando..."
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            Cargando proyectos...
+          </Typography>
         ) : selectedProject ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1, width: 100 }}>
-            <Avatar
-              src={selectedProject.image_url || null}
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: 2,
-                objectFit: "cover",
-                fontWeight: "bold",
-                boxShadow:
-                  theme.palette.mode === 'light'
-                    ? '0 0 0 1px rgba(0,0,0,0.3)'
-                    : '0 0 0 1px rgba(255,255,255,0.3)',
-              }}
-            >
-              {selectedProject.name[0].toUpperCase()}
-            </Avatar>
-
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", width: "100%", overflow: "hidden", pr: 0.5 }}>
             <Typography
-              variant="subtitle1"
-              sx={{
-                flex: 1,
-                whiteSpace: 'normal',
-                wordBreak: 'break-word',
-                display: '-webkit-box',
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                WebkitLineClamp: 1,
-
-              }}
-              textAlign={'start'}
+              variant="caption"
+              sx={{ color: "text.secondary", letterSpacing: 0.3, fontWeight: 600 }}
             >
-              {selectedProject.name}
+              Proyecto activo
             </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
+              <Avatar
+                src={selectedProject.image_url || null}
+                sx={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 2,
+                  objectFit: "cover",
+                  fontWeight: "bold",
+                  boxShadow:
+                    theme.palette.mode === "light"
+                      ? "0 0 0 1px rgba(0,0,0,0.3)"
+                      : "0 0 0 1px rgba(255,255,255,0.3)",
+                }}
+              >
+                {selectedProject.name[0].toUpperCase()}
+              </Avatar>
+
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontSize: "0.98rem",
+                  fontWeight: 700,
+                  lineHeight: 1.1,
+                  flex: 1,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  textAlign: "left",
+                }}
+              >
+                {selectedProject.name}
+              </Typography>
+            </Box>
           </Box>
         ) : (
-          <Typography
-            textAlign={'center'}
-            sx={{ fontSize: '1rem', width: 200 }}>
-            Seleccionar Proyecto
-          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", width: "100%", overflow: "hidden", pr: 0.5 }}>
+            <Typography variant="caption" sx={{ color: "text.secondary", letterSpacing: 0.3, fontWeight: 600 }}>
+              Proyecto activo
+            </Typography>
+            <Typography sx={{ fontSize: "0.95rem", fontWeight: 700, textAlign: "left" }}>
+              Seleccionar proyecto
+            </Typography>
+          </Box>
         )}
       </Button>
 
@@ -186,8 +214,8 @@ export const SelectProjectModal = ({
               <Typography
                 variant="h6"
                 sx={{
-                  mb: 2,
-                  textAlign: "center",
+                  mb: 0.5,
+                  textAlign: "left",
                   fontWeight: "bold",
                   fontSize: {
                     xs: '1rem',
@@ -197,6 +225,16 @@ export const SelectProjectModal = ({
               >
                 Selecciona un proyecto
               </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.2 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Este proyecto define la información que verás en este módulo.
+                </Typography>
+                <Chip
+                  size="small"
+                  label={`${projects.length} proyectos`}
+                  sx={{ fontWeight: 600 }}
+                />
+              </Box>
 
               <SearchBar
                 data={projects}
@@ -263,9 +301,19 @@ export const SelectProjectModal = ({
                       onClick={() => handleSelect(project)}
                       sx={{
                         border: '1px solid',
-                        borderColor: 'divider',
+                        borderColor: project.id === selectedProject?.id ? "primary.main" : "divider",
                         borderRadius: 2,
-                        mb: 1
+                        mb: 1,
+                        gap: 1,
+                        "&.Mui-selected": {
+                          backgroundColor: "action.selected",
+                        },
+                        "&.Mui-selected:hover": {
+                          backgroundColor: "action.selected",
+                        },
+                        "&:hover": {
+                          borderColor: "primary.main",
+                        },
                       }}
                     >
                       <ListItemAvatar>
@@ -302,6 +350,9 @@ export const SelectProjectModal = ({
                           },
                         }}
                       />
+                      {project.id === selectedProject?.id && (
+                        <CheckCircleRoundedIcon color="primary" fontSize="small" />
+                      )}
                     </ListItemButton>
                   ))}
                 </List>

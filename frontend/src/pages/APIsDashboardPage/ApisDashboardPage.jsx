@@ -1,29 +1,24 @@
 import {
     Box,
-    Divider,
-    IconButton,
-    Tooltip,
-    Typography
-
-} from '@mui/material'
+    Button,
+    Typography,
+} from '@mui/material';
 import { SelectProjectModal } from '../../generalComponents/SelectProjectModal';
 import { useEffect, useState } from 'react';
 import { useFetchAndLoad } from '../../hooks';
 import { useAuth, useNotification } from '../../contexts';
 import { ErrorScreen, FullScreenProgress, NoResultsScreen } from '../../generalComponents';
 import { getOperationalProjectsWithIntegrationsApi } from '../../api';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { integrationsConfig } from '../../utils';
-import { DashboardOutlined } from '@mui/icons-material';
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { GitHubDashboard } from './components/GitHub/GitHubDashboard';
 import { FacebookDashboard } from './components/Facebook/FacebookDashboard';
 import { InstagramDashboard } from './components/Instagram/InstagramDashboard';
 import { XDashboard } from './components/X/XDashboard';
 
-
 export const APIsDashboardPage = ({ showingDialog = false }) => {
-    const { id } = useParams();
     const [projects, setProjects] = useState([]);
     const { loading, callEndpoint } = useFetchAndLoad();
     const [selectedProject, setSelectedProject] = useState(null);
@@ -33,36 +28,67 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
     const navigate = useNavigate();
     const [selectedIntegration, setSelectedIntegration] = useState(null);
 
-
     const fetchProjectsWithIntegrations = async () => {
         try {
             setError(false);
             const res = await callEndpoint(getOperationalProjectsWithIntegrationsApi(user.email));
             setProjects(res);
-        } catch (error) {
+        } catch (fetchError) {
             setError(true);
-            notify(error.message, "error");
+            notify(fetchError.message, 'error');
         }
     };
-
 
     useEffect(() => {
         fetchProjectsWithIntegrations();
     }, []);
 
-
     const handleProjectChange = (project) => {
         setSelectedProject(project);
-        setSelectedIntegration(null);
+        const defaultPlatform = project?.integrations?.find((item) => integrationsConfig[item?.platform])?.platform || null;
+        setSelectedIntegration(defaultPlatform);
     };
 
-    if (loading) { return <FullScreenProgress text={'Obteniendo los proyectos con integraciones'} /> }
+    useEffect(() => {
+        if (!selectedProject) return;
+        const hasSelectedPlatform = selectedProject?.integrations?.some(
+            (integration) => integration.platform === selectedIntegration
+        );
 
-    if (error) { return <ErrorScreen message="Ocurrió un error al obtener los proyectos" buttonText='Volver a intentar' onButtonClick={() => { fetchProjectsWithIntegrations() }} /> }
+        if (!hasSelectedPlatform) {
+            const fallbackPlatform = selectedProject?.integrations?.find(
+                (integration) => integrationsConfig[integration?.platform]
+            )?.platform || null;
+            setSelectedIntegration(fallbackPlatform);
+        }
+    }, [selectedProject, selectedIntegration]);
 
+    if (loading) {
+        return <FullScreenProgress text={'Obteniendo los proyectos con integraciones'} />;
+    }
+
+    if (error) {
+        return (
+            <ErrorScreen
+                message='Ocurrio un error al obtener los proyectos'
+                buttonText='Volver a intentar'
+                onButtonClick={() => {
+                    fetchProjectsWithIntegrations();
+                }}
+            />
+        );
+    }
 
     if (projects.length === 0) {
-        return <NoResultsScreen message='No tienes ningún proyecto registrado en el sistema' buttonText={'Crear uno'} onButtonClick={() => { navigate('/proyectos/crear') }} />
+        return (
+            <NoResultsScreen
+                message='No tienes ningun proyecto registrado en el sistema'
+                buttonText='Crear uno'
+                onButtonClick={() => {
+                    navigate('/proyectos/crear');
+                }}
+            />
+        );
     }
 
     const renderIntegrationDashboard = () => {
@@ -80,81 +106,130 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
         }
     };
 
+    const availableIntegrations = (selectedProject?.integrations || []).filter(
+        (integration) => Boolean(integrationsConfig[integration?.platform])
+    );
+
     return (
-        <Box sx={{
-            width: '100%',
-            height: '100%',
-        }}>
-            <Box sx={{ mt: showingDialog ? 1 : 0, px: showingDialog ? 1 : 0, mb: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>Dashboard</Typography>
+        <Box
+            sx={{
+                width: '100%',
+                height: '100%',
+            }}
+        >
+            <Box
+                sx={{
+                    mt: showingDialog ? 1 : 0,
+                    px: showingDialog ? 1 : 0,
+                    mb: 1,
+                    display: 'flex',
+                    flexDirection: { xs: 'column', lg: 'row' },
+                    justifyContent: 'space-between',
+                    alignItems: { xs: 'stretch', lg: 'center' },
+                    gap: 1,
+                }}
+            >
+                <Typography variant='h4' sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+                    Dashboard
+                </Typography>
 
-                <Box sx={{ display: 'flex', gap: { xs: 0.5, lg: 2 }, alignItems: 'center' }}>
-                    {
-                        selectedProject && (
-                            <Box variant='outlined' sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', border: '1px solid #686666ff', borderRadius: 1, p: 1 }}>
-                                <Typography variant="h4" fontWeight={'bold'} sx={{ fontSize: { xs: '0.8rem', sm: '0.7rem' }, mb: 1 }}>Dashboards disponibles</Typography>
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                    {/* 🔹 Íconos de integraciones dinámicas */}
-                                    {selectedProject?.integrations?.map((integration) => {
-                                        const config = integrationsConfig[integration.platform];
-                                        if (!config) return null;
-                                        const IconComponent = config.icon;
-                                        const integrationKey =
-                                            integration.integration_id ??
-                                            integration.id ??
-                                            `${integration.platform}-${integration.url ?? "no-url"}`;
-
-                                        return (
-                                            <IconButton
-                                                key={integrationKey}
-                                                sx={(theme) => ({
-                                                    backgroundColor: config.color,
-                                                    color: "#fff",
-                                                    "&:hover": {
-                                                        backgroundColor:
-                                                            theme.palette.mode === "light"
-                                                                ? `${config.color}CC`
-                                                                : `${config.color}88`,
-                                                    },
-                                                })}
-                                                onClick={() => setSelectedIntegration(integration.platform)}
-                                                onMouseDown={(e) => {
-                                                    const timer = setTimeout(() => {
-                                                        window.open(integration.url, "_blank");
-                                                    }, 3000);
-                                                    e.currentTarget.dataset.holdTimer = timer;
-                                                }}
-                                                onMouseUp={(e) => {
-                                                    clearTimeout(e.currentTarget.dataset.holdTimer);
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    clearTimeout(e.currentTarget.dataset.holdTimer);
-                                                }}
-                                                size='small'
-                                            >
-                                                <IconComponent sx={{ fontSize: 20 }} />
-                                            </IconButton>
-                                        );
-                                    })}
-                                </Box>
-
-
-                            </Box>
-                        )
-                    }
+                <Box
+                    sx={{
+                        display: 'flex',
+                        gap: 1.2,
+                        alignItems: { xs: 'stretch', lg: 'center' },
+                        flexDirection: { xs: 'column', md: 'row' },
+                        width: { xs: '100%', lg: 'auto' },
+                    }}
+                >
                     <SelectProjectModal
                         projects={projects}
                         selectedProject={selectedProject}
                         onChange={handleProjectChange}
                         loading={loading}
+                        sx={{ width: { xs: '100%', md: 'auto' } }}
                     />
+
+                    {selectedProject && (
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 2,
+                                px: 1.1,
+                                py: 1,
+                                minWidth: { xs: '100%', md: 320 },
+                                bgcolor: 'background.paper',
+                            }}
+                        >
+                            <Typography
+                                variant='caption'
+                                sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: 0.3 }}
+                            >
+                                Plataforma del dashboard
+                            </Typography>
+
+                            <Box
+                                sx={{
+                                    display: 'grid',
+                                    gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(auto-fit, minmax(110px, 1fr))' },
+                                    gap: 0.8,
+                                    mt: 0.8,
+                                }}
+                            >
+                                {availableIntegrations.map((integration) => {
+                                    const config = integrationsConfig[integration.platform];
+                                    if (!config) return null;
+
+                                    const IconComponent = config.icon;
+                                    const isActive = selectedIntegration === integration.platform;
+                                    const integrationKey =
+                                        integration.integration_id ??
+                                        integration.id ??
+                                        `${integration.platform}-${integration.url ?? 'no-url'}`;
+
+                                    return (
+                                        <Button
+                                            key={integrationKey}
+                                            onClick={() => setSelectedIntegration(integration.platform)}
+                                            startIcon={<IconComponent sx={{ fontSize: 18 }} />}
+                                            endIcon={isActive ? <CheckCircleRoundedIcon sx={{ fontSize: 16 }} /> : null}
+                                            size='small'
+                                            sx={{
+                                                width: '100%',
+                                                justifyContent: 'center',
+                                                border: '1px solid',
+                                                borderColor: isActive ? config.color : 'divider',
+                                                borderRadius: 999,
+                                                textTransform: 'none',
+                                                px: { xs: 0.8, sm: 1.1 },
+                                                color: isActive ? '#fff' : 'text.primary',
+                                                bgcolor: isActive ? config.color : 'transparent',
+                                                fontWeight: 700,
+                                                fontSize: { xs: '0.8rem', sm: '0.87rem' },
+                                                minHeight: 34,
+                                                '&:hover': {
+                                                    borderColor: config.color,
+                                                    bgcolor: isActive ? `${config.color}CC` : 'action.hover',
+                                                },
+                                            }}
+                                        >
+                                            {config.label}
+                                        </Button>
+                                    );
+                                })}
+                            </Box>
+                        </Box>
+                    )}
                 </Box>
             </Box>
 
             <Box>
                 {!selectedProject ? (
                     <NoResultsScreen
-                        message="Seleccione un proyecto para ver los dashboards disponibles."
+                        message='Selecciona un proyecto para ver los dashboards disponibles.'
                         icon={<TouchAppRoundedIcon sx={{ fontSize: 90, color: 'text.secondary' }} />}
                         sx={{ height: '60vh', justifyContent: 'center' }}
                     />
@@ -162,7 +237,7 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
                     renderIntegrationDashboard()
                 ) : (
                     <NoResultsScreen
-                        message="Seleccione una opción de los dashboards disponibles para ver su contenido."
+                        message='Este proyecto no tiene plataformas de dashboard disponibles.'
                         icon={<TouchAppRoundedIcon sx={{ fontSize: 90, color: 'text.secondary' }} />}
                         sx={{ height: '60vh', justifyContent: 'center' }}
                     />
@@ -170,4 +245,4 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
             </Box>
         </Box>
     );
-}
+};
