@@ -28,9 +28,10 @@ import { formatForPostEngagementCard } from "./utils/cards/formatForPostEngageme
 import { useReport } from "../../../../contexts/ReportContext";
 import { CHART_IDS_FACEBOOK } from "./utils/chartsIds";
 import { formatForPageImpressionsCard } from "./utils/cards/formatForPageImpressionsCard.js";
+import { generateMockFacebookInsights, generateMockFacebookPosts } from "./mock/mockFacebookData.js";
 
  
-export const FacebookDashboard = ({ project, useMock = true, showingDialog = false }) => {
+export const FacebookDashboard = ({ project, useMock = false, showingDialog = false }) => {
     const { scrollbarWidth } = useLayout();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [selectedPeriod, setSelectedPeriod] = useState('lastMonth');
@@ -97,6 +98,12 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
     const [topPostsData, setTopPostsData] = useState([]);
 
     const facebookIntegration = project?.integrations?.find(i => i.platform === 'facebook');
+    const mockQueryValue =
+        typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("mock")
+            : null;
+    const shouldUseMock =
+        mockQueryValue === null ? useMock : mockQueryValue.toLowerCase() === "true";
 
 
     const fetchFacebookPageData = async () => {
@@ -105,8 +112,13 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
             setIsLoadingInsights(true);
             setErrorFetchData(false);
 
-            const insights = await callEndpoint(getFacebookPageInsights(facebookIntegration?.integration_id, selectedPeriod));
-            const posts = await callEndpoint(getFacebookPagePosts(facebookIntegration?.integration_id, selectedPeriod));
+            const integrationId = facebookIntegration?.integration_id || "mock_facebook_page";
+            const insights = shouldUseMock
+                ? generateMockFacebookInsights(integrationId, selectedPeriod)
+                : await callEndpoint(getFacebookPageInsights(integrationId, selectedPeriod));
+            const posts = shouldUseMock
+                ? generateMockFacebookPosts(integrationId, selectedPeriod)
+                : await callEndpoint(getFacebookPagePosts(integrationId, selectedPeriod));
             setTopPostsData(posts);
 
             const followersInsight = insights.find(i => i.name === "page_follows");
@@ -147,7 +159,7 @@ export const FacebookDashboard = ({ project, useMock = true, showingDialog = fal
 
     useEffect(() => {
         fetchFacebookPageData();
-    }, [selectedPeriod]);
+    }, [selectedPeriod, shouldUseMock, facebookIntegration?.integration_id]);
 
     const integration = integrationsConfig["facebook"];
     const IntegrationIcon = integration.icon;

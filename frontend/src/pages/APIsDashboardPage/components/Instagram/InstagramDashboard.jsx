@@ -38,6 +38,11 @@ import {
     formatInstagramPostsCard,
 } from "./utils/cards";
 import { CHART_IDS_INSTAGRAM } from "./utils/chartsIds";
+import {
+    generateMockInstagramInsights,
+    generateMockInstagramMedia,
+    generateMockInstagramOverview,
+} from "./mock/mockInstagramData";
 
 const EMPTY_METRIC = {
     chartData: [],
@@ -46,7 +51,7 @@ const EMPTY_METRIC = {
     delta: 0,
 };
 
-export const InstagramDashboard = ({ project, showingDialog = false }) => {
+export const InstagramDashboard = ({ project, useMock = true, showingDialog = false }) => {
     const { scrollbarWidth } = useLayout();
     const { callEndpoint } = useFetchAndLoad();
     const { addChart, removeChart, selectedCharts } = useReport();
@@ -76,6 +81,12 @@ export const InstagramDashboard = ({ project, showingDialog = false }) => {
     });
     const callEndpointRef = useRef(callEndpoint);
     const notifyRef = useRef(notify);
+    const mockQueryValue =
+        typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("mock")
+            : null;
+    const shouldUseMock =
+        mockQueryValue === null ? useMock : mockQueryValue.toLowerCase() === "true";
 
     const instagramIntegration = project?.integrations?.find((item) => item.platform === "instagram");
 
@@ -107,11 +118,17 @@ export const InstagramDashboard = ({ project, showingDialog = false }) => {
                 setIsLoadingInsights(true);
                 setErrorFetchData(false);
 
-                const [overview, insights, mediaPayload] = await Promise.all([
-                    callEndpointRef.current(getInstagramOverview(integrationId)),
-                    callEndpointRef.current(getInstagramInsights(integrationId, selectedPeriod)),
-                    callEndpointRef.current(getInstagramMedia(integrationId, selectedPeriod)),
-                ]);
+                const [overview, insights, mediaPayload] = shouldUseMock
+                    ? [
+                        generateMockInstagramOverview(instagramIntegration),
+                        generateMockInstagramInsights(integrationId, selectedPeriod),
+                        generateMockInstagramMedia(integrationId, selectedPeriod),
+                    ]
+                    : await Promise.all([
+                        callEndpointRef.current(getInstagramOverview(integrationId)),
+                        callEndpointRef.current(getInstagramInsights(integrationId, selectedPeriod)),
+                        callEndpointRef.current(getInstagramMedia(integrationId, selectedPeriod)),
+                    ]);
 
                 if (!active) return;
 
@@ -142,7 +159,7 @@ export const InstagramDashboard = ({ project, showingDialog = false }) => {
         return () => {
             active = false;
         };
-    }, [selectedPeriod, instagramIntegration?.integration_id]);
+    }, [selectedPeriod, instagramIntegration?.integration_id, shouldUseMock]);
 
     const integration = integrationsConfig["instagram"];
     const IntegrationIcon = integration.icon;

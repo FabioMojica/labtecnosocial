@@ -18,15 +18,20 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import { useFetchAndLoad } from "../../../../hooks";
 import { getXOverview, getXTweets } from "../../../../api";
-import { useNotification } from "../../../../contexts";
+import { useNotification, useReport } from "../../../../contexts";
 import FollowersCard from "./components/FollowersCard";
 import TotalLikesCard from "./components/TotalLikesCard";
 import TotalReactionsCard from "./components/TotalReactionsCard";
 import PageViewsCard from "./components/PageViewsCard";
-import MetricSparkCard from "./components/MetricSparkCard";
+import RepliesCard from "./components/RepliesCard";
+import QuotesCard from "./components/QuotesCard";
+import ImpressionsCard from "./components/ImpressionsCard";
+import BookmarksCard from "./components/BookmarksCard";
+import ActivityRateCard from "./components/ActivityRateCard";
 import { TopPostOfThePeriod } from "../Facebook/components/TopPostOfThePeriod";
-import { DashboardCard } from "../Facebook/components/DashboardCard";
 import { formatNumber } from "../Facebook/utils/cards";
+import { CHART_IDS_X } from "./utils/chartsIds";
+import { generateMockXOverview, generateMockXTweets } from "./mock/mockXData";
 
 const EMPTY_METRIC = {
     chartData: [],
@@ -35,57 +40,10 @@ const EMPTY_METRIC = {
     delta: 0,
 };
 
-function ActivityRateCard({ loading, error, interval, interactionsTotal, postsTotal, hasData }) {
-    const activityRate = postsTotal > 0 ? interactionsTotal / postsTotal : 0;
-
-    return (
-        <DashboardCard
-            title="Interacciones por post"
-            titleSpinner="Obteniendo ratio de actividad de X..."
-            titleError="Ocurrio un error al obtener el ratio de actividad"
-            sxSpinner={{
-                fontSize: "0.9rem",
-                pt: 3.5,
-            }}
-            interval={interval}
-            loading={loading}
-            error={error}
-            isEmpty={!hasData}
-            smallCard
-            selectable={false}
-            selected={false}
-        >
-            <Box
-                sx={{
-                    mt: 3.2,
-                    minHeight: 92,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: 0.45,
-                }}
-            >
-                <Typography variant="h3" fontWeight={500} lineHeight={1}>
-                    {activityRate.toLocaleString("es-BO", {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 1,
-                    })}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" lineHeight={1}>
-                    Interacciones promedio por publicacion
-                </Typography>
-                <Typography variant="caption" color="text.secondary" lineHeight={1} textAlign="center">
-                    {formatNumber(interactionsTotal)} interacciones en {formatNumber(postsTotal)} publicaciones
-                </Typography>
-            </Box>
-        </DashboardCard>
-    );
-}
-
 export const XDashboard = ({ project, useMock = true, showingDialog = false }) => {
     const { scrollbarWidth } = useLayout();
     const { callEndpoint } = useFetchAndLoad();
+    const { addChart, removeChart, selectedCharts } = useReport();
     const [selectedPeriod, setSelectedPeriod] = useState("lastMonth");
     const navBarWidth = useDrawerClosedWidth();
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -101,16 +59,26 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
     const [repostsData, setRepostsData] = useState(EMPTY_METRIC);
     const [repliesData, setRepliesData] = useState(EMPTY_METRIC);
     const [quotesData, setQuotesData] = useState(EMPTY_METRIC);
+    const [impressionsData, setImpressionsData] = useState(EMPTY_METRIC);
+    const [bookmarksData, setBookmarksData] = useState(EMPTY_METRIC);
     const [interactionsData, setInteractionsData] = useState({
         ...EMPTY_METRIC,
         likesTotal: 0,
         repostsTotal: 0,
         repliesTotal: 0,
         quotesTotal: 0,
+        impressionsTotal: 0,
+        bookmarksTotal: 0,
         topPosts: [],
     });
 
     const xIntegration = project?.integrations?.find((item) => item.platform === "x");
+    const mockQueryValue =
+        typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("mock")
+            : null;
+    const shouldUseMock =
+        mockQueryValue === null ? useMock : mockQueryValue.toLowerCase() === "true";
 
     const periodLabel =
         selectedPeriod === "today"
@@ -126,10 +94,13 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
             setIsLoadingInsights(true);
             setErrorFetchData(false);
 
-            const [overview, tweetsPayload] = await Promise.all([
-                callEndpoint(getXOverview(xIntegration?.integration_id)),
-                callEndpoint(getXTweets(xIntegration?.integration_id, selectedPeriod)),
-            ]);
+            const integrationId = xIntegration?.integration_id || "mock_x_account";
+            const [overview, tweetsPayload] = shouldUseMock
+                ? [generateMockXOverview(xIntegration), generateMockXTweets(xIntegration, selectedPeriod)]
+                : await Promise.all([
+                    callEndpoint(getXOverview(integrationId)),
+                    callEndpoint(getXTweets(integrationId, selectedPeriod)),
+                ]);
 
             const metrics = tweetsPayload?.metrics || {};
             const totals = tweetsPayload?.totals || {};
@@ -140,12 +111,16 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
             setRepostsData(metrics?.reposts ?? EMPTY_METRIC);
             setRepliesData(metrics?.replies ?? EMPTY_METRIC);
             setQuotesData(metrics?.quotes ?? EMPTY_METRIC);
+            setImpressionsData(metrics?.impressions ?? EMPTY_METRIC);
+            setBookmarksData(metrics?.bookmarks ?? EMPTY_METRIC);
             setInteractionsData({
                 ...(metrics?.interactions ?? EMPTY_METRIC),
                 likesTotal: Number(totals?.likes ?? 0),
                 repostsTotal: Number(totals?.reposts ?? 0),
                 repliesTotal: Number(totals?.replies ?? 0),
                 quotesTotal: Number(totals?.quotes ?? 0),
+                impressionsTotal: Number(totals?.impressions ?? 0),
+                bookmarksTotal: Number(totals?.bookmarks ?? 0),
                 topPosts: Array.isArray(tweetsPayload?.topPosts) ? tweetsPayload.topPosts : [],
             });
 
@@ -161,10 +136,11 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
     useEffect(() => {
         if (!xIntegration?.integration_id) return;
         fetchXData();
-    }, [selectedPeriod, xIntegration?.integration_id]);
+    }, [selectedPeriod, xIntegration?.integration_id, shouldUseMock]);
 
     const integration = integrationsConfig["x"];
     const IntegrationIcon = integration.icon;
+    const selectable = showingDialog;
 
     const activityHasData =
         (Array.isArray(interactionsData?.chartData) && interactionsData.chartData.length > 0) ||
@@ -173,6 +149,31 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
     const followerCount = Number(overviewData?.public_metrics?.followers_count ?? 0);
     const followingCount = Number(overviewData?.public_metrics?.following_count ?? 0);
     const tweetCount = Number(overviewData?.public_metrics?.tweet_count ?? 0);
+    const listedCount = Number(overviewData?.public_metrics?.listed_count ?? 0);
+
+    const buildChartPayload = (idName, title, data) => ({
+        id_name: idName,
+        integration_data: {
+            project: {
+                id: project?.id,
+                name: project?.name,
+            },
+            integration: xIntegration,
+        },
+        period: selectedPeriod,
+        periodLabel,
+        title,
+        data,
+        interval: periodLabel,
+    });
+
+    const isChartSelected = (idName) => selectedCharts.some((chart) => chart.id_name === idName);
+
+    const activityRateCardData = {
+        interactionsTotal: Number(interactionsData?.total ?? 0),
+        postsTotal: Number(postsData?.total ?? 0),
+        hasData: activityHasData,
+    };
 
     return (
         <Box
@@ -263,6 +264,7 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
                             <Chip size="small" label={`Seguidores: ${formatNumber(followerCount)}`} />
                             <Chip size="small" label={`Siguiendo: ${formatNumber(followingCount)}`} />
                             <Chip size="small" label={`Tweets: ${formatNumber(tweetCount)}`} />
+                            <Chip size="small" label={`Listas: ${formatNumber(listedCount)}`} />
                         </Box>
                     </Box>
                 </Box>
@@ -330,7 +332,16 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
                             title="Publicaciones"
                             interval={periodLabel}
                             data={postsData}
-                            selectable={false}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.postsCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.postsCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Publicaciones", postsData));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
                         />
                     </Grid>
 
@@ -342,7 +353,16 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
                             title="Likes"
                             interval={periodLabel}
                             data={likesData}
-                            selectable={false}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.likesCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.likesCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Likes", likesData));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
                         />
                     </Grid>
 
@@ -354,43 +374,100 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
                             title="Reposts"
                             interval={periodLabel}
                             data={repostsData}
-                            selectable={false}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.repostsCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.repostsCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Reposts", repostsData));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
                         />
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-                        <MetricSparkCard
+                        <RepliesCard
                             mode="dashboard"
                             loading={isLoadingInsights}
                             error={errorFetchData}
                             title="Respuestas"
-                            titleSpinner="Obteniendo respuestas de X..."
-                            titleError="Ocurrio un error al obtener respuestas de X"
                             interval={periodLabel}
                             data={repliesData}
-                            singular="respuesta"
-                            plural="respuestas"
-                            cumulativeLabel="acumuladas"
-                            gradientId="x-replies-gradient"
-                            selectable={false}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.repliesCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.repliesCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Respuestas", repliesData));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
                         />
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-                        <MetricSparkCard
+                        <QuotesCard
                             mode="dashboard"
                             loading={isLoadingInsights}
                             error={errorFetchData}
                             title="Citas"
-                            titleSpinner="Obteniendo citas de X..."
-                            titleError="Ocurrio un error al obtener citas de X"
                             interval={periodLabel}
                             data={quotesData}
-                            singular="cita"
-                            plural="citas"
-                            cumulativeLabel="acumuladas"
-                            gradientId="x-quotes-gradient"
-                            selectable={false}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.quotesCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.quotesCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Citas", quotesData));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                        <ImpressionsCard
+                            mode="dashboard"
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Impresiones"
+                            interval={periodLabel}
+                            data={impressionsData}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.impressionsCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.impressionsCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Impresiones", impressionsData));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                        <BookmarksCard
+                            mode="dashboard"
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Guardados"
+                            interval={periodLabel}
+                            data={bookmarksData}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.bookmarksCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.bookmarksCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Guardados", bookmarksData));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
                         />
                     </Grid>
 
@@ -399,9 +476,17 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
                             loading={isLoadingInsights}
                             error={errorFetchData}
                             interval={periodLabel}
-                            interactionsTotal={interactionsData.total}
-                            postsTotal={postsData.total}
-                            hasData={activityHasData}
+                            data={activityRateCardData}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.activityRateCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.activityRateCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Interacciones por post", activityRateCardData));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
                         />
                     </Grid>
 
@@ -413,7 +498,16 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
                             title="Interacciones totales"
                             interval={periodLabel}
                             data={interactionsData}
-                            selectable={false}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.interactionsCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.interactionsCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Interacciones totales", interactionsData));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
                         />
                     </Grid>
 
@@ -425,7 +519,16 @@ export const XDashboard = ({ project, useMock = true, showingDialog = false }) =
                             title="Top tweets de X"
                             interval={periodLabel}
                             data={interactionsData?.topPosts ?? []}
-                            selectable={false}
+                            selectable={selectable}
+                            selected={isChartSelected(CHART_IDS_X.topPostsCard(selectedPeriod))}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_X.topPostsCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(buildChartPayload(idName, "Top tweets de X", interactionsData?.topPosts ?? []));
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
                         />
                     </Grid>
                 </Grid>

@@ -85,6 +85,8 @@ function mapTweetsToTopPosts(tweets = [], username = "", mediaByKey = {}) {
       const replies = safeNumber(metrics.reply_count);
       const reposts = safeNumber(metrics.retweet_count);
       const quotes = safeNumber(metrics.quote_count);
+      const impressions = safeNumber(metrics.impression_count);
+      const bookmarks = safeNumber(metrics.bookmark_count);
       const popularityScore = likes + replies * 2 + reposts * 2 + quotes * 2;
 
       const firstMediaKey = tweet?.attachments?.media_keys?.[0];
@@ -114,6 +116,8 @@ function mapTweetsToTopPosts(tweets = [], username = "", mediaByKey = {}) {
         popularityScore,
         meta: {
           quotes,
+          impressions,
+          bookmarks,
         },
       };
     })
@@ -250,6 +254,8 @@ export const getXTweets = async (req, res) => {
     const repostsMetric = buildMetricFromTweets(tweets, (tweet) => getPublicMetrics(tweet)?.retweet_count);
     const repliesMetric = buildMetricFromTweets(tweets, (tweet) => getPublicMetrics(tweet)?.reply_count);
     const quotesMetric = buildMetricFromTweets(tweets, (tweet) => getPublicMetrics(tweet)?.quote_count);
+    const impressionsMetric = buildMetricFromTweets(tweets, (tweet) => getPublicMetrics(tweet)?.impression_count);
+    const bookmarksMetric = buildMetricFromTweets(tweets, (tweet) => getPublicMetrics(tweet)?.bookmark_count);
     const interactionsMetric = buildMetricFromTweets(
       tweets,
       (tweet) =>
@@ -266,6 +272,8 @@ export const getXTweets = async (req, res) => {
         reposts: repostsMetric,
         replies: repliesMetric,
         quotes: quotesMetric,
+        impressions: impressionsMetric,
+        bookmarks: bookmarksMetric,
         interactions: interactionsMetric,
       },
       totals: {
@@ -274,6 +282,8 @@ export const getXTweets = async (req, res) => {
         reposts: repostsMetric.total,
         replies: repliesMetric.total,
         quotes: quotesMetric.total,
+        impressions: impressionsMetric.total,
+        bookmarks: bookmarksMetric.total,
         interactions: interactionsMetric.total,
       },
       topPosts: mapTweetsToTopPosts(tweets, username, mediaByKey),

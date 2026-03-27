@@ -1,11 +1,16 @@
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
 import { Box, Checkbox } from '@mui/material';
 import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useTheme } from '@mui/material/styles';
+import { useMemo } from 'react';
+import dayjs from 'dayjs';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 
 // export const CommitsByWeekdayHour = ({
@@ -84,8 +89,6 @@ import { useTheme } from '@mui/material/styles';
 //     </Card>
 //   );
 // }
-import dayjs from 'dayjs';
-
 const groupCommitsByWeekdayAndHour = (commits = []) => {
   const weekdays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   const result = weekdays.map(day => ({
@@ -107,14 +110,61 @@ const groupCommitsByWeekdayAndHour = (commits = []) => {
   return result;
 };
 
-export const CommitsByWeekdayHour = ({ commitsData = [], title, interval }) => {
+const filterCommitsByPeriod = (commits = [], selectedPeriod = 'all') => {
+  if (!Array.isArray(commits) || commits.length === 0 || selectedPeriod === 'all') {
+    return commits;
+  }
+
+  const today = dayjs().startOf('day');
+  let startDate;
+  let endDate = today.endOf('day');
+
+  switch (selectedPeriod) {
+    case 'today':
+      startDate = today;
+      break;
+    case 'lastWeek':
+      startDate = today.subtract(7, 'day');
+      break;
+    case 'lastMonth':
+      startDate = today.subtract(1, 'month');
+      break;
+    case 'lastSixMonths':
+      startDate = today.subtract(6, 'month');
+      break;
+    default:
+      startDate = null;
+      break;
+  }
+
+  if (!startDate) return commits;
+
+  return commits.filter((commit) => {
+    const commitDate = dayjs(commit?.commit?.author?.date);
+    return commitDate.isSameOrAfter(startDate, 'day') && commitDate.isSameOrBefore(endDate, 'day');
+  });
+};
+
+export const CommitsByWeekdayHour = ({
+  commitsData = [],
+  title,
+  interval,
+  selectable = false,
+  selected = false,
+  onSelectChange,
+  selectedPeriod = 'all',
+}) => {
   const theme = useTheme();
-  const grouped = groupCommitsByWeekdayAndHour(commitsData);
+  const filteredCommits = useMemo(
+    () => filterCommitsByPeriod(commitsData, selectedPeriod),
+    [commitsData, selectedPeriod]
+  );
+  const grouped = groupCommitsByWeekdayAndHour(filteredCommits);
 
   const data = grouped.map(d => d.total);
 
   // Tooltip personalizado
-  const tooltipFormatter = ({ xValue, yValue, seriesId }) => {
+  const tooltipFormatter = ({ xValue, yValue }) => {
     const dayData = grouped.find(d => d.day === xValue);
     if (!dayData) return '';
     const hoursText = Object.entries(dayData.hours)
@@ -124,7 +174,12 @@ export const CommitsByWeekdayHour = ({ commitsData = [], title, interval }) => {
   };
 
   return (
-    <Card variant="outlined" sx={{ width: '100%', height: 400 }}>
+    <Card variant="outlined" sx={{ width: '100%', height: 400, position: 'relative' }}>
+      {selectable && (
+        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+          <Checkbox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
+        </Box>
+      )}
       <CardContent>
         <Typography variant="subtitle2">{title}</Typography>
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>

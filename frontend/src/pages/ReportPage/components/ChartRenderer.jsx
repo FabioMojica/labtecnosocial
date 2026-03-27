@@ -41,6 +41,7 @@ export const ChartRenderer = ({ element }) => {
 
   const {
     defaultTitle,
+    dataProp = 'data',
   } = chartConfig;
 
   const baseProps = {
@@ -60,6 +61,8 @@ export const ChartRenderer = ({ element }) => {
 
   const finalProps = {
     ...baseProps,
+    selectedPeriod: period || rest.selectedPeriod || 'all',
+    [dataProp]: data,
   };
 
   return <ChartComponent {...finalProps} />;

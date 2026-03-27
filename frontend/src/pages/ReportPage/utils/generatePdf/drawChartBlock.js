@@ -1,5 +1,46 @@
 import { parseChartId, chartPropsMap } from "../chartUtils";
 import { drawFacebookChart } from "./drawFacebookCharts";
+import { drawGithubChart } from "./drawGithubCharts";
+
+const normalizeXElementForPdf = (element, component) => {
+  const data = element?.data;
+  if (component === "organicOrPaidViewsCard" && data && !Array.isArray(data)) {
+    const likes = Number(data?.likesTotal ?? 0);
+    const reposts = Number(data?.repostsTotal ?? 0);
+    const replies = Number(data?.repliesTotal ?? 0);
+    const quotes = Number(data?.quotesTotal ?? 0);
+    const chartData = [
+      { name: "Likes", value: likes },
+      { name: "Reposts", value: reposts },
+      { name: "Respuestas", value: replies },
+      { name: "Citas", value: quotes },
+    ];
+
+    return {
+      ...element,
+      data: {
+        total: likes + reposts + replies + quotes,
+        chartData,
+      },
+    };
+  }
+
+  if (component === "totalReactionsCard" && data && !Array.isArray(data)) {
+    const likes = Number(data?.likesTotal ?? 0);
+    const reposts = Number(data?.repostsTotal ?? 0);
+    const replies = Number(data?.repliesTotal ?? 0);
+    const quotes = Number(data?.quotesTotal ?? 0);
+    return {
+      ...element,
+      data: [likes, reposts, replies, quotes, 0, 0],
+    };
+  }
+
+  if (Array.isArray(data) || !data) {
+    return element;
+  }
+  return element;
+};
 
 export const drawChartBlock = async ({
   pdfDoc,
@@ -34,6 +75,26 @@ export const drawChartBlock = async ({
         pdfDoc,
         page,
         element,
+        component: chartConfig.component,
+        x,
+        y,
+        maxWidth,
+      });
+    case "github":
+      return drawGithubChart({
+        pdfDoc,
+        page,
+        element,
+        component: chartConfig.component,
+        x,
+        y,
+        maxWidth,
+      });
+    case "x":
+      return drawFacebookChart({
+        pdfDoc,
+        page,
+        element: normalizeXElementForPdf(element, chartConfig.component),
         component: chartConfig.component,
         x,
         y,

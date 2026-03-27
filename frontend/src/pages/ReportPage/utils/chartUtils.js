@@ -103,6 +103,108 @@ export const chartPropsMap = {
             usesInterval: true,
         },
     },
+    github: {
+        commitsInThePeriodCard: {
+            component: "commitsInThePeriodCard",
+            defaultTitle: "Cantidad de commits",
+            usesInterval: true,
+            dataProp: "commits",
+        },
+        topCollaboratorsCard: {
+            component: "topCollaboratorsCard",
+            defaultTitle: "Top Colaboradores del Periodo",
+            usesInterval: true,
+            dataProp: "commits",
+        },
+        pullRequestsCard: {
+            component: "pullRequestsCard",
+            defaultTitle: "Pull Requests",
+            usesInterval: true,
+            dataProp: "prs",
+        },
+        collaboratorsWithoutPushCard: {
+            component: "collaboratorsWithoutPushCard",
+            defaultTitle: "Colaboradores sin push",
+            usesInterval: true,
+            dataProp: "commits",
+        },
+        sessionsChart: {
+            component: "sessionsChart",
+            defaultTitle: "Historial de commits",
+            usesInterval: true,
+            dataProp: "commitsData",
+        },
+        commitsByWeekdayHourChart: {
+            component: "commitsByWeekdayHourChart",
+            defaultTitle: "Horas con mas commits",
+            usesInterval: true,
+            dataProp: "commitsData",
+        },
+        commitGrid: {
+            component: "commitGrid",
+            defaultTitle: "Historial de Commits",
+            usesInterval: true,
+            dataProp: "commits",
+        },
+        commitsByAuthorChart: {
+            component: "commitsByAuthorChart",
+            defaultTitle: "Porcentaje de Commits",
+            usesInterval: true,
+            dataProp: "commits",
+        },
+    },
+    x: {
+        postingFrequencyCard: {
+            component: "postingFrequencyCard",
+            defaultTitle: "Publicaciones",
+            usesInterval: true,
+        },
+        pageViewsCard: {
+            component: "pageViewsCard",
+            defaultTitle: "Likes",
+            usesInterval: true,
+        },
+        pageImpressionsCard: {
+            component: "pageImpressionsCard",
+            defaultTitle: "Reposts",
+            usesInterval: true,
+        },
+        totalActionsCard: {
+            component: "totalActionsCard",
+            defaultTitle: "Respuestas",
+            usesInterval: true,
+        },
+        postEngagementsCard: {
+            component: "postEngagementsCard",
+            defaultTitle: "Citas",
+            usesInterval: true,
+        },
+        profileViewsCard: {
+            component: "profileViewsCard",
+            defaultTitle: "Impresiones",
+            usesInterval: true,
+        },
+        engagedAccountsCard: {
+            component: "engagedAccountsCard",
+            defaultTitle: "Guardados",
+            usesInterval: true,
+        },
+        interactionsCard: {
+            component: "organicOrPaidViewsCard",
+            defaultTitle: "Interacciones totales",
+            usesInterval: true,
+        },
+        engagementRateCard: {
+            component: "engagementRateCard",
+            defaultTitle: "Interacciones por post",
+            usesInterval: true,
+        },
+        topPostOfThePeriod: {
+            component: "topPostOfThePeriod",
+            defaultTitle: "Top tweets de X",
+            usesInterval: true,
+        },
+    },
 };
 
 export const parseChartId = (chartId) => {
