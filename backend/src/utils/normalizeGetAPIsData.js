@@ -24,14 +24,6 @@ export const normalizeGetAPIsData = (platform, data) => {
         image_url: page.image_url
       }));
 
-    case 'twitter':
-      return (data?.pages || []).map((page) => ({
-        id: page.id,
-        name: page.name,
-        url: page.url,
-        image_url: page.image_url
-      }));
-
     default:
       return [];
   }

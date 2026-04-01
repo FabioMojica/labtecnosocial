@@ -7,7 +7,6 @@ import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
 import FolderCopyRoundedIcon from '@mui/icons-material/FolderCopyRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
 import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
-import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
 import { GridItem } from "./GridItem";
 import { useAuth, useHeaderHeight, useNotification } from "../../../contexts";
 
@@ -124,7 +123,7 @@ export const UserLayout = () => {
                     <Grid size={{ xs: 12, md: 4 }}>
                         <GridItem
                             title="Planificación Operativa"
-                            description="Crea y edita planes operativos de los proyectos de los que eres responsable"
+                            description="Visualiza planes operativos de los proyectos de los que eres parte"
                             icon={<TableChartRoundedIcon fontSize="large" />}
                             link="/planificacion-operativa"
                         />
@@ -140,17 +139,9 @@ export const UserLayout = () => {
                     <Grid size={{ xs: 12, md: 4 }}>
                         <GridItem
                             title="Dashboard de KPIs"
-                            description="Visualiza los indicadores más importantes de tus proyectos integrados con plataformas"
+                            description="Visualiza los indicadores más importantes los proyectos integrados con plataformas"
                             icon={<AssessmentRoundedIcon fontSize="large" />}
                             link="/dashboard"
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 4 }}>
-                        <GridItem
-                            title="Elaboración de reportes"
-                            description="Elabora reportes sobre los proyectos y planificaciónes desde distintos puntos del sistema"
-                            icon={<SummarizeRoundedIcon fontSize="large" />}
-                            link="/reportes"
                         />
                     </Grid>
                 </Grid>

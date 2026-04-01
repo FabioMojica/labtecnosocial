@@ -26,9 +26,14 @@ import { useNavigate } from "react-router-dom";
 export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) => {
     const { headerHeight } = useHeaderHeight();
     const [project, setProject] = useState(projectData);
-    const { isUser, isAdmin, isSuperAdmin } = useAuth();
+    const { user: userSession, isAdmin, isSuperAdmin } = useAuth();
     const [modalEditProjectOpen, setModalEditProjectpen] = useState(false);
     const navigate = useNavigate();
+    const isAdminResponsible = Boolean(
+        isAdmin &&
+        project?.projectResponsibles?.some((responsible) => responsible.id === userSession?.id)
+    );
+    const canEditProject = Boolean(isSuperAdmin || isAdminResponsible);
 
     useEffect(() => {
         setProject(projectData);
@@ -50,7 +55,7 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
             }}
         >
             {
-                (isAdmin || isSuperAdmin) &&
+                canEditProject &&
                 <IconButton sx={{
                     position: 'absolute',
                     top: 20,

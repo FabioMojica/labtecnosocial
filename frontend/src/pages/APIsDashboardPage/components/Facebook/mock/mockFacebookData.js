@@ -81,6 +81,27 @@ function buildCityFollowers(totalFollowers = 0) {
   };
 }
 
+export function generateMockFacebookOverview(integration = {}) {
+  const integrationId = String(integration?.integration_id || "mock_facebook_page");
+  const hash = [...integrationId].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const fanCount = 1200 + (hash % 3800);
+  const followersCount = fanCount + 120 + (hash % 450);
+
+  return {
+    id: integrationId,
+    name: integration?.name || "Pagina de Facebook",
+    category: "Organizacion sin fines de lucro",
+    fan_count: fanCount,
+    followers_count: followersCount,
+    link: integration?.url || `https://www.facebook.com/${integrationId}`,
+    picture: {
+      data: {
+        url: `https://graph.facebook.com/${integrationId}/picture?type=square`,
+      },
+    },
+  };
+}
+
 export function generateMockFacebookInsights(pageId = "mock_facebook_page", range = "lastMonth") {
   const dates = buildDateSeries(range);
 

@@ -3,13 +3,11 @@ import { Grid } from "@mui/material";
 import { GithubApi } from './GitHubAPI';
 import { FacebookApi } from './FacebookAPI';
 import { InstagramApi } from './InstagramAPI';
-import { XApi } from "./XAPI";
 
 export const IntegrationsWithAPIsPanel = ({ panelHeight, selectedIntegrations, onChange }) => {
     const githubSelected = selectedIntegrations.filter(i => i.type === 'github').map(i => i.data);
     const facebookSelected = selectedIntegrations.filter(i => i.type === 'facebook').map(i => i.data);
     const instagramSelected = selectedIntegrations.filter(i => i.type === 'instagram').map(i => i.data);
-    const xSelected = selectedIntegrations.filter(i => i.type === 'x').map(i => i.data);
 
     // Solo una integración de cada tipo
     const handleGithubChange = (items) => {
@@ -39,21 +37,11 @@ export const IntegrationsWithAPIsPanel = ({ panelHeight, selectedIntegrations, o
         ]);
     };
 
-    const handleXChange = (items) => {
-        const others = selectedIntegrations.filter(i => i.type !== 'x');
-        const xItem = items[0];
-        onChange?.([
-            ...others,
-            ...(xItem ? [{ type: 'x', data: xItem }] : [])
-        ]);
-    };
-
-
     return (
         <Grid 
             container 
             spacing={1} 
-            columns={4} 
+            columns={3} 
             sx={{ 
             width: "100%",
             p: 1,
@@ -70,10 +58,6 @@ export const IntegrationsWithAPIsPanel = ({ panelHeight, selectedIntegrations, o
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
                 <InstagramApi panelHeight={panelHeight} selected={instagramSelected} onChange={handleInstagramChange} />
             </Grid>
-
-            <Grid size={{ sm: 4, md: 1, xs: 4 }}>
-                <XApi panelHeight={panelHeight} selected={xSelected} onChange={handleXChange} />
-            </Grid> 
             
         </Grid>
     );

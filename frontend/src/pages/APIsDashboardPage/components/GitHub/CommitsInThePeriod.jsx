@@ -1,5 +1,5 @@
 import { NoResultsScreen } from '../../../../generalComponents';
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
     Box,
@@ -20,6 +20,9 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
+const getCommitDate = (commit) =>
+    commit?.commit?.committer?.date ?? commit?.commit?.author?.date ?? null;
+
 export default function CommitsInThePeriod({
     commits,
     title,
@@ -27,11 +30,22 @@ export default function CommitsInThePeriod({
     selectable = false,
     selected = false,
     onSelectChange,
-    selectedPeriod
+    selectedPeriod,
+    goal,
+    onGoalChange,
+    allowGoalEdit = false,
 }) {
     const theme = useTheme();
     const safeCommits = commits || [];
-    const [customGoal, setCustomGoal] = useState(50);
+    const [customGoal, setCustomGoal] = useState(
+        Number.isFinite(goal) ? Math.max(0, Number(goal)) : 50
+    );
+
+    useEffect(() => {
+        if (Number.isFinite(goal)) {
+            setCustomGoal(Math.max(0, Number(goal)));
+        }
+    }, [goal]);
     if (!safeCommits.length || !safeCommits) {
         return (
             <Card variant="outlined" sx={{ height: '100%', maxHeight: 300, flexGrow: 1 }}>
@@ -85,7 +99,9 @@ export default function CommitsInThePeriod({
         if (!startDate) return safeCommits;
 
         return safeCommits.filter((c) => {
-            const commitDate = dayjs(c.commit.author.date);
+            const rawDate = getCommitDate(c);
+            const commitDate = rawDate ? dayjs(rawDate) : null;
+            if (!commitDate || !commitDate.isValid()) return false;
             return (
                 commitDate.isSameOrAfter(startDate, 'day') &&
                 commitDate.isSameOrBefore(endDate, 'day')
@@ -93,54 +109,58 @@ export default function CommitsInThePeriod({
         });
     }, [safeCommits, selectedPeriod]);
 
-    let endDate = new Date();
-    const normalizeDate = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-
     const commitsByDate = useMemo(() => {
         const grouped = {};
         filteredCommits.forEach(c => {
-            const day = new Date(c.commit.author.date).toISOString().split('T')[0];
+            const rawDate = getCommitDate(c);
+            const day = rawDate ? dayjs(rawDate).format('YYYY-MM-DD') : null;
+            if (!day) return;
             grouped[day] = (grouped[day] || 0) + 1;
         });
 
+        const today = dayjs().startOf('day');
         let startDate;
+        let endDate = today;
         switch (selectedPeriod) {
             case 'lastSixMonths':
-                startDate = new Date();
-                startDate.setMonth(startDate.getMonth() - 6);
+                startDate = today.subtract(6, 'month');
                 break;
             case 'lastMonth':
-                startDate = new Date();
-                startDate.setMonth(startDate.getMonth() - 1);
+                startDate = today.subtract(1, 'month');
                 break;
             case 'lastWeek':
-                startDate = new Date();
-                startDate.setDate(startDate.getDate() - 7);
+                startDate = today.subtract(7, 'day');
                 break;
             case 'today':
-                startDate = normalizeDate(new Date());
-                endDate = normalizeDate(new Date());
+                startDate = today;
+                endDate = today;
                 break;
             case 'all':
             default:
-                startDate = filteredCommits.length
-                    ? new Date(Math.min(...filteredCommits.map(c => new Date(c.commit.author.date))))
-                    : new Date();
+                {
+                    const minDate = filteredCommits
+                        .map(c => {
+                            const rawDate = getCommitDate(c);
+                            const parsed = rawDate ? dayjs(rawDate) : null;
+                            return parsed && parsed.isValid() ? parsed.startOf('day') : null;
+                        })
+                        .filter(Boolean)
+                        .reduce((min, current) => (min && min.isBefore(current) ? min : current), null);
+
+                    startDate = minDate || today;
+                }
                 break;
         }
 
         const dateArray = [];
-        for (let d = new Date(startDate); d <= endDate; d = new Date(d.getTime() + 24 * 60 * 60 * 1000)) {
-            const dayStr = d.toISOString().split('T')[0];
+        for (let d = startDate; d.isSameOrBefore(endDate, 'day'); d = d.add(1, 'day')) {
+            const dayStr = d.format('YYYY-MM-DD');
             grouped[dayStr] = grouped[dayStr] || 0;
             dateArray.push(dayStr);
         }
 
         if (selectedPeriod === 'today' && dateArray.length === 1) {
-            const yesterday = new Date(startDate);
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            const yesterdayStr = startDate.subtract(1, 'day').format('YYYY-MM-DD');
             dateArray.unshift(yesterdayStr);
             grouped[yesterdayStr] = grouped[yesterdayStr] || 0;
         }
@@ -153,7 +173,33 @@ export default function CommitsInThePeriod({
     const data = commitsByDate.dateArray.map(d => commitsByDate.grouped[d]);
     const days = commitsByDate.dateArray;
 
-    const totalCommits = data.reduce((a, b) => a + b, 0);
+    const totalCommits = filteredCommits.length;
+
+    if (totalCommits === 0) {
+        return (
+            <Card variant="outlined" sx={{ height: '100%', maxHeight: 300, flexGrow: 1, position: 'relative' }}>
+                <CardContent sx={{ height: '100%' }}>
+                    <Typography component="h2" variant="subtitle2">
+                        {title}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {interval}
+                    </Typography>
+                    <NoResultsScreen
+                        message="Sin datos para mostrar"
+                        sx={{ height: '80%' }}
+                        textSx={{
+                            fontSize: {
+                                xs: '0.8rem',
+                                sm: '1rem',
+                            },
+                        }}
+                        iconSX={{ fontSize: 56 }}
+                    />
+                </CardContent>
+            </Card>
+        );
+    }
 
     const percent = customGoal > 0 ? Math.round((totalCommits / customGoal) * 100) : 0;
     const getTrendColor = () => {
@@ -174,7 +220,7 @@ export default function CommitsInThePeriod({
                 </Box>
             )}
             <CardContent>
-                <Typography component="h2" variant="subtitle2" gutterBottom>
+                <Typography component="h2" variant="subtitle2">
                     {title}
                 </Typography>
 
@@ -191,13 +237,18 @@ export default function CommitsInThePeriod({
                             type="number"
                             label="Meta"
                             value={customGoal}
-                            disabled={selectable}
+                            disabled={!allowGoalEdit}
                             onChange={e => {
                                 const val = Number(e.target.value);
-                                setCustomGoal(isNaN(val) ? 0 : val);
+                                const normalized = Number.isFinite(val) && val >= 0 ? val : 0;
+                                setCustomGoal(normalized);
+                                onGoalChange?.(normalized);
                             }}
                             onBlur={() => {
-                                if (customGoal === '' || customGoal < 0) setCustomGoal(0);
+                                if (customGoal === '' || customGoal < 0) {
+                                    setCustomGoal(0);
+                                    onGoalChange?.(0);
+                                }
                             }}
                             sx={{ width: 100 }}
                             inputProps={{
@@ -233,7 +284,15 @@ export default function CommitsInThePeriod({
                         {interval}
                     </Typography>
 
-                    <Box sx={{ width: '100%', height: 40, position: 'relative' }}>
+                    <Box
+                        sx={{
+                            width: '100%',
+                            height: { xs: 54, sm: 40 },
+                            position: 'relative',
+                            mt: 0.5,
+                            pb: { xs: 1, sm: 0.25 },
+                        }}
+                    >
                         {totalCommits === 0 ? (
                             <Typography variant="body1" color="textSecondary" sx={{
                                 color: 'gray',
@@ -261,6 +320,7 @@ export default function CommitsInThePeriod({
                                     area
                                     showLine
                                     showTooltip
+                                    showHighlight
                                     color={trendColor}
                                     sx={{
                                         '& .MuiAreaElement-root': {

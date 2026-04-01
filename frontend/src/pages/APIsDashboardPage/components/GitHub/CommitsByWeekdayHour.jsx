@@ -1,148 +1,144 @@
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import { Box, Checkbox } from '@mui/material';
-import Typography from '@mui/material/Typography';
-import { BarChart } from '@mui/x-charts/BarChart';
+import { Box, Checkbox, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { NoResultsScreen } from '../../../../generalComponents';
+import { formatNumber } from '../Facebook/utils/cards';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
+const HOUR_COLOR_SET = [
+  '#3b82f6',
+  '#22c55e',
+  '#f59e0b',
+  '#a855f7',
+  '#14b8a6',
+  '#ef4444',
+  '#eab308',
+  '#6366f1',
+];
 
-// export const CommitsByWeekdayHour = ({
-//   commitsData,
-//   title,
-//   interval,
-//   selectable = false,
-//   selected = false,
-//   onSelectChange,
-//   selectedPeriod = "all",
-// }) => {
-//   const theme = useTheme();
-//   const colorPalette = [
-//     (theme.vars || theme).palette.primary.dark,
-//     (theme.vars || theme).palette.primary.main,
-//     (theme.vars || theme).palette.primary.light,
-//   ];
-//   return (
-//     <Card variant="outlined" sx={{ width: '100%', height: 400, position: 'relative' }}>
-//       <CardContent>
-//         <Typography component="h2" variant="subtitle2" gutterBottom>
-//           {title}
-//         </Typography>
-//         {selectable && (
-//           <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-//             <Checkbox
-//               checked={selected}
-//               onChange={e => onSelectChange(e.target.checked)}
-//               size="medium"
-//             />
-//           </Box>
-//         )}
-//         <Stack sx={{ justifyContent: 'space-between' }}>
-//           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-//             {interval}
-//           </Typography>
-//         </Stack>
-//         <BarChart
-//           borderRadius={8}
-//           colors={colorPalette}
-//           xAxis={[
-//             {
-//               scaleType: 'band',
-//               categoryGapRatio: 0.5,
-//               data: ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-//               height: 24,
-//             },
-//           ]}
-//           yAxis={[{ width: 50 }]}
-//           series={[
-//             {
-//               id: 'page-views',
-//               label: 'Page views',
-//               data: [2234, 3872, 2998, 4125, 3357, 2789, 2998],
-//               stack: 'A',
-//             },
-//             {
-//               id: 'downloads',
-//               label: 'Downloads',
-//               data: [3098, 4215, 2384, 2101, 4752, 3593, 2384],
-//               stack: 'A',
-//             },
-//             {
-//               id: 'conversions',
-//               label: 'Conversions',
-//               data: [4051, 2275, 3129, 4693, 3904, 2038, 2275],
-//               stack: 'A',
-//             },
-//           ]}
-//           height={250}
-//           margin={{ left: 0, right: 0, top: 20, bottom: 0 }}
-//           grid={{ horizontal: true }}
-//           hideLegend
-//         />
-//       </CardContent>
-//     </Card>
-//   );
-// }
-const groupCommitsByWeekdayAndHour = (commits = []) => {
-  const weekdays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-  const result = weekdays.map(day => ({
-    day,
-    total: 0,
-    hours: {}
-  }));
+const getCommitDate = (commit) =>
+  commit?.commit?.committer?.date ?? commit?.commit?.author?.date ?? null;
 
-  commits.forEach(commit => {
-    const date = dayjs(commit.commit.author.date);
-    const dayIndex = date.day() === 0 ? 6 : date.day() - 1; // dayjs: 0=Domingo
-    const hour = date.format('HH');
-
-    result[dayIndex].total += 1;
-    if (!result[dayIndex].hours[hour]) result[dayIndex].hours[hour] = 0;
-    result[dayIndex].hours[hour] += 1;
-  });
-
-  return result;
-};
-
-const filterCommitsByPeriod = (commits = [], selectedPeriod = 'all') => {
-  if (!Array.isArray(commits) || commits.length === 0 || selectedPeriod === 'all') {
-    return commits;
-  }
-
-  const today = dayjs().startOf('day');
-  let startDate;
-  let endDate = today.endOf('day');
+const resolveRangeStart = (selectedPeriod = 'all') => {
+  const todayLocal = dayjs().startOf('day');
 
   switch (selectedPeriod) {
     case 'today':
-      startDate = today;
-      break;
+      return todayLocal;
     case 'lastWeek':
-      startDate = today.subtract(7, 'day');
-      break;
+      return todayLocal.subtract(7, 'day');
     case 'lastMonth':
-      startDate = today.subtract(1, 'month');
-      break;
+      return todayLocal.subtract(1, 'month');
     case 'lastSixMonths':
-      startDate = today.subtract(6, 'month');
-      break;
+      return todayLocal.subtract(6, 'month');
     default:
-      startDate = null;
-      break;
+      return null;
   }
+};
 
-  if (!startDate) return commits;
+const buildHourLabel = (hour) => {
+  const nextHourLabel = hour === 23 ? '24:00' : `${hour + 1}:00`;
+  return `${hour}:00-${nextHourLabel}`;
+};
 
-  return commits.filter((commit) => {
-    const commitDate = dayjs(commit?.commit?.author?.date);
-    return commitDate.isSameOrAfter(startDate, 'day') && commitDate.isSameOrBefore(endDate, 'day');
+const toHourlyTopData = (commits = [], selectedPeriod = 'all') => {
+  const startDate = resolveRangeStart(selectedPeriod);
+  const endDate = dayjs().endOf('day');
+
+  let droppedInvalidDate = 0;
+
+  const hourBuckets = Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    label: buildHourLabel(hour),
+    commits: 0,
+  }));
+
+  commits.forEach((commit) => {
+    const rawDate = getCommitDate(commit);
+    const commitDate = rawDate ? dayjs(rawDate) : null;
+
+    if (!commitDate || !commitDate.isValid()) {
+      droppedInvalidDate += 1;
+      return;
+    }
+
+    if (
+      startDate &&
+      (!commitDate.isSameOrAfter(startDate, 'day') ||
+        !commitDate.isSameOrBefore(endDate, 'day'))
+    ) {
+      return;
+    }
+
+    hourBuckets[commitDate.hour()].commits += 1;
   });
+
+  const topHours = hourBuckets
+    .filter((bucket) => bucket.commits > 0)
+    .sort((a, b) => {
+      if (b.commits !== a.commits) return b.commits - a.commits;
+      return a.hour - b.hour;
+    })
+    .slice(0, 8)
+    .map((bucket, index) => ({
+      ...bucket,
+      color: HOUR_COLOR_SET[index % HOUR_COLOR_SET.length],
+    }));
+
+  return {
+    droppedInvalidDate,
+    topHours,
+    totalCommitsInRange: hourBuckets.reduce((sum, bucket) => sum + bucket.commits, 0),
+  };
+};
+
+const CustomTooltip = ({ active, payload }) => {
+  const theme = useTheme();
+
+  if (!active || !payload || payload.length === 0) return null;
+
+  const point = payload[0]?.payload;
+  if (!point) return null;
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        p: 1,
+        bgcolor: 'background.paper',
+        borderColor: 'divider',
+        minWidth: 160,
+      }}
+    >
+      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+        Franja horaria local
+      </Typography>
+      <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
+        {point.label}
+      </Typography>
+      <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+        {formatNumber(point.commits)} commits
+      </Typography>
+    </Card>
+  );
 };
 
 export const CommitsByWeekdayHour = ({
@@ -155,48 +151,158 @@ export const CommitsByWeekdayHour = ({
   selectedPeriod = 'all',
 }) => {
   const theme = useTheme();
-  const filteredCommits = useMemo(
-    () => filterCommitsByPeriod(commitsData, selectedPeriod),
+
+  const { topHours, droppedInvalidDate, totalCommitsInRange } = useMemo(
+    () => toHourlyTopData(commitsData, selectedPeriod),
     [commitsData, selectedPeriod]
   );
-  const grouped = groupCommitsByWeekdayAndHour(filteredCommits);
 
-  const data = grouped.map(d => d.total);
-
-  // Tooltip personalizado
-  const tooltipFormatter = ({ xValue, yValue }) => {
-    const dayData = grouped.find(d => d.day === xValue);
-    if (!dayData) return '';
-    const hoursText = Object.entries(dayData.hours)
-      .map(([h, n]) => `${h}:00 → ${n} commit${n > 1 ? 's' : ''}`)
-      .join('\n');
-    return `${xValue}: ${yValue} commit${yValue > 1 ? 's' : ''}\n${hoursText}`;
-  };
+  if (!topHours.length) {
+    return (
+      <Card
+        variant="outlined"
+        sx={{
+          width: '100%',
+          minHeight: 400,
+          position: 'relative',
+          minWidth: 0,
+          overflow: 'hidden',
+        }}
+      >
+        {selectable && (
+          <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
+            <Checkbox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
+          </Box>
+        )}
+        <CardContent sx={{ height: '100%' }}>
+          <Typography variant="subtitle2">{title}</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {interval}
+          </Typography>
+          <NoResultsScreen
+            message="No hay commits suficientes para calcular horas de actividad"
+            sx={{ mt: 2, height: 280 }}
+            iconSX={{ fontSize: 56 }}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card variant="outlined" sx={{ width: '100%', height: 400, position: 'relative' }}>
+    <Card
+      variant="outlined"
+      sx={{
+        width: '100%',
+        minHeight: 400,
+        position: 'relative',
+        minWidth: 0,
+        overflow: 'hidden',
+      }}
+    >
       {selectable && (
-        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+        <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
           <Checkbox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
         </Box>
       )}
-      <CardContent>
-        <Typography variant="subtitle2">{title}</Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
 
-        <BarChart
-          xAxis={[{
-            scaleType: 'band', 
-            categoryGapRatio: 0.5,
-            data: grouped.map(d => d.day)
-          }]}
-          yAxis={[{ width: 50 }]}
-          series={[{ id: 'commits', label: 'Commits', data }]}
-          height={250}
-          colors={[theme.palette.primary.main]}
-          grid={{ horizontal: true }}
-          tooltip={tooltipFormatter}
-        />
+      <CardContent
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          '&:last-child': { pb: 2 },
+        }}
+      >
+        <Typography variant="subtitle2">{title}</Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          {interval}
+        </Typography>
+
+        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.75 }}>
+          Top horas con mas commits (hora local)
+        </Typography>
+
+        <Stack direction="row" flexWrap="wrap" gap={0.75} sx={{ mt: 1, mb: 1.25 }}>
+          {topHours.map((item) => (
+            <Box
+              key={item.label}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 0.9,
+                py: 0.4,
+                borderRadius: 1,
+                bgcolor: 'action.hover',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: 0.4,
+                  bgcolor: item.color,
+                  flexShrink: 0,
+                }}
+              />
+              <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 600 }}>
+                {item.label}: {formatNumber(item.commits)}
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
+
+        <Box sx={{ width: '100%', height: 260, minWidth: 0, mt: 0.25 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={topHours}
+              margin={{ top: 18, right: 8, left: 0, bottom: 4 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: theme.palette.text.primary, fontSize: 12, fontWeight: 600 }}
+                axisLine={{ stroke: theme.palette.divider }}
+                tickLine={{ stroke: theme.palette.divider }}
+              />
+              <YAxis
+                allowDecimals={false}
+                width={40}
+                tick={{ fill: theme.palette.text.primary, fontSize: 12, fontWeight: 500 }}
+                axisLine={{ stroke: theme.palette.divider }}
+                tickLine={{ stroke: theme.palette.divider }}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+              <Bar dataKey="commits" radius={[8, 8, 0, 0]} maxBarSize={58}>
+                {topHours.map((item) => (
+                  <Cell key={`bar-${item.label}`} fill={item.color} />
+                ))}
+                <LabelList
+                  dataKey="commits"
+                  position="top"
+                  formatter={(value) => formatNumber(value)}
+                  style={{
+                    fill: theme.palette.text.primary,
+                    fontSize: 12,
+                    fontWeight: 700,
+                  }}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Box>
+
+        {droppedInvalidDate > 0 && (
+          <Typography variant="caption" sx={{ color: 'warning.main', mt: 0.75 }}>
+            Se omitieron {formatNumber(droppedInvalidDate)} commits con fecha invalida.
+          </Typography>
+        )}
+
+        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.25 }}>
+          Total analizado: {formatNumber(totalCommitsInRange)} commits.
+        </Typography>
       </CardContent>
     </Card>
   );

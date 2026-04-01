@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, Typography, Stack, Chip, Checkbox, TextField, Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { SparkLineChart } from '@mui/x-charts/SparkLineChart';
@@ -17,11 +17,22 @@ export default function PullRequestsCard({
   selectable = false,
   selected = false,
   onSelectChange,
-  selectedPeriod = 'lastMonth'
+  selectedPeriod = 'lastMonth',
+  goal,
+  onGoalChange,
+  allowGoalEdit = false,
 }) {
   const theme = useTheme();
   const safePRs = prs || [];
-  const [customGoal, setCustomGoal] = useState(10);
+  const [customGoal, setCustomGoal] = useState(
+    Number.isFinite(goal) ? Math.max(0, Number(goal)) : 10
+  );
+
+  useEffect(() => {
+    if (Number.isFinite(goal)) {
+      setCustomGoal(Math.max(0, Number(goal)));
+    }
+  }, [goal]);
 
   const filteredPRs = useMemo(() => {
     if (!safePRs.length) return [];
@@ -96,10 +107,12 @@ export default function PullRequestsCard({
   if (!totalPRs) {
     return (
       <Card variant="outlined" sx={{ height: '100%', maxHeight: 300, flexGrow: 1 }}>
-        <CardContent sx={{ height: '100%', p: 0 }}>
+        <CardContent sx={{ height: '100%' }}>
+          <Typography component="h2" variant="subtitle2">{title}</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
           <NoResultsScreen
             message="Sin PRs para mostrar"
-            sx={{ height: '100%' }}
+            sx={{ height: '80%' }}
             textSx={{
               fontSize: {
                 xs: '0.8rem',
@@ -107,7 +120,7 @@ export default function PullRequestsCard({
               }
             }}
             iconSX={{
-              fontSize: 70
+              fontSize: 56
             }}
           />
         </CardContent>
@@ -126,7 +139,7 @@ export default function PullRequestsCard({
         </Box>
       )}
       <CardContent>
-        <Typography component="h2" variant="subtitle2" gutterBottom>{title}</Typography>
+        <Typography component="h2" variant="subtitle2">{title}</Typography>
         <Stack direction="column">
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="h4">{totalPRs}</Typography>
@@ -136,13 +149,18 @@ export default function PullRequestsCard({
               type="number"
               label="Meta"
               value={customGoal}
-              disabled={selectable}
+              disabled={!allowGoalEdit}
               onChange={e => {
                 const val = Number(e.target.value);
-                setCustomGoal(isNaN(val) ? 0 : val);
+                const normalized = Number.isFinite(val) && val >= 0 ? val : 0;
+                setCustomGoal(normalized);
+                onGoalChange?.(normalized);
               }}
               onBlur={() => {
-                if (customGoal === '' || customGoal < 0) setCustomGoal(0);
+                if (customGoal === '' || customGoal < 0) {
+                  setCustomGoal(0);
+                  onGoalChange?.(0);
+                }
               }}
               sx={{ width: 100 }}
               inputProps={{
@@ -169,7 +187,15 @@ export default function PullRequestsCard({
 
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
 
-          <Box sx={{ width: '100%', height: 40, position: 'relative' }}>
+          <Box
+            sx={{
+              width: '100%',
+              height: { xs: 54, sm: 40 },
+              position: 'relative',
+              mt: 0.5,
+              pb: { xs: 1, sm: 0.25 },
+            }}
+          >
             <svg width="0" height="0">
               <defs>
                 <linearGradient id="gradient-prs" x1="0" y1="0" x2="0" y2="1">
@@ -190,6 +216,7 @@ export default function PullRequestsCard({
               xAxis={{ scaleType: 'band', data: prsByDate.dateArray }}
               area
               showTooltip
+              showHighlight
               color={trendColor}
             />
           </Box>

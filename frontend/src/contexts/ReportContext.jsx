@@ -9,7 +9,7 @@ export const ReportProvider = ({ children }) => {
    * Agrega un chart al reporte.
    * @param {Object} options
    * @param {string} options.chartKey - Nombre interno del chart, ej: 'followersCard'
-   * @param {string} options.platform - 'facebook', 'github', 'twitter', etc.
+   * @param {string} options.platform - 'facebook', 'github', 'instagram', etc.
    * @param {string} options.selectedPeriod - 'today', 'lastMonth', etc.
    * @param {string} options.title - Título del chart
    * @param {any} options.data - Datos del chart
@@ -17,8 +17,14 @@ export const ReportProvider = ({ children }) => {
    */
   const addChart = (chart) => {
     setSelectedCharts(prev => {
+      const existingIndex = prev.findIndex((c) => c.id_name === chart.id_name);
+      if (existingIndex !== -1) {
+        const updated = [...prev];
+        updated[existingIndex] = { ...updated[existingIndex], ...chart };
+        return updated;
+      }
+
       const id = crypto.randomUUID();
-      if (prev.some(c => c.id === id)) return prev;
       return [...prev, { ...chart, id }];
     });
   };

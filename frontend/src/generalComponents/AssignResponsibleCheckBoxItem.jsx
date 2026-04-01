@@ -9,6 +9,8 @@ export const AssignResponsibleCheckBoxItem = ({
   responsible,
   checked = false,
   onChange,
+  disabled = false,
+  disabledReason = "",
 }) => {
   const theme = useTheme();
 
@@ -16,7 +18,7 @@ export const AssignResponsibleCheckBoxItem = ({
   const RoleIcon = roleData?.icon ?? QuestionMarkRoundedIcon;
   const roleLabel =
     Object.values(roleConfig).find(r => r.value === responsible?.role) ?? {
-      label: user?.role,
+      label: responsible?.role,
     };
 
   const stateData = Object.values(stateConfig).find(r => r.value === responsible?.state);
@@ -137,22 +139,30 @@ export const AssignResponsibleCheckBoxItem = ({
             </Box>
           </Box>
         </Box>,
-        <Button
-          sx={{
-            height: 36,
-            minWidth: '100px',
-            border: "none",
-            borderRadius: 1,
-            cursor: "pointer", 
-            bgcolor:
-            checked ? theme.palette.error.main : theme.palette.success.main,
-            color: theme.palette.error.contrastText,
-            fontSize: "0.9rem",
-          }}
-          onClick={() => onChange?.(!checked)}
+        <Tooltip
+          title={disabled ? (disabledReason || "No tienes permisos para esta acción.") : ""}
+          placement="top"
         >
-          {checked ? "Desasignar" : "Asignar"}
-        </Button>
+          <span>
+            <Button
+              sx={{
+                height: 36,
+                minWidth: '100px',
+                border: "none",
+                borderRadius: 1,
+                cursor: "pointer",
+                bgcolor:
+                checked ? theme.palette.error.main : theme.palette.success.main,
+                color: theme.palette.error.contrastText,
+                fontSize: "0.9rem",
+              }}
+              onClick={() => onChange?.(!checked)}
+              disabled={disabled}
+            >
+              {checked ? "Desasignar" : "Asignar"}
+            </Button>
+          </span>
+        </Tooltip>
       ]}
     />
   );

@@ -32,7 +32,9 @@ const StrategicPlanningDashboardPage = () => {
   const [selectedYear, setSelectedYear] = useState(null);
   const { user } = useAuth();
   const { loading, callEndpoint } = useFetchAndLoad();
-  const [selectedView, setSelectedView] = useState("Columna");
+  const [selectedView, setSelectedView] = useState(() =>
+    user?.role === roleConfig.superAdmin.value ? "Columna" : "Documento"
+  );
   const [allPlans, setAllPlans] = useState([]);
   const [showColumnsView, setShowColumnsView] = useState(false);
   const [planData, setPlanData] = useState(null);
@@ -73,10 +75,10 @@ const StrategicPlanningDashboardPage = () => {
   }, [year, navigate]);
 
   useEffect(() => {
-    if (user?.role === roleConfig.user.value) {
+    if (user?.role !== roleConfig.superAdmin.value && selectedView !== "Documento") {
       setSelectedView("Documento");
     }
-  }, [user]);
+  }, [user?.role, selectedView]);
 
   useEffect(() => {
     setIsCreatingNewPlan(false);
@@ -136,6 +138,7 @@ const StrategicPlanningDashboardPage = () => {
   }, [year, selectedView]);
 
   const onChangeToColumnsView = () => {
+    if (user?.role !== roleConfig.superAdmin.value) return;
     setIsCreatingNewPlan(true);
     const emptyPlan = {
       mission: "",
@@ -147,7 +150,7 @@ const StrategicPlanningDashboardPage = () => {
   };
 
   const handleViewChange = (event) => {
-  if (user?.role !== roleConfig.admin.value && user?.role !== roleConfig.superAdmin.value) return;
+    if (user?.role !== roleConfig.superAdmin.value) return;
     setIsChildDirty(false);
     setSelectedView(event.target.value);
   };
@@ -226,7 +229,7 @@ const StrategicPlanningDashboardPage = () => {
               }}
             />
 
-            {(user?.role === roleConfig.admin.value || user?.role === roleConfig.superAdmin.value) && planData?.id && (
+            {(user?.role === roleConfig.superAdmin.value) && planData?.id && (
               <FormControl sx={{ minWidth: 150 }} variant="outlined" size="small">
                 <InputLabel>Seleccionar Vista</InputLabel>
                 <Select value={selectedView} onChange={handleViewChange} label="Seleccionar Vista" disabled={isChildDirty}>
@@ -273,12 +276,12 @@ const StrategicPlanningDashboardPage = () => {
           <NoResultsScreen
             message='Año sin plan estratégico registrado'
             buttonText={
-              (user?.role === roleConfig.admin.value || user?.role == roleConfig.superAdmin.value)
+              (user?.role === roleConfig.superAdmin.value)
                 ? "Crear Plan Estratégico"
                 : null 
             }
             onButtonClick={
-              (user?.role === roleConfig.admin.value || user?.role == roleConfig.superAdmin.value)
+              (user?.role === roleConfig.superAdmin.value)
                 ? onChangeToColumnsView
                 : undefined 
             }

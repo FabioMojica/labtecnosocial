@@ -1,3 +1,5 @@
+const SUPPORTED_SOCIAL_PLATFORMS = new Set(["github", "facebook", "instagram"]);
+
 export const createProjectIntegrations = async (
   integrations,
   savedProject,
@@ -9,7 +11,7 @@ export const createProjectIntegrations = async (
 
   integrations.forEach((item) => {
     const { type: platform, data } = item;
-    if (data?.id) {
+    if (SUPPORTED_SOCIAL_PLATFORMS.has(platform) && data?.id) {
       integrationsToCreate.push(
         integrationRepository.create({
           platform,

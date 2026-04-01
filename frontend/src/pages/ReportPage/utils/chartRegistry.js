@@ -19,6 +19,9 @@ import InstagramEngagedAccountsCard from "../../APIsDashboardPage/components/Ins
 import InstagramEngagementRateCard from "../../APIsDashboardPage/components/Instagram/components/EngagementRateCard";
 import InstagramAvgInteractionsPerPostCard from "../../APIsDashboardPage/components/Instagram/components/AvgInteractionsPerPostCard";
 import InstagramContentTypePerformanceCard from "../../APIsDashboardPage/components/Instagram/components/ContentTypePerformanceCard";
+import InteractionsBreakdownCard from "../../APIsDashboardPage/components/Instagram/components/InteractionsBreakdownCard";
+import ProfileConversionFunnelCard from "../../APIsDashboardPage/components/Instagram/components/ProfileConversionFunnelCard";
+import TopInstagramPostsOfThePeriod from "../../APIsDashboardPage/components/Instagram/components/TopInstagramPostsOfThePeriod";
 import CommitsInThePeriod from "../../APIsDashboardPage/components/GitHub/CommitsInThePeriod";
 import { TopCollaboratorsOfThePeriod } from "../../APIsDashboardPage/components/GitHub/TopCollaboratorsOfThePeriod";
 import PullRequestsCard from "../../APIsDashboardPage/components/GitHub/PullRequestCard";
@@ -27,15 +30,6 @@ import { SessionsChart } from "../../APIsDashboardPage/components/GitHub/Session
 import { CommitsByWeekdayHour } from "../../APIsDashboardPage/components/GitHub/CommitsByWeekdayHour";
 import { CustomizedDataGrid } from "../../APIsDashboardPage/components/GitHub/CustomizedDataGrid";
 import ChartCommitsByAuthor from "../../APIsDashboardPage/components/GitHub/ChartCommitsByAuthor";
-import XPostsCard from "../../APIsDashboardPage/components/X/components/FollowersCard";
-import XLikesCard from "../../APIsDashboardPage/components/X/components/PageViewsCard";
-import XRepostsCard from "../../APIsDashboardPage/components/X/components/TotalLikesCard";
-import XRepliesCard from "../../APIsDashboardPage/components/X/components/RepliesCard";
-import XQuotesCard from "../../APIsDashboardPage/components/X/components/QuotesCard";
-import XImpressionsCard from "../../APIsDashboardPage/components/X/components/ImpressionsCard";
-import XBookmarksCard from "../../APIsDashboardPage/components/X/components/BookmarksCard";
-import XInteractionsCard from "../../APIsDashboardPage/components/X/components/TotalReactionsCard";
-import XActivityRateCard from "../../APIsDashboardPage/components/X/components/ActivityRateCard";
 
 export const chartRegistry = {
   facebook: {
@@ -60,7 +54,9 @@ export const chartRegistry = {
     engagementRateCard: InstagramEngagementRateCard,
     avgInteractionsPerPostCard: InstagramAvgInteractionsPerPostCard,
     contentTypePerformanceCard: InstagramContentTypePerformanceCard,
-    topPostOfThePeriod: TopPostOfThePeriod,
+    interactionsBreakdownCard: InteractionsBreakdownCard,
+    profileConversionFunnelCard: ProfileConversionFunnelCard,
+    topPostOfThePeriod: TopInstagramPostsOfThePeriod,
   },
   github: {
     commitsInThePeriodCard: CommitsInThePeriod,
@@ -71,19 +67,7 @@ export const chartRegistry = {
     commitsByWeekdayHourChart: CommitsByWeekdayHour,
     commitGrid: CustomizedDataGrid,
     commitsByAuthorChart: ChartCommitsByAuthor,
-  },
-  x: {
-    postingFrequencyCard: XPostsCard,
-    pageViewsCard: XLikesCard,
-    pageImpressionsCard: XRepostsCard,
-    totalActionsCard: XRepliesCard,
-    postEngagementsCard: XQuotesCard,
-    profileViewsCard: XImpressionsCard,
-    engagedAccountsCard: XBookmarksCard,
-    interactionsCard: XInteractionsCard,
-    engagementRateCard: XActivityRateCard,
-    topPostOfThePeriod: TopPostOfThePeriod,
-  },
+  }
 };
 
 export const getChartComponent = (platform, chartKey) => {

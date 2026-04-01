@@ -14,6 +14,11 @@ import { ProjectIntegration } from '../entities/ProjectIntegration.js';
 dotenv.config();
 
 const SECRET_KEY = process.env.JWT_SECRET;
+const sanitizeUser = (user) => {
+  if (!user) return null;
+  const { password, ...safeUser } = user;
+  return safeUser;
+};
 
 export const me = async (req, res) => {
   try {
@@ -61,7 +66,7 @@ export const me = async (req, res) => {
     return (
       successResponse(
         res,
-        { user },
+        { user: sanitizeUser(user) },
         'Verificación exitosa',
         200
       )
@@ -114,6 +119,16 @@ export const refresh = async (req, res) => {
         )
       );
     }
+
+    if (decoded.sessionVersion !== user.session_version) {
+      return errorResponse(
+        res,
+        ERROR_CODES.SESSION_EXPIRED,
+        'Sesión expirada por cambios en el perfil. Por favor vuelve a iniciar sesión.',
+        401
+      );
+    }
+
     const newToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role, sessionVersion: user.session_version },
       SECRET_KEY,
@@ -122,7 +137,7 @@ export const refresh = async (req, res) => {
     return (
       successResponse(
         res,
-        { token: newToken, user },
+        { token: newToken, user: sanitizeUser(user) },
         'Sesión refrescada exitosamente.',
         200
       )
@@ -230,7 +245,7 @@ export const login = async (req, res) => {
     return (
       successResponse(
         res,
-        { user, accessToken },
+        { user: sanitizeUser(user), accessToken },
         'Inicio de sesión exitoso',
         200
       )

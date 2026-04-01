@@ -1,5 +1,5 @@
 const PERIOD_TO_DAYS = {
-  today: 2,
+  today: 1,
   lastWeek: 7,
   lastMonth: 30,
   lastSixMonths: 180,
@@ -111,6 +111,8 @@ function buildMockInstagramMedia(integrationId = "mock_instagram_page", range = 
     const mediaType = MEDIA_TYPES[index % MEDIA_TYPES.length];
     const likes = 18 + (index % 11) * 9 + Math.floor(index / 5);
     const comments = 3 + (index % 7) * 2;
+    const shares = (index % 4 === 0 ? 2 : 0) + (index % 9 === 0 ? 1 : 0);
+    const saves = 1 + (index % 6);
     const imageSeed = `instagram-mock-${index + 1}`;
     const permalink = `https://www.instagram.com/p/${slugify(integrationId)}_${1000 + index}/`;
 
@@ -127,6 +129,8 @@ function buildMockInstagramMedia(integrationId = "mock_instagram_page", range = 
       timestamp: baseDate.toISOString(),
       like_count: likes,
       comments_count: comments,
+      share_count: shares,
+      saved_count: saves,
     };
 
     if (mediaType === "CAROUSEL_ALBUM") {
@@ -177,8 +181,9 @@ function mapMediaToTopPosts(media = []) {
     .map((item) => {
       const likeCount = toNumber(item?.like_count);
       const commentsCount = toNumber(item?.comments_count);
-      const sharesCount = 0;
-      const popularityScore = likeCount + commentsCount * 2 + sharesCount * 3;
+      const sharesCount = toNumber(item?.share_count);
+      const savesCount = toNumber(item?.saved_count);
+      const popularityScore = likeCount + commentsCount * 2 + sharesCount * 3 + savesCount * 2;
       const previewUrl = pickInstagramPreviewUrl(item);
 
       return {
@@ -191,11 +196,6 @@ function mapMediaToTopPosts(media = []) {
         reactions: {
           byType: {
             LIKE: likeCount,
-            LOVE: 0,
-            WOW: 0,
-            HAHA: 0,
-            SAD: 0,
-            ANGRY: 0,
           },
           total: likeCount,
         },
@@ -205,6 +205,8 @@ function mapMediaToTopPosts(media = []) {
         meta: {
           media_type: item?.media_type,
           thumbnail_url: item?.thumbnail_url || null,
+          saves: savesCount,
+          total_interactions: likeCount + commentsCount + sharesCount + savesCount,
         },
       };
     })
@@ -291,41 +293,93 @@ export function generateMockInstagramInsights(
 ) {
   const dates = buildDateSeries(range);
 
-  let cumulativeFollowers = 4200;
   const followerValues = [];
   const reachValues = [];
-  const impressionsValues = [];
+  const viewsValues = [];
   const profileViewsValues = [];
+  const profileLinksTapsValues = [];
+  const websiteClicksValues = [];
   const accountsEngagedValues = [];
+  const totalInteractionsValues = [];
+  const likesValues = [];
+  const commentsValues = [];
+  const sharesValues = [];
+  const savesValues = [];
+  const repliesValues = [];
+  const repostsValues = [];
 
   dates.forEach((date, index) => {
     const endTime = date.toISOString();
-    const growth = 1 + (index % 5 === 0 ? 2 : 0) - (index % 17 === 0 ? 1 : 0);
-    cumulativeFollowers = Math.max(0, cumulativeFollowers + growth);
+    const dailyFollowers = Math.max(0, 1 + (index % 5 === 0 ? 2 : 0) - (index % 17 === 0 ? 1 : 0));
 
     const reach = 180 + (index % 12) * 16 + Math.floor(index / 6) * 4;
-    const impressions = reach + 120 + (index % 7) * 11;
+    const views = reach + 120 + (index % 7) * 11;
     const profileViews = 28 + (index % 8) * 5 + Math.floor(index / 10) * 2;
+    const profileLinksTaps = Math.max(0, Math.floor(profileViews * (0.28 + (index % 4) * 0.03)));
+    const websiteClicks = Math.max(0, Math.floor(profileLinksTaps * (0.35 + (index % 3) * 0.04)));
     const accountsEngaged = 70 + (index % 10) * 7 + Math.floor(index / 7) * 3;
+    const likes = 30 + (index % 9) * 4;
+    const comments = 8 + (index % 7) * 2;
+    const shares = 4 + (index % 5);
+    const saves = 7 + (index % 6);
+    const replies = 2 + (index % 3);
+    const reposts = index % 4 === 0 ? 1 : 0;
+    const totalInteractions = likes + comments + shares + saves + replies + reposts;
 
     followerValues.push({
-      value: cumulativeFollowers,
+      value: dailyFollowers,
       end_time: endTime,
     });
     reachValues.push({
       value: reach,
       end_time: endTime,
     });
-    impressionsValues.push({
-      value: impressions,
+    viewsValues.push({
+      value: views,
       end_time: endTime,
     });
     profileViewsValues.push({
       value: profileViews,
       end_time: endTime,
     });
+    profileLinksTapsValues.push({
+      value: profileLinksTaps,
+      end_time: endTime,
+    });
+    websiteClicksValues.push({
+      value: websiteClicks,
+      end_time: endTime,
+    });
     accountsEngagedValues.push({
       value: accountsEngaged,
+      end_time: endTime,
+    });
+    totalInteractionsValues.push({
+      value: totalInteractions,
+      end_time: endTime,
+    });
+    likesValues.push({
+      value: likes,
+      end_time: endTime,
+    });
+    commentsValues.push({
+      value: comments,
+      end_time: endTime,
+    });
+    sharesValues.push({
+      value: shares,
+      end_time: endTime,
+    });
+    savesValues.push({
+      value: saves,
+      end_time: endTime,
+    });
+    repliesValues.push({
+      value: replies,
+      end_time: endTime,
+    });
+    repostsValues.push({
+      value: reposts,
       end_time: endTime,
     });
   });
@@ -347,10 +401,10 @@ export function generateMockInstagramInsights(
     }),
     buildMetric({
       integrationId,
-      name: "impressions",
-      title: "Impressions",
-      description: "Daily impressions.",
-      values: impressionsValues,
+      name: "views",
+      title: "Views",
+      description: "Daily content views.",
+      values: viewsValues,
     }),
     buildMetric({
       integrationId,
@@ -361,10 +415,73 @@ export function generateMockInstagramInsights(
     }),
     buildMetric({
       integrationId,
+      name: "profile_links_taps",
+      title: "Profile link taps",
+      description: "Daily taps on profile links.",
+      values: profileLinksTapsValues,
+    }),
+    buildMetric({
+      integrationId,
+      name: "website_clicks",
+      title: "Website clicks",
+      description: "Daily website clicks.",
+      values: websiteClicksValues,
+    }),
+    buildMetric({
+      integrationId,
       name: "accounts_engaged",
       title: "Accounts engaged",
       description: "Daily engaged accounts.",
       values: accountsEngagedValues,
+    }),
+    buildMetric({
+      integrationId,
+      name: "total_interactions",
+      title: "Total interactions",
+      description: "Daily total interactions.",
+      values: totalInteractionsValues,
+    }),
+    buildMetric({
+      integrationId,
+      name: "likes",
+      title: "Likes",
+      description: "Daily likes.",
+      values: likesValues,
+    }),
+    buildMetric({
+      integrationId,
+      name: "comments",
+      title: "Comments",
+      description: "Daily comments.",
+      values: commentsValues,
+    }),
+    buildMetric({
+      integrationId,
+      name: "shares",
+      title: "Shares",
+      description: "Daily shares.",
+      values: sharesValues,
+    }),
+    buildMetric({
+      integrationId,
+      name: "saves",
+      title: "Saves",
+      description: "Daily saves.",
+      values: savesValues,
+    }),
+    buildMetric({
+      integrationId,
+      name: "replies",
+      title: "Replies",
+      description: "Daily replies.",
+      values: repliesValues,
+    }),
+    buildMetric({
+      integrationId,
+      name: "reposts",
+      title: "Reposts",
+      description: "Daily reposts.",
+      values: repostsValues,
     }),
   ];
 }

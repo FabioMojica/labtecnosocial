@@ -29,7 +29,8 @@ const OperationalPlanningDashboardPage = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [ loadingProject, setLoadingProject ] = useState(false);
 
-  const [viewMode, setViewMode] = useState('editable')
+  const [viewMode, setViewMode] = useState(isUser ? 'readonly' : 'editable')
+  const effectiveViewMode = isUser ? 'readonly' : viewMode;
 
   const fetchProjects = async () => {
     try {
@@ -54,10 +55,10 @@ const OperationalPlanningDashboardPage = () => {
           state: { id: id }
         }
       );
-      setViewMode('editable');
+      setViewMode(isUser ? 'readonly' : 'editable');
 
     }
-  }, [selectedProject]);
+  }, [selectedProject, isUser]);
 
   useEffect(() => {
     if (!id || projects.length === 0) return;
@@ -66,9 +67,9 @@ const OperationalPlanningDashboardPage = () => {
 
     if (projectFromState) {
       setSelectedProject(projectFromState);
-      setViewMode('editable');
+      setViewMode(isUser ? 'readonly' : 'editable');
     }
-  }, [id, projects]);
+  }, [id, projects, isUser]);
 
 
   const handleProjectWithoutPlan = (valor) => {
@@ -154,7 +155,7 @@ const OperationalPlanningDashboardPage = () => {
 
           {!projectWithoutPlan && !planLoadError && !loading && !loadingProject && (
             <>
-              {(selectedProject) && (
+              {(selectedProject && !isUser) && (
                 <FormControl
                   sx={{
                     minWidth: { xs: 50, sm: 150 }
@@ -184,7 +185,7 @@ const OperationalPlanningDashboardPage = () => {
                 </FormControl>
               )}
 
-              {(viewMode === 'editable' && selectedProject && !isUser) && (
+              {(effectiveViewMode === 'editable' && selectedProject && !isUser) && (
                 <Box
                   sx={{
                     display: 'flex',
@@ -222,7 +223,7 @@ const OperationalPlanningDashboardPage = () => {
       />
 
       {selectedProject && (
-        viewMode === 'editable' ? (
+        effectiveViewMode === 'editable' ? (
           <OperationalPlanningTable
             projectId={selectedProject?.id}
             project={selectedProject}

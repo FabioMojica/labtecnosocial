@@ -10,12 +10,23 @@ dotenv.config();
 const { INSTAGRAM_TOKEN } = process.env;
 const GRAPH_VERSION = "v17.0";
 const BASE_URL = `https://graph.facebook.com/${GRAPH_VERSION}`;
+const INSTAGRAM_INSIGHTS_MAX_DAYS = 30;
+const INSTAGRAM_TOP_POST_CANDIDATES_DEFAULT = 20;
+const INSTAGRAM_TOP_POST_CANDIDATES_HEAVY_RANGE = 10;
 
 function toIsoDate(value) {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return date.toISOString().split("T")[0];
+}
+
+function addDaysToIsoDate(isoDate, days = 0) {
+  if (!isoDate) return null;
+  const baseDate = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(baseDate.getTime())) return null;
+  baseDate.setUTCDate(baseDate.getUTCDate() + days);
+  return toIsoDate(baseDate);
 }
 
 function getInstagramMediaTypeLabel(type = "") {
@@ -45,8 +56,53 @@ function getRangeBounds(range = "lastMonth") {
   };
 }
 
+function splitIntervalInDays(interval = {}, maxDays = INSTAGRAM_INSIGHTS_MAX_DAYS) {
+  const since = interval?.since;
+  const until = interval?.until;
+
+  if (!since || !until) return [interval];
+
+  const startDate = new Date(`${since}T00:00:00Z`);
+  const endDate = new Date(`${until}T00:00:00Z`);
+
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return [interval];
+  }
+
+  const chunks = [];
+  let chunkStart = new Date(startDate);
+
+  while (chunkStart <= endDate) {
+    const chunkEnd = new Date(chunkStart);
+    chunkEnd.setUTCDate(chunkEnd.getUTCDate() + maxDays - 1);
+    if (chunkEnd > endDate) chunkEnd.setTime(endDate.getTime());
+
+    chunks.push({
+      since: toIsoDate(chunkStart),
+      until: toIsoDate(chunkEnd),
+    });
+
+    chunkStart = new Date(chunkEnd);
+    chunkStart.setUTCDate(chunkStart.getUTCDate() + 1);
+  }
+
+  return chunks;
+}
+
+function getInstagramInsightIntervals(range = "lastMonth") {
+  const { intervals } = getRangeBounds(range);
+  return intervals
+    .flatMap((interval) => splitIntervalInDays(interval))
+    .sort((a, b) => new Date(`${a?.since}T00:00:00Z`) - new Date(`${b?.since}T00:00:00Z`));
+}
+
 function safeNumber(value) {
-  return Number(value) || 0;
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return Number(value) || 0;
+  if (value && typeof value === "object") {
+    return Object.values(value).reduce((acc, current) => acc + safeNumber(current), 0);
+  }
+  return 0;
 }
 
 function pickInstagramPreviewUrl(item = {}) {
@@ -68,13 +124,98 @@ function pickInstagramPreviewUrl(item = {}) {
 
   return directImage || thumbnail || childPreview || null;
 }
-function mapMediaToTopPosts(media = []) {
+function getInsightValue(metricData = {}) {
+  const firstValue = Array.isArray(metricData?.values) ? metricData.values[0] : null;
+  if (firstValue && typeof firstValue === "object") {
+    return safeNumber(firstValue.value);
+  }
+  if (firstValue !== null && firstValue !== undefined) {
+    return safeNumber(firstValue);
+  }
+  return safeNumber(metricData?.value);
+}
+
+function normalizeTotalValueInsightRow(row = {}, metricName = "", interval = {}) {
+  if (!row || typeof row !== "object") return null;
+
+  const name = row?.name || metricName;
+  if (!name) return null;
+
+  const totalValue = safeNumber(row?.total_value?.value);
+  const endTime = interval?.until
+    ? `${interval.until}T23:59:59+0000`
+    : new Date().toISOString();
+
+  return {
+    name,
+    period: "day",
+    title: row?.title,
+    description: row?.description,
+    id: row?.id,
+    values: [
+      {
+        value: totalValue,
+        end_time: endTime,
+      },
+    ],
+  };
+}
+
+async function fetchInstagramMediaInsightsByIds(mediaIds = []) {
+  const uniqueIds = [...new Set(mediaIds.filter(Boolean))];
+  if (uniqueIds.length === 0) return {};
+
+  const entries = await Promise.all(
+    uniqueIds.map(async (mediaId) => {
+      try {
+        const response = await axios.get(`${BASE_URL}/${mediaId}/insights`, {
+          params: {
+            access_token: INSTAGRAM_TOKEN,
+            metric: "likes,comments,shares,saved,total_interactions",
+          },
+        });
+
+        const metrics = Array.isArray(response?.data?.data) ? response.data.data : [];
+        const normalized = metrics.reduce((acc, metric) => {
+          if (!metric?.name) return acc;
+          acc[metric.name] = getInsightValue(metric);
+          return acc;
+        }, {});
+
+        return [mediaId, normalized];
+      } catch (error) {
+        console.warn(
+          `No se pudo obtener insights del media ${mediaId}:`,
+          error.response?.data?.error?.message || error.message
+        );
+        return [mediaId, null];
+      }
+    })
+  );
+
+  return entries.reduce((acc, [mediaId, metrics]) => {
+    if (metrics) acc[mediaId] = metrics;
+    return acc;
+  }, {});
+}
+
+function mapMediaToTopPosts(media = [], mediaInsightsById = {}, options = {}) {
+  const limit = Number.isInteger(options?.limit) && options.limit > 0
+    ? options.limit
+    : Number.POSITIVE_INFINITY;
+
   return media
     .map((item) => {
-      const likeCount = safeNumber(item?.like_count);
-      const commentsCount = safeNumber(item?.comments_count);
-      const sharesCount = 0;
-      const popularityScore = likeCount + commentsCount * 2 + sharesCount * 3;
+      const mediaInsights = mediaInsightsById?.[item?.id] || {};
+      const likeCount = mediaInsights?.likes ?? safeNumber(item?.like_count);
+      const commentsCount = mediaInsights?.comments ?? safeNumber(item?.comments_count);
+      const sharesCount = mediaInsights?.shares ?? 0;
+      const savesCount = mediaInsights?.saved ?? 0;
+      const totalInteractions =
+        mediaInsights?.total_interactions ??
+        likeCount + commentsCount + sharesCount + savesCount;
+      const popularityScore =
+        likeCount + commentsCount * 2 + sharesCount * 3 + savesCount * 2;
       const previewUrl = pickInstagramPreviewUrl(item);
 
       return {
@@ -87,11 +228,6 @@ function mapMediaToTopPosts(media = []) {
         reactions: {
           byType: {
             LIKE: likeCount,
-            LOVE: 0,
-            WOW: 0,
-            HAHA: 0,
-            SAD: 0,
-            ANGRY: 0,
           },
           total: likeCount,
         },
@@ -101,12 +237,14 @@ function mapMediaToTopPosts(media = []) {
         meta: {
           media_type: item?.media_type,
           thumbnail_url: item?.thumbnail_url || null,
+          saves: savesCount,
+          total_interactions: totalInteractions,
         },
       };
     })
     .filter((post) => post.popularityScore > 0)
     .sort((a, b) => b.popularityScore - a.popularityScore)
-    .slice(0, 5);
+    .slice(0, limit);
 }
 
 function buildInstagramMediaAnalytics(media = []) {
@@ -256,13 +394,25 @@ export const getInstagramInsights = async (req, res) => {
     const { instagramId } = req.params;
     const { range = "lastMonth" } = req.query;
 
-    const { intervals } = getRangeBounds(range);
-    const metrics = ["follower_count", "reach", "impressions", "profile_views", "accounts_engaged"];
-
+    const intervals = getInstagramInsightIntervals(range);
+    const dailyMetrics = ["reach"];
+    const totalValueMetrics = [
+      "accounts_engaged",
+      "profile_views",
+      "profile_links_taps",
+      "website_clicks",
+      "total_interactions",
+      "likes",
+      "comments",
+      "shares",
+      "saves",
+      "replies",
+      "reposts",
+    ];
     const allInsights = [];
 
-    for (const metric of metrics) {
-      for (const interval of intervals) {
+    for (const metric of dailyMetrics) {
+      const intervalRequests = intervals.map((interval) => {
         const params = {
           access_token: INSTAGRAM_TOKEN,
           metric,
@@ -272,20 +422,82 @@ export const getInstagramInsights = async (req, res) => {
         if (interval?.since) params.since = interval.since;
         if (interval?.until) params.until = interval.until;
 
-        try {
-          const response = await axios.get(`${BASE_URL}/${instagramId}/insights`, { params });
-          if (Array.isArray(response?.data?.data)) {
-            allInsights.push(...response.data.data);
+        return {
+          interval,
+          request: axios.get(`${BASE_URL}/${instagramId}/insights`, { params }),
+        };
+      });
+
+      const intervalResults = await Promise.allSettled(
+        intervalRequests.map(({ request }) => request)
+      );
+
+      intervalResults.forEach((result) => {
+        if (result.status === "fulfilled") {
+          const rows = Array.isArray(result.value?.data?.data) ? result.value.data.data : [];
+          if (rows.length > 0) {
+            allInsights.push(...rows);
           }
-        } catch (metricError) {
-          // Some metrics may not be available for all account types; skip those metrics without breaking the dashboard.
+          return;
+        }
+
+        const metricError = result.reason;
+        if (metricError?.response?.status !== 400) {
           console.warn(
-            `Metrica de Instagram no disponible (${metric}):`,
+            `Metrica diaria de Instagram no disponible (${metric}):`,
             metricError.response?.data?.error?.message || metricError.message
           );
         }
-      }
+      });
     }
+
+    const totalMetricRequests = totalValueMetrics.flatMap((metric) =>
+      intervals.map((interval) => {
+        const params = {
+          access_token: INSTAGRAM_TOKEN,
+          metric,
+          period: "day",
+          metric_type: "total_value",
+        };
+
+        if (interval?.since) params.since = interval.since;
+        if (interval?.until) params.until = interval.until;
+
+        return {
+          metric,
+          interval,
+          request: axios.get(`${BASE_URL}/${instagramId}/insights`, { params }),
+        };
+      })
+    );
+
+    const totalMetricResults = await Promise.allSettled(
+      totalMetricRequests.map(({ request }) => request)
+    );
+
+    totalMetricResults.forEach((result, index) => {
+      const metric = totalMetricRequests[index]?.metric;
+      const interval = totalMetricRequests[index]?.interval;
+
+      if (result.status === "fulfilled") {
+        const rows = Array.isArray(result.value?.data?.data) ? result.value.data.data : [];
+        if (rows.length > 0) {
+          rows.forEach((row) => {
+            const normalizedRow = normalizeTotalValueInsightRow(row, metric, interval);
+            if (normalizedRow) allInsights.push(normalizedRow);
+          });
+        }
+        return;
+      }
+
+      const metricError = result.reason;
+      if (metricError?.response?.status !== 400) {
+        console.warn(
+          `Metrica total de Instagram no disponible (${metric}):`,
+          metricError.response?.data?.error?.message || metricError.message
+        );
+      }
+    });
 
     const formattedInsights = formatInsights(allInsights);
 
@@ -311,6 +523,12 @@ export const getInstagramMedia = async (req, res) => {
     const { instagramId } = req.params;
     const { range = "lastMonth" } = req.query;
     const { since, until } = getRangeBounds(range);
+    // IG media endpoint requires since < until. For "today" both dates are equal.
+    // We query with an exclusive upper bound (tomorrow) and then keep local filtering
+    // with the original inclusive [since, until] range.
+    const mediaUntilParam = since && until && since === until
+      ? addDaysToIsoDate(until, 1)
+      : until;
 
     let allMedia = [];
     let nextUrl = `${BASE_URL}/${instagramId}/media`;
@@ -323,7 +541,7 @@ export const getInstagramMedia = async (req, res) => {
     };
 
     if (since) firstParams.since = since;
-    if (until) firstParams.until = until;
+    if (mediaUntilParam) firstParams.until = mediaUntilParam;
 
     while (nextUrl) {
       const response = await axios.get(nextUrl, {
@@ -336,8 +554,8 @@ export const getInstagramMedia = async (req, res) => {
       nextUrl = response?.data?.paging?.next || null;
     }
 
-    const sinceDate = since ? new Date(`${since}T00:00:00Z`) : null;
-    const untilDate = until ? new Date(`${until}T23:59:59Z`) : null;
+    const sinceDate = since ? new Date(`${since}T00:00:00`) : null;
+    const untilDate = until ? new Date(`${until}T23:59:59.999`) : null;
 
     if (sinceDate || untilDate) {
       allMedia = allMedia.filter((item) => {
@@ -363,12 +581,21 @@ export const getInstagramMedia = async (req, res) => {
     );
 
     const analytics = buildInstagramMediaAnalytics(allMedia);
+    const topPostCandidatesLimit =
+      range === "lastSixMonths"
+        ? INSTAGRAM_TOP_POST_CANDIDATES_HEAVY_RANGE
+        : INSTAGRAM_TOP_POST_CANDIDATES_DEFAULT;
+
+    const topCandidateIds = mapMediaToTopPosts(allMedia, {}, { limit: topPostCandidatesLimit })
+      .map((post) => post?.id)
+      .filter(Boolean);
+    const mediaInsightsById = await fetchInstagramMediaInsightsByIds(topCandidateIds);
 
     const payload = {
       media: allMedia,
       totals,
       analytics,
-      topPosts: mapMediaToTopPosts(allMedia),
+      topPosts: mapMediaToTopPosts(allMedia, mediaInsightsById, { limit: 5 }),
       meta: {
         range,
         since: toIsoDate(since),

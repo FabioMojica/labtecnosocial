@@ -3,23 +3,23 @@ import { ALLOWED_ROLES } from "../config/allowedStatesAndRoles.js";
 import { ProjectResponsible } from "../entities/ProjectResponsible.js";
 
 export const canAccessProject = async ({ projectId, userId, role }) => {
-  console.log(projectId, userId, role);
-  if (ALLOWED_ROLES.superAdmin) return true;
+  const normalizedProjectId = Number(projectId);
+  if (!Number.isInteger(normalizedProjectId)) return false;
 
-  if (role === ALLOWED_ROLES.user) {
-    const count = await AppDataSource
-      .getRepository(ProjectResponsible)
-      .count({
-        where: {
-          operationalProject: { id: projectId },
-          user: { id: userId },
-        },
-      });
-
-    console.log("count", count);
-
-    return count > 0;
+  if (role === ALLOWED_ROLES.superAdmin || role === ALLOWED_ROLES.admin) {
+    return true;
   }
- 
-  return false;
+
+  if (role !== ALLOWED_ROLES.user) return false;
+
+  const count = await AppDataSource
+    .getRepository(ProjectResponsible)
+    .count({
+      where: {
+        operationalProject: { id: normalizedProjectId },
+        user: { id: userId },
+      },
+    });
+
+  return count > 0;
 };

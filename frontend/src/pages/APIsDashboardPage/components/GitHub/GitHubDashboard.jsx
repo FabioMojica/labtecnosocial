@@ -19,7 +19,55 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import { CHART_IDS_GITHUB } from './utils/chartsIds';
 
+const DEFAULT_GOALS = {
+    commitsInThePeriodCard: 50,
+    pullRequestsCard: 10,
+};
+
+const compactCommitForReport = (commit = {}) => {
+    const authorDate = commit?.commit?.author?.date ?? null;
+    const committerDate = commit?.commit?.committer?.date ?? authorDate;
+
+    return {
+        sha: commit?.sha ?? null,
+        html_url: commit?.html_url ?? null,
+        author: {
+            login: commit?.author?.login ?? commit?.commit?.author?.name ?? null,
+            avatar_url: commit?.author?.avatar_url ?? null,
+        },
+        commit: {
+            message: commit?.commit?.message ?? '',
+            author: {
+                name: commit?.commit?.author?.name ?? null,
+                email: commit?.commit?.author?.email ?? null,
+                date: authorDate,
+            },
+            committer: {
+                name: commit?.commit?.committer?.name ?? commit?.commit?.author?.name ?? null,
+                email: commit?.commit?.committer?.email ?? commit?.commit?.author?.email ?? null,
+                date: committerDate,
+            },
+        },
+    };
+};
+
+const compactPullRequestForReport = (pr = {}) => ({
+    id: pr?.id ?? null,
+    number: pr?.number ?? null,
+    title: pr?.title ?? '',
+    state: pr?.state ?? null,
+    html_url: pr?.html_url ?? null,
+    created_at: pr?.created_at ?? null,
+    closed_at: pr?.closed_at ?? null,
+    merged_at: pr?.merged_at ?? null,
+    user: {
+        login: pr?.user?.login ?? null,
+        avatar_url: pr?.user?.avatar_url ?? null,
+    },
+});
+
 export const GitHubDashboard = ({ project, useMock = true, showingDialog = false }) => {
+    const validPeriods = ['today', 'lastWeek', 'lastMonth', 'lastSixMonths'];
     const { loading, callEndpoint } = useFetchAndLoad();
     const [branches, setBranches] = useState([]);
     const [selectedBranch, setSelectedBranch] = useState('');
@@ -33,6 +81,7 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
     const navBarWidth = useDrawerClosedWidth();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [tooltipOpen, setTooltipOpen] = useState(false);
+    const [chartGoals, setChartGoals] = useState({});
     const theme = useTheme();
     const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
     const integration = integrationsConfig["github"];
@@ -104,6 +153,12 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
         fetchStatsForBranch();
     }, [selectedBranch, selectedPeriod]);
 
+    useEffect(() => {
+        if (!validPeriods.includes(selectedPeriod)) {
+            setSelectedPeriod('lastMonth');
+        }
+    }, [selectedPeriod]);
+
 
     // --- LOADING & ERRORS ---
     if (loading) return <FullScreenProgress text="Obteniendo las ramas del repositorio" />;
@@ -117,11 +172,12 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
             selectedPeriod === 'lastWeek' ? 'Última semana' :
                 selectedPeriod === 'lastMonth' ? 'Último mes' :
                     selectedPeriod === 'lastSixMonths' ? 'Últimos seis meses' :
-                        'Todo';
+                        'Último mes';
 
+    const compactCommitsForReport = (stats?.commits || []).map(compactCommitForReport);
+    const compactPullRequestsForReport = (stats?.pullRequests || []).map(compactPullRequestForReport);
 
-
-    const buildChartPayload = (idName, title, data) => ({
+    const buildChartPayload = (idName, title, data, meta = undefined) => ({
         id_name: idName,
         integration_data: {
             project: {
@@ -135,9 +191,31 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
         title,
         data,
         interval: periodLabel,
+        meta,
     });
 
     const isChartSelected = (idName) => selectedCharts.some((chart) => chart.id_name === idName);
+    const getGoalForChart = (idName, fallback) => {
+        const value = chartGoals[idName];
+        if (Number.isFinite(value) && value >= 0) return value;
+        return fallback;
+    };
+    const setGoalForChart = (idName, value) => {
+        const normalized = Number.isFinite(value) && value >= 0 ? value : 0;
+        setChartGoals((prev) => ({ ...prev, [idName]: normalized }));
+    };
+
+    const commitsInPeriodId = CHART_IDS_GITHUB.commitsInThePeriodCard(selectedPeriod);
+    const pullRequestsId = CHART_IDS_GITHUB.pullRequestsCard(selectedPeriod);
+    const topCollaboratorsId = CHART_IDS_GITHUB.topCollaboratorsCard(selectedPeriod);
+    const collaboratorsWithoutPushId = CHART_IDS_GITHUB.collaboratorsWithoutPushCard(selectedPeriod);
+    const sessionsChartId = CHART_IDS_GITHUB.sessionsChart(selectedPeriod);
+    const commitsByWeekdayHourId = CHART_IDS_GITHUB.commitsByWeekdayHourChart(selectedPeriod);
+    const commitGridId = CHART_IDS_GITHUB.commitGrid(selectedPeriod);
+    const commitsByAuthorId = CHART_IDS_GITHUB.commitsByAuthorChart(selectedPeriod);
+
+    const commitsGoal = getGoalForChart(commitsInPeriodId, DEFAULT_GOALS.commitsInThePeriodCard);
+    const pullRequestsGoal = getGoalForChart(pullRequestsId, DEFAULT_GOALS.pullRequestsCard);
 
     return (
         <Box
@@ -156,6 +234,7 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
                 bgcolor: (theme) => theme.palette.background.default,
                 zIndex: isFullscreen ? 1500 : 'auto',
                 overflow: isFullscreen ? 'hidden' : 'visible',
+                overflowX: 'hidden',
                 p: showingDialog ? 1 : 0,
             }}
         >
@@ -236,7 +315,7 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
                                         },
                                     }}
                                     onClick={() => {
-                                        // acción al hacer click, ejemplo abrir url
+                                        // accion al hacer click, ejemplo abrir url
                                         window.open(githubIntegration?.url, "_blank");
                                     }}
                                 >
@@ -273,7 +352,6 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
                     <Tab value="lastWeek" label="Última semana" />
                     <Tab value="lastMonth" label="Último mes" />
                     <Tab value="lastSixMonths" label="Últimos seis meses" />
-                    <Tab value="all" label="Todo" />
                 </Tabs>
 
                 <Tooltip
@@ -309,10 +387,11 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
                 px: {
                     xs: 1,
                     lg: isFullscreen ? 1 : 0,
-                },
+                }, 
                 width: '100%',
                 height: 'auto',
                 overflowY: isFullscreen ? 'auto' : 'visible',
+                overflowX: 'hidden',
                 "&::-webkit-scrollbar": { height: "2px", width: "2px" },
                 "&::-webkit-scrollbar-track": {
                     backgroundColor: theme.palette.background.default,
@@ -326,121 +405,159 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
                     backgroundColor: theme.palette.primary.dark,
                 },
             }}>
-                <Grid container columns={12} spacing={1} size={{ xs: 12, sm: 12, lg: 6 }} sx={{ mb: 1 }}>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Grid container columns={12} spacing={1} sx={{ mb: 1, minWidth: 0 }}>
+                    <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{ minWidth: 0 }}>
                         <CommitsInThePeriod
                             commits={stats?.commits || []}
                             title="Cantidad de commits"
                             interval={periodLabel}
                             selectable={selectable}
-                            selected={isChartSelected(CHART_IDS_GITHUB.commitsInThePeriodCard(selectedPeriod))}
+                            selected={isChartSelected(commitsInPeriodId)}
                             selectedPeriod={selectedPeriod}
+                            goal={commitsGoal}
+                            allowGoalEdit
+                            onGoalChange={(value) => {
+                                setGoalForChart(commitsInPeriodId, value);
+                                if (isChartSelected(commitsInPeriodId)) {
+                                    addChart(
+                                        buildChartPayload(
+                                            commitsInPeriodId,
+                                            'Cantidad de commits',
+                                            compactCommitsForReport,
+                                            { goal: value }
+                                        )
+                                    );
+                                }
+                            }}
                             onSelectChange={(checked) => {
-                                const idName = CHART_IDS_GITHUB.commitsInThePeriodCard(selectedPeriod);
                                 if (checked) {
-                                    addChart(buildChartPayload(idName, 'Cantidad de commits', stats?.commits || []));
+                                    addChart(
+                                        buildChartPayload(
+                                            commitsInPeriodId,
+                                            'Cantidad de commits',
+                                            compactCommitsForReport,
+                                            { goal: commitsGoal }
+                                        )
+                                    );
                                 } else {
-                                    removeChart({ id_name: idName });
+                                    removeChart({ id_name: commitsInPeriodId });
                                 }
                             }}
                         />
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{ minWidth: 0 }}>
                         <TopCollaboratorsOfThePeriod
                             commits={stats?.commits || []}
                             title="Top Colaboradores del Periodo"
                             interval={periodLabel}
                             selectable={selectable}
-                            selected={isChartSelected(CHART_IDS_GITHUB.topCollaboratorsCard(selectedPeriod))}
+                            selected={isChartSelected(topCollaboratorsId)}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
-                                const idName = CHART_IDS_GITHUB.topCollaboratorsCard(selectedPeriod);
                                 if (checked) {
-                                    addChart(buildChartPayload(idName, 'Top Colaboradores del Periodo', stats?.commits || []));
+                                    addChart(buildChartPayload(topCollaboratorsId, 'Top Colaboradores del Periodo', compactCommitsForReport));
                                 } else {
-                                    removeChart({ id_name: idName });
+                                    removeChart({ id_name: topCollaboratorsId });
                                 }
                             }}
                         />
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{ minWidth: 0 }}>
                         <PullRequestsCard
                             prs={stats?.pullRequests || []}
                             title="Pull Requests"
                             interval={periodLabel}
                             selectable={selectable}
-                            selected={isChartSelected(CHART_IDS_GITHUB.pullRequestsCard(selectedPeriod))}
+                            selected={isChartSelected(pullRequestsId)}
                             selectedPeriod={selectedPeriod}
+                            goal={pullRequestsGoal}
+                            allowGoalEdit
+                            onGoalChange={(value) => {
+                                setGoalForChart(pullRequestsId, value);
+                                if (isChartSelected(pullRequestsId)) {
+                                    addChart(
+                                        buildChartPayload(
+                                            pullRequestsId,
+                                            'Pull Requests',
+                                            compactPullRequestsForReport,
+                                            { goal: value }
+                                        )
+                                    );
+                                }
+                            }}
                             onSelectChange={(checked) => {
-                                const idName = CHART_IDS_GITHUB.pullRequestsCard(selectedPeriod);
                                 if (checked) {
-                                    addChart(buildChartPayload(idName, 'Pull Requests', stats?.pullRequests || []));
+                                    addChart(
+                                        buildChartPayload(
+                                            pullRequestsId,
+                                            'Pull Requests',
+                                            compactPullRequestsForReport,
+                                            { goal: pullRequestsGoal }
+                                        )
+                                    );
                                 } else {
-                                    removeChart({ id_name: idName });
+                                    removeChart({ id_name: pullRequestsId });
                                 }
                             }}
                         />
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{ minWidth: 0 }}>
                         <CollaboratorsWithoutPushCard
                             commits={stats?.commits || []}
                             branch={selectedBranch}
                             title="Colaboradores sin push"
                             interval={periodLabel}
                             selectable={selectable}
-                            selected={isChartSelected(CHART_IDS_GITHUB.collaboratorsWithoutPushCard(selectedPeriod))}
+                            selected={isChartSelected(collaboratorsWithoutPushId)}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
-                                const idName = CHART_IDS_GITHUB.collaboratorsWithoutPushCard(selectedPeriod);
                                 if (checked) {
-                                    addChart(buildChartPayload(idName, 'Colaboradores sin push', stats?.commits || []));
+                                    addChart(buildChartPayload(collaboratorsWithoutPushId, 'Colaboradores sin push', compactCommitsForReport));
                                 } else {
-                                    removeChart({ id_name: idName });
+                                    removeChart({ id_name: collaboratorsWithoutPushId });
                                 }
                             }}
                         />
                     </Grid>
                 </Grid>
 
-                <Grid container columns={12} spacing={1} sx={{ mb: 1 }}>
+                <Grid container columns={12} spacing={1} sx={{ mb: 1, minWidth: 0 }}>
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    <Grid size={{ xs: 12, md: 6 }} sx={{ minWidth: 0 }}>
                         <SessionsChart
                             commitsData={stats?.commits || []}
                             title="Historial de commits"
                             interval={periodLabel}
                             selectable={selectable}
-                            selected={isChartSelected(CHART_IDS_GITHUB.sessionsChart(selectedPeriod))}
+                            selected={isChartSelected(sessionsChartId)}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
-                                const idName = CHART_IDS_GITHUB.sessionsChart(selectedPeriod);
                                 if (checked) {
-                                    addChart(buildChartPayload(idName, 'Historial de commits', stats?.commits || []));
+                                    addChart(buildChartPayload(sessionsChartId, 'Historial de commits', compactCommitsForReport));
                                 } else {
-                                    removeChart({ id_name: idName });
+                                    removeChart({ id_name: sessionsChartId });
                                 }
                             }}
                         />
                     </Grid>
 
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    <Grid size={{ xs: 12, md: 6 }} sx={{ minWidth: 0 }}>
                         <CommitsByWeekdayHour
                             commitsData={stats?.commits || []}
                             title="Horas con mas commits"
                             interval={periodLabel}
                             selectable={selectable}
-                            selected={isChartSelected(CHART_IDS_GITHUB.commitsByWeekdayHourChart(selectedPeriod))}
+                            selected={isChartSelected(commitsByWeekdayHourId)}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
-                                const idName = CHART_IDS_GITHUB.commitsByWeekdayHourChart(selectedPeriod);
                                 if (checked) {
-                                    addChart(buildChartPayload(idName, 'Horas con mas commits', stats?.commits || []));
+                                    addChart(buildChartPayload(commitsByWeekdayHourId, 'Horas con mas commits', compactCommitsForReport));
                                 } else {
-                                    removeChart({ id_name: idName });
+                                    removeChart({ id_name: commitsByWeekdayHourId });
                                 }
                             }}
                         />
@@ -448,42 +565,40 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
                 </Grid>
 
 
-                <Grid container spacing={1} columns={12}>
-                    <Grid size={{ xs: 12, lg: 9 }}>
+                <Grid container spacing={1} columns={12} sx={{ minWidth: 0 }}>
+                    <Grid size={{ xs: 12, lg: 9 }} sx={{ minWidth: 0 }}>
                         <CustomizedDataGrid
                             commits={stats?.commits || []}
                             title="Historial de Commits"
                             interval={periodLabel}
                             selectable={selectable}
-                            selected={isChartSelected(CHART_IDS_GITHUB.commitGrid(selectedPeriod))}
+                            selected={isChartSelected(commitGridId)}
                             selectedPeriod={selectedPeriod}
                             onSelectChange={(checked) => {
-                                const idName = CHART_IDS_GITHUB.commitGrid(selectedPeriod);
                                 if (checked) {
-                                    addChart(buildChartPayload(idName, 'Historial de Commits', stats?.commits || []));
+                                    addChart(buildChartPayload(commitGridId, 'Historial de Commits', compactCommitsForReport));
                                 } else {
-                                    removeChart({ id_name: idName });
+                                    removeChart({ id_name: commitGridId });
                                 }
                             }}
                         />
 
                     </Grid>
 
-                    <Grid size={{ xs: 12, lg: 3 }}>
+                    <Grid size={{ xs: 12, lg: 3 }} sx={{ minWidth: 0 }}>
                         <Stack gap={2} direction={{ xs: 'column', sm: 'row', lg: 'column' }}>
                             <ChartCommitsByAuthor
                                 commits={stats?.commits || []}
                                 title="Porcentaje de Commits"
                                 interval={periodLabel}
                                 selectable={selectable}
-                                selected={isChartSelected(CHART_IDS_GITHUB.commitsByAuthorChart(selectedPeriod))}
+                                selected={isChartSelected(commitsByAuthorId)}
                                 selectedPeriod={selectedPeriod}
                                 onSelectChange={(checked) => {
-                                    const idName = CHART_IDS_GITHUB.commitsByAuthorChart(selectedPeriod);
                                     if (checked) {
-                                        addChart(buildChartPayload(idName, 'Porcentaje de Commits', stats?.commits || []));
+                                        addChart(buildChartPayload(commitsByAuthorId, 'Porcentaje de Commits', compactCommitsForReport));
                                     } else {
-                                        removeChart({ id_name: idName });
+                                        removeChart({ id_name: commitsByAuthorId });
                                     }
                                 }}
                             />

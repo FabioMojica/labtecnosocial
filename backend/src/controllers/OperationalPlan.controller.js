@@ -1,18 +1,30 @@
 import { AppDataSource } from '../../data-source.js';
 import { OperationalProject } from '../entities/OperationalProject.js';
 import { OperationalRow } from '../entities/OperationalRow.js';
+import { In } from 'typeorm';
 import { isRowEmpty } from '../utils/isRowEmpty.js';
+import { canAccessProject } from '../utils/canAccessProject.js';
 import { errorResponse, successResponse, ERROR_CODES } from "../utils/apiResponse.js"
 
 
 export const getOperationalPlanOfProject = async (req, res) => {
   try {
     const { id } = req.params;
+    const parsedProjectId = Number(id);
+
+    if (!Number.isInteger(parsedProjectId)) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'ID de proyecto inválido.',
+        400
+      );
+    }
 
     const rowRepository = AppDataSource.getRepository(OperationalRow);
     const projectRepository = AppDataSource.getRepository(OperationalProject);
 
-    const project = await projectRepository.findOneBy({ id: parseInt(id) });
+    const project = await projectRepository.findOneBy({ id: parsedProjectId });
     if (!project) {
       return errorResponse(
         res,
@@ -22,8 +34,23 @@ export const getOperationalPlanOfProject = async (req, res) => {
       );
     }
 
+    const hasAccess = await canAccessProject({
+      projectId: parsedProjectId,
+      userId: req.user.id,
+      role: req.user.role,
+    });
+
+    if (!hasAccess) {
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'No tienes permisos para acceder a este plan operativo.',
+        403
+      );
+    }
+
     const rows = await rowRepository.find({
-      where: { operationalProject: { id: parseInt(id) } },
+      where: { operationalProject: { id: parsedProjectId } },
       order: { id: 'ASC' },
     });
 
@@ -55,6 +82,7 @@ export const saveOperationalPlanOfProject = async (req, res) => {
 
   try {
     const { id: projectId } = req.params;
+    const parsedProjectId = Number(projectId);
     const {
       operationalPlan_version: clientVersion,
       create = [],
@@ -62,13 +90,22 @@ export const saveOperationalPlanOfProject = async (req, res) => {
       delete: deleteIds = []
     } = req.body;
 
+    if (!Number.isInteger(parsedProjectId)) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'ID de proyecto inválido.',
+        400
+      );
+    }
+
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     const rowRepository = queryRunner.manager.getRepository(OperationalRow);
     const projectRepository = queryRunner.manager.getRepository(OperationalProject);
 
-    const project = await projectRepository.findOneBy({ id: parseInt(projectId) });
+    const project = await projectRepository.findOneBy({ id: parsedProjectId });
 
     if (!project) {
       await queryRunner.rollbackTransaction();
@@ -77,6 +114,22 @@ export const saveOperationalPlanOfProject = async (req, res) => {
         ERROR_CODES.RESOURCE_NOT_FOUND,
         'No se encontró el proyecto para guardar su plan operativo.',
         404
+      );
+    }
+
+    const hasAccess = await canAccessProject({
+      projectId: parsedProjectId,
+      userId: req.user.id,
+      role: req.user.role,
+    });
+
+    if (!hasAccess) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'No tienes permisos para editar este plan operativo.',
+        403
       );
     }
 
@@ -94,7 +147,37 @@ export const saveOperationalPlanOfProject = async (req, res) => {
     }
 
     if (deleteIds.length > 0) {
-      await rowRepository.delete(deleteIds);
+      const normalizedDeleteIds = deleteIds.map((id) => Number(id));
+      const hasInvalidDeleteIds = normalizedDeleteIds.some((id) => !Number.isInteger(id));
+
+      if (hasInvalidDeleteIds) {
+        await queryRunner.rollbackTransaction();
+        return errorResponse(
+          res,
+          ERROR_CODES.VALIDATION_ERROR,
+          'Existe una fila con id inválido para eliminar.',
+          400
+        );
+      }
+
+      const rowsBelongingToProject = await rowRepository.find({
+        where: {
+          id: In(normalizedDeleteIds),
+          operationalProject: { id: parsedProjectId },
+        },
+      });
+
+      if (rowsBelongingToProject.length !== normalizedDeleteIds.length) {
+        await queryRunner.rollbackTransaction();
+        return errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'No puedes eliminar filas de otro proyecto.',
+          403
+        );
+      }
+
+      await rowRepository.delete(normalizedDeleteIds);
     }
 
     for (const rowData of update) {
@@ -102,7 +185,25 @@ export const saveOperationalPlanOfProject = async (req, res) => {
         continue;
       }
 
-      const existingRow = await rowRepository.findOneBy({ id: rowData.id });
+      const rowId = Number(rowData.id);
+      if (!Number.isInteger(rowId)) {
+        await queryRunner.rollbackTransaction();
+        return (
+          errorResponse(
+            res,
+            ERROR_CODES.VALIDATION_ERROR,
+            'Existe una fila con id inválido para actualizar.',
+            400,
+          )
+        );
+      }
+
+      const existingRow = await rowRepository.findOne({
+        where: {
+          id: rowId,
+          operationalProject: { id: parsedProjectId },
+        }
+      });
       if (!existingRow) {
         await queryRunner.rollbackTransaction();
         return (
@@ -159,7 +260,7 @@ export const saveOperationalPlanOfProject = async (req, res) => {
     await queryRunner.commitTransaction();
 
     const savedRows = await rowRepository.find({
-      where: { operationalProject: { id: parseInt(projectId) } },
+      where: { operationalProject: { id: parsedProjectId } },
     });
 
     return (
@@ -191,16 +292,26 @@ export const saveOperationalPlanOfProject = async (req, res) => {
 
 export const deleteOperationalPlanOfProject = async (req, res) => {
   const { id } = req.params;
+  const parsedProjectId = Number(id);
   const queryRunner = AppDataSource.createQueryRunner();
 
   try {
+    if (!Number.isInteger(parsedProjectId)) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'ID de proyecto inválido.',
+        400
+      );
+    }
+
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     const projectRepository = queryRunner.manager.getRepository(OperationalProject);
     const rowRepository = queryRunner.manager.getRepository(OperationalRow);
 
-    const project = await projectRepository.findOneBy({ id: parseInt(id) });
+    const project = await projectRepository.findOneBy({ id: parsedProjectId });
 
     if (!project) {
       await queryRunner.rollbackTransaction();
@@ -212,8 +323,24 @@ export const deleteOperationalPlanOfProject = async (req, res) => {
       );
     }
 
+    const hasAccess = await canAccessProject({
+      projectId: parsedProjectId,
+      userId: req.user.id,
+      role: req.user.role,
+    });
+
+    if (!hasAccess) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'No tienes permisos para eliminar este plan operativo.',
+        403
+      );
+    }
+
     const rowsToDelete = await rowRepository.find({
-      where: { operationalProject: { id: parseInt(id) } },
+      where: { operationalProject: { id: parsedProjectId } },
     });
 
     if (rowsToDelete.length === 0) {

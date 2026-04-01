@@ -114,7 +114,8 @@ export default function CollaboratorsWithoutPushCard({
                                 sm: '0.9rem'
                             }
                         }}
-                        icon={<ErrorOutlineRoundedIcon sx={{ fontSize: 30, color: 'text.secondary' }} />}
+                        icon={<ErrorOutlineRoundedIcon />}
+                        iconSX={{ fontSize: 44, color: 'text.secondary' }}
                     />
                 ) : (
                     <Stack spacing={1} sx={{
@@ -126,11 +127,18 @@ export default function CollaboratorsWithoutPushCard({
                         },
                     }}>
                         {collaboratorsWithoutPush.map((user, i) => (
-                            <>
-                                <Stack key={i} direction="row" alignItems="center" spacing={1}>
+                            <React.Fragment key={`${user.login}-${i}`}>
+                                <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
                                     <Avatar src={user.avatar} alt={user.login} sx={{ width: 28, height: 28 }} />
-                                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                        <Typography variant="body2" fontSize={12}>{user.login}</Typography>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+                                        <Typography
+                                            variant="body2"
+                                            fontSize={12}
+                                            noWrap
+                                            sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                        >
+                                            {user.login}
+                                        </Typography>
                                         <Typography
                                             variant="body2"
                                             fontSize={12}
@@ -138,14 +146,23 @@ export default function CollaboratorsWithoutPushCard({
                                             href={`https://github.com/${user.login}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            sx={{ textDecoration: 'none', color: theme.palette.primary.main, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                                            noWrap
+                                            sx={{
+                                                textDecoration: 'none',
+                                                color: theme.palette.primary.main,
+                                                cursor: 'pointer',
+                                                minWidth: 0,
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                '&:hover': { textDecoration: 'underline' }
+                                            }}
                                         >
                                             {user.email}
                                         </Typography>
 
                                     </Box>
                                 </Stack>
-                            </>
+                            </React.Fragment>
                         ))}
                     </Stack>
                 )}

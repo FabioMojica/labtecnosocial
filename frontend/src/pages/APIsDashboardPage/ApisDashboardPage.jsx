@@ -16,7 +16,6 @@ import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { GitHubDashboard } from './components/GitHub/GitHubDashboard';
 import { FacebookDashboard } from './components/Facebook/FacebookDashboard';
 import { InstagramDashboard } from './components/Instagram/InstagramDashboard';
-import { XDashboard } from './components/X/XDashboard';
 
 export const APIsDashboardPage = ({ showingDialog = false }) => {
     const [projects, setProjects] = useState([]);
@@ -99,8 +98,6 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
                 return <FacebookDashboard showingDialog={showingDialog} project={selectedProject} />;
             case 'instagram':
                 return <InstagramDashboard showingDialog={showingDialog} project={selectedProject} />;
-            case 'x':
-                return <XDashboard showingDialog={showingDialog} project={selectedProject} />;
             default:
                 return null;
         }
@@ -115,6 +112,7 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
             sx={{
                 width: '100%',
                 height: '100%',
+                overflowX: 'hidden',
             }}
         >
             <Box
@@ -151,19 +149,19 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
                     />
 
                     {selectedProject && (
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                borderRadius: 2,
-                                px: 1.1,
-                                py: 1,
-                                minWidth: { xs: '100%', md: 320 },
-                                bgcolor: 'background.paper',
-                            }}
-                        >
+                         <Box
+                             sx={{
+                                 display: 'flex',
+                                 flexDirection: 'column',
+                                 border: '1px solid',
+                                 borderColor: 'divider',
+                                 borderRadius: 2,
+                                 px: 1.1,
+                                 py: 1,
+                                 minWidth: { xs: '100%', lg: 520 },
+                                 bgcolor: 'background.paper',
+                             }}
+                         >
                             <Typography
                                 variant='caption'
                                 sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: 0.3 }}
@@ -171,14 +169,17 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
                                 Plataforma del dashboard
                             </Typography>
 
-                            <Box
-                                sx={{
-                                    display: 'grid',
-                                    gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(auto-fit, minmax(110px, 1fr))' },
-                                    gap: 0.8,
-                                    mt: 0.8,
-                                }}
-                            >
+                             <Box
+                                 sx={{
+                                     display: 'grid',
+                                     gridTemplateColumns: {
+                                         xs: 'repeat(2, minmax(0, 1fr))',
+                                         lg: 'repeat(3, minmax(0, 1fr))',
+                                     },
+                                     gap: 0.8,
+                                     mt: 0.8,
+                                 }}
+                             >
                                 {availableIntegrations.map((integration) => {
                                     const config = integrationsConfig[integration.platform];
                                     if (!config) return null;

@@ -61,12 +61,13 @@ export const ChartSelectorDialog = ({ open, onClose, onAcept }) => {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleCancel} color="inherit">
+        <Button onClick={handleCancel} variant="contained" color="error">
           Cancelar
         </Button>
         <Button 
           onClick={handleAccept}
           variant="contained"
+          color="success"
           disabled={selectedCharts?.length === 0}
         >
           Aceptar

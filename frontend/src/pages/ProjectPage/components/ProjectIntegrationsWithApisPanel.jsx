@@ -3,7 +3,6 @@ import { Grid } from "@mui/material";
 import { GithubApi } from './GitHubAPI';
 import { FacebookApi } from './FacebookAPI';
 import { InstagramApi } from './InstagramAPI';
-import { XApi } from "./XAPI";
 import { useEffect, useRef, useState } from "react";
 
 
@@ -14,7 +13,6 @@ export const ProjectIntegrationsWithApisPanel = ({ panelHeight, integrations, on
     const gitHubIntegration = initialIntegrationsRef.current.find(i => i.platform === 'github');
     const facebookIntegration = initialIntegrationsRef.current.find(i => i.platform === 'facebook');
     const instagramIntegration = initialIntegrationsRef.current.find(i => i.platform === 'instagram');
-    const xIntegration = initialIntegrationsRef.current.find(i => i.platform === 'x');
 
     useEffect(() => {
         initialIntegrationsRef.current = integrations;
@@ -24,7 +22,6 @@ export const ProjectIntegrationsWithApisPanel = ({ panelHeight, integrations, on
         github: { intAnadidos: [], intEliminados: [] },
         facebook: { intAnadidos: [], intEliminados: [] },
         instagram: { intAnadidos: [], intEliminados: [] },
-        x: { intAnadidos: [], intEliminados: [] },
     });
 
     const handleChangePlatform = (platform) => ({
@@ -54,7 +51,7 @@ export const ProjectIntegrationsWithApisPanel = ({ panelHeight, integrations, on
     };
 
     return (
-        <Grid container spacing={1} columns={4} sx={{ width: "100%", p: 1 }}>
+        <Grid container spacing={1} columns={3} sx={{ width: "100%", p: 1 }}>
             <Grid size={{ sm: 4, md: 1, xs: 4 }}>
                 <GithubApi
                     panelHeight={panelHeight}
@@ -80,15 +77,6 @@ export const ProjectIntegrationsWithApisPanel = ({ panelHeight, integrations, on
                     resetTrigger={resetTrigger}
                     />
             </Grid>
-  
-            <Grid size={{ sm: 4, md: 1, xs: 4 }}>
-                <XApi
-                    panelHeight={panelHeight}
-                    xIntegration={xIntegration}
-                    onChange={handleChangePlatform('x')}
-                    resetTrigger={resetTrigger}
-                />
-            </Grid> 
         </Grid>
     );
 };

@@ -10,6 +10,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import { Checkbox } from '@mui/material';
+import { formatNumber } from '../Facebook/utils/cards';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
@@ -56,6 +57,17 @@ const colors = [
   'hsl(220, 20%, 35%)',
   'hsl(220, 20%, 25%)',
 ];
+
+const formatPercentage = (percentage = 0) => {
+  if (percentage <= 0) return '0%';
+  if (percentage < 10) {
+    return `${percentage.toLocaleString('es-BO', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })}%`;
+  }
+  return `${Math.round(percentage)}%`;
+};
 
 export default function ChartCommitsByAuthor({
   commits,
@@ -117,20 +129,37 @@ export default function ChartCommitsByAuthor({
   // Top 10 autores
   const authorsArray = Object.values(authorsMap);
   const sortedAuthors = authorsArray.sort((a, b) => b.count - a.count);
-  const topAuthors = sortedAuthors.slice(0, 10);
+  const totalCommits = filteredCommits.length;
+  const topAuthors = sortedAuthors.slice(0, 10).map((author) => ({
+    ...author,
+    percentage: totalCommits > 0 ? (author.count / totalCommits) * 100 : 0,
+  }));
   const otherCount = sortedAuthors.slice(10).reduce((acc, a) => acc + a.count, 0);
 
-  const totalCommits = filteredCommits.length;
-
   const pieData = [
-    ...topAuthors.map(a => ({ label: a.name, value: (a.count / totalCommits) * 100 })),
+    ...topAuthors.map((author) => ({
+      label: author.name,
+      value: author.count,
+      commits: author.count,
+      percentage: author.percentage,
+    })),
   ];
-  if (otherCount > 0) pieData.push({ label: 'Otros', value: (otherCount / totalCommits) * 100 });
+  if (otherCount > 0) {
+    pieData.push({
+      label: 'Otros',
+      value: otherCount,
+      commits: otherCount,
+      percentage: totalCommits > 0 ? (otherCount / totalCommits) * 100 : 0,
+    });
+  }
 
   const colorsForPie = [...colors, 'hsl(220, 20%, 15%)']; 
 
   return (
-    <Card variant="outlined" sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1, position: 'relative' }}>
+    <Card
+      variant="outlined"
+      sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1, position: 'relative', minWidth: 0, overflow: 'hidden' }}
+    >
       {selectable && totalCommits > 0 && (
         <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
           <Checkbox
@@ -139,41 +168,53 @@ export default function ChartCommitsByAuthor({
           />
         </Box>
       )}
-      <CardContent>
+      <CardContent sx={{ minWidth: 0 }}>
         <Typography component="h2" variant="subtitle2">
           {title}
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Typography variant="caption" color="text.secondary">{interval}</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>
           <PieChart
             colors={colorsForPie}
             margin={{ left: 80, right: 80, top: 80, bottom: 80 }}
-            series={[{ data: pieData, innerRadius: 75, outerRadius: 100, paddingAngle: 0, highlightScope: { fade: 'global', highlight: 'item' } }]}
+            series={[{
+              data: pieData,
+              innerRadius: 75,
+              outerRadius: 100,
+              paddingAngle: 0,
+              highlightScope: { fade: 'global', highlight: 'item' },
+              valueFormatter: (item) =>
+                `${formatPercentage(item?.percentage ?? 0)} | ${formatNumber(item?.commits ?? item?.value ?? 0)} commits`,
+            }]}
             height={260}
             width={260}
             hideLegend
           >
-            { totalCommits.length > 0 &&
-            <PieCenterLabel primaryText={totalCommits.toString()} secondaryText="Total" />
+            {totalCommits > 0 &&
+            <PieCenterLabel primaryText={formatNumber(totalCommits)} secondaryText="Total commits" />
             }
-            
+             
           </PieChart>
         </Box>
 
         {topAuthors.map((author, index) => (
-          <Stack key={index} direction="row" sx={{ alignItems: 'center', gap: 2, pb: 2 }}>
+          <Stack key={index} direction="row" sx={{ alignItems: 'center', gap: 2, pb: 2, minWidth: 0 }}>
             <img src={author.avatar_url} alt={author.login} width={24} height={24} style={{ borderRadius: '50%' }} />
             <Stack sx={{ gap: 1, flexGrow: 1 }}>
               <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: '500' }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: '500', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
                   {author.name}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {Math.round((author.count / totalCommits) * 100)}%
+                  {formatPercentage(author.percentage)} | {formatNumber(author.count)} commits
                 </Typography>
               </Stack>
               <LinearProgress
                 variant="determinate"
-                value={(author.count / totalCommits) * 100}
+                value={author.percentage}
                 sx={{ [`& .${linearProgressClasses.bar}`]: { backgroundColor: colors[index % colors.length] } }}
               />
             </Stack>
@@ -187,7 +228,7 @@ export default function ChartCommitsByAuthor({
               <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: '500' }}>Otros</Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {Math.round((otherCount / totalCommits) * 100)}%
+                  {formatPercentage(totalCommits > 0 ? (otherCount / totalCommits) * 100 : 0)} | {formatNumber(otherCount)} commits
                 </Typography>
               </Stack>
               <LinearProgress

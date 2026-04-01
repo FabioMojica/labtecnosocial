@@ -59,7 +59,7 @@ export const chartPropsMap = {
         },
         pageImpressionsCard: {
             component: "pageImpressionsCard",
-            defaultTitle: "Impresiones",
+            defaultTitle: "Vistas",
             usesInterval: true,
         },
         profileViewsCard: {
@@ -95,6 +95,16 @@ export const chartPropsMap = {
         contentTypePerformanceCard: {
             component: "organicOrPaidViewsCard",
             defaultTitle: "Rendimiento por formato",
+            usesInterval: true,
+        },
+        interactionsBreakdownCard: {
+            component: "organicOrPaidViewsCard",
+            defaultTitle: "Desglose de interacciones",
+            usesInterval: true,
+        },
+        profileConversionFunnelCard: {
+            component: "organicOrPaidViewsCard",
+            defaultTitle: "Embudo de conversion",
             usesInterval: true,
         },
         topPostOfThePeriod: {
@@ -151,58 +161,6 @@ export const chartPropsMap = {
             defaultTitle: "Porcentaje de Commits",
             usesInterval: true,
             dataProp: "commits",
-        },
-    },
-    x: {
-        postingFrequencyCard: {
-            component: "postingFrequencyCard",
-            defaultTitle: "Publicaciones",
-            usesInterval: true,
-        },
-        pageViewsCard: {
-            component: "pageViewsCard",
-            defaultTitle: "Likes",
-            usesInterval: true,
-        },
-        pageImpressionsCard: {
-            component: "pageImpressionsCard",
-            defaultTitle: "Reposts",
-            usesInterval: true,
-        },
-        totalActionsCard: {
-            component: "totalActionsCard",
-            defaultTitle: "Respuestas",
-            usesInterval: true,
-        },
-        postEngagementsCard: {
-            component: "postEngagementsCard",
-            defaultTitle: "Citas",
-            usesInterval: true,
-        },
-        profileViewsCard: {
-            component: "profileViewsCard",
-            defaultTitle: "Impresiones",
-            usesInterval: true,
-        },
-        engagedAccountsCard: {
-            component: "engagedAccountsCard",
-            defaultTitle: "Guardados",
-            usesInterval: true,
-        },
-        interactionsCard: {
-            component: "organicOrPaidViewsCard",
-            defaultTitle: "Interacciones totales",
-            usesInterval: true,
-        },
-        engagementRateCard: {
-            component: "engagementRateCard",
-            defaultTitle: "Interacciones por post",
-            usesInterval: true,
-        },
-        topPostOfThePeriod: {
-            component: "topPostOfThePeriod",
-            defaultTitle: "Top tweets de X",
-            usesInterval: true,
         },
     },
 };

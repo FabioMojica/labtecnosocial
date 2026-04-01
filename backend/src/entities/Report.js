@@ -11,6 +11,7 @@ const reportElementSchema = z.object({
   imageKey: z.string().uuid().optional(), 
   height: z.number().optional(),
   data: z.any().optional(),
+  meta: z.any().optional(),
   integration_data: z.any().optional(),
   period: z.string().optional(),
   periodLabel: z.string().optional(),

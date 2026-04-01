@@ -1,39 +1,46 @@
 
-import { subDays, subWeeks, subMonths, differenceInDays, addDays } from "date-fns";
+import { differenceInDays, subDays } from "date-fns";
 
 const MAX_DAYS = 93;
 
-const toFacebookDate = (date) =>
-  date.toISOString().split("T")[0];
+const toFacebookDate = (value) => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 export const resolveDateRange = (range) => {
-  const now = new Date();
+  const end = new Date();
+  end.setHours(0, 0, 0, 0);
 
   if (range === "all") {
     return [{}];
   }
 
-  let start;
-  let end = now;
+  let windowDays;
 
   switch (range) {
     case "today":
-      start = subDays(now, 2);
+      windowDays = 1;
       break;
     case "lastWeek":
-      start = subWeeks(now, 1);
+      windowDays = 7;
       break;
     case "lastMonth":
-      start = subMonths(now, 1);
+      windowDays = 30;
       break;
     case "lastSixMonths":
-      start = subMonths(now, 6);
+      windowDays = 180;
       break;
     default:
-      start = subMonths(now, 1);
+      windowDays = 30;
   }
 
-  const totalDays = differenceInDays(end, start);
+  const start = subDays(end, windowDays - 1);
+  const totalDays = differenceInDays(end, start) + 1;
 
   if (totalDays <= MAX_DAYS) {
     return [{ since: toFacebookDate(start), until: toFacebookDate(end) }];
@@ -41,17 +48,18 @@ export const resolveDateRange = (range) => {
 
   const intervals = [];
   let chunkEnd = end;
-  let chunkStart;
 
-  while (differenceInDays(chunkEnd, start) > 0) {
-    chunkStart = subDays(chunkEnd, MAX_DAYS); 
-    if (differenceInDays(chunkStart, start) < 0) {
+  while (chunkEnd >= start) {
+    let chunkStart = subDays(chunkEnd, MAX_DAYS - 1);
+    if (chunkStart < start) {
       chunkStart = start;
     }
+
     intervals.push({
       since: toFacebookDate(chunkStart),
       until: toFacebookDate(chunkEnd)
     });
+
     chunkEnd = subDays(chunkStart, 1);
   }
 

@@ -42,6 +42,28 @@ const normalizeXElementForPdf = (element, component) => {
   return element;
 };
 
+const normalizeInstagramElementForPdf = (element, chartKey, component) => {
+  const data = element?.data;
+  if (!data || Array.isArray(data)) return element;
+
+  if (chartKey === "profileConversionFunnelCard" && component === "organicOrPaidViewsCard") {
+    const pieData = Array.isArray(data?.pieData) ? data.pieData : [];
+    const total = Number(data?.profileViewsTotal ?? 0);
+    return {
+      ...element,
+      data: {
+        chartData: pieData.map((item) => ({
+          name: item?.name ?? "Segmento",
+          value: Number(item?.value ?? 0),
+        })),
+        total,
+      },
+    };
+  }
+
+  return element;
+};
+
 export const drawChartBlock = async ({
   pdfDoc,
   page,
@@ -74,7 +96,7 @@ export const drawChartBlock = async ({
       return drawFacebookChart({
         pdfDoc,
         page,
-        element,
+        element: normalizeInstagramElementForPdf(element, chartKey, chartConfig.component),
         component: chartConfig.component,
         x,
         y,

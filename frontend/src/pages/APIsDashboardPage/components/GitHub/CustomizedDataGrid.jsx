@@ -68,8 +68,11 @@ export const CustomizedDataGrid = ({
 
   return (
     <Card variant="outlined" sx={{
+      width: '100%',
       p: 0,
       position: 'relative',
+      minWidth: 0,
+      overflow: 'hidden',
     }}>
       <Box
         sx={{
@@ -103,6 +106,11 @@ export const CustomizedDataGrid = ({
       <DataGrid
         rows={rows}
         columns={columns}
+        sx={{
+          width: '100%',
+          maxWidth: '100%',
+          minWidth: 0,
+        }}
         getRowClassName={(params) =>
           params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"
         }

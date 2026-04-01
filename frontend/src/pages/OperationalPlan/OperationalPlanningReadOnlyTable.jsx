@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Typography, IconButton, Tooltip,
+  Box, Typography,
   useTheme,
   Divider
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 import ExportMenu from "./components/ExportMenu.jsx";
 import { usePdfExport } from "../../contexts";
@@ -257,7 +256,6 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
   const [rows, setRows] = useState([]);
   const [planInfo, setPlanInfo] = useState({ operationalPlan_created_at: null, operationalPlan_updated_at: null, operationalPlan_version: 0 });
   const [loadingRows, setLoadingRows] = useState(false);
-  const [gridKey, setGridKey] = useState(0);
   const [hasLoadError, setHasLoadError] = useState(false);
 
   useEffect(() => {
@@ -324,10 +322,6 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
 
     loadRows();
   }, [projectId]);
-
-  const resetColumnWidths = () => {
-    setGridKey(prev => prev + 1);
-  };
 
   const handleExportPDF = () => {
     if (isPdfGenerating) return;
@@ -424,17 +418,11 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
                   disabled={isPdfGenerating}
                 />
 
-                <Tooltip title="Resetear anchos a por defecto">
-                  <IconButton onClick={resetColumnWidths} size="small" aria-label="reset column widths">
-                    <RestartAltIcon />
-                  </IconButton>
-                </Tooltip>
               </Box>
             </Box>)
           }
         </Box>
         <DataGrid
-          key={gridKey}
           rows={rows}
           columns={defaultColumns}
           getRowId={(row) => row.id}
@@ -443,6 +431,8 @@ const OperationalPlanningReadOnlyTable = ({ projectId, project, onProjectWithout
           rowSelection={false}
           disableSelectionOnClick
           disableColumnMenu
+          disableColumnReorder
+          disableColumnResize
           sx={{
             '& .MuiDataGrid-columnHeaders': {
               fontWeight: 'bold',

@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export function useFetchAndLoad() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const callEndpoint = async (promise) => {
+  const callEndpoint = useCallback(async (promise) => {
     setLoading(true);
     setError(null);
     try {
@@ -16,7 +16,7 @@ export function useFetchAndLoad() {
       setError(err?.response?.data?.message || err?.message || "Error desconocido");
       throw err;
     }
-  };
+  }, []);
 
   return { loading, error, callEndpoint };
 }

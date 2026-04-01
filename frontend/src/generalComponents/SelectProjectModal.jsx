@@ -211,27 +211,32 @@ export const SelectProjectModal = ({
               }} />
           ) : (
             <>
-              <Typography
-                variant="h6"
+              <Box
                 sx={{
-                  mb: 0.5,
-                  textAlign: "left",
-                  fontWeight: "bold",
-                  fontSize: {
-                    xs: '1rem',
-                    sm: '1.4rem'
-                  }
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 1,
+                  mb: 1.2,
+                  pr: 5,
                 }}
               >
-                Selecciona un proyecto
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Este proyecto define la información que verás en este módulo.
+                <Typography
+                  variant="h6"
+                  sx={{
+                    textAlign: "left",
+                    fontWeight: "bold",
+                    fontSize: {
+                      xs: "1rem",
+                      sm: "1.4rem",
+                    },
+                  }}
+                >
+                  Selecciona un proyecto
                 </Typography>
                 <Chip
                   size="small"
-                  label={`${projects.length} proyectos`}
+                  label={`${filteredProjects.length} / ${projects.length} proyectos`}
                   sx={{ fontWeight: 600 }}
                 />
               </Box>

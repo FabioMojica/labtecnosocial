@@ -1,10 +1,13 @@
 import axios from "axios";
 import { triggerLogout } from "../../services/callLogout";
 
+const envTimeout = Number(import.meta.env.VITE_API_TIMEOUT_MS);
+const requestTimeoutMs = Number.isFinite(envTimeout) && envTimeout > 0 ? envTimeout : 60000;
+
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL, 
   withCredentials: true,
-  timeout: 20000,
+  timeout: requestTimeoutMs,
 });
 
 axiosInstance.interceptors.request.use(config => {

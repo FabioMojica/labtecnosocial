@@ -39,7 +39,7 @@ export const getFacebookPageOverview = async (req, res) => {
     const response = await axios.get(`${BASE_URL}/${pageId}`, {
       params: {
         access_token: FACEBOOK_TOKEN,
-        fields: "id,name,fan_count,followers_count,link,picture{url}",
+        fields: "id,name,fan_count,followers_count,category,link,picture{url}",
       },
     });
 

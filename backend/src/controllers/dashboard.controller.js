@@ -5,22 +5,24 @@ import { ProjectResponsible } from '../entities/ProjectResponsible.js';
 import { ERROR_CODES, errorResponse, successResponse } from '../utils/apiResponse.js';
 import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
 
+const SUPPORTED_SOCIAL_PLATFORMS = new Set(['github', 'facebook', 'instagram']);
+
 export const getOperationalProjectsWithIntegrations = async (req, res) => {
   try {
-    const { email } = req.query;
-    if (!email) {
+    const requester = req.user;
+    if (!requester?.id) {
       return errorResponse(
         res,
-        ERROR_CODES.VALIDATION_ERROR,
-        'Email no proveído.',
-        400
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'Usuario no autenticado.',
+        401
       );
     }
 
     const userRepository = AppDataSource.getRepository(User);
     const projectRepository = AppDataSource.getRepository(OperationalProject);
 
-    const user = await userRepository.findOneBy({ email });
+    const user = await userRepository.findOneBy({ id: requester.id });
     if (!user) {
       return errorResponse(
         res,
@@ -78,7 +80,9 @@ export const getOperationalProjectsWithIntegrations = async (req, res) => {
       created_at: project.created_at,
       updated_at: project.updated_at,
       image_url: project.image_url,
-      integrations: project.integrations.map(i => ({
+      integrations: project.integrations
+        .filter((i) => SUPPORTED_SOCIAL_PLATFORMS.has(i.platform))
+        .map(i => ({
         id: i.id,
         name: i.name,
         integration_id: i.integration_id,

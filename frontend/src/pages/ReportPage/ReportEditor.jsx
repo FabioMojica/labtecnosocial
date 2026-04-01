@@ -17,7 +17,6 @@ import {
 import { Delete as DeleteIcon } from "@mui/icons-material";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import DescriptionIcon from '@mui/icons-material/Description';
-import TableChartIcon from '@mui/icons-material/TableChart';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import CloseIcon from '@mui/icons-material/Close';
@@ -94,8 +93,7 @@ export const ReportEditor = () => {
     fetchReportById,
     handleSave,
     handleCancel,
-    handleDeleteReport,
-    exportToXLS
+    handleDeleteReport
   } = useReportEditor();
 
   const handleOpenExportMenu = (event) => {
@@ -194,16 +192,6 @@ export const ReportEditor = () => {
                     Exportar PDF
                   </MenuItem>
 
-                  <MenuItem
-                    disabled={isPdfGenerating}
-                    onClick={() => {
-                      handleCloseExportMenu();
-                      exportToXLS();
-                    }}
-                  >
-                    <TableChartIcon fontSize="small" sx={{ mr: 1 }} />
-                    Exportar Excel (XLS)
-                  </MenuItem>
                   {!isCreateNewReport && [
                     <Divider key="divider-1" sx={{ mt: 2 }} />,
                     <MenuItem

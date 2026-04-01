@@ -582,7 +582,7 @@ async function drawOrganicPaidCard({ pdfDoc, page, element, x, y, maxWidth }) {
     font,
     x,
     width,
-    y: cardY + 10,
+    y: cardY + 6,
     integrationData: element?.integration_data,
     align: "center",
   });
@@ -830,11 +830,15 @@ async function drawTotalReactionsCard({ pdfDoc, page, element, x, y, maxWidth })
 async function drawTopPostsCard({ pdfDoc, page, element, x, y, maxWidth }) {
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const platform = element?.integration_data?.integration?.platform ?? "facebook";
+  const isInstagram = platform === "instagram";
   const posts = Array.isArray(element?.data) ? element.data : [];
   const topPosts = posts.slice(0, 5);
-  const reactionIcons = await Promise.all(
-    REACTION_ICON_SOURCES.map((src) => fetchAndEmbedPostImage(pdfDoc, src))
-  );
+  const reactionIcons = isInstagram
+    ? []
+    : await Promise.all(
+        REACTION_ICON_SOURCES.map((src) => fetchAndEmbedPostImage(pdfDoc, src))
+      );
   const rowCount = Math.max(topPosts.length, 1);
   const rowHeight = 96;
   const rowGap = 8;
@@ -881,10 +885,14 @@ async function drawTopPostsCard({ pdfDoc, page, element, x, y, maxWidth }) {
       const post = topPosts[index];
       const rowBottom = rowTop - rowHeight;
       const score = toNumber(post?.popularityScore);
-      const reactions = toNumber(post?.reactions?.total);
-      const comments = toNumber(post?.comments);
-      const shares = toNumber(post?.shares);
-      const reactionsByType = post?.reactions?.byType ?? {};
+      const likes = toNumber(post?.likes ?? post?.meta?.likes ?? post?.reactions?.total);
+      const comments = toNumber(post?.comments ?? post?.replies ?? post?.meta?.replies);
+      const reposts = toNumber(post?.reposts ?? post?.meta?.reposts);
+      const quotes = toNumber(post?.quotes ?? post?.meta?.quotes);
+      const saves = toNumber(post?.meta?.saves);
+      const shares = toNumber(post?.shares ?? reposts + quotes);
+      const reactions = likes;
+      const reactionsByType = post?.reactions?.byType ?? { LIKE: likes };
       const imageUrl = getPostImageUrl(post);
 
       page.drawRectangle({
@@ -968,51 +976,63 @@ async function drawTopPostsCard({ pdfDoc, page, element, x, y, maxWidth }) {
       });
 
       const reactionY = rowTop - 50;
-      const iconSize = 9;
-      let reactionX = textX;
-      REACTION_KEYS.forEach((type, reactionIndex) => {
-        const icon = reactionIcons[reactionIndex];
-        const value = getReactionValueByType(reactionsByType, type);
-        const valueText = compactNumber(value);
-        const valueWidth = safeWidthOfText(boldFont, valueText, 8.2);
-
-        if (icon) {
-          const fit = fitImageInsideBox(icon.width, icon.height, iconSize, iconSize);
-          page.drawImage(icon, {
-            x: reactionX + fit.offsetX,
-            y: reactionY + fit.offsetY - 1,
-            width: fit.width,
-            height: fit.height,
-          });
-        } else {
-          page.drawCircle({
-            x: reactionX + iconSize / 2,
-            y: reactionY + iconSize / 2 - 1,
-            size: iconSize / 2,
-            color: REACTION_COLORS[reactionIndex] ?? COLORS.primary,
-          });
-        }
-
-        page.drawText(valueText, {
-          x: reactionX + iconSize + 2,
+      if (isInstagram) {
+        const igStats = `Likes ${compactNumber(likes)}   Comentarios ${compactNumber(comments)}   Compartidos ${compactNumber(shares)}   Guardados ${compactNumber(saves)}`;
+        const igStatsText = truncateText(igStats, font, 8.2, width - 160);
+        page.drawText(igStatsText, {
+          x: textX,
           y: reactionY - 0.5,
           size: 8.2,
-          font: boldFont,
+          font,
           color: COLORS.text,
         });
+      } else {
+        const iconSize = 9;
+        let reactionX = textX;
+        REACTION_KEYS.forEach((type, reactionIndex) => {
+          const icon = reactionIcons[reactionIndex];
+          const value = getReactionValueByType(reactionsByType, type);
+          const valueText = compactNumber(value);
+          const valueWidth = safeWidthOfText(boldFont, valueText, 8.2);
 
-        reactionX += iconSize + 2 + valueWidth + 8;
-      });
+          if (icon) {
+            const fit = fitImageInsideBox(icon.width, icon.height, iconSize, iconSize);
+            page.drawImage(icon, {
+              x: reactionX + fit.offsetX,
+              y: reactionY + fit.offsetY - 1,
+              width: fit.width,
+              height: fit.height,
+            });
+          } else {
+            page.drawCircle({
+              x: reactionX + iconSize / 2,
+              y: reactionY + iconSize / 2 - 1,
+              size: iconSize / 2,
+              color: REACTION_COLORS[reactionIndex] ?? COLORS.primary,
+            });
+          }
 
-      const engagementText = `C:${compactNumber(comments)}  S:${compactNumber(shares)}  R:${compactNumber(reactions)}`;
-      const engagementTextW = safeWidthOfText(font, engagementText, 8.2);
-      page.drawText(engagementText, {
-        x: x + width - 16 - engagementTextW,
-        y: reactionY - 0.5,
-        size: 8.2,
-        font,
-        color: COLORS.muted,
-      });
+          page.drawText(valueText, {
+            x: reactionX + iconSize + 2,
+            y: reactionY - 0.5,
+            size: 8.2,
+            font: boldFont,
+            color: COLORS.text,
+          });
+
+          reactionX += iconSize + 2 + valueWidth + 8;
+        });
+
+        const engagementText = `C:${compactNumber(comments)}  S:${compactNumber(shares)}  R:${compactNumber(reactions)}`;
+        const engagementTextW = safeWidthOfText(font, engagementText, 8.2);
+        page.drawText(engagementText, {
+          x: x + width - 16 - engagementTextW,
+          y: reactionY - 0.5,
+          size: 8.2,
+          font,
+          color: COLORS.muted,
+        });
+      }
 
       const rawDate = sanitizeWinAnsiText(post?.created_time || "");
       const dateToken = rawDate ? rawDate.slice(0, 10) : "";

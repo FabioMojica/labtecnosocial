@@ -68,8 +68,10 @@ export const SessionsChart = ({
   selected = false,
   onSelectChange,
   selectedPeriod = "all",
+  mode = "dashboard",
 }) => {
   const theme = useTheme();
+  const isReportMode = mode === "report";
 
   // --- FILTRADO DE COMMITS SEGÚN EL PERIODO ---
   const filteredCommits = useMemo(() => {
@@ -105,7 +107,7 @@ export const SessionsChart = ({
     });
   }, [commitsData, selectedPeriod]);
 
-  const pxPerDay = 120;
+  const pxPerDay = isReportMode ? 34 : 120;
 
   const { chartData, xTicks } = useMemo(() => {
     const uniqueDays = Array.from(
@@ -150,6 +152,8 @@ export const SessionsChart = ({
   }, [filteredCommits]);
 
   const maxY = Math.max(...chartData.map(d => d.y), 6);
+  const chartWidth = Math.max(xTicks.length * pxPerDay, isReportMode ? 520 : 800);
+  const reportChartHeight = 240;
 
 
   if (!filteredCommits || filteredCommits.length === 0) {
@@ -178,8 +182,9 @@ export const SessionsChart = ({
     <Card variant="outlined" sx={{
       height: '100%',
       width: '100%',
+      maxWidth: 1000,
       position: 'relative',
-      minHeight: 400,
+      minHeight: isReportMode ? 330 : 400,
       p: 2
     }}>
       <Typography component="h2" variant="subtitle2">
@@ -192,7 +197,7 @@ export const SessionsChart = ({
         </Box>
       )}
       <CardContent sx={{
-        height: '100%',
+        height: isReportMode ? 'auto' : '100%',
         width: '100%',
         p: 0,
         display: 'flex',
@@ -209,13 +214,13 @@ export const SessionsChart = ({
 
         <Box display={'flex'} sx={{
           width: '100%',
-          height: '100%'
+          height: isReportMode ? reportChartHeight + 14 : '100%',
         }}>
           <Card
             variant="outlined"
             sx={{
               position: "sticky",
-              width: 20,
+              width: isReportMode ? 34 : 20,
               height: '100%',
               top: 0,
               bottom: 0,
@@ -226,13 +231,13 @@ export const SessionsChart = ({
               borderRadius: 0,
               border: 'none',
               zIndex: 200,
-              pl: 2
+              pl: isReportMode ? 0 : 2,
             }}>
             <Typography
               variant="body2"
               color="text.secondary"
               sx={{
-                transform: "rotate(-90deg) translateY(-50%)",
+                transform: isReportMode ? "rotate(-90deg)" : "rotate(-90deg) translateY(-50%)",
                 transformOrigin: "center",
                 fontWeight: "bold",
                 textAlign: "center",
@@ -243,12 +248,13 @@ export const SessionsChart = ({
             </Typography>
           </Card>
           <Box sx={{
-            width: 'auto',
-            display: 'flex',
+            width: isReportMode ? '100%' : 'auto',
+            display: isReportMode ? 'block' : 'flex',
             flex: 1,
             minHeight: 0,
-            mb: 2,
-            overflow: 'auto',
+            mb: isReportMode ? 0.5 : 2,
+            overflowX: 'auto',
+            overflowY: 'hidden',
             "&::-webkit-scrollbar": { height: "2px" },
             "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
             "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
@@ -263,7 +269,8 @@ export const SessionsChart = ({
               outline: 'none',
             },
           }}>
-            <ResponsiveContainer width={Math.max(xTicks.length * pxPerDay, 800)}>
+            <Box sx={{ width: chartWidth, minWidth: chartWidth, height: isReportMode ? reportChartHeight : '100%' }}>
+            <ResponsiveContainer width={chartWidth} height={isReportMode ? reportChartHeight : undefined}>
               <LineChart
                 data={chartData} margin={{ top: 20, bottom: 25 }}>
                 <CartesianGrid strokeDasharray="3 3"/>
@@ -297,6 +304,7 @@ export const SessionsChart = ({
                 <AreaGradient color={theme.palette.primary.dark} />
               </LineChart>
             </ResponsiveContainer>
+            </Box>
           </Box>
         </Box>
       </CardContent>

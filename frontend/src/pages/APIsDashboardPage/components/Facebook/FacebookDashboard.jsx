@@ -1,9 +1,9 @@
-import { Avatar, Box, Grid, Icon, IconButton, Tab, Tabs, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Avatar, Box, Chip, Grid, Icon, IconButton, Tab, Tabs, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useLayout } from "../../../../contexts/LayoutContext";
 import { integrationsConfig, useDrawerClosedWidth } from "../../../../utils";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetchAndLoad } from "../../../../hooks";
-import { getFacebookPageInsights, getFacebookPagePosts } from "../../../../api";
+import { getFacebookPageInsights, getFacebookPageOverview, getFacebookPagePosts } from "../../../../api";
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import { useNotification } from "../../../../contexts";
@@ -28,7 +28,9 @@ import { formatForPostEngagementCard } from "./utils/cards/formatForPostEngageme
 import { useReport } from "../../../../contexts/ReportContext";
 import { CHART_IDS_FACEBOOK } from "./utils/chartsIds";
 import { formatForPageImpressionsCard } from "./utils/cards/formatForPageImpressionsCard.js";
-import { generateMockFacebookInsights, generateMockFacebookPosts } from "./mock/mockFacebookData.js";
+import { generateMockFacebookInsights, generateMockFacebookOverview, generateMockFacebookPosts } from "./mock/mockFacebookData.js";
+import { formatNumber } from "./utils/cards";
+import { useElementSize } from "../../../../hooks/useElementSize.js";
 
  
 export const FacebookDashboard = ({ project, useMock = false, showingDialog = false }) => {
@@ -45,8 +47,10 @@ export const FacebookDashboard = ({ project, useMock = false, showingDialog = fa
 
     const navBarWidth = useDrawerClosedWidth();
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const headerRef = useRef(null);
     const theme = useTheme();
     const isLaptop = useMediaQuery(theme.breakpoints.up("md"));
+    const { height: headerHeight } = useElementSize(headerRef);
     const { notify } = useNotification();
     const [isLoadingInsights, setIsLoadingInsights] = useState(false);
     const [errorFetchData, setErrorFetchData] = useState(false);
@@ -96,6 +100,7 @@ export const FacebookDashboard = ({ project, useMock = false, showingDialog = fa
     const [countryFollowersData, setCountryFollowersData] = useState([]);
 
     const [topPostsData, setTopPostsData] = useState([]);
+    const [overviewData, setOverviewData] = useState(null);
 
     const facebookIntegration = project?.integrations?.find(i => i.platform === 'facebook');
     const mockQueryValue =
@@ -108,17 +113,23 @@ export const FacebookDashboard = ({ project, useMock = false, showingDialog = fa
 
     const fetchFacebookPageData = async () => {
         try {
-            //const resp = await callEndpoint(getFacebookPageOverview(facebookIntegration?.integration_id));
             setIsLoadingInsights(true);
             setErrorFetchData(false);
 
             const integrationId = facebookIntegration?.integration_id || "mock_facebook_page";
-            const insights = shouldUseMock
-                ? generateMockFacebookInsights(integrationId, selectedPeriod)
-                : await callEndpoint(getFacebookPageInsights(integrationId, selectedPeriod));
-            const posts = shouldUseMock
-                ? generateMockFacebookPosts(integrationId, selectedPeriod)
-                : await callEndpoint(getFacebookPagePosts(integrationId, selectedPeriod));
+            const [overview, insights, posts] = shouldUseMock
+                ? [
+                    generateMockFacebookOverview(facebookIntegration),
+                    generateMockFacebookInsights(integrationId, selectedPeriod),
+                    generateMockFacebookPosts(integrationId, selectedPeriod),
+                ]
+                : await Promise.all([
+                    callEndpoint(getFacebookPageOverview(integrationId)),
+                    callEndpoint(getFacebookPageInsights(integrationId, selectedPeriod)),
+                    callEndpoint(getFacebookPagePosts(integrationId, selectedPeriod)),
+                ]);
+
+            setOverviewData(overview ?? null);
             setTopPostsData(posts);
 
             const followersInsight = insights.find(i => i.name === "page_follows");
@@ -165,6 +176,11 @@ export const FacebookDashboard = ({ project, useMock = false, showingDialog = fa
     const IntegrationIcon = integration.icon;
 
     const selectable = showingDialog; 
+    const fullscreenContentOffset = headerHeight > 0
+        ? `${headerHeight + 8}px`
+        : isLaptop
+            ? "88px"
+            : "180px";
 
     return (
         <Box
@@ -187,9 +203,10 @@ export const FacebookDashboard = ({ project, useMock = false, showingDialog = fa
             }}
         >
             <Box
+                ref={headerRef}
                 sx={{
                     position: isFullscreen ? 'fixed' : 'sticky',
-                    top: 0,
+                    top: isFullscreen ? 0 : showingDialog ? 0 : 64,
                     left: 0,
                     zIndex: isFullscreen ? 1600 : 999,
                     bgcolor: 'background.paper',
@@ -250,41 +267,59 @@ export const FacebookDashboard = ({ project, useMock = false, showingDialog = fa
                                 <Typography fontWeight="bold" variant="h5" noWrap>
                                     Facebook
                                 </Typography>
-                                <Box
-                                    display="flex"
-                                    gap={1}
-                                    alignItems="center"
-                                    sx={{
-                                        cursor: "pointer",
-                                        textDecoration: "underline",
-                                        color: "primary.main",
-                                        "&:hover": {
-                                            color: "primary.dark",
-                                        },
-                                    }}
-                                    onClick={() => {
-                                        window.open(facebookIntegration?.url, "_blank");
-                                    }}
-                                >
-                                    <Avatar
-                                        src={`https://graph.facebook.com/${facebookIntegration?.integration_id}/picture?type=square`}
+                                <Box display="flex" alignItems="center" gap={0.8} flexWrap="wrap">
+                                    <Box
+                                        display="flex"
+                                        gap={1}
+                                        alignItems="center"
                                         sx={{
-                                            bgcolor: integration.color,
-                                            width: 15,
-                                            height: 15,
-                                            borderRadius: 1,
-                                            boxShadow: (theme) =>
-                                                theme.palette.mode === "light"
-                                                    ? "0 0 0 1px rgba(0,0,0,0.3)"
-                                                    : "0 0 0 1px rgba(255,255,255,0.3)",
+                                            cursor: facebookIntegration?.url ? "pointer" : "default",
+                                            textDecoration: "underline",
+                                            color: "primary.main",
+                                            "&:hover": {
+                                                color: "primary.dark",
+                                            },
+                                        }}
+                                        onClick={() => {
+                                            if (facebookIntegration?.url) {
+                                                window.open(facebookIntegration.url, "_blank");
+                                            }
                                         }}
                                     >
-                                        {String(facebookIntegration?.name[0]).toUpperCase()}
-                                    </Avatar>
+                                        <Avatar
+                                            src={`https://graph.facebook.com/${facebookIntegration?.integration_id}/picture?type=square`}
+                                            sx={{
+                                                bgcolor: integration.color,
+                                                width: 15,
+                                                height: 15,
+                                                borderRadius: 1,
+                                                boxShadow: (theme) =>
+                                                    theme.palette.mode === "light"
+                                                        ? "0 0 0 1px rgba(0,0,0,0.3)"
+                                                        : "0 0 0 1px rgba(255,255,255,0.3)",
+                                            }}
+                                        >
+                                            {String(facebookIntegration?.name[0]).toUpperCase()}
+                                        </Avatar>
 
-                                    <Typography fontWeight="bold" variant="subtitle2" noWrap>
-                                        {facebookIntegration?.name}
-                                    </Typography>
+                                        <Typography fontWeight="bold" variant="subtitle2" noWrap>
+                                            {facebookIntegration?.name}
+                                        </Typography>
+                                    </Box>
+                                    <Chip
+                                        size="small"
+                                        label={`Me gustas pagina: ${formatNumber(overviewData?.fan_count ?? 0)}`}
+                                    />
+                                    <Chip
+                                        size="small"
+                                        label={`Seguidores: ${formatNumber(overviewData?.followers_count ?? 0)}`}
+                                    />
+                                    {overviewData?.category && (
+                                        <Chip
+                                            size="small"
+                                            label={`Categoria: ${overviewData.category}`}
+                                        />
+                                    )}
                                 </Box>
                             </Box>
 
@@ -338,11 +373,11 @@ export const FacebookDashboard = ({ project, useMock = false, showingDialog = fa
             </Box>
 
             <Box sx={{
-                mt: isFullscreen ? isLaptop ? 10 : 17 : 1,
+                mt: isFullscreen ? fullscreenContentOffset : 1,
                 px: {
                     xs: 1,
                     lg: isFullscreen ? 1 : 0,
-                },
+                }, 
                 width: '100%',
                 height: 'auto',
                 overflowY: isFullscreen ? 'auto' : 'visible',

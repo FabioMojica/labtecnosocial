@@ -321,10 +321,6 @@ export const useReportEditor = () => {
         }
     };
 
-    const exportToXLS = () => {
-        console.log('Exportar XLS');
-    };
-
     return {
         // estados
         isCreateNewReport,
@@ -364,7 +360,6 @@ export const useReportEditor = () => {
         fetchReportById,
         handleSave,
         handleCancel,
-        handleDeleteReport,
-        exportToXLS
+        handleDeleteReport
     };
 };

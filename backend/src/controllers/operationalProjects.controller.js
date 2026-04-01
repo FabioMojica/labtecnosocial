@@ -8,9 +8,26 @@ import { assignResponsibles } from '../utils/assignResponsibles.js';
 import { createProjectIntegrations } from '../utils/createProjectIntegrations.js';
 import fs from 'fs';
 import path from 'path';
+import { In } from 'typeorm';
 import { canAccessProject } from '../utils/canAccessProject.js';
 import { ERROR_CODES, errorResponse, successResponse } from '../utils/apiResponse.js';
 import { ALLOWED_ROLES } from '../config/allowedStatesAndRoles.js';
+
+const SUPPORTED_SOCIAL_PLATFORMS = new Set(['github', 'facebook', 'instagram']);
+
+const normalizeEntityIds = (items = []) => {
+  if (!Array.isArray(items)) return { ids: [], hasInvalid: false };
+
+  const parsedIds = items.map((item) => {
+    const idValue = item && typeof item === "object" ? item.id : item;
+    return Number(idValue);
+  });
+
+  return {
+    ids: parsedIds.filter((id) => Number.isInteger(id)),
+    hasInvalid: parsedIds.some((id) => !Number.isInteger(id)),
+  };
+};
 
 export const createOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
@@ -37,6 +54,37 @@ export const createOperationalProject = async (req, res) => {
     const userRepository = queryRunner.manager.getRepository(User);
     const responsibleRepository = queryRunner.manager.getRepository(ProjectResponsible);
     const integrationRepository = queryRunner.manager.getRepository(ProjectIntegration);
+    const { ids: responsibleIds, hasInvalid: hasInvalidResponsibleIds } = normalizeEntityIds(responsibles);
+
+    if (hasInvalidResponsibleIds) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'Existe un responsable con id inválido.',
+        400
+      );
+    }
+
+    if (req.user.role === ALLOWED_ROLES.admin && responsibleIds.length > 0) {
+      const usersToAssign = await userRepository.find({
+        where: { id: In([...new Set(responsibleIds)]) }
+      });
+
+      const hasForbiddenAssignment = usersToAssign.some(
+        (u) => ![ALLOWED_ROLES.superAdmin, ALLOWED_ROLES.user].includes(u.role)
+      );
+
+      if (hasForbiddenAssignment) {
+        await queryRunner.rollbackTransaction();
+        return errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'Un administrador solo puede asignar responsables con rol super administrador o usuario.',
+          403
+        );
+      }
+    }
 
     // Manejo de imagen
     const imagePath = req.files?.[0]?.optimizedPath || null;
@@ -47,8 +95,8 @@ export const createOperationalProject = async (req, res) => {
     const savedProject = await projectRepository.save(newProject);
 
     // Asignar responsables si existen
-    if (responsibles.length > 0) {
-      await assignResponsibles(responsibles, savedProject.id, userRepository, responsibleRepository);
+    if (responsibleIds.length > 0) {
+      await assignResponsibles(responsibleIds, savedProject.id, userRepository, responsibleRepository);
     }
 
     // Crear integraciones
@@ -167,7 +215,9 @@ export const getAllOperationalProjects = async (req, res) => {
       };
 
       if (req.user.role === ALLOWED_ROLES.admin || req.user.role === ALLOWED_ROLES.superAdmin) {
-        base.integrations = (project.integrations ?? []).map((i) => ({
+        base.integrations = (project.integrations ?? [])
+          .filter((i) => SUPPORTED_SOCIAL_PLATFORMS.has(i.platform))
+          .map((i) => ({
           id: i.id,
           platform: i.platform,
           name: i.name,
@@ -309,7 +359,9 @@ export const getProjectById = async (req, res) => {
             : null,
         }
         : null,
-      integrations: project.integrations.map((i) => ({
+      integrations: project.integrations
+        .filter((i) => SUPPORTED_SOCIAL_PLATFORMS.has(i.platform))
+        .map((i) => ({
         id: i.integration_id,
         name: i.name,
         platform: i.platform,
@@ -378,7 +430,17 @@ export const updateOperationalProject = async (req, res) => {
 
   try {
     const { id } = req.params;
+    const parsedProjectId = Number(id);
     const { name, description, program_id, image_url, preEliminados, preAnadidos, intEliminados, intAnadidos } = req.body;
+
+    if (!Number.isInteger(parsedProjectId)) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'ID de proyecto inválido.',
+        400
+      );
+    }
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -390,12 +452,13 @@ export const updateOperationalProject = async (req, res) => {
     const integrationRepository = queryRunner.manager.getRepository(ProjectIntegration);
 
     const hasAccess = await canAccessProject({
-      projectId: id,
+      projectId: parsedProjectId,
       userId: req.user.id,
       role: req.user.role,
     });
 
     if (!hasAccess) {
+      await queryRunner.rollbackTransaction();
       return errorResponse(
         res,
         ERROR_CODES.USER_UNAUTHORIZED,
@@ -404,9 +467,28 @@ export const updateOperationalProject = async (req, res) => {
       );
     }
 
+    if (req.user.role === ALLOWED_ROLES.admin) {
+      const adminAssignmentCount = await responsibleRepository.count({
+        where: {
+          user: { id: req.user.id },
+          operationalProject: { id: parsedProjectId },
+        }
+      });
+
+      if (adminAssignmentCount === 0) {
+        await queryRunner.rollbackTransaction();
+        return errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'Un administrador solo puede editar proyectos en los que está asignado.',
+          403
+        );
+      }
+    }
+
     // Buscar el proyecto
     const project = await projectRepository.findOne({
-      where: { id: parseInt(id) },
+      where: { id: parsedProjectId },
       relations: ["projectResponsibles"],
     });
 
@@ -484,20 +566,70 @@ export const updateOperationalProject = async (req, res) => {
       console.error("❌ Error al parsear preAnadidos o preEliminados:", e.message);
     }
 
-    if (Array.isArray(parsedPreEliminados) && parsedPreEliminados.length > 0) {
-      for (const r of parsedPreEliminados) {
+    const { ids: preEliminadosIds, hasInvalid: hasInvalidPreEliminados } = normalizeEntityIds(parsedPreEliminados);
+    const { ids: preAnadidosIds, hasInvalid: hasInvalidPreAnadidos } = normalizeEntityIds(parsedPreAnadidos);
+    const uniquePreEliminadosIds = [...new Set(preEliminadosIds)];
+    const uniquePreAnadidosIds = [...new Set(preAnadidosIds)];
+
+    if (hasInvalidPreEliminados || hasInvalidPreAnadidos) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'Existe un responsable con id inválido.',
+        400
+      );
+    }
+
+    const usersToAdd = uniquePreAnadidosIds.length > 0
+      ? await userRepository.find({ where: { id: In(uniquePreAnadidosIds) } })
+      : [];
+
+    const usersToUnassign = uniquePreEliminadosIds.length > 0
+      ? await userRepository.find({ where: { id: In(uniquePreEliminadosIds) } })
+      : [];
+
+    if (req.user.role === ALLOWED_ROLES.admin) {
+      const hasForbiddenUnassignment = usersToUnassign.some(
+        (u) => u.role !== ALLOWED_ROLES.user
+      );
+
+      if (hasForbiddenUnassignment) {
+        await queryRunner.rollbackTransaction();
+        return errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'Un administrador solo puede desasignar responsables con rol usuario.',
+          403
+        );
+      }
+
+      const hasForbiddenAssignment = usersToAdd.some(
+        (u) => ![ALLOWED_ROLES.superAdmin, ALLOWED_ROLES.user].includes(u.role)
+      );
+
+      if (hasForbiddenAssignment) {
+        await queryRunner.rollbackTransaction();
+        return errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'Un administrador solo puede asignar responsables con rol super administrador o usuario.',
+          403
+        );
+      }
+    }
+
+    if (uniquePreEliminadosIds.length > 0) {
+      for (const userId of uniquePreEliminadosIds) {
         await responsibleRepository.delete({
-          user: { id: r.id },
+          user: { id: userId },
           operationalProject: { id: project.id },
         });
       }
     }
 
-    if (Array.isArray(parsedPreAnadidos) && parsedPreAnadidos.length > 0) {
-      for (const r of parsedPreAnadidos) {
-        const user = await userRepository.findOneBy({ id: r.id });
-        if (!user) continue;
-
+    if (usersToAdd.length > 0) {
+      for (const user of usersToAdd) {
         const newResponsible = responsibleRepository.create({
           user,
           operationalProject: project,
@@ -523,6 +655,9 @@ export const updateOperationalProject = async (req, res) => {
 
     if (Array.isArray(parsedIntAnadidos) && parsedIntAnadidos.length > 0) {
       for (const i of parsedIntAnadidos) {
+        if (!SUPPORTED_SOCIAL_PLATFORMS.has(i?.platform)) {
+          continue;
+        }
         const newIntegration = integrationRepository.create({
           platform: i.platform,
           integration_id: i.id,

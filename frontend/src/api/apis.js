@@ -10,10 +10,10 @@ export const getGitHubRepositoriesApi = async () => {
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response)
-      throw new Error(error.response.data.message || "Ocurrió un problema al obtener los repositorios de GitHub, inténtalo de nuevo más tarde");
+      throw new Error(error.response.data.message || "Ocurrio un problema al obtener los repositorios de GitHub, intentalo de nuevo mas tarde");
     throw new Error("Error al intentar obtener los repositorios de GitHub");
   }
-}; 
+};
 
 export const getFacebookPagesApi = async () => {
   const controller = loadAbort();
@@ -24,8 +24,8 @@ export const getFacebookPagesApi = async () => {
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response)
-      throw new Error(error.response.data.message || "Ocurrió un problema al obtener las páginas de Facebook, inténtalo de nuevo más tarde");
-    throw new Error("Error al intentar obtener las páginas de Facebook");
+      throw new Error(error.response.data.message || "Ocurrio un problema al obtener las paginas de Facebook, intentalo de nuevo mas tarde");
+    throw new Error("Error al intentar obtener las paginas de Facebook");
   }
 };
 
@@ -38,21 +38,7 @@ export const getInstagramPagesApi = async () => {
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
     if (error.response)
-      throw new Error(error.response.data.message || "Ocurrió un problema al obtener las páginas de Instagram, inténtalo de nuevo más tarde");
-    throw new Error("Error al intentar obtener las páginas de Instagram");
-  }
-};
-
-export const getXAccountsApi = async () => {
-  const controller = loadAbort();
-  try {
-    const response = await axiosInstance.get(Routes.x.ACCOUNTS, { signal: controller.signal });
-    if (response.status === 200) return response.data;
-    return null;
-  } catch (error) {
-    if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response)
-      throw new Error(error.response.data.message || "Ocurrió un problema al obtener las cuentas de X, inténtalo de nuevo más tarde");
-    throw new Error("Error al intentar obtener las cuentas de X");
+      throw new Error(error.response.data.message || "Ocurrio un problema al obtener las paginas de Instagram, intentalo de nuevo mas tarde");
+    throw new Error("Error al intentar obtener las paginas de Instagram");
   }
 };

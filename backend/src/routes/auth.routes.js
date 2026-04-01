@@ -9,7 +9,7 @@ const authRoutes = Router();
 authRoutes.post('/login', login);
 authRoutes.post('/logout', logout);
 authRoutes.get('/me', verifyJwt, authorize(PERMISSIONS.AUTH.ME), me);
-authRoutes.post('/refresh', verifyJwt, authorize(PERMISSIONS.AUTH.REFRESH), refresh);
+authRoutes.post('/refresh', refresh);
 authRoutes.get('/sumaryData/:id', verifyJwt, authorize(PERMISSIONS.SUMMARY_DATA.READ), getSummaryData);  
 
 export default authRoutes;

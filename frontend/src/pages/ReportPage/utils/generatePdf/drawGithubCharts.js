@@ -1,4 +1,10 @@
 import { rgb, StandardFonts } from "pdf-lib";
+import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 const PAGE_BOTTOM_MARGIN = 34;
 const PAGE_TOP_MARGIN = 66;
@@ -14,7 +20,19 @@ const COLORS = {
   lineGrid: rgb(0.88, 0.91, 0.95),
 };
 
-const WEEKDAY_LABELS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"];
+const PIE_COLORS = [
+  rgb(0.57, 0.63, 0.75),
+  rgb(0.44, 0.51, 0.66),
+  rgb(0.35, 0.43, 0.58),
+  rgb(0.29, 0.36, 0.5),
+  rgb(0.23, 0.29, 0.43),
+  rgb(0.18, 0.23, 0.35),
+  rgb(0.14, 0.19, 0.3),
+  rgb(0.1, 0.15, 0.25),
+  rgb(0.08, 0.12, 0.2),
+  rgb(0.06, 0.1, 0.17),
+  rgb(0.05, 0.08, 0.14),
+];
 
 function toNumber(value) {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
@@ -152,9 +170,7 @@ function drawCardHeader({ page, x, y, width, title, interval, boldFont, font, to
 }
 
 function isoDateFromValue(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString().split("T")[0];
+  return toLocalDayKey(value);
 }
 
 function buildDailySeries(items = [], dateAccessor = () => null) {
@@ -241,41 +257,374 @@ function drawLineChart({ page, font, x, y, width, height, labels = [], values = 
 }
 
 function getCommitDate(commit) {
-  return commit?.commit?.author?.date;
+  return commit?.commit?.committer?.date || commit?.commit?.author?.date || null;
 }
 
 function getCommitAuthor(commit) {
   return commit?.author?.login || commit?.commit?.author?.name || "Autor desconocido";
 }
 
-function getCommitMessage(commit) {
-  return commit?.commit?.message || "Sin mensaje";
-}
-
-function getCommitSha(commit) {
-  return commit?.sha || "-";
-}
-
 function getPeriodStart(period) {
-  const now = new Date();
-  const start = new Date(now);
+  const todayStart = dayjs().startOf("day");
   switch (period) {
     case "today":
-      start.setHours(0, 0, 0, 0);
-      return start;
+      return todayStart;
     case "lastWeek":
-      start.setDate(now.getDate() - 7);
-      return start;
+      return todayStart.subtract(7, "day");
     case "lastMonth":
-      start.setMonth(now.getMonth() - 1);
-      return start;
+      return todayStart.subtract(1, "month");
     case "lastSixMonths":
-      start.setMonth(now.getMonth() - 6);
-      return start;
+      return todayStart.subtract(6, "month");
     case "all":
     default:
-      return new Date(0);
+      return dayjs(new Date(0));
   }
+}
+
+function filterItemsByPeriod(items = [], period = "all", dateAccessor = () => null) {
+  if (!Array.isArray(items) || !items.length) return [];
+  if (!period || period === "all") return items;
+
+  const start = getPeriodStart(period);
+  const end = dayjs().endOf("day");
+
+  return items.filter((item) => {
+    const rawDate = dateAccessor(item);
+    const commitDate = rawDate ? dayjs(rawDate) : null;
+    if (!commitDate || !commitDate.isValid()) return false;
+    return (
+      commitDate.isSameOrAfter(start, "day") &&
+      commitDate.isSameOrBefore(end, "day")
+    );
+  });
+}
+
+function pad2(value) {
+  return String(value).padStart(2, "0");
+}
+
+function toLocalDayKey(dateValue) {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return null;
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+function formatInactivityFromDate(dateValue) {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  const diffMs = Math.max(0, Date.now() - date.getTime());
+  const dayMs = 24 * 60 * 60 * 1000;
+  const hourMs = 60 * 60 * 1000;
+  const minuteMs = 60 * 1000;
+
+  const days = Math.floor(diffMs / dayMs);
+  if (days >= 60) {
+    const months = Math.floor(days / 30);
+    return `${months} ${months === 1 ? "mes" : "meses"}`;
+  }
+  if (days >= 1) return `${days} ${days === 1 ? "dia" : "dias"}`;
+
+  const hours = Math.floor(diffMs / hourMs);
+  if (hours >= 1) return `${hours} ${hours === 1 ? "hora" : "horas"}`;
+
+  const minutes = Math.max(1, Math.floor(diffMs / minuteMs));
+  return `${minutes} ${minutes === 1 ? "min" : "mins"}`;
+}
+
+function buildContributorRows(commits = []) {
+  const grouped = new Map();
+
+  commits.forEach((commit) => {
+    const login = commit?.author?.login || "Desconocido";
+    const email = commit?.commit?.author?.email || "-";
+    const dateValue = getCommitDate(commit);
+    const dayKey = toLocalDayKey(dateValue);
+
+    if (!grouped.has(login)) {
+      grouped.set(login, {
+        login,
+        email,
+        totalCommits: 0,
+        lastCommit: null,
+        byDay: new Map(),
+      });
+    }
+
+    const row = grouped.get(login);
+    row.totalCommits += 1;
+
+    const commitDate = new Date(dateValue);
+    if (!Number.isNaN(commitDate.getTime())) {
+      if (!row.lastCommit || commitDate > row.lastCommit) {
+        row.lastCommit = commitDate;
+      }
+    }
+
+    if (dayKey) {
+      row.byDay.set(dayKey, (row.byDay.get(dayKey) || 0) + 1);
+    }
+  });
+
+  const rows = Array.from(grouped.values())
+    .map((row) => {
+      const orderedDays = Array.from(row.byDay.entries()).sort((a, b) => {
+        return new Date(a[0]) - new Date(b[0]);
+      });
+      const activityValues = orderedDays.map(([, count]) => count).slice(-7);
+
+      return {
+        login: row.login,
+        email: row.email,
+        totalCommits: row.totalCommits,
+        inactivity: formatInactivityFromDate(row.lastCommit),
+        activityValues,
+      };
+    })
+    .sort((a, b) => b.totalCommits - a.totalCommits);
+
+  rows.forEach((row, index) => {
+    row.position = index + 1;
+  });
+
+  return rows;
+}
+
+function drawTinySparkBars({ page, font, x, y, width, height, values = [] }) {
+  const safeValues = Array.isArray(values) ? values.slice(-7) : [];
+  if (!safeValues.length) {
+    page.drawText("-", { x: x + width / 2 - 2, y: y + 2, size: 8, font, color: COLORS.muted });
+    return;
+  }
+
+  const max = Math.max(...safeValues, 1);
+  const gap = 2;
+  const barWidth = Math.max(2, (width - gap * (safeValues.length - 1)) / safeValues.length);
+
+  safeValues.forEach((value, index) => {
+    const ratio = Math.max(0, Math.min(1, value / max));
+    const barX = x + index * (barWidth + gap);
+    const barH = Math.max(2, height * ratio);
+    page.drawRectangle({
+      x: barX,
+      y,
+      width: barWidth,
+      height,
+      color: COLORS.barTrack,
+    });
+    page.drawRectangle({
+      x: barX,
+      y,
+      width: barWidth,
+      height: barH,
+      color: COLORS.primary,
+    });
+  });
+}
+
+function pointOnCircle(cx, cy, radius, angleDeg) {
+  const angleRad = ((angleDeg - 90) * Math.PI) / 180;
+  return {
+    x: cx + radius * Math.cos(angleRad),
+    y: cy + radius * Math.sin(angleRad),
+  };
+}
+
+function drawDonutSlice({ page, cx, cy, innerRadius, outerRadius, startAngle, endAngle, color }) {
+  const sweep = Math.max(0, endAngle - startAngle);
+  if (sweep <= 0) return;
+  const steps = Math.max(24, Math.ceil(sweep * 2));
+  const angleStep = sweep / steps;
+  const arcStepAtOuter = (Math.PI * outerRadius * angleStep) / 180;
+  const thickness = Math.max(1.1, arcStepAtOuter + 0.25);
+
+  for (let i = 0; i <= steps; i += 1) {
+    const angle = startAngle + i * angleStep;
+    const start = pointOnCircle(cx, cy, innerRadius, angle);
+    const end = pointOnCircle(cx, cy, outerRadius, angle);
+    page.drawLine({
+      start,
+      end,
+      thickness,
+      color,
+    });
+  }
+}
+
+function buildSessionScatter(commits = []) {
+  if (!Array.isArray(commits) || !commits.length) {
+    return { points: [], uniqueDays: [] };
+  }
+
+  const uniqueDays = Array.from(
+    new Set(
+      commits
+        .map((commit) => toLocalDayKey(getCommitDate(commit)))
+        .filter(Boolean)
+    )
+  ).sort();
+
+  const dayIndexMap = {};
+  uniqueDays.forEach((day, index) => {
+    dayIndexMap[day] = index;
+  });
+
+  const commitsByDay = new Map();
+  commits.forEach((commit) => {
+    const day = toLocalDayKey(getCommitDate(commit));
+    if (!day) return;
+    if (!commitsByDay.has(day)) commitsByDay.set(day, []);
+    commitsByDay.get(day).push(commit);
+  });
+
+  const points = [];
+  uniqueDays.forEach((day) => {
+    const commitsInDay = (commitsByDay.get(day) || []).sort((a, b) => {
+      return new Date(getCommitDate(a)) - new Date(getCommitDate(b));
+    });
+
+    commitsInDay.forEach((commit, index) => {
+      const date = new Date(getCommitDate(commit));
+      if (Number.isNaN(date.getTime())) return;
+      const secondsSinceMidnight = date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
+      const x = dayIndexMap[day] + secondsSinceMidnight / 86400;
+      points.push({ x, y: index + 1 });
+    });
+  });
+
+  points.sort((a, b) => a.x - b.x);
+  return { points, uniqueDays };
+}
+
+async function drawSessionsScatterCard({ pdfDoc, page, element, x, y, maxWidth, commits = [] }) {
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const width = maxWidth;
+  const height = 248;
+
+  const space = ensureSpace(pdfDoc, page, y, height + 24);
+  page = space.page;
+  y = space.y;
+
+  const cardY = drawCardFrame(page, x, y, width, height);
+  drawCardHeader({
+    page,
+    x,
+    y,
+    width,
+    title: element?.title || "Historial de commits",
+    interval: element?.interval || "Periodo",
+    boldFont,
+    font,
+    totalText: `${compactNumber(commits.length)} eventos`,
+  });
+
+  const plotX = x + 14;
+  const plotY = cardY + 48;
+  const plotW = width - 28;
+  const plotH = 116;
+
+  page.drawRectangle({
+    x: plotX,
+    y: plotY,
+    width: plotW,
+    height: plotH,
+    color: rgb(1, 1, 1),
+    borderColor: COLORS.lineGrid,
+    borderWidth: 0.8,
+  });
+
+  const { points, uniqueDays } = buildSessionScatter(commits);
+  if (!points.length) {
+    const empty = "Sin datos para mostrar en el periodo seleccionado";
+    const emptyW = safeWidthOfText(font, empty, 10);
+    page.drawText(empty, {
+      x: plotX + (plotW - emptyW) / 2,
+      y: plotY + plotH / 2 - 5,
+      size: 10,
+      font,
+      color: COLORS.muted,
+    });
+  } else {
+    const yMax = Math.max(...points.map((point) => point.y), 6);
+    const xMin = 0;
+    const xMax = Math.max(uniqueDays.length, 1);
+    const yMin = 1;
+
+    const scaleX = (value) => plotX + ((value - xMin) / Math.max(1, xMax - xMin)) * plotW;
+    const scaleY = (value) => plotY + ((value - yMin) / Math.max(1, yMax - yMin)) * plotH;
+
+    for (let i = 0; i <= 4; i += 1) {
+      const gy = plotY + (plotH / 4) * i;
+      page.drawLine({
+        start: { x: plotX, y: gy },
+        end: { x: plotX + plotW, y: gy },
+        thickness: 0.5,
+        color: COLORS.lineGrid,
+      });
+    }
+
+    for (let i = 0; i < points.length - 1; i += 1) {
+      page.drawLine({
+        start: { x: scaleX(points[i].x), y: scaleY(points[i].y) },
+        end: { x: scaleX(points[i + 1].x), y: scaleY(points[i + 1].y) },
+        thickness: 1,
+        color: COLORS.primary,
+      });
+    }
+
+    points.forEach((point) => {
+      page.drawCircle({
+        x: scaleX(point.x),
+        y: scaleY(point.y),
+        size: 1.8,
+        color: COLORS.primary,
+      });
+    });
+
+    const yTicks = [1, Math.ceil(yMax / 2), yMax].filter((tick, index, arr) => {
+      return tick >= 1 && arr.indexOf(tick) === index;
+    });
+    yTicks.forEach((tick) => {
+      const label = String(tick);
+      const lw = safeWidthOfText(font, label, 7.2);
+      page.drawText(label, {
+        x: plotX - lw - 6,
+        y: scaleY(tick) - 3,
+        size: 7.2,
+        font,
+        color: COLORS.muted,
+      });
+    });
+
+    const sampleIndexes = [0, Math.floor((uniqueDays.length - 1) / 2), uniqueDays.length - 1].filter(
+      (index, pos, arr) => index >= 0 && arr.indexOf(index) === pos
+    );
+    sampleIndexes.forEach((idx) => {
+      const raw = uniqueDays[idx] || "";
+      const label = raw ? `${raw.slice(8, 10)}/${raw.slice(5, 7)}/${raw.slice(2, 4)}` : "";
+      const lw = safeWidthOfText(font, label, 7.3);
+      const anchorX = uniqueDays.length > 1 ? plotX + (idx / (uniqueDays.length - 1)) * plotW : plotX + plotW / 2;
+      page.drawText(label, {
+        x: Math.max(plotX, Math.min(plotX + plotW - lw, anchorX - lw / 2)),
+        y: plotY - 12,
+        size: 7.3,
+        font,
+        color: COLORS.muted,
+      });
+    });
+  }
+
+  drawChartSource({
+    page,
+    font,
+    x,
+    width,
+    y: cardY + 10,
+    integrationData: element?.integration_data,
+  });
+
+  return { y: cardY - 20, page };
 }
 
 async function drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, items, dateAccessor, metricLabel }) {
@@ -291,7 +640,7 @@ async function drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, items
   y = space.y;
 
   const cardY = drawCardFrame(page, x, y, width, height);
-  const totalText = `${compactNumber(series.total)} ${metricLabel}`;
+  const totalText = `${compactNumber(items.length)} ${metricLabel}`;
   drawCardHeader({
     page,
     x,
@@ -308,6 +657,27 @@ async function drawTimeSeriesCard({ pdfDoc, page, element, x, y, maxWidth, items
   const plotY = cardY + 48;
   const plotW = width - 28;
   const plotH = 110;
+  const explicitGoal = toNumber(element?.meta?.goal);
+  const fallbackGoal =
+    typeof element?.id_name === "string" && element.id_name.includes("commitsInThePeriodCard")
+      ? 50
+      : typeof element?.id_name === "string" && element.id_name.includes("pullRequestsCard")
+        ? 10
+        : 0;
+  const goal = explicitGoal > 0 ? explicitGoal : fallbackGoal;
+  const hasGoal = Number.isFinite(goal) && goal > 0;
+
+  if (hasGoal) {
+    const goalText = `Meta: ${compactNumber(goal)}`;
+    const goalWidth = safeWidthOfText(font, goalText, 8.6);
+    page.drawText(goalText, {
+      x: x + width - goalWidth - 14,
+      y: y - 36,
+      size: 8.6,
+      font,
+      color: COLORS.muted,
+    });
+  }
 
   page.drawRectangle({
     x: plotX,
@@ -358,18 +728,31 @@ async function drawWeekdayCard({ pdfDoc, page, element, x, y, maxWidth, commits 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  const totals = new Array(7).fill(0);
+  const hourBuckets = Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    label: `${hour}:00-${hour === 23 ? "24:00" : `${hour + 1}:00`}`,
+    value: 0,
+  }));
+
   commits.forEach((commit) => {
     const date = new Date(getCommitDate(commit));
     if (Number.isNaN(date.getTime())) return;
-    const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
-    totals[dayIndex] += 1;
+    const hour = date.getHours();
+    hourBuckets[hour].value += 1;
   });
 
-  const maxValue = Math.max(...totals, 1);
-  const totalCommits = totals.reduce((acc, value) => acc + value, 0);
+  const rankedHours = hourBuckets
+    .filter((bucket) => bucket.value > 0)
+    .sort((a, b) => {
+      if (b.value !== a.value) return b.value - a.value;
+      return a.hour - b.hour;
+    })
+    .slice(0, 8);
+
+  const maxValue = Math.max(...rankedHours.map((bucket) => bucket.value), 1);
+  const totalCommits = hourBuckets.reduce((acc, bucket) => acc + bucket.value, 0);
   const width = maxWidth;
-  const height = 248;
+  const height = Math.max(220, 128 + Math.max(1, rankedHours.length) * 21);
 
   const space = ensureSpace(pdfDoc, page, y, height + 24);
   page = space.page;
@@ -388,51 +771,70 @@ async function drawWeekdayCard({ pdfDoc, page, element, x, y, maxWidth, commits 
     totalText: `${compactNumber(totalCommits)} commits`,
   });
 
-  let rowY = y - 64;
-  WEEKDAY_LABELS.forEach((label, index) => {
-    const value = totals[index];
-    const ratio = Math.max(0, Math.min(1, value / maxValue));
-    const barX = x + 118;
-    const barW = width - 136;
-    const barY = rowY - 8;
-    const fillW = ratio > 0 ? Math.max(2, barW * ratio) : 0;
-    const valueText = compactNumber(value);
-    const valueTextWidth = safeWidthOfText(boldFont, valueText, 9.2);
-
-    page.drawText(label, {
-      x: x + 14,
-      y: rowY,
-      size: 9.4,
-      font,
-      color: COLORS.text,
-    });
-
-    page.drawRectangle({
-      x: barX,
-      y: barY,
-      width: barW,
-      height: 6,
-      color: COLORS.barTrack,
-    });
-
-    page.drawRectangle({
-      x: barX,
-      y: barY,
-      width: fillW,
-      height: 6,
-      color: COLORS.primary,
-    });
-
-    page.drawText(valueText, {
-      x: barX + barW - valueTextWidth,
-      y: rowY - 0.5,
-      size: 9.2,
-      font: boldFont,
-      color: COLORS.text,
-    });
-
-    rowY -= 23.5;
+  page.drawText("Top horas con mas commits (hora local)", {
+    x: x + 14,
+    y: y - 52,
+    size: 8.8,
+    font,
+    color: COLORS.muted,
   });
+
+  if (!rankedHours.length) {
+    const empty = "Sin commits suficientes para calcular horas de actividad";
+    const emptyW = safeWidthOfText(font, empty, 10);
+    page.drawText(empty, {
+      x: x + (width - emptyW) / 2,
+      y: y - 102,
+      size: 10,
+      font,
+      color: COLORS.muted,
+    });
+  } else {
+    let rowY = y - 76;
+    rankedHours.forEach((bucket) => {
+      const ratio = Math.max(0, Math.min(1, bucket.value / maxValue));
+      const barX = x + 118;
+      const barW = width - 208;
+      const barY = rowY - 7;
+      const fillW = ratio > 0 ? Math.max(2, barW * ratio) : 0;
+      const valueText = `${compactNumber(bucket.value)} commits`;
+      const valueTextWidth = safeWidthOfText(boldFont, valueText, 8.5);
+
+      page.drawText(bucket.label, {
+        x: x + 14,
+        y: rowY,
+        size: 9.3,
+        font: boldFont,
+        color: COLORS.text,
+      });
+
+      page.drawRectangle({
+        x: barX,
+        y: barY,
+        width: barW,
+        height: 6,
+        color: COLORS.barTrack,
+      });
+
+      page.drawRectangle({
+        x: barX,
+        y: barY,
+        width: fillW,
+        height: 6,
+        color: COLORS.primary,
+      });
+
+      page.drawText(valueText, {
+        x: x + width - valueTextWidth - 14,
+        y: rowY - 0.3,
+        size: 8.5,
+        font: boldFont,
+        color: COLORS.text,
+      });
+
+      rowY -= 21;
+    });
+  }
 
   drawChartSource({
     page,
@@ -460,10 +862,10 @@ function countAuthors(commits = []) {
 async function drawTopAuthorsCard({ pdfDoc, page, element, x, y, maxWidth, commits = [] }) {
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const rows = countAuthors(commits).slice(0, 8);
+  const rows = countAuthors(commits).slice(0, 3);
   const maxValue = Math.max(...rows.map((row) => row.value), 1);
   const width = maxWidth;
-  const height = Math.max(184, 112 + rows.length * 23);
+  const height = Math.max(150, 106 + rows.length * 18);
 
   const space = ensureSpace(pdfDoc, page, y, height + 24);
   page = space.page;
@@ -479,7 +881,6 @@ async function drawTopAuthorsCard({ pdfDoc, page, element, x, y, maxWidth, commi
     interval: element?.interval || "Periodo",
     boldFont,
     font,
-    totalText: `${compactNumber(commits.length)} commits`,
   });
 
   if (!rows.length) {
@@ -523,12 +924,16 @@ async function drawTopAuthorsCard({ pdfDoc, page, element, x, y, maxWidth, commi
     });
   }
 
+  const sourceY = rows.length
+    ? Math.max(cardY + 10, y - 64 - rows.length * 23 - 4)
+    : Math.max(cardY + 10, y - 108);
+
   drawChartSource({
     page,
     font,
     x,
     width,
-    y: cardY + 10,
+    y: sourceY,
     integrationData: element?.integration_data,
   });
 
@@ -551,21 +956,15 @@ async function drawInactiveAuthorsCard({ pdfDoc, page, element, x, y, maxWidth, 
     }
   });
 
-  const periodStart = getPeriodStart(element?.period);
   const activeAuthors = new Set(
     commits
-      .filter((commit) => {
-        const date = new Date(getCommitDate(commit));
-        if (Number.isNaN(date.getTime())) return false;
-        return date >= periodStart;
-      })
       .map((commit) => commit?.author?.login)
       .filter(Boolean)
   );
 
   const inactive = Array.from(allAuthorsMap.values()).filter((author) => !activeAuthors.has(author.login));
   const width = maxWidth;
-  const height = Math.max(190, 122 + Math.max(1, inactive.length) * 20);
+  const height = Math.max(206, 132 + Math.max(1, inactive.length) * 20);
 
   const space = ensureSpace(pdfDoc, page, y, height + 24);
   page = space.page;
@@ -625,6 +1024,14 @@ async function drawInactiveAuthorsCard({ pdfDoc, page, element, x, y, maxWidth, 
     });
   }
 
+  page.drawText("Base de comparacion: autores detectados en commits analizados.", {
+    x: x + 14,
+    y: cardY + 24,
+    size: 7.6,
+    font,
+    color: COLORS.muted,
+  });
+
   drawChartSource({
     page,
     font,
@@ -640,66 +1047,67 @@ async function drawInactiveAuthorsCard({ pdfDoc, page, element, x, y, maxWidth, 
 async function drawCommitTableCard({ pdfDoc, page, element, x, y, maxWidth, commits = [] }) {
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const rows = commits.slice(0, 14);
+  const rows = buildContributorRows(commits);
   const width = maxWidth;
-  const height = Math.max(215, 125 + rows.length * 18);
-
-  const space = ensureSpace(pdfDoc, page, y, height + 24);
-  page = space.page;
-  y = space.y;
-  const cardY = drawCardFrame(page, x, y, width, height);
-
-  drawCardHeader({
-    page,
-    x,
-    y,
-    width,
-    title: element?.title || "Historial de Commits",
-    interval: element?.interval || "Periodo",
-    boldFont,
-    font,
-    totalText: `${compactNumber(commits.length)} registros`,
-  });
-
+  const minCardHeight = 228;
+  const baseHeight = 128;
+  const blockGap = 24;
+  const rowH = 17;
+  const rowHeightForCard = 18;
   const tableX = x + 14;
   const tableW = width - 28;
-  const headerY = y - 62;
-  const rowH = 17.5;
-  const colDateW = 92;
-  const colAuthorW = 124;
-  const colShaW = 74;
-  const colMsgW = tableW - colDateW - colAuthorW - colShaW - 6;
+  const colUserW = 96;
+  const colEmailW = 146;
+  const colCommitsW = 52;
+  const colInactivityW = 64;
+  const colPositionW = 46;
+  const colActivityW = tableW - colUserW - colEmailW - colCommitsW - colInactivityW - colPositionW - 6;
+  const baseTitle = element?.title || "Historial de Commits";
+  const interval = element?.interval || "Periodo";
 
-  page.drawRectangle({
-    x: tableX,
-    y: headerY - 12,
-    width: tableW,
-    height: 13,
-    color: rgb(0.9, 0.95, 1),
-    borderColor: COLORS.border,
-    borderWidth: 0.7,
-  });
-
-  page.drawText("Fecha", { x: tableX + 4, y: headerY - 8, size: 8.2, font: boldFont, color: COLORS.text });
-  page.drawText("Autor", { x: tableX + colDateW + 4, y: headerY - 8, size: 8.2, font: boldFont, color: COLORS.text });
-  page.drawText("SHA", { x: tableX + colDateW + colAuthorW + 4, y: headerY - 8, size: 8.2, font: boldFont, color: COLORS.text });
-  page.drawText("Mensaje", { x: tableX + colDateW + colAuthorW + colShaW + 4, y: headerY - 8, size: 8.2, font: boldFont, color: COLORS.text });
-
-  if (!rows.length) {
-    const empty = "Sin commits para mostrar";
-    const emptyW = safeWidthOfText(font, empty, 10);
-    page.drawText(empty, {
-      x: tableX + (tableW - emptyW) / 2,
-      y: headerY - 42,
-      size: 10,
-      font,
-      color: COLORS.muted,
+  const drawTableHeader = (targetPage, headerY) => {
+    targetPage.drawRectangle({
+      x: tableX,
+      y: headerY - 12,
+      width: tableW,
+      height: 13,
+      color: rgb(0.9, 0.95, 1),
+      borderColor: COLORS.border,
+      borderWidth: 0.7,
     });
-  } else {
+
+    targetPage.drawText("Usuario", { x: tableX + 4, y: headerY - 8, size: 8, font: boldFont, color: COLORS.text });
+    targetPage.drawText("Email", { x: tableX + colUserW + 4, y: headerY - 8, size: 8, font: boldFont, color: COLORS.text });
+    targetPage.drawText("Commits", { x: tableX + colUserW + colEmailW + 4, y: headerY - 8, size: 8, font: boldFont, color: COLORS.text });
+    targetPage.drawText("Inactividad", {
+      x: tableX + colUserW + colEmailW + colCommitsW + 4,
+      y: headerY - 8,
+      size: 8,
+      font: boldFont,
+      color: COLORS.text,
+    });
+    targetPage.drawText("Posicion", {
+      x: tableX + colUserW + colEmailW + colCommitsW + colInactivityW + 4,
+      y: headerY - 8,
+      size: 8,
+      font: boldFont,
+      color: COLORS.text,
+    });
+    targetPage.drawText("Actividad diaria", {
+      x: tableX + colUserW + colEmailW + colCommitsW + colInactivityW + colPositionW + 4,
+      y: headerY - 8,
+      size: 8,
+      font: boldFont,
+      color: COLORS.text,
+    });
+  };
+
+  const drawTableRows = (targetPage, headerY, chunkRows, globalOffset) => {
     let rowY = headerY - 26;
-    rows.forEach((commit, idx) => {
-      if (idx % 2 === 0) {
-        page.drawRectangle({
+    chunkRows.forEach((row, idx) => {
+      const globalIdx = globalOffset + idx;
+      if (globalIdx % 2 === 0) {
+        targetPage.drawRectangle({
           x: tableX,
           y: rowY - 3.5,
           width: tableW,
@@ -708,40 +1116,154 @@ async function drawCommitTableCard({ pdfDoc, page, element, x, y, maxWidth, comm
         });
       }
 
-      const rawDate = sanitizeWinAnsiText(getCommitDate(commit) || "");
-      const dateText = rawDate ? rawDate.replace("T", " ").slice(0, 16) : "-";
-      const authorText = truncateText(getCommitAuthor(commit), font, 8.1, colAuthorW - 8);
-      const shaText = truncateText(getCommitSha(commit), font, 8.1, colShaW - 8);
-      const msgText = truncateText(getCommitMessage(commit), font, 8.1, colMsgW - 8);
+      const userText = truncateText(row.login, font, 7.7, colUserW - 8);
+      const emailText = truncateText(row.email || "-", font, 7.7, colEmailW - 8);
+      const commitsText = compactNumber(row.totalCommits);
+      const inactivityText = truncateText(row.inactivity || "-", font, 7.7, colInactivityW - 8);
+      const positionText = String(row.position || "-");
 
-      page.drawText(dateText, { x: tableX + 4, y: rowY, size: 8.1, font, color: COLORS.text });
-      page.drawText(authorText, { x: tableX + colDateW + 4, y: rowY, size: 8.1, font, color: COLORS.text });
-      page.drawText(shaText, { x: tableX + colDateW + colAuthorW + 4, y: rowY, size: 8.1, font, color: COLORS.text });
-      page.drawText(msgText, { x: tableX + colDateW + colAuthorW + colShaW + 4, y: rowY, size: 8.1, font, color: COLORS.text });
+      const commitsX = tableX + colUserW + colEmailW + 4;
+      const inactivityX = tableX + colUserW + colEmailW + colCommitsW + 4;
+      const positionX = tableX + colUserW + colEmailW + colCommitsW + colInactivityW + 4;
+      const sparkX = tableX + colUserW + colEmailW + colCommitsW + colInactivityW + colPositionW + 4;
+
+      targetPage.drawText(userText, { x: tableX + 4, y: rowY, size: 7.7, font, color: COLORS.text });
+      targetPage.drawText(emailText, { x: tableX + colUserW + 4, y: rowY, size: 7.7, font, color: COLORS.text });
+      targetPage.drawText(commitsText, { x: commitsX, y: rowY, size: 7.7, font: boldFont, color: COLORS.text });
+      targetPage.drawText(inactivityText, { x: inactivityX, y: rowY, size: 7.7, font, color: COLORS.text });
+      targetPage.drawText(positionText, { x: positionX, y: rowY, size: 7.7, font: boldFont, color: COLORS.text });
+
+      drawTinySparkBars({
+        page: targetPage,
+        font,
+        x: sparkX,
+        y: rowY - 1.5,
+        width: Math.max(18, colActivityW - 8),
+        height: 8.5,
+        values: row.activityValues,
+      });
 
       rowY -= rowH;
     });
+  };
+
+  const rowsThatFitInCurrentY = (currentY) => {
+    const available = currentY - PAGE_BOTTOM_MARGIN - blockGap - baseHeight;
+    return Math.max(1, Math.floor(available / rowHeightForCard));
+  };
+
+  let currentPage = page;
+  let currentY = y;
+  let drawn = 0;
+  let section = 0;
+
+  if (!rows.length) {
+    const emptyHeight = minCardHeight;
+    const emptySpace = ensureSpace(pdfDoc, currentPage, currentY, emptyHeight + blockGap);
+    currentPage = emptySpace.page;
+    currentY = emptySpace.y;
+    const cardY = drawCardFrame(currentPage, x, currentY, width, emptyHeight);
+
+    drawCardHeader({
+      page: currentPage,
+      x,
+      y: currentY,
+      width,
+      title: baseTitle,
+      interval,
+      boldFont,
+      font,
+      totalText: `${compactNumber(commits.length)} commits`,
+    });
+
+    const headerY = currentY - 62;
+    drawTableHeader(currentPage, headerY);
+
+    const empty = "Sin colaboradores para mostrar";
+    const emptyW = safeWidthOfText(font, empty, 10);
+    currentPage.drawText(empty, {
+      x: tableX + (tableW - emptyW) / 2,
+      y: headerY - 42,
+      size: 10,
+      font,
+      color: COLORS.muted,
+    });
+
+    drawChartSource({
+      page: currentPage,
+      font,
+      x,
+      width,
+      y: cardY + 10,
+      integrationData: element?.integration_data,
+    });
+
+    return { y: cardY - 20, page: currentPage };
   }
 
-  drawChartSource({
-    page,
-    font,
-    x,
-    width,
-    y: cardY + 10,
-    integrationData: element?.integration_data,
-  });
+  while (drawn < rows.length) {
+    const remaining = rows.length - drawn;
+    let rowsInChunk = Math.min(remaining, rowsThatFitInCurrentY(currentY));
+    let height = Math.max(minCardHeight, baseHeight + Math.max(1, rowsInChunk) * rowHeightForCard);
 
-  return { y: cardY - 20, page };
+    while (currentY - (height + blockGap) < PAGE_BOTTOM_MARGIN) {
+      currentPage = pdfDoc.addPage();
+      currentY = currentPage.getHeight() - PAGE_TOP_MARGIN;
+      rowsInChunk = Math.min(remaining, rowsThatFitInCurrentY(currentY));
+      height = Math.max(minCardHeight, baseHeight + Math.max(1, rowsInChunk) * rowHeightForCard);
+    }
+
+    const cardY = drawCardFrame(currentPage, x, currentY, width, height);
+    const title = section === 0 ? baseTitle : `${baseTitle} (continuacion ${section + 1})`;
+    drawCardHeader({
+      page: currentPage,
+      x,
+      y: currentY,
+      width,
+      title,
+      interval,
+      boldFont,
+      font,
+      totalText: `${compactNumber(commits.length)} commits`,
+    });
+
+    const headerY = currentY - 62;
+    drawTableHeader(currentPage, headerY);
+
+    const chunkRows = rows.slice(drawn, drawn + rowsInChunk);
+    drawTableRows(currentPage, headerY, chunkRows, drawn);
+
+    drawChartSource({
+      page: currentPage,
+      font,
+      x,
+      width,
+      y: cardY + 10,
+      integrationData: element?.integration_data,
+    });
+
+    drawn += chunkRows.length;
+    section += 1;
+    currentY = cardY - 20;
+  }
+
+  return { y: currentY, page: currentPage };
 }
 
 async function drawAuthorShareCard({ pdfDoc, page, element, x, y, maxWidth, commits = [] }) {
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const rows = countAuthors(commits).slice(0, 10);
-  const total = rows.reduce((acc, row) => acc + row.value, 0);
+  const allRows = countAuthors(commits);
+  const rows = allRows.slice(0, 10);
+  const otherCount = allRows.slice(10).reduce((acc, row) => acc + row.value, 0);
+  const total = allRows.reduce((acc, row) => acc + row.value, 0);
+  const displayRows = [
+    ...rows.map((row) => ({ name: row.name, value: row.value })),
+    ...(otherCount > 0 ? [{ name: "Otros", value: otherCount }] : []),
+  ];
+  const visibleRows = displayRows.length;
   const width = maxWidth;
-  const height = Math.max(196, 118 + rows.length * 21);
+  const height = Math.max(250, 192 + Math.max(1, visibleRows) * 20);
 
   const space = ensureSpace(pdfDoc, page, y, height + 24);
   page = space.page;
@@ -771,31 +1293,102 @@ async function drawAuthorShareCard({ pdfDoc, page, element, x, y, maxWidth, comm
       color: COLORS.muted,
     });
   } else {
-    let rowY = y - 64;
-    rows.forEach((row) => {
-      const pct = total > 0 ? Math.round((row.value / total) * 100) : 0;
-      const name = truncateText(row.name, font, 9.2, 220);
-      const pctText = `${pct}%`;
-      const valueText = `${compactNumber(row.value)} commits`;
-      const valueWidth = safeWidthOfText(boldFont, valueText, 8.3);
-      const pctWidth = safeWidthOfText(boldFont, pctText, 8.8);
+    const centerX = x + width / 2;
+    const centerY = y - 98;
+    const outerRadius = 44;
+    const innerRadius = 26;
+    const separatorAngles = [];
 
-      page.drawText(name, { x: x + 14, y: rowY, size: 9.2, font, color: COLORS.text });
-      page.drawText(pctText, {
-        x: x + width - valueWidth - pctWidth - 20,
+    let angle = 0;
+    displayRows.forEach((row, index) => {
+      const value = toNumber(row.value);
+      if (!total || value <= 0) return;
+      const sweep = (value / total) * 360;
+      if (sweep <= 0) return;
+      drawDonutSlice({
+        page,
+        cx: centerX,
+        cy: centerY,
+        innerRadius,
+        outerRadius,
+        startAngle: angle,
+        endAngle: angle + sweep,
+        color: PIE_COLORS[index % PIE_COLORS.length],
+      });
+      angle += sweep;
+      separatorAngles.push(angle);
+    });
+
+    const normalizedBoundaries = separatorAngles.map((boundaryAngle) => {
+      const normalized = ((boundaryAngle % 360) + 360) % 360;
+      return normalized;
+    });
+    if (displayRows.length > 1) normalizedBoundaries.push(0);
+
+    const uniqueBoundaries = normalizedBoundaries
+      .sort((a, b) => a - b)
+      .filter((angleValue, index, arr) => {
+        if (index === 0) return true;
+        return Math.abs(angleValue - arr[index - 1]) > 0.15;
+      });
+
+    uniqueBoundaries.forEach((boundaryAngle) => {
+      const innerPoint = pointOnCircle(centerX, centerY, Math.max(1, innerRadius - 0.8), boundaryAngle);
+      const outerPoint = pointOnCircle(centerX, centerY, outerRadius + 0.8, boundaryAngle);
+      page.drawLine({
+        start: innerPoint,
+        end: outerPoint,
+        thickness: 2.2,
+        color: rgb(1, 1, 1),
+      });
+    });
+
+    page.drawCircle({
+      x: centerX,
+      y: centerY,
+      size: innerRadius - 0.8,
+      color: COLORS.bg,
+    });
+
+    let rowY = y - 156;
+    displayRows.forEach((row, index) => {
+      const pctRaw = total > 0 ? (row.value / total) * 100 : 0;
+      const pctLabel = pctRaw < 10
+        ? `${pctRaw.toLocaleString("es-BO", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
+        : `${Math.round(pctRaw)}%`;
+      const name = truncateText(row.name, font, 9.1, 250);
+      const valueText = `${compactNumber(row.value)} commits`;
+      const rightText = `${pctLabel} | ${valueText}`;
+      const rightWidth = safeWidthOfText(boldFont, rightText, 8.2);
+
+      page.drawCircle({
+        x: x + 18,
+        y: rowY + 4,
+        size: 3.3,
+        color: PIE_COLORS[index % PIE_COLORS.length],
+      });
+      page.drawText(name, {
+        x: x + 28,
         y: rowY,
-        size: 8.8,
+        size: 9.1,
+        font,
+        color: COLORS.text,
+      });
+      page.drawText(rightText, {
+        x: x + width - rightWidth - 14,
+        y: rowY,
+        size: 8.2,
         font: boldFont,
         color: COLORS.primary,
       });
-      page.drawText(valueText, {
-        x: x + width - valueWidth - 14,
-        y: rowY,
-        size: 8.3,
-        font: boldFont,
-        color: COLORS.text,
+
+      page.drawLine({
+        start: { x: x + 14, y: rowY - 4 },
+        end: { x: x + width - 14, y: rowY - 4 },
+        thickness: 0.6,
+        color: COLORS.lineGrid,
       });
-      rowY -= 21;
+      rowY -= 19;
     });
   }
 
@@ -812,8 +1405,10 @@ async function drawAuthorShareCard({ pdfDoc, page, element, x, y, maxWidth, comm
 }
 
 export async function drawGithubChart({ pdfDoc, page, element, component, x, y, maxWidth }) {
-  const commits = Array.isArray(element?.data) ? element.data : [];
-  const pullRequests = Array.isArray(element?.data) ? element.data : [];
+  const rawItems = Array.isArray(element?.data) ? element.data : [];
+  const period = element?.period || "all";
+  const commits = filterItemsByPeriod(rawItems, period, (commit) => getCommitDate(commit));
+  const pullRequests = filterItemsByPeriod(rawItems, period, (pr) => pr?.created_at);
 
   switch (component) {
     case "commitsInThePeriodCard":
@@ -825,7 +1420,7 @@ export async function drawGithubChart({ pdfDoc, page, element, component, x, y, 
         y,
         maxWidth,
         items: commits,
-        dateAccessor: (commit) => commit?.commit?.author?.date,
+        dateAccessor: (commit) => getCommitDate(commit),
         metricLabel: "commits",
       });
     case "pullRequestsCard":
@@ -841,16 +1436,14 @@ export async function drawGithubChart({ pdfDoc, page, element, component, x, y, 
         metricLabel: "PRs",
       });
     case "sessionsChart":
-      return drawTimeSeriesCard({
+      return drawSessionsScatterCard({
         pdfDoc,
         page,
         element,
         x,
         y,
         maxWidth,
-        items: commits,
-        dateAccessor: (commit) => commit?.commit?.author?.date,
-        metricLabel: "eventos",
+        commits,
       });
     case "commitsByWeekdayHourChart":
       return drawWeekdayCard({ pdfDoc, page, element, x, y, maxWidth, commits });
@@ -871,9 +1464,8 @@ export async function drawGithubChart({ pdfDoc, page, element, component, x, y, 
         y,
         maxWidth,
         items: commits,
-        dateAccessor: (commit) => commit?.commit?.author?.date,
+        dateAccessor: (commit) => getCommitDate(commit),
         metricLabel: "registros",
       });
   }
 }
-

@@ -34,6 +34,7 @@ function ContentTypePerformanceCard({
                 pt: 3.5,
             }}
             smallCard
+            height={{ xs: 210, sm: 220, md: 235 }}
             interval={interval}
             loading={loading}
             error={error}
@@ -42,7 +43,7 @@ function ContentTypePerformanceCard({
             selected={selected}
             onSelectChange={onSelectChange}
         >
-            <Box sx={{ mt: 1.9, minHeight: 95, display: "flex", flexDirection: "column", gap: 0.65 }}>
+            <Box sx={{ mt: 6, minHeight: 145, display: "flex", flexDirection: "column", gap: 0.65 }}>
                 <Stack direction="row" justifyContent="center" alignItems="baseline" spacing={0.5}>
                     <Tooltip title={total.toLocaleString("es-BO")} arrow>
                         <Typography variant="h4" fontWeight={500} lineHeight={1}>
@@ -54,36 +55,38 @@ function ContentTypePerformanceCard({
                     </Typography>
                 </Stack>
 
-                {rows.slice(0, 4).map((item, index) => {
-                    const value = Number(item?.value ?? 0);
-                    const posts = Number(item?.posts ?? 0);
-                    const percentage = total > 0 ? (value / total) * 100 : 0;
-                    const color = TYPE_COLORS[index % TYPE_COLORS.length];
+                <Box sx={{ mt: "auto", display: "flex", flexDirection: "column", gap: 0.2 }}>
+                    {rows.slice(0, 4).map((item, index) => {
+                        const value = Number(item?.value ?? 0);
+                        const posts = Number(item?.posts ?? 0);
+                        const percentage = total > 0 ? (value / total) * 100 : 0;
+                        const color = TYPE_COLORS[index % TYPE_COLORS.length];
 
-                    return (
-                        <Stack key={`${item?.name}-${index}`} spacing={0.2}>
-                            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                                <Typography variant="caption">
-                                    {item?.name ?? "Formato"}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    {formatNumber(value)} ({Math.round(percentage)}%) | {formatNumber(posts)} posts
-                                </Typography>
+                        return (
+                            <Stack key={`${item?.name}-${index}`} spacing={0.2}>
+                                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                                    <Typography variant="caption">
+                                        {item?.name ?? "Formato"}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {formatNumber(value)} ({Math.round(percentage)}%) | {formatNumber(posts)} posts
+                                    </Typography>
+                                </Stack>
+                                <LinearProgress
+                                    variant="determinate"
+                                    value={percentage}
+                                    sx={{
+                                        height: 4,
+                                        borderRadius: 999,
+                                        [`& .${linearProgressClasses.bar}`]: {
+                                            backgroundColor: color,
+                                        },
+                                    }}
+                                />
                             </Stack>
-                            <LinearProgress
-                                variant="determinate"
-                                value={percentage}
-                                sx={{
-                                    height: 4,
-                                    borderRadius: 999,
-                                    [`& .${linearProgressClasses.bar}`]: {
-                                        backgroundColor: color,
-                                    },
-                                }}
-                            />
-                        </Stack>
-                    );
-                })}
+                        );
+                    })}
+                </Box>
             </Box>
         </DashboardCard>
     );

@@ -3,7 +3,7 @@ import { Typography } from '@mui/material';
 import { chartPropsMap, parseChartId } from '../utils/chartUtils';
 
 export const ChartRenderer = ({ element }) => {
-  const { id, id_name, data, content, title, integration_data, interval, period, type, ...rest } = element
+  const { id, id_name, data, content, title, integration_data, interval, period, meta, type, ...rest } = element
  
 
   const parsed = parseChartId(id_name);
@@ -48,6 +48,7 @@ export const ChartRenderer = ({ element }) => {
     ...rest,
     mode: 'report',
     integration_data: integration_data,
+    meta,
     loading: false,
     error: false,
     title: title || content || defaultTitle,
@@ -62,6 +63,8 @@ export const ChartRenderer = ({ element }) => {
   const finalProps = {
     ...baseProps,
     selectedPeriod: period || rest.selectedPeriod || 'all',
+    goal: Number.isFinite(meta?.goal) ? Number(meta.goal) : undefined,
+    allowGoalEdit: false,
     [dataProp]: data,
   };
 

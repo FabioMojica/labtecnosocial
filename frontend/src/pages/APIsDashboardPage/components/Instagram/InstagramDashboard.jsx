@@ -18,24 +18,20 @@ import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import { useFetchAndLoad } from "../../../../hooks";
 import { getInstagramInsights, getInstagramMedia, getInstagramOverview } from "../../../../api";
 import { useNotification, useReport } from "../../../../contexts";
-import FollowersCard from "./components/FollowersCard";
 import PageViewsCard from "./components/PageViewsCard";
-import TotalLikesCard from "./components/TotalLikesCard";
-import TotalReactionsCard from "./components/TotalReactionsCard";
-import PostsCard from "./components/PostsCard";
 import ProfileViewsCard from "./components/ProfileViewsCard";
 import EngagedAccountsCard from "./components/EngagedAccountsCard";
 import EngagementRateCard from "./components/EngagementRateCard";
-import AvgInteractionsPerPostCard from "./components/AvgInteractionsPerPostCard";
 import ContentTypePerformanceCard from "./components/ContentTypePerformanceCard";
-import { TopPostOfThePeriod } from "../Facebook/components/TopPostOfThePeriod";
+import InteractionsBreakdownCard from "./components/InteractionsBreakdownCard";
+import ProfileConversionFunnelCard from "./components/ProfileConversionFunnelCard";
+import TopInstagramPostsOfThePeriod from "./components/TopInstagramPostsOfThePeriod";
 import {
-    formatInstagramAvgInteractionsPerPostCard,
     formatInstagramContentTypeCard,
-    formatInstagramFollowersCard,
-    formatInstagramInteractionsCard,
+    formatInstagramEngagementRateCard,
+    formatInstagramInteractionBreakdownCard,
+    formatInstagramProfileConversionFunnelCard,
     formatInstagramMetricCard,
-    formatInstagramPostsCard,
 } from "./utils/cards";
 import { CHART_IDS_INSTAGRAM } from "./utils/chartsIds";
 import {
@@ -51,7 +47,7 @@ const EMPTY_METRIC = {
     delta: 0,
 };
 
-export const InstagramDashboard = ({ project, useMock = true, showingDialog = false }) => {
+export const InstagramDashboard = ({ project, useMock = false, showingDialog = false }) => {
     const { scrollbarWidth } = useLayout();
     const { callEndpoint } = useFetchAndLoad();
     const { addChart, removeChart, selectedCharts } = useReport();
@@ -65,20 +61,19 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
     const { notify } = useNotification();
 
     const [overviewData, setOverviewData] = useState(null);
-    const [followersData, setFollowersData] = useState(EMPTY_METRIC);
     const [reachData, setReachData] = useState(EMPTY_METRIC);
-    const [impressionsData, setImpressionsData] = useState(EMPTY_METRIC);
-    const [profileViewsData, setProfileViewsData] = useState(EMPTY_METRIC);
     const [engagedAccountsData, setEngagedAccountsData] = useState(EMPTY_METRIC);
-    const [postsData, setPostsData] = useState(EMPTY_METRIC);
-    const [avgInteractionsPerPostData, setAvgInteractionsPerPostData] = useState(EMPTY_METRIC);
-    const [contentTypePerformanceData, setContentTypePerformanceData] = useState(EMPTY_METRIC);
-    const [interactionsData, setInteractionsData] = useState({
-        ...EMPTY_METRIC,
-        likesTotal: 0,
-        commentsTotal: 0,
-        topPosts: [],
+    const [profileViewsData, setProfileViewsData] = useState(EMPTY_METRIC);
+    const [engagementRateData, setEngagementRateData] = useState({
+        total: 0,
+        interactionsTotal: 0,
+        reachTotal: 0,
+        hasData: false,
     });
+    const [contentTypePerformanceData, setContentTypePerformanceData] = useState(EMPTY_METRIC);
+    const [interactionsBreakdownData, setInteractionsBreakdownData] = useState(EMPTY_METRIC);
+    const [profileConversionFunnelData, setProfileConversionFunnelData] = useState(EMPTY_METRIC);
+    const [topPostsData, setTopPostsData] = useState([]);
     const callEndpointRef = useRef(callEndpoint);
     const notifyRef = useRef(notify);
     const mockQueryValue =
@@ -102,10 +97,10 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
         selectedPeriod === "today"
             ? "Hoy"
             : selectedPeriod === "lastWeek"
-                ? "Ultima semana"
+                ? "Última semana"
                 : selectedPeriod === "lastMonth"
-                    ? "Ultimo mes"
-                    : "Ultimos seis meses";
+                    ? "Último mes"
+                    : "Últimos seis meses";
 
     useEffect(() => {
         const integrationId = instagramIntegration?.integration_id;
@@ -133,15 +128,14 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                 if (!active) return;
 
                 setOverviewData(overview ?? null);
-                setFollowersData(formatInstagramFollowersCard(insights));
-                setReachData(formatInstagramMetricCard(insights, "reach"));
-                setImpressionsData(formatInstagramMetricCard(insights, "impressions"));
-                setProfileViewsData(formatInstagramMetricCard(insights, "profile_views"));
-                setEngagedAccountsData(formatInstagramMetricCard(insights, "accounts_engaged"));
-                setInteractionsData(formatInstagramInteractionsCard(mediaPayload));
-                setPostsData(formatInstagramPostsCard(mediaPayload));
-                setAvgInteractionsPerPostData(formatInstagramAvgInteractionsPerPostCard(mediaPayload));
+                setReachData(formatInstagramMetricCard(insights, "reach", selectedPeriod));
+                setEngagedAccountsData(formatInstagramMetricCard(insights, "accounts_engaged", selectedPeriod));
+                setProfileViewsData(formatInstagramMetricCard(insights, "profile_views", selectedPeriod));
+                setEngagementRateData(formatInstagramEngagementRateCard(insights, selectedPeriod));
                 setContentTypePerformanceData(formatInstagramContentTypeCard(mediaPayload));
+                setInteractionsBreakdownData(formatInstagramInteractionBreakdownCard(insights, selectedPeriod));
+                setProfileConversionFunnelData(formatInstagramProfileConversionFunnelCard(insights, selectedPeriod));
+                setTopPostsData(Array.isArray(mediaPayload?.topPosts) ? mediaPayload.topPosts : []);
                 setErrorFetchData(false);
             } catch (err) {
                 if (!active) return;
@@ -166,20 +160,11 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
     const instagramName = instagramIntegration?.name || "Cuenta de Instagram";
     const instagramInitial = String(instagramName?.[0] ?? "I").toUpperCase();
     const hasInstagramUrl = Boolean(instagramIntegration?.url);
+    const openInstagramProfile = () => {
+        if (!hasInstagramUrl) return;
+        window.open(instagramIntegration?.url, "_blank", "noopener,noreferrer");
+    };
     const selectable = showingDialog;
-    const interactionsTotal = Number(interactionsData?.total ?? 0);
-    const reachTotal = Number(reachData?.total ?? 0);
-    const postsTotal = Number(postsData?.total ?? 0);
-
-    const rateHasData =
-        (Array.isArray(interactionsData?.chartData) && interactionsData.chartData.length > 0) ||
-        (Array.isArray(reachData?.chartData) && reachData.chartData.length > 0);
-    const engagementRate = reachTotal > 0 ? (interactionsTotal / reachTotal) * 100 : 0;
-
-    const averageHasData =
-        (Array.isArray(avgInteractionsPerPostData?.chartData) && avgInteractionsPerPostData.chartData.length > 0) ||
-        interactionsTotal > 0;
-
     const buildChartPayload = (idName, title, data) => ({
         id_name: idName,
         integration_data: {
@@ -195,23 +180,6 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
         data,
         interval: periodLabel,
     });
-
-    const engagementRateCardData = {
-        chartData: [engagementRate],
-        dates: [periodLabel],
-        total: engagementRate,
-        delta: 0,
-        interactionsTotal,
-        reachTotal,
-        hasData: rateHasData,
-    };
-
-    const avgInteractionsCardData = {
-        ...avgInteractionsPerPostData,
-        interactionsTotal,
-        totalPosts: postsTotal,
-        hasData: averageHasData,
-    };
 
     return (
         <Box
@@ -317,9 +285,7 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                                     : undefined,
                             }}
                             onClick={() => {
-                                if (hasInstagramUrl) {
-                                    window.open(instagramIntegration?.url, "_blank");
-                                }
+                                openInstagramProfile();
                             }}
                         >
                             <Avatar
@@ -358,9 +324,7 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                                     "&:hover": hasInstagramUrl ? { color: "primary.dark" } : undefined,
                                 }}
                                 onClick={() => {
-                                    if (hasInstagramUrl) {
-                                        window.open(instagramIntegration.url, "_blank");
-                                    }
+                                    openInstagramProfile();
                                 }}
                             >
                                 {instagramName}
@@ -386,9 +350,9 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                         }}
                     >
                         <Tab value="today" label="Hoy" disabled={isLoadingInsights} />
-                        <Tab value="lastWeek" label="Ultima semana" disabled={isLoadingInsights} />
-                        <Tab value="lastMonth" label="Ultimo mes" disabled={isLoadingInsights} />
-                        <Tab value="lastSixMonths" label="Ultimos seis meses" disabled={isLoadingInsights} />
+                        <Tab value="lastWeek" label="Última semana" disabled={isLoadingInsights} />
+                        <Tab value="lastMonth" label="Último mes" disabled={isLoadingInsights} />
+                        <Tab value="lastSixMonths" label="Últimos seis meses" disabled={isLoadingInsights} />
                     </Tabs>
                 </Box>
 
@@ -436,30 +400,7 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                 }}
             >
                 <Grid container columns={12} spacing={1} sx={{ mb: 1 }}>
-                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-                        <FollowersCard
-                            mode="dashboard"
-                            loading={isLoadingInsights}
-                            error={errorFetchData}
-                            title="Nuevos seguidores"
-                            interval={periodLabel}
-                            data={followersData}
-                            selected={selectedCharts.some(
-                                (c) => c.id_name === CHART_IDS_INSTAGRAM.followersCard(selectedPeriod)
-                            )}
-                            selectable={selectable}
-                            onSelectChange={(checked) => {
-                                const idName = CHART_IDS_INSTAGRAM.followersCard(selectedPeriod);
-                                if (checked) {
-                                    addChart(buildChartPayload(idName, "Nuevos seguidores", followersData));
-                                } else {
-                                    removeChart({ id_name: idName });
-                                }
-                            }}
-                        />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                         <PageViewsCard
                             mode="dashboard"
                             loading={isLoadingInsights}
@@ -481,23 +422,22 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                             }}
                         />
                     </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-                        <TotalLikesCard
+                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                        <EngagedAccountsCard
                             mode="dashboard"
                             loading={isLoadingInsights}
                             error={errorFetchData}
-                            title="Impresiones"
+                            title="Cuentas con interacción"
                             interval={periodLabel}
-                            data={impressionsData}
+                            data={engagedAccountsData}
                             selected={selectedCharts.some(
-                                (c) => c.id_name === CHART_IDS_INSTAGRAM.impressionsCard(selectedPeriod)
+                                (c) => c.id_name === CHART_IDS_INSTAGRAM.engagedAccountsCard(selectedPeriod)
                             )}
                             selectable={selectable}
                             onSelectChange={(checked) => {
-                                const idName = CHART_IDS_INSTAGRAM.impressionsCard(selectedPeriod);
+                                const idName = CHART_IDS_INSTAGRAM.engagedAccountsCard(selectedPeriod);
                                 if (checked) {
-                                    addChart(buildChartPayload(idName, "Impresiones", impressionsData));
+                                    addChart(buildChartPayload(idName, "Cuentas con interacción", engagedAccountsData));
                                 } else {
                                     removeChart({ id_name: idName });
                                 }
@@ -505,7 +445,7 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                         />
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                         <ProfileViewsCard
                             mode="dashboard"
                             loading={isLoadingInsights}
@@ -528,108 +468,13 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                         />
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-                        <EngagedAccountsCard
-                            mode="dashboard"
-                            loading={isLoadingInsights}
-                            error={errorFetchData}
-                            title="Cuentas con interaccion"
-                            interval={periodLabel}
-                            data={engagedAccountsData}
-                            selected={selectedCharts.some(
-                                (c) => c.id_name === CHART_IDS_INSTAGRAM.engagedAccountsCard(selectedPeriod)
-                            )}
-                            selectable={selectable}
-                            onSelectChange={(checked) => {
-                                const idName = CHART_IDS_INSTAGRAM.engagedAccountsCard(selectedPeriod);
-                                if (checked) {
-                                    addChart(buildChartPayload(idName, "Cuentas con interaccion", engagedAccountsData));
-                                } else {
-                                    removeChart({ id_name: idName });
-                                }
-                            }}
-                        />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-                        <TotalReactionsCard
-                            mode="dashboard"
-                            loading={isLoadingInsights}
-                            error={errorFetchData}
-                            title="Interacciones totales"
-                            interval={periodLabel}
-                            data={interactionsData}
-                            selected={selectedCharts.some(
-                                (c) => c.id_name === CHART_IDS_INSTAGRAM.interactionsCard(selectedPeriod)
-                            )}
-                            selectable={selectable}
-                            onSelectChange={(checked) => {
-                                const idName = CHART_IDS_INSTAGRAM.interactionsCard(selectedPeriod);
-                                if (checked) {
-                                    addChart(buildChartPayload(idName, "Interacciones totales", interactionsData));
-                                } else {
-                                    removeChart({ id_name: idName });
-                                }
-                            }}
-                        />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-                        <PostsCard
-                            mode="dashboard"
-                            loading={isLoadingInsights}
-                            error={errorFetchData}
-                            title="Publicaciones del periodo"
-                            interval={periodLabel}
-                            data={postsData}
-                            selected={selectedCharts.some(
-                                (c) => c.id_name === CHART_IDS_INSTAGRAM.postsCard(selectedPeriod)
-                            )}
-                            selectable={selectable}
-                            onSelectChange={(checked) => {
-                                const idName = CHART_IDS_INSTAGRAM.postsCard(selectedPeriod);
-                                if (checked) {
-                                    addChart(buildChartPayload(idName, "Publicaciones del periodo", postsData));
-                                } else {
-                                    removeChart({ id_name: idName });
-                                }
-                            }}
-                        />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-                        <AvgInteractionsPerPostCard
-                            loading={isLoadingInsights}
-                            error={errorFetchData}
-                            interval={periodLabel}
-                            data={avgInteractionsCardData}
-                            selected={selectedCharts.some(
-                                (c) => c.id_name === CHART_IDS_INSTAGRAM.avgInteractionsPerPostCard(selectedPeriod)
-                            )}
-                            selectable={selectable}
-                            onSelectChange={(checked) => {
-                                const idName = CHART_IDS_INSTAGRAM.avgInteractionsPerPostCard(selectedPeriod);
-                                if (checked) {
-                                    addChart(
-                                        buildChartPayload(
-                                            idName,
-                                            "Interacciones por publicacion",
-                                            avgInteractionsCardData
-                                        )
-                                    );
-                                } else {
-                                    removeChart({ id_name: idName });
-                                }
-                            }}
-                        />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                         <EngagementRateCard
                             loading={isLoadingInsights}
                             error={errorFetchData}
+                            title="Tasa de engagement"
                             interval={periodLabel}
-                            data={engagementRateCardData}
+                            data={engagementRateData}
                             selected={selectedCharts.some(
                                 (c) => c.id_name === CHART_IDS_INSTAGRAM.engagementRateCard(selectedPeriod)
                             )}
@@ -637,7 +482,7 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                             onSelectChange={(checked) => {
                                 const idName = CHART_IDS_INSTAGRAM.engagementRateCard(selectedPeriod);
                                 if (checked) {
-                                    addChart(buildChartPayload(idName, "Tasa de engagement", engagementRateCardData));
+                                    addChart(buildChartPayload(idName, "Tasa de engagement", engagementRateData));
                                 } else {
                                     removeChart({ id_name: idName });
                                 }
@@ -645,7 +490,7 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                         />
                     </Grid>
 
-                    <Grid size={{ xs: 12 }}>
+                    <Grid size={{ xs: 12, lg: 4 }}>
                         <ContentTypePerformanceCard
                             loading={isLoadingInsights}
                             error={errorFetchData}
@@ -669,14 +514,62 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                         />
                     </Grid>
 
+                    <Grid size={{ xs: 12, lg: 4 }}>
+                        <InteractionsBreakdownCard
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Desglose de interacciones"
+                            interval={periodLabel}
+                            data={interactionsBreakdownData}
+                            selected={selectedCharts.some(
+                                (c) => c.id_name === CHART_IDS_INSTAGRAM.interactionsBreakdownCard(selectedPeriod)
+                            )}
+                            selectable={selectable}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_INSTAGRAM.interactionsBreakdownCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(
+                                        buildChartPayload(idName, "Desglose de interacciones", interactionsBreakdownData)
+                                    );
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, lg: 4 }}>
+                        <ProfileConversionFunnelCard
+                            loading={isLoadingInsights}
+                            error={errorFetchData}
+                            title="Embudo de conversión"
+                            interval={periodLabel}
+                            data={profileConversionFunnelData}
+                            selected={selectedCharts.some(
+                                (c) => c.id_name === CHART_IDS_INSTAGRAM.profileConversionFunnelCard(selectedPeriod)
+                            )}
+                            selectable={selectable}
+                            onSelectChange={(checked) => {
+                                const idName = CHART_IDS_INSTAGRAM.profileConversionFunnelCard(selectedPeriod);
+                                if (checked) {
+                                    addChart(
+                                        buildChartPayload(idName, "Embudo de conversión", profileConversionFunnelData)
+                                    );
+                                } else {
+                                    removeChart({ id_name: idName });
+                                }
+                            }}
+                        />
+                    </Grid>
+
                     <Grid size={{ xs: 12 }}>
-                        <TopPostOfThePeriod
+                        <TopInstagramPostsOfThePeriod
                             mode="dashboard"
                             loading={isLoadingInsights}
                             error={errorFetchData}
                             title="Top publicaciones de Instagram"
                             interval={periodLabel}
-                            data={interactionsData?.topPosts ?? []}
+                            data={topPostsData}
                             selected={selectedCharts.some(
                                 (c) => c.id_name === CHART_IDS_INSTAGRAM.topPostsCard(selectedPeriod)
                             )}
@@ -688,7 +581,7 @@ export const InstagramDashboard = ({ project, useMock = true, showingDialog = fa
                                         buildChartPayload(
                                             idName,
                                             "Top publicaciones de Instagram",
-                                            interactionsData?.topPosts ?? []
+                                            topPostsData
                                         )
                                     );
                                 } else {

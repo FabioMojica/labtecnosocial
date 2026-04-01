@@ -23,8 +23,18 @@ export const createUser = async (req, res) => {
     }
 
     const userRepository = AppDataSource.getRepository(User);
+    const isRequesterSuperAdmin = user?.role === ALLOWED_ROLES.superAdmin;
 
     const existingUser = await userRepository.findOneBy({ email });
+
+    if (role === ALLOWED_ROLES.superAdmin && !isRequesterSuperAdmin) {
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'Solo un super administrador puede crear otro super administrador.',
+        403
+      );
+    }
 
     if (role === ALLOWED_ROLES.superAdmin) {
       const existingSuperAdmin = await userRepository.findOne({
@@ -201,6 +211,7 @@ export const getAllAdmins = async (req, res) => {
 export const getUserByEmail = async (req, res) => {
   try {
     const { email } = req.params;
+    const requester = req.user;
 
     if (!email) {
       return (
@@ -244,10 +255,36 @@ export const getUserByEmail = async (req, res) => {
 
     const { password, id, projectResponsibles, creator, createdUsers, ...userData } = user;
 
-    const assignedProjects = projectResponsibles.map(pr => {
+    let assignedProjects = projectResponsibles.map(pr => {
       const { ...projectData } = pr.operationalProject;
       return projectData;
     });
+
+    const shouldFilterBySharedProjects =
+      (requester?.role === ALLOWED_ROLES.admin && user.role === ALLOWED_ROLES.superAdmin) ||
+      (
+        requester?.role === ALLOWED_ROLES.user &&
+        [ALLOWED_ROLES.admin, ALLOWED_ROLES.superAdmin].includes(user.role)
+      );
+
+    if (shouldFilterBySharedProjects) {
+      const requesterWithProjects = await userRepository.findOne({
+        where: { id: requester.id },
+        relations: {
+          projectResponsibles: {
+            operationalProject: true,
+          },
+        },
+      });
+
+      const requesterProjectIds = new Set(
+        (requesterWithProjects?.projectResponsibles ?? [])
+          .map((pr) => pr.operationalProject?.id)
+          .filter((projectId) => Number.isInteger(projectId))
+      );
+
+      assignedProjects = assignedProjects.filter((project) => requesterProjectIds.has(project.id));
+    }
 
     const responsibleData = creator
       ? {
@@ -361,6 +398,17 @@ export const updateUser = async (req, res) => {
       );
     }
 
+    if (isAdmin && user?.role === ALLOWED_ROLES.superAdmin) {
+      return (
+        errorResponse(
+          res,
+          ERROR_CODES.USER_UNAUTHORIZED,
+          'No tienes permisos para modificar un super administrador.',
+          403,
+        )
+      );
+    }
+
     if (!isAdmin && !isSuperAdmin && !isOwnProfile) {
       return (
         errorResponse(
@@ -420,6 +468,17 @@ export const updateUser = async (req, res) => {
       if (lastName !== undefined) user.lastName = lastName;
 
       if (role !== undefined && role !== user.role) {
+        if (role === ALLOWED_ROLES.superAdmin && !isSuperAdmin) {
+          return (
+            errorResponse(
+              res,
+              ERROR_CODES.USER_UNAUTHORIZED,
+              'Solo un super administrador puede asignar el rol de super administrador.',
+              403,
+            )
+          );
+        }
+
         user.role = role;
         sessionShouldInvalidate = true;
       }

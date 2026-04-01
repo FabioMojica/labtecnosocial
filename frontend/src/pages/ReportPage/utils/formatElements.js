@@ -74,6 +74,7 @@ export const formatElementsForFrontend = (backendReport) => {
           interval: el.interval,
           period: el.period,
           data: el.data,
+          meta: el.meta,
           integration_data: el.integration_data,
         };
         break;
@@ -99,15 +100,18 @@ export const formatElementsForDb = (editedReport) => {
     !title?.trim() ? "Reporte sin título" : title.trim();
 
   const formData = new FormData();
+  const idMap = new Map();
 
   const data = elementsOrder.map((uuid, index) => {
     const el = elements[uuid];
+    if (!el) return null;
 
     const base = {
       id: generateUUID(el.id),
       type: el.type,
       position: index,
     };
+    idMap.set(uuid, base.id);
 
     switch (el.type) {
       case "text":
@@ -138,6 +142,7 @@ export const formatElementsForDb = (editedReport) => {
         base.interval = el.interval ?? "";
         base.period = el.period ?? "";
         base.data = el.data ?? [];
+        base.meta = el.meta ?? {};
         base.integration_data = el.integration_data ?? {};
         break;
 
@@ -146,7 +151,7 @@ export const formatElementsForDb = (editedReport) => {
     }
 
     return base;
-  });
+  }).filter(Boolean);
 
 
   formData.append(
@@ -156,7 +161,7 @@ export const formatElementsForDb = (editedReport) => {
       elements: Object.fromEntries(
         data.map(el => [el.id, el])
       ),
-      elementsOrder: elementsOrder,
+      elementsOrder: elementsOrder.map((id) => idMap.get(id)).filter(Boolean),
     })
   );
 
