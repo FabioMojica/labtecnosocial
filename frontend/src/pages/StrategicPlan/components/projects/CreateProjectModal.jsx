@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, MenuItem, Select, InputLabel, FormControl, Box, Typography, Tooltip, CircularProgress, Link,
+  Button, MenuItem, Select, InputLabel, FormControl, Box, Typography, CircularProgress, Link,
   Avatar
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { getAllOperationalProjectsApi } from '../../../../api/operationalProjects.js';
-import RenderAvatar from '../../../../generalComponents/RenderAvatar.jsx';
 import { useNotification } from '../../../../contexts/ToastContext.jsx';
 import { getAllAssignedProjectIds } from '../../utils/strategicPlanningColumnsViewUtils.js';
 import { useTheme } from '@emotion/react';
+import QuickCreateOperationalProjectModal from './QuickCreateOperationalProjectModal.jsx';
 
 const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
   const [projects, setProjects] = useState([]);
@@ -21,6 +22,7 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
   const theme = useTheme();
   const selectRef = useRef(null);
   const [selectWidth, setSelectWidth] = useState(0);
+  const [openQuickCreate, setOpenQuickCreate] = useState(false);
 
   useEffect(() => {
     if (open && selectRef.current) {
@@ -34,9 +36,11 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
       setErrorLoading(false);
       const data = await getAllOperationalProjectsApi();
       setProjects(data);
+      return data;
     } catch (error) {
       notify('Ocurrió un error inesperado al obtener los proyectos. Inténtalo de nuevo más tarde.', 'error');
       setErrorLoading(true);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -52,7 +56,21 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
 
   const handleClose = () => {
     setSelectedProjectId(null);
+    setOpenQuickCreate(false);
     onClose();
+  };
+
+  const handleQuickProjectCreated = async (createdProject) => {
+    const refreshedProjects = await loadProjects();
+    const existsInRefreshedList = refreshedProjects.some((project) => project.id === createdProject?.id);
+
+    if (!existsInRefreshedList && createdProject?.id) {
+      setProjects((prev) => [createdProject, ...prev.filter((project) => project.id !== createdProject.id)]);
+    }
+
+    if (createdProject?.id) {
+      setSelectedProjectId(createdProject.id);
+    }
   };
 
   useEffect(() => {
@@ -73,7 +91,17 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Vincular Proyecto Operativo</DialogTitle>
+      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+        <Typography variant="h6">Vincular Proyecto Operativo</Typography>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={() => setOpenQuickCreate(true)}
+        >
+          Creación rápida
+        </Button>
+      </DialogTitle>
       <DialogContent>
         {loading && (
           <Box display="flex" justifyContent="center" my={3}>
@@ -258,6 +286,11 @@ const CreateProjectModal = ({ open, onClose, onSave, targets }) => {
           Seleccionar Proyecto
         </Button>
       </DialogActions>
+      <QuickCreateOperationalProjectModal
+        open={openQuickCreate}
+        onClose={() => setOpenQuickCreate(false)}
+        onCreated={handleQuickProjectCreated}
+      />
     </Dialog>
   );
 };
