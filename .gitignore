@@ -18,8 +18,4 @@ pnpm-debug.log*
 
 # Editor
 .vscode/
-<<<<<<< HEAD
 .idea/
-=======
-.idea/
->>>>>>> planificacion-estrategica
