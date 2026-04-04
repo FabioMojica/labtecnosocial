@@ -4,6 +4,7 @@ import { Delete as DeleteIcon, DragIndicator as DragIndicatorIcon } from "@mui/i
 import { ChartRenderer } from "./ChartRenderer";
 import { ResizableImage } from "./ResizableImage";
 import { integrationsConfig } from "../../../utils";
+import { parseChartId } from "../utils/chartUtils";
 import ReactQuill, { Quill } from "react-quill-new";
 import debounce from "lodash.debounce";
 import DOMPurify from 'dompurify';
@@ -60,6 +61,16 @@ const quillPurifyConfig = {
 };
 
 export const ReportElementItem = memo(({ element, numberOfPreviousSameType, showCharts = true, onChange, removeElement, disabled = false }) => {
+    const parsedChart = parseChartId(element?.id_name);
+    const isOverviewRankingChart =
+        element?.type === "chart" &&
+        (parsedChart?.chartKey === "overviewSocialReachRanking" || parsedChart?.chartKey === "overviewCommitRanking");
+    const platformLabel = isOverviewRankingChart
+        ? "resumen"
+        : (element?.integration_data?.integration?.platform ?? "N/A");
+    const platformConfig = integrationsConfig[element?.integration_data?.integration?.platform];
+    const platformColor = isOverviewRankingChart ? "text.primary" : (platformConfig?.color ?? "text.primary");
+
     const [localValue, setLocalValue] = useState(
         element?.content?.content_html ?? ""
     );
@@ -242,23 +253,25 @@ export const ReportElementItem = memo(({ element, numberOfPreviousSameType, show
                                 Proyecto: {element?.integration_data?.project?.name ?? 'N/A'}
                             </Typography>
                             <Box display="flex" alignItems="center" gap={1}>
-                                <Avatar sx={{
-                                    bgcolor: integrationsConfig[element?.integration_data?.integration?.platform]?.color,
-                                    borderRadius: 1,
-                                    width: 25,
-                                    height: 25
-                                }}>
-                                    {React.createElement(
-                                        integrationsConfig[element?.integration_data?.integration?.platform]?.icon,
-                                        { fontSize: "medium", htmlColor: "#fff" }
-                                    )}
-                                </Avatar>
+                                {!isOverviewRankingChart && platformConfig?.icon && (
+                                    <Avatar sx={{
+                                        bgcolor: platformConfig?.color,
+                                        borderRadius: 1,
+                                        width: 25,
+                                        height: 25
+                                    }}>
+                                        {React.createElement(
+                                            platformConfig.icon,
+                                            { fontSize: "medium", htmlColor: "#fff" }
+                                        )}
+                                    </Avatar>
+                                )}
                                 <Box display="flex" alignItems="center" flexDirection="column" maxWidth={300}>
                                     <Typography
                                         lineHeight={1}
                                         variant="caption"
                                         fontWeight="bold"
-                                        color={integrationsConfig[element?.integration_data?.integration?.platform]?.color}
+                                        color={platformColor}
                                         sx={{
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
@@ -267,7 +280,7 @@ export const ReportElementItem = memo(({ element, numberOfPreviousSameType, show
                                         }}
                                         textAlign={'left'}
                                     >
-                                        {element?.integration_data?.integration?.platform ?? 'N/A'}
+                                        {platformLabel}
                                     </Typography>
 
                                     <Typography
@@ -283,7 +296,9 @@ export const ReportElementItem = memo(({ element, numberOfPreviousSameType, show
                                         }}
                                         textAlign={'left'}
                                     >
-                                        {element?.integration_data?.integration?.name ?? 'N/A'}
+                                        {isOverviewRankingChart
+                                            ? 'ranking de proyectos'
+                                            : (element?.integration_data?.integration?.name ?? 'N/A')}
                                     </Typography>
                                 </Box>
 

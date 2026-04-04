@@ -22,10 +22,13 @@ export const getReposApi = async () => {
     }
 };
 
-export const getGithubBranchesApi = async (repoName) => {
+export const getGithubBranchesApi = async (repoName, owner) => {
     try {
         const { data } = await axiosInstance.get(
-            Routes.github.BRANCHES(repoName)
+            Routes.github.BRANCHES(repoName),
+            {
+                params: owner ? { owner } : undefined,
+            }
         );
 
         if (data?.success !== true) {
@@ -42,7 +45,7 @@ export const getGithubBranchesApi = async (repoName) => {
     }
 };
 
-export const getGithubStatsApi = async (projectName, timeRange, branch) => {
+export const getGithubStatsApi = async (projectName, timeRange, branch, owner) => {
     try {
 
         const { data } = await axiosInstance.get(
@@ -51,6 +54,7 @@ export const getGithubStatsApi = async (projectName, timeRange, branch) => {
                 params: {
                     range: timeRange,
                     branch,
+                    ...(owner ? { owner } : {}),
                 },
             } 
         );

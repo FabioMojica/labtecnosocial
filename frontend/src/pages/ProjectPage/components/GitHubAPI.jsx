@@ -66,9 +66,10 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
 
     const getGitHubRepositories = async () => {
         try {
-            const repos = await callEndpoint(getGitHubRepositoriesApi());
+            const reposResponse = await callEndpoint(getGitHubRepositoriesApi());
+            const safeRepos = Array.isArray(reposResponse) ? reposResponse : [];
 
-            const reposWithPlatform = repos.map(repo => ({
+            const reposWithPlatform = safeRepos.map(repo => ({
                 ...repo,
                 platform: "github"
             }));
@@ -78,6 +79,8 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
             setError(false);
         } catch (error) {
             setError(true);
+            setRepos([]);
+            setFilteredRepos([]);
             console.error(error);
         }
     };
@@ -239,7 +242,7 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
                             data={repos}
                             fields={["name", "url"]}
                             placeholder="Buscar repositorio..."
-                            onResults={(results) => setFilteredRepos(results)}
+                            onResults={(results) => setFilteredRepos(Array.isArray(results) ? results : [])}
                         />
                         {
                             filteredRepos.length === 0 ? (
@@ -266,7 +269,7 @@ export const GithubApi = ({ panelHeight, gitHubIntegration, onChange, resetTrigg
                                         width: '100%',
                                         pb: 6
                                     }}>
-                                    {filteredRepos.map((repo) => {
+                                    {(Array.isArray(filteredRepos) ? filteredRepos : []).map((repo) => {
                                         const handleOpenRepo = (e) => {
                                             e.stopPropagation();
                                             window.open(repo.url, "_blank");

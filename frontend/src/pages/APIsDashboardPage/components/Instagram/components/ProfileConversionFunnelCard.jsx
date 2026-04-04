@@ -116,7 +116,7 @@ function ProfileConversionFunnelCard({
                 >
                     <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ pt: 0.6 }}>
                         <Typography variant="caption" color="text.secondary">
-                            Conversion total perfil -> web
+                            Conversion total perfil {"->"} web
                         </Typography>
                         <Typography variant="caption" fontWeight={600}>
                             {conversionRates?.clicksVsViews ?? 0}%
@@ -177,10 +177,10 @@ function ProfileConversionFunnelCard({
                     })}
                     <Stack direction="row" justifyContent="space-between" sx={{ pt: 0.1 }}>
                         <Typography variant="caption" color="text.secondary">
-                            Perfil -> Link: {conversionRates?.tapsVsViews ?? 0}%
+                            Perfil {"->"} Link: {conversionRates?.tapsVsViews ?? 0}%
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                            Link -> Web: {conversionRates?.clicksVsTaps ?? 0}%
+                            Link {"->"} Web: {conversionRates?.clicksVsTaps ?? 0}%
                         </Typography>
                     </Stack>
                 </Box>

@@ -42,6 +42,7 @@ import {
   ReportTitle
 } from "./components";
 import { getElementLabel } from "./utils";
+import { parseChartId } from "./utils/chartUtils";
 import { useReportEditor } from "./hooks/useReportEditor";
 
 export const ReportEditor = () => {
@@ -56,6 +57,18 @@ export const ReportEditor = () => {
   const [openChartSelector, setOpenChartSelector] = useState(false);
   const imageInputRef = useRef(null);
   const { isPdfGenerating, startPdfExport } = usePdfExport();
+  const getChartPlatformDisplay = (el) => {
+    const parsed = parseChartId(el?.id_name);
+    const isOverview =
+      parsed?.chartKey === "overviewSocialReachRanking" ||
+      parsed?.chartKey === "overviewCommitRanking";
+    if (isOverview) return { label: "resumen", color: theme.palette.text.primary };
+    const platform = el?.integration_data?.integration?.platform;
+    return {
+      label: platform ?? "N/A",
+      color: integrationsConfig?.[platform]?.color ?? theme.palette.text.primary,
+    };
+  };
 
   const {
     isCreateNewReport,
@@ -556,7 +569,7 @@ export const ReportEditor = () => {
                                         <Typography
                                           variant="caption"
                                           fontWeight={'bold'}
-                                          color={integrationsConfig[el?.integration_data?.integration?.platform].color}
+                                          color={getChartPlatformDisplay(el).color}
                                           lineHeight={1}
                                           sx={{
                                             overflow: 'hidden',
@@ -564,7 +577,7 @@ export const ReportEditor = () => {
                                             whiteSpace: 'nowrap',
                                           }}
                                         >
-                                          {`${el?.integration_data?.integration?.platform}` ?? 'N/A'}
+                                          {getChartPlatformDisplay(el).label}
                                         </Typography>
                                         <Typography
                                           variant="caption"

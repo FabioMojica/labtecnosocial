@@ -16,6 +16,7 @@ import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { GitHubDashboard } from './components/GitHub/GitHubDashboard';
 import { FacebookDashboard } from './components/Facebook/FacebookDashboard';
 import { InstagramDashboard } from './components/Instagram/InstagramDashboard';
+import IntegrationsRankingOverview from './components/IntegrationsRankingOverview';
 
 export const APIsDashboardPage = ({ showingDialog = false }) => {
     const [projects, setProjects] = useState([]);
@@ -128,7 +129,32 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
                 }}
             >
                 <Typography variant='h4' sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
-                    Dashboard
+                    <Box
+                        component='button'
+                        type='button'
+                        aria-label='Ir al overview del dashboard'
+                        onClick={() => {
+                            setSelectedProject(null);
+                            setSelectedIntegration(null);
+                        }}
+                        sx={{
+                            all: 'unset',
+                            cursor: 'pointer',
+                            fontSize: 'inherit',
+                            fontWeight: 'inherit',
+                            color: 'inherit',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            borderBottom: '2px solid transparent',
+                            transition: 'border-color .2s ease, color .2s ease',
+                            '&:hover': {
+                                color: 'primary.main',
+                                borderBottomColor: 'primary.main',
+                            },
+                        }}
+                    >
+                        Dashboard
+                    </Box>
                 </Typography>
 
                 <Box
@@ -229,11 +255,7 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
 
             <Box>
                 {!selectedProject ? (
-                    <NoResultsScreen
-                        message='Selecciona un proyecto para ver los dashboards disponibles.'
-                        icon={<TouchAppRoundedIcon sx={{ fontSize: 90, color: 'text.secondary' }} />}
-                        sx={{ height: '60vh', justifyContent: 'center' }}
-                    />
+                    <IntegrationsRankingOverview projects={projects} showingDialog={showingDialog} />
                 ) : selectedIntegration ? (
                     renderIntegrationDashboard()
                 ) : (

@@ -45,12 +45,15 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
 
     const getGitHubRepositories = async () => {
         try {
-            const repos = await callEndpoint(getGitHubRepositoriesApi());
-            setRepos(repos);
-            setFilteredRepos(repos);
+            const reposResponse = await callEndpoint(getGitHubRepositoriesApi());
+            const safeRepos = Array.isArray(reposResponse) ? reposResponse : [];
+            setRepos(safeRepos);
+            setFilteredRepos(safeRepos);
             setError(false);
         } catch (error) {
             setError(true);
+            setRepos([]);
+            setFilteredRepos([]);
         }
     };
 
@@ -185,7 +188,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                             data={repos}
                             fields={["name", "url"]}
                             placeholder="Buscar repositorio..."
-                            onResults={(results) => setFilteredRepos(results)}
+                            onResults={(results) => setFilteredRepos(Array.isArray(results) ? results : [])}
                         />
                         {
                             filteredRepos.length === 0 ? (
@@ -211,7 +214,7 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                         minHeight: '100%',
                                         pb: 6
                                     }}>
-                                    {filteredRepos.map((repo) => {
+                                    {(Array.isArray(filteredRepos) ? filteredRepos : []).map((repo) => {
                                         const checked = selectedRepos.some(r => r.id === repo.id);
 
                                         const handleOpenRepo = (e) => {

@@ -1404,6 +1404,120 @@ async function drawAuthorShareCard({ pdfDoc, page, element, x, y, maxWidth, comm
   return { y: cardY - 20, page };
 }
 
+async function drawProjectRankingCard({
+  pdfDoc,
+  page,
+  element,
+  x,
+  y,
+  maxWidth,
+  rows = [],
+  title = "Ranking",
+  metricLabel = "registros",
+  getValue = () => 0,
+  getDetail = null,
+}) {
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const safeRows = (Array.isArray(rows) ? rows : [])
+    .map((row) => ({
+      name: row?.projectName || row?.name || "Proyecto",
+      value: toNumber(getValue(row)),
+      detail: typeof getDetail === "function" ? getDetail(row) : "",
+    }))
+    .filter((row) => row.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10);
+
+  const total = safeRows.reduce((acc, row) => acc + row.value, 0);
+  const maxValue = Math.max(...safeRows.map((row) => row.value), 1);
+  const width = maxWidth;
+  const rowGap = 28;
+  const detailOffsetY = 18;
+  const height = Math.max(220, 128 + Math.max(1, safeRows.length) * rowGap);
+
+  const space = ensureSpace(pdfDoc, page, y, height + 24);
+  page = space.page;
+  y = space.y;
+  const cardY = drawCardFrame(page, x, y, width, height);
+
+  drawCardHeader({
+    page,
+    x,
+    y,
+    width,
+    title: element?.title || title,
+    interval: element?.interval || "Periodo",
+    boldFont,
+    font,
+    totalText: `${compactNumber(total)} ${metricLabel}`,
+  });
+
+  if (!safeRows.length) {
+    const empty = "Sin datos para mostrar";
+    const emptyW = safeWidthOfText(font, empty, 10);
+    page.drawText(empty, {
+      x: x + (width - emptyW) / 2,
+      y: y - 96,
+      size: 10,
+      font,
+      color: COLORS.muted,
+    });
+  } else {
+    let rowY = y - 62;
+    safeRows.forEach((row, index) => {
+      const ratio = Math.max(0, Math.min(1, row.value / maxValue));
+      const barX = x + 168;
+      const barW = width - 186;
+      const barY = rowY - 8.2;
+      const fillW = ratio > 0 ? Math.max(2, barW * ratio) : 0;
+
+      const rankText = `${index + 1}.`;
+      const nameText = truncateText(row.name, font, 9.2, 128);
+      const valueText = `${compactNumber(row.value)} ${metricLabel}`;
+      const detailText = truncateText(row.detail || "", font, 7.8, barW);
+      const valueWidth = safeWidthOfText(boldFont, valueText, 8.2);
+
+      page.drawText(rankText, { x: x + 14, y: rowY, size: 9.2, font: boldFont, color: COLORS.text });
+      page.drawText(nameText, { x: x + 30, y: rowY, size: 9.2, font, color: COLORS.text });
+
+      page.drawRectangle({ x: barX, y: barY, width: barW, height: 6, color: COLORS.barTrack });
+      page.drawRectangle({ x: barX, y: barY, width: fillW, height: 6, color: COLORS.primary });
+
+      page.drawText(valueText, {
+        x: x + width - valueWidth - 14,
+        y: rowY,
+        size: 8.2,
+        font: boldFont,
+        color: COLORS.text,
+      });
+
+      if (detailText) {
+        page.drawText(detailText, {
+          x: barX,
+          y: rowY - detailOffsetY,
+          size: 7.8,
+          font,
+          color: COLORS.muted,
+        });
+      }
+
+      rowY -= rowGap;
+    });
+  }
+
+  drawChartSource({
+    page,
+    font,
+    x,
+    width,
+    y: cardY + 10,
+    integrationData: element?.integration_data,
+  });
+
+  return { y: cardY - 20, page };
+}
+
 export async function drawGithubChart({ pdfDoc, page, element, component, x, y, maxWidth }) {
   const rawItems = Array.isArray(element?.data) ? element.data : [];
   const period = element?.period || "all";
@@ -1455,6 +1569,33 @@ export async function drawGithubChart({ pdfDoc, page, element, component, x, y, 
       return drawCommitTableCard({ pdfDoc, page, element, x, y, maxWidth, commits });
     case "commitsByAuthorChart":
       return drawAuthorShareCard({ pdfDoc, page, element, x, y, maxWidth, commits });
+    case "overviewSocialReachRanking":
+      return drawProjectRankingCard({
+        pdfDoc,
+        page,
+        element,
+        x,
+        y,
+        maxWidth,
+        rows: rawItems,
+        title: "Alcance en redes",
+        metricLabel: "alcance",
+        getValue: (row) => toNumber(row?.socialReach ?? 0),
+        getDetail: (row) => `Facebook: ${compactNumber(row?.facebookReach ?? 0)} | Instagram: ${compactNumber(row?.instagramReach ?? 0)}`,
+      });
+    case "overviewCommitRanking":
+      return drawProjectRankingCard({
+        pdfDoc,
+        page,
+        element,
+        x,
+        y,
+        maxWidth,
+        rows: rawItems,
+        title: "Ranking de commits",
+        metricLabel: "commits",
+        getValue: (row) => toNumber(row?.commits ?? 0),
+      });
     default:
       return drawTimeSeriesCard({
         pdfDoc,

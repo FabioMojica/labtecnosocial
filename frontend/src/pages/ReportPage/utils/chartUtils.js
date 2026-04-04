@@ -162,6 +162,18 @@ export const chartPropsMap = {
             usesInterval: true,
             dataProp: "commits",
         },
+        overviewSocialReachRanking: {
+            component: "overviewSocialReachRanking",
+            defaultTitle: "Alcance en redes",
+            usesInterval: true,
+            dataProp: "rows",
+        },
+        overviewCommitRanking: {
+            component: "overviewCommitRanking",
+            defaultTitle: "Ranking de commits",
+            usesInterval: true,
+            dataProp: "rows",
+        },
     },
 };
 

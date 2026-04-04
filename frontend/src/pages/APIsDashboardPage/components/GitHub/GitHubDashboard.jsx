@@ -24,6 +24,17 @@ const DEFAULT_GOALS = {
     pullRequestsCard: 10,
 };
 
+const getGithubOwnerFromUrl = (repoUrl) => {
+    if (!repoUrl || typeof repoUrl !== 'string') return null;
+    try {
+        const parsed = new URL(repoUrl);
+        const segments = parsed.pathname.split('/').filter(Boolean);
+        return segments[0] || null;
+    } catch {
+        return null;
+    }
+};
+
 const compactCommitForReport = (commit = {}) => {
     const authorDate = commit?.commit?.author?.date ?? null;
     const committerDate = commit?.commit?.committer?.date ?? authorDate;
@@ -66,8 +77,8 @@ const compactPullRequestForReport = (pr = {}) => ({
     },
 });
 
-export const GitHubDashboard = ({ project, useMock = true, showingDialog = false }) => {
-    const validPeriods = ['today', 'lastWeek', 'lastMonth', 'lastSixMonths'];
+export const GitHubDashboard = ({ project, useMock = false, showingDialog = false }) => {
+    const validPeriods = ['today', 'lastWeek', 'lastMonth', 'lastSixMonths', 'all'];
     const { loading, callEndpoint } = useFetchAndLoad();
     const [branches, setBranches] = useState([]);
     const [selectedBranch, setSelectedBranch] = useState('');
@@ -88,6 +99,7 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
     const IntegrationIcon = integration.icon;
 
     const githubIntegration = project?.integrations?.find(i => i.platform === 'github');
+    const githubOwner = getGithubOwnerFromUrl(githubIntegration?.url);
     const selectable = showingDialog;
 
     if (!githubIntegration) {
@@ -101,7 +113,7 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
             // PASAMOS selectedPeriod solo si estamos en modo mock
             let respBranches = useMock
                 ? generateMockBranches(undefined, selectedPeriod)
-                : await callEndpoint(getGithubBranchesApi(githubIntegration.name));
+                : await callEndpoint(getGithubBranchesApi(githubIntegration.name, githubOwner));
 
             if (!respBranches || respBranches.length === 0) {
                 setEmptyBranchesError(true);
@@ -122,8 +134,14 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
 
 
     useEffect(() => {
+        // Al cambiar de proyecto/integración, reinicia estado y vuelve a consultar ramas
+        setBranches([]);
+        setSelectedBranch('');
+        setStats(null);
+        setGetBranchesError(false);
+        setEmptyBranchesError(false);
         fetchBranches();
-    }, []);
+    }, [project?.id, githubIntegration?.name, githubOwner]);
 
     // --- FETCH STATS ---
     const fetchStats = async (branchName, period) => {
@@ -132,7 +150,7 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
             const branchData = generateMockBranches(undefined, period).find(b => b.name === branchName);
             return branchData?.stats || generateMockStats(undefined, period);
         }
-        return await getGithubStatsApi(githubIntegration.name, period, branchName);
+        return await getGithubStatsApi(githubIntegration.name, period, branchName, githubOwner);
     };
 
     useEffect(() => {
@@ -151,7 +169,7 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
         };
 
         fetchStatsForBranch();
-    }, [selectedBranch, selectedPeriod]);
+    }, [project?.id, githubIntegration?.name, githubOwner, selectedBranch, selectedPeriod]);
 
     useEffect(() => {
         if (!validPeriods.includes(selectedPeriod)) {
@@ -172,7 +190,8 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
             selectedPeriod === 'lastWeek' ? 'Última semana' :
                 selectedPeriod === 'lastMonth' ? 'Último mes' :
                     selectedPeriod === 'lastSixMonths' ? 'Últimos seis meses' :
-                        'Último mes';
+                        selectedPeriod === 'all' ? 'Todo histórico' :
+                            'Último mes';
 
     const compactCommitsForReport = (stats?.commits || []).map(compactCommitForReport);
     const compactPullRequestsForReport = (stats?.pullRequests || []).map(compactPullRequestForReport);
@@ -352,6 +371,7 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
                     <Tab value="lastWeek" label="Última semana" />
                     <Tab value="lastMonth" label="Último mes" />
                     <Tab value="lastSixMonths" label="Últimos seis meses" />
+                    <Tab value="all" label="Todo histórico" />
                 </Tabs>
 
                 <Tooltip
@@ -609,4 +629,3 @@ export const GitHubDashboard = ({ project, useMock = true, showingDialog = false
         </Box>
     );
 };
-

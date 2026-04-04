@@ -46,6 +46,7 @@ export const CreateProjectPage = () => {
         integrations: [],
     };
     const [project, setProject] = useState({ ...initialProject });
+    const [, setActiveTab] = useState(0);
     const [tabsHeight, setTabsHeight] = useState(0);
     const { notify } = useNotification();
     const [isDirty, setIsDirty] = useState(false);

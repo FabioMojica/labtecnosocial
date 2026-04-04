@@ -5,12 +5,23 @@ export const getGitHubRepositoriesApi = async () => {
   const controller = loadAbort();
   try {
     const response = await axiosInstance.get(Routes.github.REPOS, { signal: controller.signal });
-    if (response.status === 200) return response.data;
+    if (response.status === 200) {
+      const payload = response.data;
+
+      if (Array.isArray(payload)) return payload; // backward compatibility
+      if (payload?.success === true && Array.isArray(payload?.data)) return payload.data;
+
+      throw new Error("Respuesta inesperada al obtener repositorios de GitHub");
+    }
     return null;
   } catch (error) {
     if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return null;
-    if (error.response)
-      throw new Error(error.response.data.message || "Ocurrio un problema al obtener los repositorios de GitHub, intentalo de nuevo mas tarde");
+    if (error.response) {
+      const apiMessage =
+        error.response?.data?.error?.message ||
+        error.response?.data?.message;
+      throw new Error(apiMessage || "Ocurrio un problema al obtener los repositorios de GitHub, intentalo de nuevo mas tarde");
+    }
     throw new Error("Error al intentar obtener los repositorios de GitHub");
   }
 };

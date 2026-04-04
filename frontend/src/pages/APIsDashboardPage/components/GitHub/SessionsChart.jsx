@@ -1,9 +1,9 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { Box, Card, CardContent, Typography, useTheme, Divider, Checkbox } from "@mui/material";
-import { Tooltip, ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Line } from "recharts";
+import { Box, Card, CardContent, Typography, useTheme, Divider, Checkbox, Popover } from "@mui/material";
+import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Line } from "recharts";
 import dayjs from "dayjs";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NoResultsScreen } from '../../../../generalComponents';
 
 function AreaGradient({ color, id }) {
@@ -22,10 +22,9 @@ AreaGradient.propTypes = {
   id: PropTypes.string.isRequired,
 };
 
-const CustomTooltip = ({ active, payload }) => {
-  if (!active || !payload || payload.length === 0) return null;
+const CommitDetailsCard = ({ commit }) => {
+  if (!commit) return null;
   const theme = useTheme();
-  const commit = payload[0].payload;
   const commitDate = dayjs(commit.date).format("DD/MM/YYYY HH:mm:ss");
 
   return (
@@ -60,6 +59,41 @@ const CustomTooltip = ({ active, payload }) => {
   );
 };
 
+const CommitDot = ({ cx, cy, payload, stroke, onSelect, selected }) => {
+  if (typeof cx !== "number" || typeof cy !== "number") return null;
+
+  return (
+    <g>
+      <circle
+        cx={cx}
+        cy={cy}
+        r={8}
+        fill="transparent"
+        data-commit-dot="true"
+        style={{ cursor: "pointer" }}
+        onClick={(event) => {
+          event.stopPropagation();
+          onSelect?.(payload, cx, cy, event);
+        }}
+      />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={selected ? 5.5 : 4}
+        fill={selected ? "#1D9BF0" : "#fff"}
+        stroke={stroke}
+        strokeWidth={selected ? 3 : 1.8}
+        data-commit-dot="true"
+        style={{ cursor: "pointer" }}
+        onClick={(event) => {
+          event.stopPropagation();
+          onSelect?.(payload, cx, cy, event);
+        }}
+      />
+    </g>
+  );
+};
+
 export const SessionsChart = ({
   commitsData,
   title,
@@ -72,6 +106,8 @@ export const SessionsChart = ({
 }) => {
   const theme = useTheme();
   const isReportMode = mode === "report";
+  const [selectedCommit, setSelectedCommit] = useState(null);
+  const [selectedCommitUi, setSelectedCommitUi] = useState(null);
 
   // --- FILTRADO DE COMMITS SEGÚN EL PERIODO ---
   const filteredCommits = useMemo(() => {
@@ -152,8 +188,28 @@ export const SessionsChart = ({
   }, [filteredCommits]);
 
   const maxY = Math.max(...chartData.map(d => d.y), 6);
-  const chartWidth = Math.max(xTicks.length * pxPerDay, isReportMode ? 520 : 800);
+  const chartWidth = Math.max(xTicks.length * pxPerDay, isReportMode ? 520 : 860);
+  const chartCanvasWidth = chartWidth;
   const reportChartHeight = 240;
+
+  useEffect(() => {
+    if (!selectedCommit) return;
+    const stillExists = chartData.some((item) => item.sha === selectedCommit.sha);
+    if (!stillExists) {
+      setSelectedCommit(null);
+      setSelectedCommitUi(null);
+    }
+  }, [chartData, selectedCommit]);
+
+  const handleSelectCommit = (payload, _cx, _cy, event) => {
+    if (!payload) return;
+
+    const screenX = event?.clientX ?? 0;
+    const screenY = event?.clientY ?? 0;
+
+    setSelectedCommit(payload);
+    setSelectedCommitUi({ screenX, screenY });
+  };
 
 
   if (!filteredCommits || filteredCommits.length === 0) {
@@ -248,17 +304,20 @@ export const SessionsChart = ({
             </Typography>
           </Card>
           <Box sx={{
-            width: isReportMode ? '100%' : 'auto',
+            width: '100%',
             display: isReportMode ? 'block' : 'flex',
             flex: 1,
             minHeight: 0,
             mb: isReportMode ? 0.5 : 2,
-            overflowX: 'auto',
+            overflowX: 'scroll',
             overflowY: 'hidden',
-            "&::-webkit-scrollbar": { height: "2px" },
-            "&::-webkit-scrollbar-track": { backgroundColor: theme.palette.background.default, borderRadius: "2px" },
-            "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.primary.main, borderRadius: "2px" },
-            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: theme.palette.primary.dark },
+            scrollbarGutter: 'stable both-edges',
+            pb: 0.5,
+            "&::-webkit-scrollbar": { height: "4px" },
+            "&::-webkit-scrollbar-track": { backgroundColor: "rgba(0,0,0,0.7)", borderRadius: "6px" },
+            "&::-webkit-scrollbar-thumb": { backgroundColor: "#D0D3D8", borderRadius: "6px" },
+            "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#E5E7EB" },
+            scrollbarColor: '#D0D3D8 rgba(0,0,0,0.7)',
             '& svg': {
               outline: 'none',
             },
@@ -269,8 +328,8 @@ export const SessionsChart = ({
               outline: 'none',
             },
           }}>
-            <Box sx={{ width: chartWidth, minWidth: chartWidth, height: isReportMode ? reportChartHeight : '100%' }}>
-            <ResponsiveContainer width={chartWidth} height={isReportMode ? reportChartHeight : undefined}>
+            <Box sx={{ width: chartCanvasWidth, minWidth: chartCanvasWidth, height: isReportMode ? reportChartHeight : '100%', pr: 1 }}>
+            <ResponsiveContainer width={chartCanvasWidth} height={isReportMode ? reportChartHeight : undefined}>
               <LineChart
                 data={chartData} margin={{ top: 20, bottom: 25 }}>
                 <CartesianGrid strokeDasharray="3 3"/>
@@ -292,22 +351,73 @@ export const SessionsChart = ({
                   tick={{ fontSize: 12, fontWeight: 500 }}
                 />
 
-                <Tooltip content={<CustomTooltip />} />
                 <Line
                   type="monotone"
                   dataKey="y"
                   stroke={theme.palette.primary.dark}
-                  dot={{ r: 4, cursor: "pointer" }}
-                  activeDot={{ r: 6, cursor: "pointer" }}
+                  dot={(props) => (
+                    <CommitDot
+                      cx={props?.cx}
+                      cy={props?.cy}
+                      payload={props?.payload}
+                      stroke={theme.palette.primary.dark}
+                      selected={selectedCommit?.sha === props?.payload?.sha}
+                      onSelect={handleSelectCommit}
+                    />
+                  )}
+                  activeDot={false}
                   isAnimationActive={true}
                 />
                 <AreaGradient color={theme.palette.primary.dark} />
               </LineChart>
             </ResponsiveContainer>
             </Box>
+            {!isReportMode && <Box sx={{ minWidth: 88, width: 88, flex: '0 0 auto' }} />}
           </Box>
         </Box>
       </CardContent>
+      {!isReportMode && (
+        <Popover
+          open={Boolean(selectedCommit && selectedCommitUi)}
+          onClose={() => {
+            setSelectedCommit(null);
+            setSelectedCommitUi(null);
+          }}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            selectedCommitUi
+              ? {
+                  left: Math.max(
+                    8,
+                    Math.min(
+                      selectedCommitUi.screenX + 14,
+                      (typeof window !== 'undefined' ? window.innerWidth : 1200) - 320
+                    )
+                  ),
+                  top: Math.max(
+                    76,
+                    Math.min(
+                      selectedCommitUi.screenY - 22,
+                      (typeof window !== 'undefined' ? window.innerHeight : 900) - 190
+                    )
+                  ),
+                }
+              : undefined
+          }
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+          PaperProps={{
+            sx: {
+              bgcolor: 'transparent',
+              boxShadow: 'none',
+              overflow: 'visible',
+            },
+          }}
+        >
+          <Box data-commit-tooltip="true" sx={{ maxWidth: 300 }}>
+            <CommitDetailsCard commit={selectedCommit} />
+          </Box>
+        </Popover>
+      )}
     </Card>
   );
 };

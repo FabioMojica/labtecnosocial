@@ -2,10 +2,19 @@ import axios from "axios";
 import dotenv from 'dotenv';
 import { normalizeGetAPIsData } from "../../utils/normalizeGetAPIsData.js";
 import { subMonths, subWeeks, subDays } from 'date-fns';
+import { ERROR_CODES, errorResponse, successResponse } from "../../utils/apiResponse.js";
 
 dotenv.config();
 
 const { GITHUB_ORG, GITHUB_TOKEN } = process.env;
+
+const resolveGithubOwner = (req) => {
+  const ownerFromQuery = req.query?.owner;
+  if (typeof ownerFromQuery === "string" && ownerFromQuery.trim()) {
+    return ownerFromQuery.trim();
+  }
+  return GITHUB_ORG;
+};
 
 export const getGitHubRepos = async (req, res) => {
   try {
@@ -20,22 +29,42 @@ export const getGitHubRepos = async (req, res) => {
     );
 
     const normalized = normalizeGetAPIsData('github', response.data);
-    return res.json(normalized);
+    return successResponse(res, normalized);
   } catch (err) {
     console.error("Error al conectar con GitHub:", err.response?.data || err.message);
-    return res.status(500).json({ error: "Error al obtener datos de GitHub" });
+    return errorResponse(
+      res,
+      ERROR_CODES.RESOURCE_ERROR,
+      "Error al obtener datos de GitHub",
+      500
+    );
   }
 };
 
 export const getGithubBranches = async (req, res) => {
   try {
     const { projectName } = req.params;
+    const owner = resolveGithubOwner(req);
 
     if (!projectName) {
-      return res.status(400).json({ error: "Se requiere el nombre del proyecto" });
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Se requiere el nombre del proyecto",
+        400
+      );
     }
 
-    const url = `https://api.github.com/repos/${GITHUB_ORG}/${projectName}/branches`;
+    if (!owner) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "No se pudo resolver el owner de GitHub",
+        400
+      );
+    }
+
+    const url = `https://api.github.com/repos/${owner}/${projectName}/branches`;
 
     const response = await axios.get(url, {
       headers: {
@@ -49,14 +78,24 @@ export const getGithubBranches = async (req, res) => {
       protected: b.protected,
     }));
 
-    return res.json(branches);
+    return successResponse(res, branches);
   } catch (err) {
     if (err.response?.status === 404) {
-      return res.status(404).json({ error: "Repositorio no encontrado en GitHub" });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        "Repositorio no encontrado en GitHub",
+        404
+      );
     }
 
     console.error("Error al obtener ramas de GitHub:", err.response?.data || err.message);
-    return res.status(500).json({ error: "Error al obtener ramas de GitHub" });
+    return errorResponse(
+      res,
+      ERROR_CODES.RESOURCE_ERROR,
+      "Error al obtener ramas de GitHub",
+      500
+    );
   }
 };
 
@@ -64,24 +103,52 @@ export const getGithubStats = async (req, res) => {
   try {
     const { projectName } = req.params;
     const { range, branch } = req.query;
+    const owner = resolveGithubOwner(req);
 
     if (!projectName) {
-      return res.status(400).json({ error: "Se requiere el nombre del proyecto" });
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Se requiere el nombre del proyecto",
+        400
+      );
     }
 
-    // --- COMMIT STATS ---
-    const baseCommitUrl = `https://api.github.com/repos/${GITHUB_ORG}/${projectName}/commits`;
+    if (!owner) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "No se pudo resolver el owner de GitHub",
+        400
+      );
+    }
+
+    const baseCommitUrl = `https://api.github.com/repos/${owner}/${projectName}/commits`;
     const commitParams = new URLSearchParams();
     if (branch) commitParams.append("sha", branch);
 
     if (range && range !== "all") {
       let since;
       switch (range) {
-        case "today": since = subDays(new Date(), 1); break;
-        case "lastWeek": since = subWeeks(new Date(), 1); break;
-        case "lastMonth": since = subMonths(new Date(), 1); break;
-        case "lastSixMonths": since = subMonths(new Date(), 6); break;
-        default: return res.status(400).json({ error: "Rango de tiempo inválido" });
+        case "today":
+          since = subDays(new Date(), 1);
+          break;
+        case "lastWeek":
+          since = subWeeks(new Date(), 1);
+          break;
+        case "lastMonth":
+          since = subMonths(new Date(), 1);
+          break;
+        case "lastSixMonths":
+          since = subMonths(new Date(), 6);
+          break;
+        default:
+          return errorResponse(
+            res,
+            ERROR_CODES.VALIDATION_ERROR,
+            "Rango de tiempo inv�lido",
+            400
+          );
       }
       commitParams.append("since", since.toISOString());
     }
@@ -105,8 +172,7 @@ export const getGithubStats = async (req, res) => {
       page++;
     }
 
-    // --- PULL REQUESTS ---
-    const prUrl = `https://api.github.com/repos/${GITHUB_ORG}/${projectName}/pulls`;
+    const prUrl = `https://api.github.com/repos/${owner}/${projectName}/pulls`;
     const prParams = new URLSearchParams();
     prParams.append("state", "all");
     if (branch) prParams.append("base", branch);
@@ -120,110 +186,28 @@ export const getGithubStats = async (req, res) => {
 
     const pullRequests = prResponse.data;
 
-    return res.json({
+    return successResponse(res, {
       commitsCount: allCommits.length,
       commits: allCommits,
-      pullRequests, 
+      pullRequests,
     });
-
   } catch (err) {
-    console.error("Error al obtener estadísticas de GitHub:", err.response?.data || err.message);
+    console.error("Error al obtener estad�sticas de GitHub:", err.response?.data || err.message);
 
     if (err.response?.status === 404) {
-      return res.status(404).json({ error: "Repositorio no encontrado en GitHub" });
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        "Repositorio no encontrado en GitHub",
+        404
+      );
     }
 
-    return res.status(500).json({ error: "Error al obtener estadísticas de GitHub" });
+    return errorResponse(
+      res,
+      ERROR_CODES.RESOURCE_ERROR,
+      "Error al obtener estad�sticas de GitHub",
+      500
+    );
   }
 };
-
-
-// export const getGithubStats = async (req, res) => {
-//   try {
-//     const { projectName } = req.params;
-//     const { range, branch } = req.query;
-
-//     if (!projectName) {
-//       return res.status(400).json({ error: "Se requiere el nombre del proyecto" });
-//     }
-
-//     const baseUrl = `https://api.github.com/repos/${GITHUB_ORG}/${projectName}/commits`;
-//     const params = new URLSearchParams();
-
-//     if (branch) params.append("sha", branch);
-
-//     if (range && range !== "all") {
-//       let since;
-//       switch (range) {
-//         case "today":
-//           since = subDays(new Date(), 1);
-//           break;
-//         case "lastWeek":
-//           since = subWeeks(new Date(), 1);
-//           break;
-//         case "lastMonth":
-//           since = subMonths(new Date(), 1);
-//           break;
-//         case "lastSixMonths":
-//           since = subMonths(new Date(), 6);
-//           break;
-//         default:
-//           return res.status(400).json({ error: "Rango de tiempo inválido" });
-//       }
-//       params.append("since", since.toISOString());
-//     }
-
-//     // Si no es "all", usamos una sola petición
-//     if (range !== "all") {
-//       const url = `${baseUrl}?${params.toString()}`;
-//       const commitsResponse = await axios.get(url, {
-//         headers: {
-//           Authorization: `Bearer ${GITHUB_TOKEN}`,
-//           Accept: "application/vnd.github+json",
-//         },
-//       });
-//       return res.json({
-//         commitsCount: commitsResponse.data.length,
-//         commits: commitsResponse.data,
-//       });
-//     }
-
-//     // Si es "all", traemos todo con paginación
-//     let page = 1;
-//     const perPage = 100;
-//     let allCommits = [];
-
-//     while (true) {
-//       const url = `${baseUrl}?per_page=${perPage}&page=${page}${branch ? `&sha=${branch}` : ""}`;
-//       const response = await axios.get(url, {
-//         headers: {
-//           Authorization: `Bearer ${GITHUB_TOKEN}`,
-//           Accept: "application/vnd.github+json",
-//         },
-//       });
-
-//       if (!response.data.length) break;
-
-//       allCommits = allCommits.concat(response.data);
-
-//       // Si trajo menos de 100, no hay más páginas
-//       if (response.data.length < perPage) break;
-
-//       page++;
-//     }
-
-//     return res.json({
-//       commitsCount: allCommits.length,
-//       commits: allCommits,
-//     });
-
-//   } catch (err) {
-//     console.error("Error al obtener estadísticas de GitHub:", err.response?.data || err.message);
-
-//     if (err.response?.status === 404) {
-//       return res.status(404).json({ error: "Repositorio no encontrado en GitHub" });
-//     }
-
-//     return res.status(500).json({ error: "Error al obtener estadísticas de GitHub" });
-//   }
-// };

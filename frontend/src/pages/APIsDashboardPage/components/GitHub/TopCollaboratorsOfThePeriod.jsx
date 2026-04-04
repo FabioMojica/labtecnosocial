@@ -50,7 +50,31 @@ export const TopCollaboratorsOfThePeriod = ({
 }) => {
     const theme = useTheme();
 
-    if (!commits.length) return null;
+    if (!commits.length) {
+        return (
+            <Card variant="outlined" sx={{ height: '100%', maxHeight: 300, flexGrow: 1 }}>
+                <CardContent sx={{ height: '100%' }}>
+                    <Stack direction="column" justifyContent="flex-start" alignItems="flex-start">
+                        <Typography component="h2" variant="subtitle2">{title}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{interval}</Typography>
+                    </Stack>
+                    <NoResultsScreen
+                        message="Sin datos para mostrar"
+                        sx={{ height: '80%' }}
+                        textSx={{
+                            fontSize: {
+                                xs: '0.8rem',
+                                sm: '1rem'
+                            }
+                        }}
+                        iconSX={{
+                            fontSize: 56
+                        }}
+                    />
+                </CardContent>
+            </Card>
+        );
+    }
 
     // --- FILTRADO CONSISTENTE COMO CommitsInThePeriod ---
     const filteredCommits = useMemo(() => {

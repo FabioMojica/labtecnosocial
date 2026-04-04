@@ -30,6 +30,7 @@ import { SessionsChart } from "../../APIsDashboardPage/components/GitHub/Session
 import { CommitsByWeekdayHour } from "../../APIsDashboardPage/components/GitHub/CommitsByWeekdayHour";
 import { CustomizedDataGrid } from "../../APIsDashboardPage/components/GitHub/CustomizedDataGrid";
 import ChartCommitsByAuthor from "../../APIsDashboardPage/components/GitHub/ChartCommitsByAuthor";
+import { OverviewCommitRankingChart, OverviewSocialReachRankingChart } from "../components/OverviewRankingCharts";
 
 export const chartRegistry = {
   facebook: {
@@ -67,6 +68,8 @@ export const chartRegistry = {
     commitsByWeekdayHourChart: CommitsByWeekdayHour,
     commitGrid: CustomizedDataGrid,
     commitsByAuthorChart: ChartCommitsByAuthor,
+    overviewSocialReachRanking: OverviewSocialReachRankingChart,
+    overviewCommitRanking: OverviewCommitRankingChart,
   }
 };
 
