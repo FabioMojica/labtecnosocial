@@ -207,67 +207,106 @@ export const ViewUser = ({ user, panelHeight = 0, isOwnProfile, onChange }) => {
                                 Creado por:
                             </Typography>
                             <Stack direction="row" spacing={1}>
-                                <Box
-                                    sx={{
-                                        px: 1.5,
-                                        py: 1,
-                                        borderRadius: 2,
-                                        bgcolor: 'background.paper',
-                                        boxShadow: 3,
-                                        fontSize: "0.85rem",
-                                        fontWeight: 'bold',
-                                        display: 'flex',
-                                        gap: 1,
-                                        alignItems: 'center',
-                                        cursor: 'pointer'
-                                    }}
-                                    onClick={() => {
-                                        navigate(`/usuario/${encodeURIComponent(user?.createdBy?.email)}`)
-                                    }}
-                                >
+                                {user?.createdBy?.email ? (
                                     <Box
                                         sx={{
-                                            position: 'relative',
+                                            px: 1.5,
+                                            py: 1,
+                                            borderRadius: 2,
+                                            bgcolor: 'background.paper',
+                                            boxShadow: 3,
+                                            fontSize: "0.85rem",
+                                            fontWeight: 'bold',
+                                            display: 'flex',
+                                            gap: 1,
+                                            alignItems: 'center',
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={() => {
+                                            navigate(`/usuario/${encodeURIComponent(user?.createdBy?.email)}`)
+                                        }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                position: 'relative',
+                                            }}
+                                        >
+                                            <Avatar
+                                                src={user?.createdBy?.image_url || null}
+                                                sx={{
+                                                    width: 38,
+                                                    height: 38,
+                                                    borderRadius: 2,
+                                                    boxShadow: (theme) =>
+                                                        theme.palette.mode === 'light'
+                                                            ? '0 0 0 1px rgba(0,0,0,0.3)'
+                                                            : '0 0 0 1px rgba(255,255,255,0.3)',
+                                                }}
+                                                title={user?.createdBy?.firstName}
+                                            >
+                                                {user?.createdBy?.firstName?.[0]}{user?.createdBy?.lastName?.[0]}
+                                            </Avatar>
+                                            {(() => {
+                                                const { RoleIcon } = getUserIcons(user);
+                                                return (
+                                                    <RoleIcon
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            bottom: -4,
+                                                            right: -10,
+                                                            fontSize: 20
+                                                        }}
+                                                    />
+                                                );
+                                            })()}
+                                        </Box>
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: 300 }}>
+                                            <Typography variant="caption" fontWeight={'bold'} textOverflow={'ellipsis'} noWrap>
+                                                {user?.createdBy?.firstName} {user?.createdBy?.lastName}
+                                            </Typography>
+                                            <Typography variant="caption" textOverflow={'ellipsis'} noWrap>
+                                                {user?.createdBy?.email}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                ) : (
+                                    <Box
+                                        sx={{
+                                            px: 1.5,
+                                            py: 1,
+                                            borderRadius: 2,
+                                            bgcolor: 'background.paper',
+                                            boxShadow: 3,
+                                            fontSize: "0.85rem",
+                                            fontWeight: 'bold',
+                                            display: 'flex',
+                                            gap: 1,
+                                            alignItems: 'center',
+                                            cursor: 'default'
                                         }}
                                     >
                                         <Avatar
-                                            src={user?.createdBy?.image_url || null}
                                             sx={{
                                                 width: 38,
                                                 height: 38,
                                                 borderRadius: 2,
-                                                boxShadow: (theme) =>
-                                                    theme.palette.mode === 'light'
-                                                        ? '0 0 0 1px rgba(0,0,0,0.3)'
-                                                        : '0 0 0 1px rgba(255,255,255,0.3)',
+                                                bgcolor: 'action.disabledBackground',
+                                                color: 'text.secondary',
                                             }}
-                                            title={user?.createdBy?.firstName}
+                                            title="Usuario eliminado"
                                         >
-                                            {user?.createdBy?.firstName[0]}{user?.createdBy?.lastName[0]}
+                                            ?
                                         </Avatar>
-                                        {(() => {
-                                            const { RoleIcon } = getUserIcons(user);
-                                            return (
-                                                <RoleIcon
-                                                    sx={{
-                                                        position: 'absolute',
-                                                        bottom: -4,
-                                                        right: -10,
-                                                        fontSize: 20
-                                                    }}
-                                                />
-                                            );
-                                        })()}
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: 300 }}>
+                                            <Typography variant="caption" fontWeight={'bold'} textOverflow={'ellipsis'} noWrap>
+                                                Usuario eliminado
+                                            </Typography>
+                                            <Typography variant="caption" textOverflow={'ellipsis'} noWrap color="text.secondary">
+                                                Cuenta no disponible
+                                            </Typography>
+                                        </Box>
                                     </Box>
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: 300 }}>
-                                        <Typography variant="caption" fontWeight={'bold'} textOverflow={'ellipsis'} noWrap>
-                                            {user?.createdBy?.firstName} {user?.createdBy?.lastName}
-                                        </Typography>
-                                        <Typography variant="caption" textOverflow={'ellipsis'} noWrap>
-                                            {user?.createdBy?.email}
-                                        </Typography>
-                                    </Box>
-                                </Box>
+                                )}
                             </Stack>
                         </Box>
                     </>

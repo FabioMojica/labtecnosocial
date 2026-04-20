@@ -280,11 +280,15 @@ export const useReportEditor = () => {
         }
         try {
             setSaveReport(true);
-            const payload = formatElementsForDb(editedReport);
+            const payload = formatElementsForDb(
+                editedReport,
+                isCreateNewReport ? null : reportMetadata?.report_version
+            );
             const response = isCreateNewReport
                 ? await createReportApi(payload)
                 : await updateReportApi(currentReportId, payload);
             const { title, elements, elementsOrder } = formatElementsForFrontend(response);
+            const { created_at, updated_at, report_version } = response;
             const snapshot = structuredClone({ title, elements, elementsOrder });
             setEditedReport(snapshot);
             originalReportRef.current = snapshot;
@@ -292,6 +296,7 @@ export const useReportEditor = () => {
             setHistoryIndex(0);
             setCurrentReportId(response.id);
             setIsCreateNewReport(false);
+            setReportMetadata({ created_at, updated_at, report_version });
 
             notify(
                 isCreateNewReport

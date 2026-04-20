@@ -1,0 +1,3125 @@
+﻿    1: Departamento de IngenierÃ­a y Ciencias Exactas
+    2: Carrera de IngenierÃ­a en Sistemas
+    3: Sistema web para la gestiÃ³n de proyectos en el Laboratorio de TecnologÃ­as Sociales
+    4: Licenciatura en IngenierÃ­a de Sistemas
+    5: Cochabamba â€“ Bolivia
+    6: Abril de 2026
+    7: TRIBUNAL EXAMINADOR
+    8: ___________________________
+    9: Mgr. Joel Reynaldo Alanes Duran
+   10: Profesor GuÃ­a
+   11: ___________________________
+   12: Lic. Alex Ojeda Copa
+   13: Profesor Relator
+   14: ________________________
+   15: Mgr. Wendoline Arteaga Sabja
+   16: Directora de Carrera
+   17: ___________________________
+   18: Mgr. MarÃ­a MÃ³nica Daza Ondarza Salamanca
+   19: Rectora Regional
+   20: Dedicatoria
+   21: Dedico este trabajo a
+   22: mis compaÃ±eros y amigos
+   23: Agradecimientos
+   24: Agradezco a Dios,
+   25: a mis padres y a mis docentes
+   26: por el apoyo a lo largo de
+   27: estos aÃ±os de estudio.
+   28: RESUMEN Y PALABRAS CLAVE
+   29: El presente trabajo desarrolla un sistema web para la gestiÃ³n de proyectos en el Laboratorio de TecnologÃ­as Sociales, organizaciÃ³n sin fines de lucro con sede en Cochabamba, Bolivia. El problema identificado se relaciona con la ineficiencia de los procesos manuales de planificaciÃ³n estratÃ©gica y operativa, el monitoreo de indicadores y la elaboraciÃ³n de reportes, lo que genera retrasos y errores en la toma de decisiones. El objetivo principal es diseÃ±ar e implementar un sistema que integre la gestiÃ³n de usuarios, planes estratÃ©gicos y proyectos operativos, ademÃ¡s de automatizar la recolecciÃ³n de datos desde APIs externas como GitHub, Facebook e Instagram, La metodologÃ­a aplicada se basÃ³ en la adaptaciÃ³n del marco Ã¡gil Scrum, con iteraciones cortas y entregas incrementales. Los resultados alcanzados incluyen un backend construido con Express.js y TypeORM, un frontend en React, una base de datos en PostgreSQL y un dashboard interactivo que visualiza indicadores clave de desempeÃ±o (KPIs). Se concluye que la soluciÃ³n propuesta reduce significativamente el tiempo de seguimiento de proyectos, minimiza errores humanos y fortalece la capacidad de anÃ¡lisis y decisiÃ³n de la organizaciÃ³n.
+   30: Palabras clave:GestiÃ³n de proyectos, sistemas web, Scrum, APIs, KPIs, Lab TecnoSocial.
+   31: ABSTRACT
+   32: Thisworkdevelops a web-basedsystemforprojectmanagement at the Social Technologies Laboratory, a non-profitorganizationbased in Cochabamba, Bolivia. Theidentifiedproblemisrelatedtotheinefficiencyof manual processesforstrategic and operationalplanning, monitoringofindicators, and reportgeneration, which leads todelays and errors in decision-making.
+   33: Themainobjectiveistodesign and implement a systemthatintegratesusermanagement, strategicplans, and operationalprojects, as well as toautomate data collectionfromexternalAPIssuch as GitHub, Google Play Console, Google Analytics, and social media platforms.
+   34: Theappliedmethodologywasbasedontheadaptationofthe Scrum agile framework, with short iterations and incremental deliveries. Theresultsachievedinclude a backend builtwith Express.js and TypeORM, a frontend developed in React, a PostgreSQL database, and an interactive dashboardthatvisualizeskey performance indicators (KPIs).
+   35: Itisconcludedthattheproposedsolutionsignificantly reduces project tracking time, minimizes human errors, and strengthenstheorganizationâ€™sanalytical and decision-makingcapabilities.
+   36: Keywords: Project management, web systems, Scrum, APIs, KPIs, Lab TecnoSocial.
+   37: INDICE GENERAL
+   38: INTRODUCCION11
+   39: CAPÃTULO 1. MARCO CONTEXTUAL12
+   40: 1.1. ANTECEDENTES ORGANIZACIONALES12
+   41: 1.1.1. Monitoreo de indicadores de desempeÃ±o (KPIs)15
+   42: 1.1.2. ElaboraciÃ³n de reportes16
+   43: 1.2. PROBLEMA16
+   44: 1.2.1. SituaciÃ³n problemÃ¡tica16
+   45: 1.2.2. FormulaciÃ³n del problema17
+   46: 1.3. OBJETIVOS17
+   47: 1.3.1. Objetivo general17
+   48: 1.3.2. Objetivos especÃ­ficos17
+   49: 1.4. ALCANCES Y LÃMITES17
+   50: 1.4.1. Alcances18
+   51: 1.4.2. LÃ­mites18
+   52: 1.5. JUSTIFICACION19
+   53: CAPITULO 2. MARCO TEORICO20
+   54: 2.1. Fundamentos de IngenierÃ­a de Software20
+   55: 2.1.1. IngenierÃ­a de software20
+   56: 2.1.2. Arquitectura de software21
+   57: 2.1.2.1. Clienteâ€“Servidor y SPA (Single Page Application).21
+   58: 2.1.2.2. Aplicaciones de una sola pÃ¡gina (SPA)21
+   59: 2.1.2.3. Servicios Web RESTful22
+   60: 2.1.2.4. Arquitectura en capas22
+   61: 2.1.2.5. PatrÃ³n Modelo Vista Controlador (MVC)22
+   62: 2.1.3. API23
+   63: 2.2. MetodologÃ­as Ã¡giles y conceptos asociados23
+   64: 2.2.1. Scrum23
+   65: 2.2.2. Historias de usuario23
+   66: 2.3. Pruebas de software24
+   67: 2.3.1. Concepto de pruebas de software24
+   68: 2.3.2. Tipos de pruebas24
+   69: 2.3.2.1. Pruebas unitarias24
+   70: 2.3.2.2. Pruebas de integraciÃ³n24
+   71: 2.3.2.3. Pruebas de componentes25
+   72: 2.3.2.4. Pruebas de flujo25
+   73: 2.3.2.5. Casos de pruebas25
+   74: 2.4. Modelado y diseÃ±o de software con UML25
+   75: 2.4.1. DefiniciÃ³n de UML25
+   76: 2.4.2. Diagrama de casos de uso25
+   77: 2.4.3. Diagrama de secuencias26
+   78: 2.5. Formato de datos y comunicaciÃ³n26
+   79: 2.5.1. JSON26
+   80: 2.6. TecnologÃ­as para el desarrollo frontend26
+   81: 2.6.1. React y React Router DOM26
+   82: 2.6.2. Material UI27
+   83: 2.6.3. Vite27
+   84: 2.6.4. Recharts27
+   85: 2.7. TecnologÃ­as para el desarrollo Backend28
+   86: 2.7.1. Express28
+   87: 2.7.2. TypeORM28
+   88: 2.7.3. Insomnia28
+   89: 2.8. TecnologÃ­as para el desarrollo y gestiÃ³n de bases de datos29
+   90: CAPÃTULO 3. MARCO METODOLÃ“GICO29
+   91: 3.1. AdaptaciÃ³n metodolÃ³gica29
+   92: 3.2. PlanificaciÃ³n del desarrollo30
+   93: CAPÃTULO 4. INGENIERÃA DEL PROYECTO35
+   94: 4.1. Arquitectura del software35
+   95: 4.1.1. Base de datos35
+   96: 4.1.2. Backend37
+   97: 4.1.3. Frontend38
+   98: 4.2. Desarrollo39
+   99: 4.2.1. MÃ³dulo de gestiÃ³n de usuarios y sesiones41
+  100: 4.2.2. MÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa49
+  101: 4.2.3. MÃ³dulo de planificaciÃ³n estratÃ©gica54
+  102: 4.2.4. MÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs59
+  103: 4.2.5. MÃ³dulo de reportes62
+  104: SALJLÃ‘SALJSA62
+  105: CONCLUSIONES63
+  106: RECOMENDACIONES63
+  107: BIBLIOGRAFIA64
+  108: ÃNDICE DE FIGURAS
+  109: Figura 1 Organigrama del Ã¡rea operativa del Laboratorio de TecnologÃ­as Sociales10
+  110: Figura 2 Diagrama de la planificaciÃ³n estratÃ©gica11
+  111: Figura 3 Diagrama de la planificaciÃ³n operativa de un proyecto dentro de un periodo12
+  112: Figura 4 Ciclo del desarrollo del sistema web de gestiÃ³n de proyectos28
+  113: Figura 5 Estructura de una historia de usuario29
+  114: Figura 6 Tablero del sistema web de gestiÃ³n de proyectos30
+  115: Figura 7 Flujo de desarrollo empleado para una historia de usuario30
+  116: Figura 8 Diagrama entidad relaciÃ³n de la base de datos32
+  117: Figura 9 Arquitectura y estructura del backend34
+  118: Figura 10 Arquitectura y estructura del frontend36
+  119: Figura 11 Diagrama UML de casos de uso del mÃ³dulo de gestiÃ³n de usuarios37
+  120: Figura 12 Prototipo de la pÃ¡gina de inicio de sesiÃ³n38
+  121: Figura 13 Prototipo de la pÃ¡gina de lista de usuarios del sistema38
+  122: Figura 14 Prototipos de las pÃ¡ginas de creaciÃ³n y ediciÃ³n de usuarios del sistema39
+  123: ÃNDICE DE TABLAS
+  124: Tabla 1 Archivos implementados en frontend para el mÃ³dulo de gestiÃ³n de usuarios40
+  125: Tabla 2 Archivos desarrollados en el backend para el mÃ³dulo de gestiÃ³n de usuarios41
+  126: INTRODUCCION
+  127: En la actualidad, las organizaciones que gestionan mÃºltiples procesos dependen cada vez mÃ¡s de sistemas informÃ¡ticos que permitan registrar, procesar y analizar informaciÃ³n de manera oportuna. En este contexto, el desarrollo de herramientas orientadas a la gestiÃ³n de proyectos[1]y los datos que generan estos mismos se ha convertido en una necesidad dentro del campo de la IngenierÃ­a de Sistemas y que es de gran ayuda para las organizaciones.
+  128: Hoy en dÃ­a las organizaciones trabajan con grandes volÃºmenes de informaciÃ³n que deben ser gestionados de forma ordenada, segura y oportuna. En este escenario, la IngenierÃ­a de Sistemas cumple un rol fundamental al desarrollar herramientas que permiten registrar datos, organizarlos adecuadamente y facilitar su anÃ¡lisis.
+  129: Para lograrlo, es indispensable que los sistemas informÃ¡ticos integren informaciÃ³n de diversas fuentes, automaticen tareas y presenten resultados de forma fÃ¡cilmente accesible y clara. AdemÃ¡s, deben contribuir a la gestiÃ³n de proyectos de una organizaciÃ³n, facilitando la coordinaciÃ³n de recursos, la planificaciÃ³n de cronogramas, el seguimiento de tareas y la evaluaciÃ³n del progreso. Todo ello permite minimizar errores humanos, reducir el trabajo manual y mejorar la toma de decisiones dentro de las organizaciones.
+  130: Es importante considerar tanto los aspectos tÃ©cnicos, como la estructura del software y la protecciÃ³n de los datos, como los aspectos funcionales, relacionados con la facilidad de uso y la forma en que los usuarios interactÃºan con el sistema. De esta manera, se consolida un enfoque que articula la ingenierÃ­a de software, la administraciÃ³n de bases de datos, la integraciÃ³n de ApplicationProgramming Interfaces(API) externas y la visualizaciÃ³n dinÃ¡mica de indicadores clave. Todo esto responde a una demanda creciente por soluciones mÃ¡s inteligentes, automatizadas y alineadas con los objetivos estratÃ©gicos de cada organizaciÃ³n.
+  131: CAPÃTULO 1. MARCO CONTEXTUAL
+  132: ANTECEDENTES ORGANIZACIONALES
+  133: El Laboratorio de TecnologÃ­as Sociales (Lab TecnoSocial) es una organizaciÃ³n sin fines de lucro con sede en Cochabamba, Bolivia. Trabaja de forma presencial en el departamento de Cochabamba y de manera remota con pasantes y voluntarios de distintas Ã¡reas, como sociologÃ­a, lingÃ¼Ã­stica, informÃ¡tica, diseÃ±o y comunicaciÃ³n. La instituciÃ³n se dedica al desarrollo de soluciones tecnolÃ³gicas y sociales con impacto positivo, enfocÃ¡ndose en innovaciÃ³n abierta, anÃ¡lisis de datos, educaciÃ³n, inclusiÃ³n digital y fortalecimiento comunitario, especialmente en contextos y comunidades vulnerables.
+  134: Su misiÃ³n es investigar, diseÃ±ar y aplicar tecnologÃ­as innovadoras que contribuyan a resolver problemas sociales, promoviendo la creaciÃ³n de herramientas accesibles y sostenibles que permitan a organizaciones y comunidades mejorar su calidad de vida. A travÃ©s de sus proyectos, busca facilitar el acceso a tecnologÃ­as de la informaciÃ³n y la comunicaciÃ³n (TIC), generando oportunidades de desarrollo personal y profesional.
+  135: Actualmente, en el Lab TecnoSocial trabajan ocho coordinadores de proyectos, quienes lideran a mÃ¡s de treinta pasantes y voluntarios de las Ã¡reas ya mencionadas anteriormente.
+  136: La estructura organizativa de la fundaciÃ³n se compone de diversas Ã¡reas funcionales, responsables de la planificaciÃ³n, desarrollo y monitoreo de las iniciativas, como se muestra en la figura 1.
+  137: Figura 1Organigrama del Ã¡rea operativa del Laboratorio de TecnologÃ­as Sociales
+  138: Fuente: Laboratorio de TecnologÃ­as Sociales, 2026
+  139: Los coordinadores gestionan una cartera que integra herramientas tecnolÃ³gicas consolidadas con nuevas apuestas estratÃ©gicas. Dentro de los proyectos que se encuentran actualmente en curso y operativos destacan SIMI, Arbu, Thani, BiciDatos, CiuDatos y el proyecto PAP Sacaba. A estos se suman iniciativas como Mujeres Constructoras y ParticipaBOt.
+  140: Respecto a los nuevos proyectos y los que estÃ¡n marcando la hoja de ruta inmediata, el laboratorio ha lanzado recientemente Tarpuy. TambiÃ©n se incluyen en esta nueva fase el Visualizador de Programas de Gobierno 2025 y el Archivo Comunitario de El Alto. AdemÃ¡s, se integran actualizaciones y componentes tecnolÃ³gicos de impacto como Mi Huella 2.0 y el Consejo de Llamita[2].
+  141: La estructura jerÃ¡rquica utilizada como parte de la planificaciÃ³n estratÃ©gica de la gestiÃ³n se representa como en la figura 2.
+  142: Figura 2Diagrama de la planificaciÃ³n estratÃ©gica
+  143: Fuente: ElaboraciÃ³n propia, 2026
+  144: La planificaciÃ³n estratÃ©gica en la organizaciÃ³n no es un proceso estÃ¡tico; puede ser editada y ajustada en cualquier momento segÃºn las necesidades de la organizaciÃ³n. Este proceso se lleva a cabo por gestiones, las cuales tienen una duraciÃ³n un aÃ±o. Actualmente, se realiza utilizando hojas de cÃ¡lculo en Google Sheets.
+  145: Por otro lado, la planificaciÃ³n operativa se define como un procedimiento derivado de un proyecto vinculado a un programa especÃ­fico. En la organizaciÃ³n, este proceso se orienta a la determinaciÃ³n de objetivos, indicadores, responsables, plazos y recursos necesarios para el cumplimiento de metas concretas. La estructura de este procedimiento se detalla en la figura 3.
+  146: Figura 3 Diagrama de la planificaciÃ³n operativa de un proyecto dentro de un periodo
+  147: Fuente: ElaboraciÃ³n propia, 2026
+  148: La planificaciÃ³n operativa tambiÃ©n es flexible, permitiendo aÃ±adir, editar o eliminar acciones segÃºn sea necesario y en cualquier momento. Actualmente, este proceso se realiza en hojas de cÃ¡lculo de Google Sheets.
+  149: En la organizaciÃ³n, ademÃ¡s del proceso de desarrollo, se utiliza unÂ monitoreo recurrenteÂ para evaluar el desempeÃ±o de las aplicaciones ya desplegadas. Este monitoreo se ejecuta enÂ intervalos definidosÂ (diario, semanal, mensual, semestral o histÃ³rico), con el objetivo de observar tendencias, detectar desviaciones y tomar decisiones oportunas sobre la operaciÃ³n del sistema. Para ello, se analizan indicadores generados por las integraciones y tableros del sistema (por ejemplo, actividad, alcance e interacciÃ³n en plataformas conectadas), lo que permite medir resultados con evidencia. A continuaciÃ³n, se describe en detalle cÃ³mo se implementa este procedimiento en la organizaciÃ³n.
+  150: Monitoreo de indicadores de desempeÃ±o (KPIs)
+  151: El proceso de monitoreo de los indicadores de desempeÃ±o de los proyectos se estructura en tres fases consecutivas. Estas comprenden la recolecciÃ³n de datos desde las pÃ¡ginas de las redes sociales en Facebook e Instagram de los proyectos que hemos mencionado anteriormente, seguida del anÃ¡lisis de los repositorios en la plataforma GitHub. Es pertinente seÃ±alar que, segÃºn la naturaleza de cada proyecto, la revisiÃ³n en GitHub se diferencia entre aplicaciones web y mÃ³viles.
+  152: Este procedimiento requiere un tiempo estimado de 45 minutos por unidad de proyecto. A continuaciÃ³n, se detallan los pasos a seguir, las plataformas de consulta y los indicadores tÃ©cnicos recolectados:
+  153: Facebook (Meta Business Suite):se debe ingresar al portal de Meta Business Suite en su versiÃ³n de escritorio, accediendo especÃ­ficamente a la secciÃ³n de estadÃ­sticas para visualizar el crecimiento de seguidores, visitas a la pÃ¡gina, interacciones en publicaciones (reacciones, comentarios y compartidos), impresiones/visualizaciones de contenido y acciones totales.
+  154: Instagram (Instagram Insights): el acceso se realiza a travÃ©s del Panel para profesionales dentro de la aplicaciÃ³n mÃ³vil de Instagram o mediante el centro de estadÃ­sticas de Meta Business Suite, donde se contempla el alcance por perÃ­odo, cuentas con interacciÃ³n, interacciones en publicaciones (me gusta, comentarios, compartidos, guardados), visitas al perfil y clics en enlaces.
+  155: GitHub (Insights / Activity / Commits): los datos se obtienen ingresando directamente a la pestaÃ±aInsights de cada repositorio oficial en la plataforma GitHub, la cual abarca el nÃºmero total de commits, total de commits, actividad por colaborador, pullrequestsy evoluciÃ³n temporal de contribuciones.
+  156: ElaboraciÃ³n de reportes
+  157: La elaboraciÃ³n de reportes se realiza generalmente despuÃ©s de hacer un monitoreo a las plataformas mencionadas, es un proceso que se lleva a cabo usando los datos recopilados de las plataformas anteriormente mencionadas; se hace manualmente en Google Sheets, para esto se elabora distintas grÃ¡ficas que se consideran Ãºtiles como lÃ­neas, barras y tortas; y se guarda la hoja de cÃ¡lculo, este proceso toma alrededor de 1 hora por proyecto.
+  158: PROBLEMA
+  159: SituaciÃ³n problemÃ¡tica
+  160: La creaciÃ³n de mÃºltiples hojas de cÃ¡lculo generadas necesariamente durante el proceso de monitoreo, planificaciÃ³n estratÃ©gica y operativa dificulta el acceso, localizaciÃ³n, organizaciÃ³n y la lectura rÃ¡pida de la informaciÃ³n.
+  161: El proceso manual, periÃ³dico, repetitivo y constante del monitoreo de proyecto demora el acceso a informaciÃ³n Ãºtil para el futuro de las aplicaciones.
+  162: La transcripciÃ³n manual de los datos recolectados de las plataformas de anÃ¡lisis de los proyectos genera errores humanos y datos poco confiables para los reportes.
+  163: FormulaciÃ³n del problema
+  164: La aplicaciÃ³n de ineficientes procedimientos manuales en la gestiÃ³n de proyectos provoca demora en la generaciÃ³n de reportes confiables e impide una oportuna toma de decisiones en la organizaciÃ³n.
+  165: OBJETIVOS
+  166: Objetivo general
+  167: Desarrollar el sistema web para la gestiÃ³n de proyectos en el laboratorio de tecnologÃ­as sociales.
+  168: Objetivos especÃ­ficos
+  169: Desarrollar el mÃ³dulo de gestiÃ³n de usuarios.
+  170: Desarrollar el mÃ³dulo de gestiÃ³n estratÃ©gica y operativa de proyectos.
+  171: Implementar mecanismos de integraciÃ³n para los proyectos operativos con APIs de plataformas como GitHub, Facebook e Instagram.
+  172: Desarrollar un dashboard interactivo de visualizaciÃ³n grÃ¡fica de KPIs de datos extraÃ­dos de las APIs.
+  173: Implementar el mÃ³dulo de generaciÃ³n de reportes.
+  174: ALCANCES Y LÃMITES
+  175: Alcances
+  176: El mÃ³dulo de gestiÃ³n de usuarios serÃ¡ desarrollado con JSON Web Token(JWT) y permitirÃ¡ el acceso al sistema web, de manera segura, diferenciando tres roles:super administrador, administrador y usuario.
+  177: El mÃ³dulo de planificaciÃ³n estratÃ©gica y operativa permitirÃ¡ operaciones CRUD sobre ambas planificaciones. Para la planificaciÃ³nestratÃ©gica se contemplarÃ¡n una vista jerÃ¡rquica editable (tipo columnas) y una vista de sololectura, con exportaciÃ³n a PDF. Para la planificaciÃ³n operativa se habilitarÃ¡n una vista de tabla editable y una vista de tabla de solo lectura, con exportaciÃ³n en XLS y PDF.
+  178: Cada proyecto operativo podrÃ¡ vincularse con laÂ Facebook Graph API (Meta), laÂ Instagram Graph APIÂ y laÂ GitHub REST APIÂ para la extracciÃ³n de los indicadores mencionados anteriormente. Esta integraciÃ³n permitirÃ¡ el monitoreo recurrente de indicadores clave como alcance, visitas al perfil/pÃ¡gina, crecimiento de seguidores, interacciones en publicaciones y actividad de desarrollo (commits), generando evidencia cuantitativa para la evaluaciÃ³n del desempeÃ±o de los proyectos.
+  179: El dashboard interactivo se construirÃ¡ en base a los indicadores recuperados de las APIs y permitirÃ¡ visualizar KPIs mediante grÃ¡ficos de barras, lÃ­neas, anillos (torta) y tablas comparativas.
+  180: La generaciÃ³n de reportes personalizada de los planes estratÃ©gicos operativos y de las grÃ¡ficas del dashboard en formato PDF permitirÃ¡ la personalizaciÃ³n de informes segÃºn las grÃ¡ficas generadas y datos especÃ­ficos como una planificaciÃ³n estratÃ©gica y operativa.
+  181: Se realizarÃ¡n pruebas al software en dos niveles incluyendo para el backend, se ejecutarÃ¡n pruebas de integraciÃ³n, y en el frontend, se aplicarÃ¡n pruebas funcionales y de flujo.
+  182: LÃ­mites
+  183: La interfaz grÃ¡fica del sistema web se implementarÃ¡ Ãºnicamente en idioma espaÃ±ol, no se considerarÃ¡ el soporte para otros idiomas.
+  184: El sistema restringe el acceso y la gestiÃ³n de permisos a tres niveles jerÃ¡rquicos de usuario: Super administrador, Administrador y Usuario.
+  185: No se incluirÃ¡ la integraciÃ³n con otras plataformas externas a las mencionadas (Facebook, Instagram y GitHub).
+  186: Los intervalos temporales para la extracciÃ³n de indicadores mediante lasAPI de Instagram y Facebook comprenderÃ¡n el dÃ­a en curso, el Ãºltimo mes y el Ãºltimo semestre. En el caso de GitHub, se incluirÃ¡n los periodos anteriormente citados, adicionando el registro histÃ³rico completo de la plataforma.
+  187: El alcance del desarrolloÂ no incluyeÂ el aprovisionamiento ni la implementaciÃ³n de infraestructura para hospedaje o puesta en producciÃ³n. Se establece que, una vez entregado el sistema alÂ Lab TecnoSocial, el despliegue y la operaciÃ³n en servidor serÃ¡n gestionados por dicha organizaciÃ³n.
+  188: El sistema web estÃ¡ desarrollado principalmente para su uso en equipos de escritorio y laptops. Aunque incluye un diseÃ±o responsivo bÃ¡sico, la prioridad de usabilidad y validaciÃ³n se concentra en pantallas de escritorio; el correcto funcionamiento en dispositivos mÃ³viles o tabletas no forma parte del alcance principal de la versiÃ³n que serÃ¡ entregada a la organizaciÃ³n.
+  189: JUSTIFICACION
+  190: El sistema web propuesto reducirÃ¡ la necesidad de transcripciones manuales y visitas recurrentes a plataformas de anÃ¡lisis externas. Mediante la integraciÃ³n conÂ Facebook Graph API,Â Instagram Graph APIÂ yÂ GitHub REST API, se automatiza la extracciÃ³n de los KPIs previamente mencionados, por periodos de tiempo. Esto permitirÃ¡ agilizar el seguimiento y la evaluaciÃ³n de los proyectos, disminuir la carga operativa manual y reducir el riesgo de errores humanos en la recolecciÃ³n de datos.
+  191: El control de accesos y acciones en la plataforma, mediante control de sesiones segura con JWTgarantizarÃ¡ que solo los usuarios con los permisos correspondientes puedan realizar determinadas tareas de acuerdo a su rol.
+  192: La vista de planificaciÃ³n estratÃ©gica en formato deÂ columnas jerÃ¡rquicas editablesÂ proporcionarÃ¡ un entorno estructurado para la gestiÃ³n de planes estratÃ©gicos anuales. Esta interfaz permitirÃ¡ registrar y organizar laÂ misiÃ³n, objetivos, programas e indicadores, asÃ­ como asociar programas para vincularlos a los proyectos operativos y realizar su seguimiento. El enfoque visual facilita la trazabilidad entre niveles estratÃ©gicos y operativos, fortaleciendo el control y la toma de decisiones sobre los proyectos.
+  193: La implementaciÃ³n del dashboard interactivo que integre visualizaciones grÃ¡ficas de los indicadores obtenidos a partir de las API proporcionarÃ¡ a los perfiles de superadministradoryusuariouna herramienta que automatiza la generaciÃ³n de grÃ¡ficas, que se elaboraban de forma manual, lo que permitirÃ¡ evaluar el progreso y los resultados de los proyectos de manera rÃ¡pida, reduciendo significativamente el tiempo requerido para su anÃ¡lisis y facilitando la toma de decisiones informadas en relaciÃ³n con el futuro de las aplicaciones.
+  194: El sistema permitirÃ¡ la generaciÃ³n de reportes a partir de las grÃ¡ficas que el usuario seleccione en los dashboards creados y la exportaciÃ³n de planes estratÃ©gicos y operativos, lo cual agilizarÃ¡ significativamente el tiempo que normalmente se invertirÃ­a en la elaboraciÃ³n de reportes manuales. Estos reportes, proporcionarÃ¡n una visiÃ³n clara y fiable del desempeÃ±o y los resultados obtenidos, sin necesidad de intervenciÃ³n manual. Al automatizar estos procedimientos, no solo se reduce el riesgo de errores humanos, sino que tambiÃ©n se aporta a la productividad, permitiendo a los usuarios obtener informaciÃ³n precisa y relevante de manera mucho mÃ¡s rÃ¡pida, lo que les permitirÃ¡ tomar decisiones informadas de forma mÃ¡s oportuna.
+  195: CAPITULO 2. MARCO TEORICO
+  196: Fundamentos de IngenierÃ­a de Software
+  197: IngenierÃ­a de software
+  198: La ingenierÃ­a de software es una disciplina de la ingenierÃ­a que se enfoca en la aplicaciÃ³n de un enfoque sistemÃ¡tico, riguroso y cuantificable para el desarrollo, operaciÃ³n su mantenimiento. Su objetivo principal es la creaciÃ³n de sistemas de alta calidad que sean fiables, eficientes y que satisfagan los requisitos del cliente. Esta disciplina abarca una serie de metodologÃ­as, herramientas y tÃ©cnicas que facilitan la producciÃ³n de software de manera profesional [3]. SegÃºn la IEEE, "es la aplicaciÃ³n de un enfoque sistemÃ¡tico y disciplinado para el desarrollo, la operaciÃ³n y el mantenimiento del software; es decir, la aplicaciÃ³n de la ingenierÃ­a al software"[4].
+  199: Arquitectura de software
+  200: Se define como el conjunto de decisiones mÃ¡s importantes sobre la organizaciÃ³n de un sistema de software. Esto incluye la selecciÃ³n de elementos estructurales y sus interfaces, asÃ­ como su comportamiento, segÃºn se especifica en las colaboraciones entre dichos elementos. La arquitectura tambiÃ©n considera los estilos de arquitectura que guÃ­an esta organizaciÃ³n, como el patrÃ³n de "frontend-backend", y las propiedades de alta calidad que se desean del sistema, como la escalabilidad y la fiabilidad [5].
+  201: Clienteâ€“Servidor y SPA (Single Page Application).
+  202: La arquitectura cliente-servidor es un modelo en el que las funciones de procesamiento se dividen entre clientes, que solicitan servicios, y servidores, que proveen recursos y respuestas. Los clientes y servidores pueden ejecutarse en mÃ¡quinas diferentes y comunicarse a travÃ©s de una red. Este modelo promueve la escalabilidad, el modularidad y la separaciÃ³n de responsabilidades al centralizar la gestiÃ³n de datos y recursos en el servidor, mientras que el cliente se encarga de la interfaz de usuario. Este estilo de arquitectura es fundamental en la computaciÃ³n distribuida moderna, ya que permite que mÃºltiples clientes accedan a servicios de un Ãºnico servidor de manera concurrente[5].
+  203: Aplicaciones de una sola pÃ¡gina (SPA)
+  204: Una Single-Page Application (SPA) es un tipo de aplicaciÃ³n web que carga un Ãºnico documento HTML y actualiza dinÃ¡micamente sus contenidos mediante JavaScript, evitando recargas completas de la pÃ¡gina. Este enfoque mejora la experiencia de usuario al ofrecer una navegaciÃ³n fluida y tiempos de respuesta mÃ¡s cortos, similar a una aplicaciÃ³n de escritorio. La lÃ³gica de presentaciÃ³n y la interacciÃ³n con el usuario se gestionan en el lado del cliente, mientras que el servidor se enfoca en proporcionar los datos necesarios, generalmente a travÃ©s de APIs. Este modelo reduce la carga en el servidor y optimiza el uso del ancho de banda, lo que resulta en una experiencia de usuario mÃ¡s Ã¡gil [6].
+  205: Servicios Web RESTful
+  206: La arquitectura REST(Representational State Transfer) define un estilo de interacciÃ³n para sistemas distribuidos en red, basado en recursos identificados por URIs, operaciones uniformes (GET, POST, PUT, DELETE) y representaciones intercambiables como JSON o XML. REST, a diferencia de otros protocolos como SOAP, es ligero y se basa en el protocolo HTTP, lo que facilita su implementaciÃ³n y adopciÃ³n. Este estilo favorece la simplicidad, la escalabilidad y la interoperabilidad entre sistemas, ya que permite a diferentes aplicaciones comunicarse de manera estandarizada y sin estado. La popularidad de REST ha llevado a su uso generalizado en la construcciÃ³n de APIs para servicios web[7].
+  207: Arquitectura en capas
+  208: La arquitectura en capas organiza el sistema en niveles donde cada capa proporciona servicios a la inmediatamente superior y consume los de la inferior. Las capas tÃ­picas en una aplicaciÃ³n web pueden ser la capa de presentaciÃ³n (interfaz de usuario), la capa de lÃ³gica de negocio y la capa de acceso a datos. Este estilo facilita la mantenibilidad, la reutilizaciÃ³n y la separaciÃ³n de preocupaciones, ya que los cambios en una capa no afectan directamente a las demÃ¡s, siempre y cuando la interfaz entre ellas se mantenga. Este modularidad simplifica el desarrollo, las pruebas y la evoluciÃ³n del software, permitiendo a los desarrolladores trabajar en componentes especÃ­ficos sin preocuparse por la implementaciÃ³n interna de otras capas[3].
+  209: PatrÃ³n Modelo Vista Controlador (MVC)
+  210: El patrÃ³n Modelo-Vista-Controlador (MVC) establece una separaciÃ³n clara entre la gestiÃ³n de datos (Modelo), la interfaz de usuario (Vista) y la lÃ³gica de control (Controlador). El modelo gestiona la lÃ³gica de negocio y los datos; la vista es responsable de la presentaciÃ³n de los datos al usuario; y el controlador actÃºa como un intermediario, recibiendo las entradas del usuario y coordinando las interacciones entre el modelo y la vista. Este enfoque reduce el acoplamiento y mejora la capacidad de evoluciÃ³n del software, ya que permite que cada componente se modifique de forma independiente, es ampliamente utilizado en el desarrollo de aplicaciones de escritorio y web para estructurar el cÃ³digo de manera organizada [8].
+  211: API
+  212: Una API es un conjunto de reglas que permite que diferentes aplicaciones de software se comuniquen entre sÃ­. Funciona como un intermediario entre dos sistemas, permitiendo que uno solicite un servicio o un dato del otro sin la necesidad de entender los detalles de su implementaciÃ³n interna. LasAPI son esenciales en la arquitectura de software moderna para permitir la interoperabilidad, el intercambio de datos y la integraciÃ³n de servicios web[9].
+  213: MetodologÃ­as Ã¡giles y conceptos asociados
+  214: Scrum
+  215: Scrum es un marco de trabajo para gestionar y desarrollar productos complejos, fundamentado en la teorÃ­a de control de procesos empÃ­ricos. Promueve la transparencia, la inspecciÃ³n y la adaptaciÃ³n a travÃ©s de ciclos de trabajo cortos llamados Sprints. Los componentes esenciales de Scrum son sus tres roles (ProductOwner, Scrum Master, Equipo de Desarrollo), sus cinco eventos (Sprint Planning, Daily Scrum, Sprint Review, Sprint Retrospective) y sus tres artefactos (ProductBacklog, Sprint Backlog, Incremento). Este marco de trabajo estÃ¡ diseÃ±ado para fomentar la colaboraciÃ³n, la creatividad y el valor de los productos de manera incremental[10].
+  216: Historias de usuario
+  217: En el contexto de las metodologÃ­as Ã¡giles, una historia de usuario es una descripciÃ³n breve y sencilla de una caracterÃ­stica del sistema, contada desde la perspectiva del usuario final. Estas historias capturan la funcionalidad necesaria en un formato simple: "Como [rol], quiero [objetivo], para poder [beneficio]". Su propÃ³sito no es detallar la implementaciÃ³n, sino facilitar la conversaciÃ³n y el entendimiento compartido entre el equipo de desarrollo y el cliente[11].
+  218: Pruebas de software
+  219: Concepto de pruebas de software
+  220: Las pruebas de software son un proceso de evaluaciÃ³n que se ejecuta en un sistema o en sus componentes con el objetivo de verificar que cumplen con los requisitos definidos. Este proceso tiene dos propÃ³sitos principales: por un lado, confirmar que el software se comporta como se espera, y por otro, descubrir defectos, fallas o errores que puedan comprometer su funcionamiento. Las pruebas son una parte crucial del ciclo de vida del desarrollo de software para garantizar la calidad y la fiabilidad del producto final [12].
+  221: Tipos de pruebas
+  222: Pruebas unitarias
+  223: Las pruebas unitarias consisten en la evaluaciÃ³n individual de las unidades mÃ¡s pequeÃ±as del cÃ³digo fuente, como funciones, mÃ©todos o clases. Su objetivo es verificar que cada componente del software funciona correctamente y que su lÃ³gica interna produce los resultados esperados. Estas pruebas se realizan tÃ­picamente por los propios desarrolladores y son la primera lÃ­nea de defensa para la detecciÃ³n temprana de errores[13].
+  224: Pruebas de integraciÃ³n
+  225: Las pruebas de integraciÃ³n se llevan a cabo despuÃ©s de las pruebas unitarias, combinando mÃ³dulos de software individuales y probÃ¡ndolos como un grupo. El propÃ³sito es validar que la interacciÃ³n y la comunicaciÃ³n entre los componentes integrados funcione sin errores. Estas pruebas buscan descubrir fallos en las interfaces de comunicaciÃ³n, el paso de datos y las dependencias entre los diferentes mÃ³dulos [13].
+  226: Pruebas de componentes
+  227: Las pruebas de componentes, tambiÃ©n denominadas pruebas de mÃ³dulos, se centran en la verificaciÃ³n de componentes de software de forma aislada, sin integrarlos con otros elementos del sistema. A diferencia de las pruebas unitarias, estas pueden evaluar funcionalidades mÃ¡s complejas o "componentes" completos que encapsulan diversas unidades de cÃ³digo. Su objetivo primordial es asegurar que el comportamiento del objeto de prueba cumpla cabalmente con las especificaciones funcionales definidas, validando tanto las entradas y salidas como el manejo de estados internos[13].
+  228: Pruebas de flujo
+  229: Casos de pruebas
+  230: Un caso de prueba es un conjunto de condiciones, datos de entrada, pasos de ejecuciÃ³n y resultados esperados que se utiliza para probar la funcionalidad de una aplicaciÃ³n. Sirve como una guÃ­a estructurada para el evaluador, garantizando que el proceso de prueba sea sistemÃ¡tico y reproducible. Los casos de prueba son la base para determinar si una funcionalidad especÃ­fica del software cumple con los criterios de aceptaciÃ³n [14].
+  231: Modelado y diseÃ±o de software con UML
+  232: DefiniciÃ³n de UML
+  233: El Lenguaje Unificado de Modelado (UML) es un lenguaje grÃ¡fico estandarizado que se utiliza para especificar, visualizar, construir y documentar artefactos de un sistema de software. Su propÃ³sito principal es ofrecer un medio para que desarrolladores, clientes y otros interesados puedan entender y comunicar la arquitectura y el diseÃ±o del software. Dentro de las herramientas de UML, los diagramas de casos de uso y los diagramas de secuencia son fundamentales para el anÃ¡lisis y diseÃ±o de sistemas [15].
+  234: Diagrama de casos de uso
+  235: Un diagrama de casos de uso es una representaciÃ³n de las interacciones entre los actores (usuarios o sistemas externos) y el sistema. Este tipo de diagrama es especialmente Ãºtil para capturar los requisitos funcionales del software desde la perspectiva del usuario, mostrando quÃ© puede hacer el sistema sin entrar en detalles de la implementaciÃ³n [16].
+  236: Diagrama de secuencias
+  237: Los diagramas de secuencia ilustran la interacciÃ³n entre los objetos o componentes del sistema en un orden cronolÃ³gico. Muestran los mensajes que se envÃ­an y reciben entre los objetos, y el orden en que estos eventos ocurren. Son valiosos para visualizar y documentar los flujos de trabajo especÃ­ficos y la lÃ³gica de negocio de un sistema, lo cual es crucial para el diseÃ±o de la arquitectura y la depuraciÃ³n[16].
+  238: Formato de datos y comunicaciÃ³n
+  239: JSON
+  240: JavaScript Objeto Notation(JSON) es un formato de intercambio de datos ligero, legible y estructurado que se utiliza para transmitir informaciÃ³n entre un servidor y un cliente web [17]. Basado en un subconjunto del lenguaje de programaciÃ³n JavaScript, JSON utiliza una sintaxis simple de pares clave-valor y matrices (arrays) para representar datos complejos. Debido a su simplicidad, su formato legible por humanos y la facilidad de ser analizado y generado por mÃ¡quinas, JSON se ha convertido en el estÃ¡ndar de facto para la comunicaciÃ³n de datos en el desarrollo de APIs y aplicaciones web modernas.
+  241: TecnologÃ­as para el desarrollo frontend
+  242: React y ReactRouter DOM
+  243: React (v18.3.1) es una biblioteca de JavaScript de cÃ³digo abierto para la creaciÃ³n de interfaces de usuario interactivas y declarativas. Su principio fundamental es la composiciÃ³n basada en componentes, lo que permite construir interfaces complejas a partir de pequeÃ±as piezas reutilizables. Una de sus principales innovaciones es el Virtual DOM, que optimiza el rendimiento al actualizar Ãºnicamente los componentes afectados cuando cambia el estado, en lugar de renderizar toda la pÃ¡gina [18].Sobre esta base, ReactRouter DOM (v18.3.1) se presenta como una librerÃ­a complementaria que aÃ±ade capacidades de enrutamiento declarativo, permitiendo gestionar la navegaciÃ³n entre diferentes vistas en aplicaciones SPA sin recargar la pÃ¡gina completa. Ofrece una API intuitiva para definir rutas anidadas, manejar parÃ¡metros de URL y proteger accesos, facilitando asÃ­ la construcciÃ³n de aplicaciones web complejas con una experiencia de usuario fluida [19].
+  244: Material UI
+  245: Material-UI (MUI v6.4.7)es una biblioteca de componentes de React que implementa el sistema de diseÃ±o Material Design de Google. Proporciona una colecciÃ³n completa y pre construida de elementos de UI, como botones, tarjetas y formularios, que se adhieren a los principios de accesibilidad y usabilidad. Su sistema de temas personalizable permite a los desarrolladores mantener una coherencia visual en toda la aplicaciÃ³n, reduciendo el tiempo y el esfuerzo necesarios para construir una interfaz de usuario atractiva y funcional [20].
+  246: Vite
+  247: Vite (v6.2.0) es un servidor de desarrollo y herramienta de compilaciÃ³n (buildtool) de Ãºltima generaciÃ³n para proyectos web. Fue creado con el objetivo de ofrecer una experiencia de desarrollo mÃ¡s rÃ¡pida. A diferencia de las herramientas tradicionales, que empaquetan todo el cÃ³digo antes de servirlo, Vite aprovecha la compatibilidad de los navegadores con los mÃ³dulos ES nativos para servir el cÃ³digo fuente directamente, reduciendo significativamente los tiempos de arranque y recarga en caliente (HMR), lo que se traduce en un flujo de trabajo mÃ¡s Ã¡gil y productivo [21].
+  248: Recharts
+  249: Recharts (v3.1.2) es una biblioteca de componentes de grÃ¡ficos para React basada en que permite construir visualizaciones de datos interactivas y reutilizables de manera declarativa. Su arquitectura modular facilita la creaciÃ³n de grÃ¡ficos como lÃ­neas, barras, Ã¡reas, pasteles y combinaciones de estos, permitiendo a los desarrolladores personalizar completamente el estilo y comportamiento de las visualizaciones. Recharts se integra de manera nativa con React, lo que garantiza una renderizaciÃ³n fluida y reactiva ante cambios en los datos [22].
+  250: TecnologÃ­as para el desarrollo Backend
+  251: Express
+  252: Express.js(v4.21.2) es un framework web minimalista y flexible para Node.js (Java script corriendo en el servidor), diseÃ±ado para construir aplicaciones web y API RESTful de forma rÃ¡pida y robusta. Se caracteriza por su sencillez y un conjunto de caracterÃ­sticas esenciales para definir rutas, manejar solicitudes HTTP y gestionar respuestas. Su arquitectura basada en middlewares lo hace altamente personalizable y extensible a travÃ©s de un amplio ecosistema de mÃ³dulos, para adaptarse a diversas necesidades de desarrollo de backend [26].
+  253: TypeORM
+  254: TypeORM (v0.3.22) es un mapeador Objeto-Relacional (ORM) para TypeScript y JavaScript, que facilita la interacciÃ³n con bases de datos relacionales como PostgreSQL, MySQL y SQLite. Su funciÃ³n principal es abstraer las consultas SQL, permitiendo a los desarrolladores trabajar con entidades y objetos en un lenguaje de programaciÃ³n familiar como java script. Al modelar la base de datos a travÃ©s de clases, TypeORM simplifica tareas como la migraciÃ³n de esquemas y la gestiÃ³n de relaciones [27].
+  255: TecnologÃ­as para el desarrollo y gestiÃ³n de bases de datos
+  256: CAPÃTULO 3. MARCO METODOLÃ“GICO
+  257: Para el desarrollo del sistema se tomÃ³ como referencia algunas de las caracterÃ­sticas mÃ¡s importantes de la metodologÃ­a Ã¡gil Scrum.
+  258: AdaptaciÃ³n metodolÃ³gica
+  259: Las responsabilidades clave del marco de trabajo fueron asumidas por los participantes del proyecto. En este sentido, se adoptÃ³ una aplicaciÃ³n prÃ¡ctica y adaptada de la metodologÃ­a. El seÃ±or Alex Ojeda Copa, gerente administrativo del Laboratorio de TecnologÃ­as Sociales, fungiÃ³ como el interesado principal y ProductOwner, siendo el responsable de la validaciÃ³n y conformidad de los avances del producto. Por su parte, el ingeniero Joel ReynaldoAlanez Duran, quien tambiÃ©n actuÃ³ como tutor del proyecto, asumiÃ³ el rol de Scrum Master, guio el proceso y resolviÃ³ impedimentos presentados durante el desarrollo. El autor del proyecto, a su vez, desempeÃ±Ã³ el papel de desarrollador y tester, asumiendo la creaciÃ³n del producto y su posterior validaciÃ³n tÃ©cnica.
+  260: Se realizaron sesiones de retroalimentaciÃ³n individuales donde se evaluÃ³ los avances, se analizÃ³ problemas detectados y se definiÃ³ acciones correctivas. Estas sesiones diarias tuvieron una duraciÃ³n aproximada de quince minutos y fueron conducidas Ãºnicamente por el autor del proyecto, siguiendo la dinÃ¡mica de las reuniones tipo daily scrum empleadas en metodologÃ­as Ã¡giles.
+  261: Por otra parte, los avances del proyecto se presentaron al usuario final cada miÃ©rcoles a las 12:30 p.m., con el fin de mantenerlo informado sobre el progreso.
+  262: Se definieron ciclos de trabajo denominados sprints, con una duraciÃ³n de cuatro semanas cada uno, al tÃ©rmino de los cuales se entregÃ³ un incremento de software funcional alineado con los objetivos especÃ­ficos de cada periodo. El product backlog se estructurÃ³ de manera jerÃ¡rquica, donde se desglosÃ³ los requisitos en sucesivos sprint backlogs, los cuales fueron cinco correspondientes a cada mÃ³dulo del sistema. Cada uno de estos Ãºltimos incluyÃ³ las historias de usuario necesarias para su elaboraciÃ³n completa.
+  263: La plataforma Jira se empleÃ³ como herramienta principal para la gestiÃ³n de las tareas del proyecto. Los requerimientos funcionales para construir un mÃ³dulo se definieron mediante historias de usuario, y su progreso fue monitoreado de manera continua a travÃ©s de los tableros.
+  264: PlanificaciÃ³n del desarrollo
+  265: El cronograma de desarrollo del sistema se ilustra en el diagrama del Anexo X, mientras que los sprint backlogs y sus respectivas historias de usuario se detallan en el Anexo X. Los principales artefactos del proceso se presentan en la Figura 4; entre ellos destaca el product backlog, el cual se descompuso en sprint backlogs (cada uno equivalente a un mÃ³dulo del sistema) conformados por historias de usuario.
+  266: Figura 4Ciclo del desarrollo del sistema web de gestiÃ³n de proyectos
+  267: Fuente: ElaboraciÃ³n propia, 2026
+  268: La estructura de cada historia de usuario comprendiÃ³ una descripciÃ³n detallada, una categorÃ­a (desarrollo o bug), un plazo de inicio y fin, un conjunto de criterios de aceptaciÃ³n y, en los casos pertinentes, una captura de pantalla de un prototipo en Figma. Estas condiciones tÃ©cnicas y funcionales permitieron validar el cumplimiento de los requerimientos alineados con las necesidades de la organizaciÃ³n durante el desarrollo. El formato empleado para la redacciÃ³n de dichas historias se ilustra en la Figura 5.
+  269: Figura 5Estructura de una historia de usuario
+  270: Fuente: Captura de pantalla de Jira, 2026
+  271: Al concluir el desarrollo de cada mÃ³dulo, fueron sometidos a pruebas de frontend y backendmencionadas anteriormente. En caso de detectarse fallos, pruebas no superadas, bugs o inconsistencias, se crearonnuevas historias de usuario,con categorÃ­a bug las mismas se muestran en la figura 6.
+  272: Figura 6Estructura de una historia de usuario correctiva
+  273: Fuente: Captura de pantalla de Jira, 2026
+  274: La gestiÃ³n de las historias de usuario se realizÃ³ mediante un tablero scrum. Este tablero, ilustrado en la Figura 7, se estructurÃ³ en tres columnas que representan el ciclo de vida del desarrollo. El flujo de trabajo consistiÃ³ en el desplazamiento dinÃ¡mico entre las columnas del tablero de las historias segÃºn su estado de avance:
+  275: Por hacer: Historias pendientes de inicio.
+  276: En curso: Historias en fase de desarrollo activo.
+  277: Finalizado:Historias que cumplen satisfactoriamente los criterios de aceptaciÃ³n.
+  278: Figura 7Tablero del sistema web de gestiÃ³n de proyectos
+  279: Fuente: Captura de pantalla de Jira, 2026
+  280: Por otro lado, el flujo operativo que siguiÃ³ cada historia de usuario para su transiciÃ³n entre columnas se describe en la figura 8. Una vez que la historia alcanzÃ³ la columna finalizada, se procediÃ³ a la integraciÃ³n y carga de los cambios en el repositorio remoto de GitHub.
+  281: Figura 8Flujo de desarrollo empleado para una historia de usuario
+  282: Fuente: ElaboraciÃ³n propia, 2026
+  283: CAPÃTULO 4. INGENIERÃA DEL PROYECTO
+  284: Arquitectura del software
+  285: La arquitectura del sistema se definiÃ³ bajo un enfoque modular clienteservidor, con el objetivo deÂ separar responsabilidades y permitirÂ escalabilidad funcional.
+  286: Base de datos
+  287: La base de datos del sistema se diseÃ±Ã³ bajo un enfoqueÂ relacional, orientado a la gestiÃ³n de proyectos, planificaciÃ³n estratÃ©gica y operativa, y al registro de configuraciones e integraciones. Se priorizÃ³ laÂ integridad referencial, laÂ normalizaciÃ³nÂ y laÂ separaciÃ³n lÃ³gica de entidades, de modo que cada tabla represente un concepto definido dentro del dominio (usuarios, proyectos, planes, reportes e integraciones). La estructura planteada permitiÃ³ mantener coherencia en los datos, facilitÃ³ el mantenimiento y aporta al crecimiento futuro del sistema. La representaciÃ³n grÃ¡fica del modelo se presenta en la figura9.
+  288: Figura 9Diagrama entidad relaciÃ³n de la base de datos
+  289: Fuente: Captura de pantalla de PgAdmin, 2026
+  290: El modelo de base de datos del sistema engloba la planificaciÃ³n estratÃ©gica y operativa de forma jerÃ¡rquica. En la jerarquÃ­a superior, la entidad para los planes estratÃ©gicos(strategic_plans), representa los planes anuales en la organizaciÃ³n; cada plan agrupa mÃºltiples objetivos (objectives). A su vez, cada objetivo permite vincular indicadores (indicators) para cuantificar el avance, asÃ­ como programas (programs) entendidos como unidades de acciÃ³n que conectan la planificaciÃ³n estratÃ©gica con la ejecuciÃ³n.
+  291: Los programas se relacionan con los proyectos operativos (operational_projects), que representan las iniciativas de la organizaciÃ³n. Para dar base a la planificaciÃ³n operativa cada proyecto se enlaza con mÃºltiples filas operativas (operational_rows), donde se registran objetivos, indicadores, recursos, presupuestos y periodos de ejecuciÃ³n.
+  292: La relaciÃ³n entre usuarios y proyectos se gestiona mediante la tabla de rotura project_responsibles, la cual implementa una relaciÃ³n de muchos a muchos entre usuarios (users) y proyectos operativos, parala trazabilidad de los responsables. Las integraciones externas con Facebook, Instagram y GitHub se registran en project_integrations, dondese asocia cada proyecto operativo con sus respectivas fuentes de datos.
+  293: Finalmente, la entidad de reportes (reports) se implementÃ³ utilizando el tipo de dato JSONB que ofrece PostgreSQL para almacenar la informaciÃ³n de objetos complejos generada por el usuario en el sistema. Esta incluye metadatos, texto, estructura de grÃ¡ficas, e imÃ¡genes.
+  294: Backend
+  295: El backend del sistema se desarrollÃ³ empleando Node.js, Express y TypeORM, siguiendo un patrÃ³n de arquitectura Modelo-Vista-Controlador (MVC) adaptado a servicios REST. En esta estructura, la capa de modelo estÃ¡ representada por las entidades definidas mediante el mapeo objeto-relacional (ORM), las cuales describen la estructura de datos y su persistencia en la base de datos relacional. Por su parte, la capa de controladores concentra la lÃ³gica de negocio y la interacciÃ³n con los datos, procesando las solicitudes HTTP y retornando respuestas en formato JSON.
+  296: Las rutas actÃºan como la capa de enrutamiento, vinculando cada punto de acceso (endpoint) con su controlador correspondiente. AdemÃ¡s, el sistema incorpora funciones de procesamiento intermedio (middlewares) transversales para la autenticaciÃ³n y autorizaciÃ³n mediante JSON Web Tokens (JWT) y roles, asÃ­ como para tareas tÃ©cnicas de gestiÃ³n de archivos y manejo de imÃ¡genes. El mÃ³dulo de integraciones expone controladores especÃ­ficos para Facebook, Instagram y GitHub, permite el consumo de interfaces de programaciÃ³n de aplicaciones (APIs) externas desde un punto centralizado. La estructura y arquitectura del backend se muestra en la Figura 10.
+  297: Finalmente, la capa de utilidades se creÃ³ para encapsular funciones comunes, tales como el formateo de datos obtenidos de las plataformaspor de rangos de tiempo.
+  298: Figura 10Arquitectura y estructura del backend
+  299: Fuente: ElaboraciÃ³n propia, 2026
+  300: Frontend
+  301: El frontend del sistema se implementÃ³ como una aplicaciÃ³n de pÃ¡gina Ãºnica SPA empleando la biblioteca React y la herramienta de construcciÃ³n Vite. La estructura del proyecto es modular por funcionalidades, establece una separaciÃ³n entre las vistas, los componentes, la lÃ³gica reutilizable y los servicios de comunicaciÃ³n con el backend.
+  302: Las pÃ¡ginas del sistema se organizan en el directorio pages/, y cada mÃ³dulo contiene sus propios subcomponentes dentro de components/. La gestiÃ³n del estado global disponible en todo el sistema se centraliza en contexts/, mientras que la lÃ³gica transversal reutilizable se ubica en hooks/ sencillos o personalizados.
+  303: Por otro lado, la capa de comunicaciÃ³n con el backend se implementa en api/ y services/. Los componentes reutilizables comunes a todo el sistema se agrupan en generalComponents/, y las funciones auxiliares se concentran en utils/. La arquitectura detallada del frontend se presenta en la Figura 11.
+  304: Figura 11Arquitectura y estructura del frontend
+  305: Fuentes: ElaboraciÃ³n propia, 2026
+  306: Desarrollo
+  307: Al inicio del proyecto, se elaboraron los prototipos bÃ¡sicos de la interfaz de usuario y el flujo de funcionamiento ideal en Figma; estos se presentan en diversas figuras a lo largo de las siguientes secciones. Posteriormente, se estructurÃ³ la jerarquÃ­a de directorios y archivos, tal como se ilustrÃ³ en las Figuras 10 y 11.
+  308: Posteriormente, el desarrollo de los mÃ³dulos se fundamentÃ³ en la definiciÃ³n de protocolos para una comunicaciÃ³n estandarizada entre el frontend y el backend; para ello, se establecieron contratos de solicitudes y respuestas que determinan la estructura de los datos intercambiados. Cuando el sistema procesa una solicitud exitosamente, la API devuelve una respuesta estructurada como se observa en la Figura 12 y cuyos campos se describen detalladamente en la Tabla 1.
+  309: Figura 12Modelo estÃ¡ndar de respuesta exitosa del Sistema
+  310: Fuente: ElaboraciÃ³n propia
+  311: Tabla 1 Campos de la respuesta exitosa del sistema
+  312: Campo
+  313: Tipo
+  314: DescripciÃ³n
+  315: success (true)
+  316: Boolean
+  317: Indica si la operaciÃ³n se ejecutÃ³ correctamente.
+  318: message
+  319: String
+  320: Mensaje informativo opcional sobre el resultado de la operaciÃ³n. Generalmente segÃºn sea conveniente se muestra en una notificaciÃ³n con color verde en la interfaz de usuario.
+  321: data
+  322: Object
+  323: Contiene la informaciÃ³n solicitada o el resultado de la operaciÃ³n.
+  324: Fuente: ElaboraciÃ³n propia, 2026
+  325: En caso de que ocurra un error durante el procesamiento de la solicitud, la API devuelve una respuesta estructurada como se muestra en la Figura 13, para identificar y gestionar la incidencia. La descripciÃ³n de los campos de esta respuesta se muestra en la Tabla 2.
+  326: Figura 13Modelo estÃ¡ndar de respuesta errÃ³nea del sistema
+  327: Fuente: ElaboraciÃ³n propia, 2026
+  328: Tabla 2Campos de la respuesta errÃ³nea del sistema
+  329: Campo
+  330: Tipo
+  331: DescripciÃ³n
+  332: success (false)
+  333: Boolean
+  334: Indica que la operaciÃ³n no se completÃ³ correctamente.
+  335: error.code
+  336: String
+  337: CÃ³digo Ãºnico que identifica el tipo de error. Generalmente se muestra en una notificaciÃ³n con color rojo en la interfaz de usuario.
+  338: error.message
+  339: String
+  340: DescripciÃ³n clara del error para facilitar su comprensiÃ³n y resoluciÃ³n.
+  341: Fuente: ElaboraciÃ³n propia, 2026
+  342: Esta base permitiÃ³ la construcciÃ³n de los cinco mÃ³dulos del sistema, los cuales se describen de manera detallada en las siguientes secciones de este capÃ­tulo.
+  343: MÃ³dulo de gestiÃ³n de usuarios y sesiones
+  344: El mÃ³dulo de gestiÃ³n de usuariosy sesiones se desarrollÃ³ para controlar de forma segura el acceso al sistema, administrar el ciclo de vida de las cuentas y que cada operaciÃ³n en el sistema se ejecute conforme al rol del usuario autenticado. Se integrÃ³ laautenticaciÃ³n basada enJWT, autorizaciÃ³n por permisos, control de sesiÃ³n con renovaciÃ³n de credenciales y validaciones de negocio en el frontend y backend.
+  345: El mÃ³dulo se estructurÃ³ a partir de la definiciÃ³n de la entidad user, donde se definieron tres roles operativos: superadministrador, administrador y usuario. Los permisos y acciones asignados a cada rol en este mÃ³dulo se detallan en la Figura 14.
+  346: Figura 14Diagrama UML de casos de uso del mÃ³dulo de gestiÃ³n de usuarios
+  347: Fuente: ElaboraciÃ³n propia, 2026
+  348: Algunos casos de uso presentados anteriormente en el diagrama tienen escenarios secundarios que se detallan en la Tabla 3.
+  349: Tabla 3 Matriz de permisos y restricciones por rol en el mÃ³dulo de gestiÃ³n de usuarios
+  350: AcciÃ³n
+  351: Superadministrador
+  352: Administrador
+  353: Usuario
+  354: Iniciar sesiÃ³n
+  355: SÃ­ (Con cualquier estado)
+  356: SÃ­ (Solo con estado habilitado)
+  357: SÃ­ (Solo con estado habilitado)
+  358: Crear usuario
+  359: SÃ­ (Crea rol administrador y usuario)
+  360: SÃ­ (Solo crea rol usuario)
+  361: No
+  362: Actualizar usuario
+  363: SÃ­
+  364: SÃ­ (Solo al rol usuario)
+  365: No
+  366: Actualizar perfil propio
+  367: SÃ­
+  368: SÃ­
+  369: Solo la foto de perfil
+  370: Eliminar usuario
+  371: SÃ­
+  372: SÃ­ (Solo al rol usuario)
+  373: No
+  374: Fuente: ElaboraciÃ³n propia, 2026
+  375: Para la seguridad del mÃ³dulo y del sistema en general, se aplicÃ³ una estrategia de sesiÃ³n basada enJWT y tomando en cuenta dos tokens:
+  376: Access token: Posee una vigencia de dos horas y se utiliza para autorizar solicitudes a los endpointsprotegidosdel sistema.
+  377: Refresh token: Tiene una vigencia de siete dÃ­as. Se almacena en una cookie de tipo httpOnly y permite renovar la sesiÃ³n sin reingresar credenciales.
+  378: InvalidaciÃ³n por versiÃ³n de sesiÃ³n (session_version): El sistema incrementa el valor de session_versionde la tablauseren la base de datos cuando se ejecutan cambios sensibles en un perfil, ya sea por propio o sobre el perfil de usuarios de jerarquÃ­a inferior. Estas modificaciones incluyen la actualizaciÃ³n del rol, estado, correo electrÃ³nico o contraseÃ±a. Como consecuencia, cualquier token previo pierde validez, redirige al usuario a la pÃ¡gina de inicio de sesiÃ³n obligÃ¡ndolo a realizar una nueva autenticaciÃ³n.
+  379: Control de expiraciÃ³n en cliente: Se configurÃ³ que por defecto una sesiÃ³n activa en el sistema tenga una duraciÃ³n de dos horas y se desarrollaron funciones de control de tiempo de sesiÃ³nque permiten mostrar una advertencia en la interfaz de usuario 15 minutos antes de su vencimiento, tambiÃ©n se le permie al usuario refrescar antes de que expire la sesiÃ³n.
+  380: El flujo que se sigue cuando un usuario requiere iniciar sesiÃ³nen el sistema se detalla en la Figura 15.
+  381: Figura 15Diagrama de secuenciapara el inicio de sesiÃ³n
+  382: Fuente: ElaboraciÃ³n propia, 2026
+  383: En este flujo el usuario ingresa su correo y contraseÃ±a, y luegoÂ el contexto se encarga de enviar esos datos al backend. El cual al recibir la peticiÃ³n en su controlador consulta la base de datos para verificar que el usuario exista, estÃ© habilitado para iniciar sesiÃ³n en el sistema (que el usuario tenga suestado habilitado) y tenga la contraseÃ±a correcta; si todo es vÃ¡lido, devuelve el usuario y un token. Finalmente,Â el contextoÂ guarda esa sesiÃ³n disponible en toda la aplicaciÃ³n, activa los tiempos de control de expiraciÃ³n y permite que el usuario navegue y realice acciones segÃºn su rol y permisos. Un ejemplo de la estructura de peticiÃ³n y respuesta empleado en este flujo se muestra en la Figura 16.
+  384: Figura 16 Estructura de peticiÃ³n y respuesta para el inicio de sesiÃ³n
+  385: Fuente: ElaboraciÃ³n propia, 2026
+  386: Por otro lado, tal como se explicÃ³ anteriormente, se desarrollÃ³ el mecanismo de renovaciÃ³n desesiones de usuarios autenticados mediante una ventana flotante en la interfaz de usuario como se muestra en la Figura 26. El objetivo fue evitar la finalizaciÃ³n automÃ¡tica de la sesiÃ³n por la expiraciÃ³n del JWT y la consecuente redirecciÃ³n a la pÃ¡gina de inicio de sesiÃ³n. El flujo que permite este proceso se ilustra en la Figura 17.
+  387: Figura 17Diagrama de secuencia para refrescar la sesiÃ³n
+  388: Fuente: ElaboraciÃ³n propia, 2026
+  389: Un ejemplo del formato de peticiÃ³n y respuesta empleado en este flujo se muestra en la Figura 18.
+  390: Figura 18Estructura de peticiÃ³n y respuesta para refrescar sesiÃ³n
+  391: Fuente: ElaboraciÃ³n propia, 2026
+  392: En cuanto a la gestiÃ³n de usuarios, los procesos de creaciÃ³n y ediciÃ³n se rigen por un protocolo de seguridad uniforme. Como se ilustra en la Figura 19, el flujo inicia cuando un administrador o superadministrador completa el formulario de registro; posteriormente, los datos se envÃ­an al backend. Antes de procesar la solicitud, el sistema verifica la vigencia de la sesiÃ³n y los permisos del solicitante. Asimismo, se validan los campos, las reglas de negocio segÃºn el rol y la unicidad del correo electrÃ³nico. Tras una validaciÃ³n exitosa, la informaciÃ³n se almacena en la base de datos con la contraseÃ±a cifrada, y se envÃ­a la respuesta al frontend para notificar el Ã©xito en la operaciÃ³n.
+  393: Figura 19Diagrama de secuencia para crearun usuario
+  394: Fuente: ElaboraciÃ³n propia, 2026
+  395: Se considera informaciÃ³n crÃ­tica la ediciÃ³n de la contraseÃ±a, el estado o el correo electrÃ³nico de un usuario. Ante la modificaciÃ³n de estos campos, el sistema incrementa el valor de session_version del perfil afectado; este mecanismo permite invalidar las credenciales vigentes, lo que obliga al usuario a realizar una nueva autenticaciÃ³n, ya sea desde la sesiÃ³n activa que ejecutÃ³ el cambio o desde el perfil editado. Este flujo se detalla en la Figura 20.
+  396: Figura 20Diagrama de secuencia para editar un perfil de usuario
+  397: Fuente: ElaboraciÃ³n propia, 2026
+  398: En cuanto al procedimiento de eliminaciÃ³n, el superadministrador solo requiere ingresar el correo electrÃ³nico del usuario y su propia contraseÃ±a para ejecutar la acciÃ³n. Por el contrario, un administrador debe conocer tanto el correo como la contraseÃ±a exacta de la cuenta que desea eliminar; para garantizar que los administradores solo puedan dar de baja a usuarios creados por ellos mismos y sobre los cuales poseen conocimiento de sus credenciales.Un ejemplo del formato de peticiÃ³n y respuesta empleado en este flujo se muestra en la Figura 21.
+  399: Figura 21Estructura de peticiÃ³n y respuesta para eliminar un usuario
+  400: Fuente: ElaboraciÃ³n propia, 2026
+  401: Los endpointscreados para el funcionamiento de este modulo se detallan en la Tabla 4.
+  402: Tabla 4Endpoints creados para el mÃ³dulo de gestiÃ³n de usuarios y sesiones
+  403: Endpoint
+  404: MÃ©todo
+  405: PropÃ³sito
+  406: /api/auth/login
+  407: POST
+  408: Autenticar usuario
+  409: /api/auth/refresh
+  410: POST
+  411: Renovar sesiÃ³n
+  412: /api/auth/me
+  413: GET
+  414: Validar sesiÃ³n activa
+  415: /api/auth/logout
+  416: POST
+  417: Cerrar sesiÃ³n
+  418: /api/users/createUser
+  419: POST
+  420: Crear usuario
+  421: /api/users/getAllUsers
+  422: GET
+  423: Listar usuarios
+  424: /api/users/getUserByEmail/:email
+  425: GET
+  426: Ver perfil detallado
+  427: /api/users/updateUser/:originalEmail
+  428: PATCH
+  429: Actualizar usuario o perdil propio
+  430: /api/users/deleteUser/:email
+  431: DELETE
+  432: Eliminar usuario
+  433: Fuente: ElaboraciÃ³n propia, 2026
+  434: AsÃ­ mismo se desarrollaron las pÃ¡ginas de inicio de sesiÃ³n, lista de usuarios, pÃ¡gina general de la aplicaciÃ³n, algunas de las pÃ¡ginas con sus escenarios principales se muestran en las figuras 22, 23, 24,25 y 26 respectivamente.
+  435: Figura 22Prototipo de la pÃ¡gina de inicio de sesiÃ³n
+  436: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  437: Figura 23Prototipo de la pÃ¡gina de lista de usuarios del sistema
+  438: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  439: Figura 24Prototipos de las pÃ¡ginas de creaciÃ³n, ediciÃ³n y eliminaciÃ³n de usuarios del sistema
+  440: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  441: Figura 25Prototipos delcierre de sesiÃ³n de emergencia por cambios en el perfil
+  442: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  443: Figura 26Prototipos de ventana para refrescar sesiÃ³n
+  444: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  445: Para el desarrollo de este mÃ³dulo se implementaron mÃºltiples interfaces, rutas, contextos, controladores y entidades, siguiendo las estructuras previamente documentadas para el frontend y el backend, los archivos mÃ¡s importantes y crÃ­ticos para el funcionamiento de este mÃ³dulo se presentan en las tablas5 y 6, respectivamente.
+  446: Tabla 5Archivos implementados en frontend para el mÃ³dulo de gestiÃ³n de usuarios y sesiones
+  447: Archivo
+  448: Tipo
+  449: DescripciÃ³n
+  450: LoginPage.jsx
+  451: PÃ¡gina
+  452: PÃ¡gina de inicio de sesiÃ³n con validaciÃ³n de email/contraseÃ±a, botÃ³n de acceso y manejo de errores.
+  453: HomePage.jsx
+  454: PÃ¡gina
+  455: PÃ¡gina principal del sistema una vez un usuario estÃ¡ logueado. Diferencia entre roles al mostrar la informaciÃ³n.
+  456: UsersListPage.jsx
+  457: PÃ¡gina
+  458: Listado de usuarios con bÃºsqueda, filtros por rol/estado, ordenamiento y acceso a detalle.
+  459: CreateUserPage.jsx
+  460: PÃ¡gina
+  461: Pantalla de registro de usuarios; renderiza el panel principal y gestiona layout.
+  462: UserPage.jsx
+  463: PÃ¡gina
+  464: Perfil de usuario (vista/ediciÃ³n segÃºn rol). Maneja permisos y recarga de datos.
+  465: App.jsx
+  466: Punto de entrada
+  467: Define rutas, protecciÃ³n conÂ PrivateRoute, y roles permitidos por ruta.
+  468: PrivateRoute.jsx
+  469: ProtecciÃ³n de rutas
+  470: Control de acceso por rol y estado de autenticaciÃ³n.
+  471: AuthContext.jsx
+  472: Contexto
+  473: Â Login, logout, refresh, expiraciÃ³n de sesiÃ³n, flags por rol.
+  474: ToastContext.jsx
+  475: Contexto
+  476: Notificaciones globales.
+  477: auth.js
+  478: API (comunicaciÃ³n con backend)
+  479: Login, logout, refresh,Â me, resumen del sistema.
+  480: users.js
+  481: API (comunicaciÃ³n con backend)
+  482: CRUD de usuarios, obtener admins, obtener user por email.
+  483: axiosConfig.js
+  484: API (comunicaciÃ³n con backend)
+  485: Rutas base para auth y users.
+  486: handleApiError.js
+  487: API (comunicaciÃ³n con backend)
+  488: NormalizaciÃ³n de errores.
+  489: authConfig.js
+  490: API (comunicaciÃ³n con backend)
+  491: Minutos de aviso de expiraciÃ³n.
+  492: loadAbort.js
+  493: API (comunicaciÃ³n con backend)
+  494: Abortcontrollers para peticiones.
+  495: sessionTimmer.js
+  496: Servicio
+  497: Warnings y expiraciÃ³n automÃ¡tica.
+  498: callLogout.js
+  499: Servicio
+  500: Callback global para logout.
+  501: auth.service.js
+  502: Servicio
+  503: Valida sesiÃ³n, refresca token, guarda sesiÃ³n local.
+  504: useFetchAndLoad.js
+  505: Hook
+  506: Wrapper de loading y errores.
+  507: useAuthorization.js
+  508: Hook
+  509: ValidaciÃ³n de roles.
+  510: useAuthEffects.js
+  511: Hook
+  512: Manejo global de sesiÃ³n (warning/logout automÃ¡tico).
+  513: generateSecurePassword.js
+  514: Utilidad
+  515: GeneraciÃ³n local de contraseÃ±a.
+  516: Fuente: ElaboraciÃ³n propia, 2026
+  517: Tabla 6Archivos desarrollados en el backend para el mÃ³dulo de gestiÃ³n de usuarios y sesiones
+  518: Archivo
+  519: Tipo
+  520: DescripciÃ³n
+  521: server.js
+  522: Entrypoint
+  523: Inicializa DB y levanta Express.
+  524: app.js
+  525: ConfiguraciÃ³n
+  526: Registra rutas de auth/users y middlewares globales.
+  527: data-source.js
+  528: ConfiguraciÃ³n
+  529: ConexiÃ³n principal TypeORM y entidades.
+  530: allowedStatesAndRoles.js
+  531: ConfiguraciÃ³n
+  532: Roles y estados permitidos.
+  533: rolePermissions.js
+  534: ConfiguraciÃ³n
+  535: Permisos por rol.
+  536: User.js
+  537: Entidad
+  538: Modelo User con roles, estado, sesiÃ³n y relaciones.
+  539: auth.controller.js
+  540: Controlador
+  541: Login, refresh, logout,Â me, summary data.
+  542: users.controller.js
+  543: Controlador
+  544: CRUD de usuarios, filtros y reglas de permisos.
+  545: auth.routes.js
+  546: Rutas
+  547: EndpointsÂ /authÂ con login/refresh/me/logout.
+  548: user.routes.js
+  549: Rutas
+  550: EndpointsÂ /usersÂ con create/read/update/delete.
+  551: verifyJwt.js
+  552: Middleware
+  553: Valida JWT y session_version.
+  554: authorize.js
+  555: Middleware
+  556: Valida permisos por rol.
+  557: uploads.js
+  558: Middleware
+  559: ConfiguraciÃ³n de multer y lÃ­mites (2MB).
+  560: optimizeImage.js
+  561: Middleware
+  562: Optimiza imÃ¡genes a webp.
+  563: uploadSingleFiles.js
+  564: Utilidad
+  565: Wrapper para subir archivos.
+  566: passwordUtils.js
+  567: Utilidad
+  568: Hash y comparaciÃ³n de contraseÃ±as.
+  569: apiResponse.js
+  570: Utilidad
+  571: Respuestas estÃ¡ndar y cÃ³digos de error.
+  572: attachFileUrls.js
+  573: Utilidad
+  574: Inyecta URLs completas de imÃ¡genes en respuestas.
+  575: Fuente: ElaboraciÃ³n propia, 2026
+  576: La evidencia de las pruebas ejecutadas a este mÃ³dulo y sus resultados se detallan en el anexo 2, respectivamente.
+  577: MÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+  578: Este mÃ³dulo tiene como funciÃ³n principal la gestiÃ³n de los proyectos operativos de la organizaciÃ³n, permite la asignaciÃ³n y remociÃ³n de responsables para cada iniciativa. Asimismo, faculta la administraciÃ³n integral â€”creaciÃ³n, ediciÃ³n y eliminaciÃ³nâ€” de los planes operativos, estableciendo la base estructural necesaria para que el mÃ³dulo de planificaciÃ³n estratÃ©gica vincule los proyectos con sus respectivos programas. Adicionalmente, en este mÃ³dulo se implementÃ³ la integraciÃ³n con APIs de las plataformas externas mencionadas anteriormente, proporcionando los datos necesarios para la construcciÃ³n del dashboard de visualizaciÃ³n de KPIs. Por otro lado, el sistema garantiza la seguridad mediante un control de accesos con validaciones en el frontend y el backend, regulando las acciones autorizadas para cada rol, tal como se ilustra en el diagrama UML de la figura 16.
+  579: Figura 27Diagrama UML de casos de uso del mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+  580: Fuente: ElaboraciÃ³n propia, 2026
+  581: Existen casos de uso presentados en el diagrama con escenarios secundarios y restricciones que cada rol presenta, los casos se mencionan a continuaciÃ³n:
+  582: Un administrador solo puede editar el plan y los proyectos operativos en los que ha sido asignado como responsable.
+  583: Un administrador y un usuario solo podrÃ¡n ver en la lista de sus proyectos los proyectos operativos de los que fueron asignados como responsables.
+  584: Un usuario solo podrÃ¡ ver el plan operativo de los proyectos en los que ha sido asignado como responsable solo en modo solo lectura.
+  585: Para este mÃ³dulo se desarrollaron las pÃ¡ginas de lista de proyectos, crear proyecto, detalles de un proyecto, vista editable y solo lectura de la planificaciÃ³n operativa, algunas de las pÃ¡ginas con sus escenarios principales se muestran en las figuras 17, 18 y 19 respectivamente.
+  586: Figura 28Prototipos de las pÃ¡ginas de creaciÃ³n de proyectos operativos
+  587: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  588: Figura 29 Prototipos de las pÃ¡ginas de ediciÃ³n de proyectos operativos
+  589: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  590: Figura 30Prototipos de las pÃ¡ginas de creaciÃ³n y ediciÃ³n de planes operativos
+  591: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  592: Los archivos mÃ¡s importantes y crÃ­ticos desarrollados para el funcionamiento del mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa se presentan en las tablas 3 y 4, respectivamente.
+  593: Tabla 7Archivos implementados en frontend para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+  594: Archivo
+  595: Tipo
+  596: DescripciÃ³n
+  597: ProjectsListPage.jsx
+  598: PÃ¡gina
+  599: Listado de proyectos con bÃºsqueda, filtros, ordenamiento y acceso a detalle.
+  600: CreateProjectPage.jsx
+  601: PÃ¡gina
+  602: CreaciÃ³n de proyecto con flujo por pestaÃ±as y validaciones.
+  603: ProjectPage.jsx
+  604: PÃ¡gina
+  605: Detalle de proyecto con vista y ediciÃ³n segÃºn rol.
+  606: OperationalPlanningDashboardPage.jsx
+  607: PÃ¡gina
+  608: Entrada principal a planificaciÃ³n operativa con selector de proyecto y modo editable/solo lectura.
+  609: OperationalPlannigTable.jsx
+  610: Componente
+  611: Tabla editable del plan operativo con filas, validaciÃ³n, guardado y control de cambios.
+  612: OperationalPlanningReadOnlyTable.jsx
+  613: Componente
+  614: Vista solo lectura del plan operativo con exportaciÃ³n PDF/Excel.
+  615: DeleteOperationalPlanningTableDialog.jsx
+  616: Componente
+  617: Modal de confirmaciÃ³n para eliminar un plan operativo.
+  618: AssignResponsiblesPanel.jsx
+  619: Componente
+  620: SelecciÃ³n de responsables al crear proyecto.
+  621: EditProjectDialog.jsx
+  622: Componente
+  623: Modal de ediciÃ³n de proyecto (info, responsables, integraciones).
+  624: ResponsiblesPanel.jsx
+  625: Componente
+  626: GestiÃ³n de responsables en ediciÃ³n de proyecto.
+  627: ProjectInfoPanel.jsx
+  628: Componente
+  629: EdiciÃ³n de nombre, descripciÃ³n e imagen del proyecto.
+  630: ProjectIntegrationsWithApisPanel.jsx
+  631: Componente
+  632: GestiÃ³n de integraciones con GitHub/Facebook/Instagram.
+  633: ViewProject.jsx
+  634: Componente
+  635: Vista de informaciÃ³n del proyecto y relaciones (programa, responsables, integraciones).
+  636: MorePanel.jsx
+  637: Componente
+  638: Panel de eliminaciÃ³n de proyecto con confirmaciÃ³n.
+  639: OperationalPdfWorker.js
+  640: Utilidad
+  641: Worker que genera PDF del plan operativo.
+  642: generateOperationalPlanPdf.js
+  643: Utilidad
+  644: LÃ³gica completa de exportaciÃ³n PDF del plan operativo.
+  645: ExportMenu.jsx
+  646: Componente
+  647: MenÃº de exportaciÃ³n en vista solo lectura (PDF/Excel).
+  648: Fuente: ElaboraciÃ³n propia, 2026
+  649: Tabla 8 Archivos desarrollados en el backend para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+  650: Archivo
+  651: Tipo
+  652: DescripciÃ³n
+  653: operationalProjects.controller.js
+  654: Controlador
+  655: CRUD de proyectos, responsables e integraciones.
+  656: OperationalPlan.controller.js
+  657: Controlador
+  658: CRUD del plan operativo, validaciÃ³n de versiÃ³n y permisos.
+  659: operationalProject.routes.js
+  660: Rutas
+  661: Endpoints de proyectos: create, update, getAll, getById, delete.
+  662: operationalPlan.routes.js
+  663: Rutas
+  664: Endpoints de plan operativo: get, update, delete.
+  665: OperationalProject.js
+  666: Entidad
+  667: Modelo principal de proyecto operativo.
+  668: OperationalRow.js
+  669: Entidad
+  670: Filas del plan operativo (objetivo, indicador, recursos, etc.).
+  671: ProjectResponsible.js
+  672: Entidad
+  673: RelaciÃ³n usuario â†” proyecto (responsables).
+  674: ProjectIntegration.js
+  675: Entidad
+  676: Integraciones externas del proyecto.
+  677: Program.js
+  678: Entidad
+  679: Programa estratÃ©gico asociado a proyectos.
+  680: canAccessProject.js
+  681: Utilidad
+  682: Reglas de acceso a proyectos por rol/asignaciÃ³n.
+  683: assignResponsibles.js
+  684: Utilidad
+  685: LÃ³gica para asignar responsables en creaciÃ³n/ediciÃ³n.
+  686: createProjectIntegrations.js
+  687: Utilidad
+  688: LÃ³gica para registrar integraciones del proyecto.
+  689: isRowEmpty.js
+  690: Utilidad
+  691: ValidaciÃ³n de filas vacÃ­as en plan operativo.
+  692: Fuente: ElaboraciÃ³n propia, 2026
+  693: La tabla de pruebas ejecutadas a este mÃ³dulo y sus resultados se detallan en el anexo 4 y el anexo 5, respectivamente.
+  694: MÃ³dulo de planificaciÃ³n estratÃ©gica
+  695: El presente mÃ³dulo se desarrollÃ³ teniendo como objetivo la formulaciÃ³n, organizaciÃ³n y mantenimiento del plan estratÃ©gico anual de la instituciÃ³n, mediante una estructura jerÃ¡rquica compuesta por los niveles de misiÃ³n, objetivos estratÃ©gicos, programas y proyectos operativos. Su implementaciÃ³n permite la gestiÃ³n integral del ciclo de vida del plan, incluyendo los procesos de consulta, creaciÃ³n, actualizaciÃ³n versionada y eliminaciÃ³n anual.
+  696: Asimismo, se crearon dos modalidades de interfaz: una vista de columnas jerÃ¡rquicas diseÃ±ada para la ediciÃ³n de datos y una vista de carÃ¡cter documental para procesos de revisiÃ³n y comunicaciÃ³n institucional. Adicionalmente, se incorporÃ³ funcionalidades para la exportaciÃ³n de reportes en formatos PDF y DOCX. En el Ã¡mbito de la seguridad, se aplicÃ³ un control de acceso basado en roles con validaciones en el frontend y el backend, restringiendo las operaciones crÃ­ticas solo al rol super administrador.Las acciones autorizadas para cada rolse ilustran en el diagrama UML de la figura 20.
+  697: Figura 31Diagrama UML de casos de uso del mÃ³dulo de planificaciÃ³n estratÃ©gica
+  698: Fuente: ElaboraciÃ³n propia, 2026
+  699: Para este mÃ³dulo se desarrollaron las interfaces correspondientes a la planificaciÃ³n estratÃ©gica, las cuales incluyen una vista de columnas editable y una vista de documento en modo de solo lectura. Asimismo, se implementaron diversos componentes funcionales que permiten la ediciÃ³n y eliminaciÃ³n del plan estratÃ©gico. Los prototiposdesarrollados para este mÃ³dulo se ilustran en las figuras 21 y 22, respectivamente.
+  700: Figura 32Prototipos de la pÃ¡gina de creaciÃ³n y ediciÃ³n de planes estratÃ©gicos
+  701: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  702: Figura 33Prototipos de la pÃ¡gina de vista solo lectura y prevenciÃ³n de guardado de plan
+  703: Fuente: ElaboraciÃ³n propia en Figma, 2026
+  704: Los archivos mÃ¡s importantes y crÃ­ticos desarrollados para el funcionamiento del mÃ³dulo de planificaciÃ³n estratÃ©gica se presentan en las tablas 5 y 6, respectivamente.
+  705: Tabla 9Archivos implementados en frontend para el mÃ³dulo de planificaciÃ³n estratÃ©gica
+  706: Archivo
+  707: Tipo
+  708: DescripciÃ³n
+  709: StrategicPlanningDashboardPage.jsx
+  710: PÃ¡gina
+  711: Entrada principal del mÃ³dulo. Gestiona carga del plan por aÃ±o, estado, permisos y vista (columnas/Ã¡rbol).
+  712: StrategicPlanningColumnsView.jsx
+  713: PÃ¡gina
+  714: Vista editable en columnas jerÃ¡rquicas (misiÃ³n â†’ objetivos â†’ programas â†’ proyectos). Permite ediciÃ³n y guardado.
+  715: StrategicPlanningTreeView.jsx
+  716: PÃ¡gina
+  717: Vista alternativa tipo Ã¡rbol, con exportaciÃ³n a PDF/DOCX y navegaciÃ³n jerÃ¡rquica.
+  718: components/DeleteStrategicPlanDialog.jsx
+  719: Componente
+  720: Modal de confirmaciÃ³n para eliminar plan estratÃ©gico por aÃ±o.
+  721: components/ExportMenu.jsx
+  722: Componente
+  723: MenÃº de exportaciÃ³n (PDF/DOCX).
+  724: components/MenuItem.jsx
+  725: Componente
+  726: Ãtem reutilizable del menÃº contextual del mÃ³dulo.
+  727: components/SelectYear.jsx
+  728: Componente
+  729: Selector de aÃ±o del plan estratÃ©gico.
+  730: components/Bullet.jsx
+  731: Componente
+  732: Elemento visual de jerarquÃ­a/estado en columnas.
+  733: components/mision/MisionColumn.jsx
+  734: Componente
+  735: Columna â€œMisiÃ³nâ€ con ediciÃ³n y creaciÃ³n de items.
+  736: components/mision/MisionItem.jsx
+  737: Componente
+  738: Item de misiÃ³n en la vista de columnas.
+  739: components/mision/CreateMisionItemModal.jsx
+  740: Componente
+  741: Modal de creaciÃ³n de Ã­tems de misiÃ³n.
+  742: components/mision/EditMisionItemModal.jsx
+  743: Componente
+  744: Modal de ediciÃ³n de Ã­tems de misiÃ³n.
+  745: components/objetives/ObjectiveColumn.jsx
+  746: Componente
+  747: Columna de objetivos estratÃ©gicos.
+  748: components/objetives/ObjectiveItem.jsx
+  749: Componente
+  750: Item de objetivo en columnas.
+  751: components/objetives/ViewEditObjective.jsx
+  752: Componente
+  753: Vista/ediciÃ³n de objetivo con detalle.
+  754: components/objetives/CreateObjectiveModal.jsx
+  755: Componente
+  756: Modal de creaciÃ³n de objetivo.
+  757: components/objetives/DeleteObjectiveModal.jsx
+  758: Componente
+  759: Modal de eliminaciÃ³n de objetivo.
+  760: components/programs/ProgramsColumn.jsx
+  761: Componente
+  762: Columna de programas estratÃ©gicos.
+  763: components/programs/ProgramItem.jsx
+  764: Componente
+  765: Item de programa en columnas.
+  766: components/programs/CreateProgramModal.jsx
+  767: Componente
+  768: Modal de creaciÃ³n de programa.
+  769: components/programs/EditProgramModal.jsx
+  770: Componente
+  771: Modal de ediciÃ³n de programa.
+  772: components/programs/DeleteProgramModal.jsx
+  773: Componente
+  774: Modal de eliminaciÃ³n de programa.
+  775: components/projects/ProjectsColumn.jsx
+  776: Componente
+  777: Columna de proyectos asociados a programas.
+  778: components/projects/ProjectItem.jsx
+  779: Componente
+  780: Item de proyecto en columnas.
+  781: components/projects/CreateProjectModal.jsx
+  782: Componente
+  783: Modal de creaciÃ³n de proyecto operativo desde planificaciÃ³n estratÃ©gica.
+  784: components/projects/EditProjectModal.jsx
+  785: Componente
+  786: Modal de ediciÃ³n de proyecto asociado.
+  787: components/projects/QuickCreateOperationalProject.jsx
+  788: Componente
+  789: CreaciÃ³n rÃ¡pida de proyecto operativo desde el mÃ³dulo estratÃ©gico.
+  790: hooks/useCloseTooltipsOnScroll.js
+  791: Hook
+  792: Cierra tooltips al hacer scroll para mejor UX en columnas.
+  793: hooks/usePreventNavigation.js
+  794: Hook
+  795: Bloquea navegaciÃ³n si hay cambios sin guardar.
+  796: hooks/useSnackBarStyles.js
+  797: Hook
+  798: Estilos y configuraciÃ³n de notificaciones del mÃ³dulo.
+  799: utils/normalizePlanData.js
+  800: Utilidad
+  801: Normaliza datos del plan para vistas jerÃ¡rquicas.
+  802: utils/strategicPlanningColumnsViewUtils.js
+  803: Utilidad
+  804: Funciones de soporte para columnas (mapear, ordenar, validar).
+  805: utils/generateTempIdObjective.js
+  806: Utilidad
+  807: Genera IDs temporales para objetivos nuevos.
+  808: utils/getImageUrl.js
+  809: Utilidad
+  810: Resuelve URLs de imÃ¡genes (por ejemplo, avatars).
+  811: utils/exportStrategicPlanPDF.js
+  812: Utilidad
+  813: Exporta el plan estratÃ©gico en PDF.
+  814: utils/exportStrategicPlanDOCX.js
+  815: Utilidad
+  816: Exporta el plan estratÃ©gico en DOCX.
+  817: utils/strategicPdfWorker.js
+  818: Utilidad
+  819: Worker para generaciÃ³n asÃ­ncrona de PDF.
+  820: utils/generatePdf/generateStrategicPlanPdf.js
+  821: Utilidad
+  822: Generador principal del PDF del plan estratÃ©gico.
+  823: api/strategicPlan.js
+  824: API
+  825: ComunicaciÃ³n con backend: getAll, getByYear, update, delete.
+  826: api/config/routes.js
+  827: ConfiguraciÃ³n
+  828: Rutas API utilizadas por el mÃ³dulo estratÃ©gico.
+  829: Fuente: ElaboraciÃ³n propia, 2026
+  830: Tabla 10Archivos desarrollados en el backend para el mÃ³dulo de planificaciÃ³n estratÃ©gica
+  831: Archivo
+  832: Tipo
+  833: DescripciÃ³n
+  834: strategicPlan.controller.js
+  835: Controlador
+  836: LÃ³gica CRUD del plan estratÃ©gico por aÃ±o, validaciones, versionado y reglas de negocio.
+  837: strategicPlan.routes.js
+  838: Rutas
+  839: Endpoints del plan estratÃ©gico: list, getbyyear, update, delete.
+  840: StrategicPlan.js
+  841: Entidad
+  842: Modelo del plan estratÃ©gico (aÃ±o, misiÃ³n, versiÃ³n, timestamps).
+  843: Objetive.js
+  844: Entidad
+  845: Objetivos estratÃ©gicos asociados a plan estratÃ©gico.
+  846: Program.js
+  847: Entidad
+  848: Programas estratÃ©gicos asociados a objetivos.
+  849: Indicator.js
+  850: Entidad
+  851: Indicadores vinculados a objetivos/mediciÃ³n.
+  852: OperationalProject.js
+  853: Entidad
+  854: Proyectos operativos relacionados con programas estratÃ©gicos.
+  855: ProjectResponsible.js
+  856: Entidad
+  857: RelaciÃ³n de responsables asignados a proyectos.
+  858: Fuente: ElaboraciÃ³n propia, 2026
+  859: Las pruebas ejecutadas a este mÃ³dulose detallan en el anexo 6.
+  860: MÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+  861: Para el desarrollo de este mÃ³dulo, se estableciÃ³ como objetivo centralizar el monitoreo del rendimiento digital y tÃ©cnico de los proyectos operativos mediante la integraciÃ³n de sus repositorios en GitHub y sus pÃ¡ginas de Facebook e Instagram. Se diseÃ±Ã³ una interfaz unificada que consolida las mÃ©tricas obtenidas a travÃ©s de las APIs de estas plataformas. Asimismo, se le permite al usuario la consulta de indicadores filtrados por proyecto y periodo temporal, tales como alcance, visitas, interacciones y publicaciones destacadas, asÃ­ como la actividad de desarrollo de software, incluyendo commits, colaboradores, ramas, pullrequests e historial de contribuciones.
+  862: El mÃ³dulo tambiÃ©n requiriÃ³ el desarrollo de una vista general de clasificaciÃ³n de proyectos, orientada al anÃ¡lisis y resumen transversal de la informaciÃ³n. Asimismo, se incorporÃ³ una vista detallada por plataforma para facilitar el anÃ¡lisis profundo de cada fuente de datos. Para este propÃ³sito, se implementaron componentes como tarjetas KPI, grÃ¡ficos de lÃ­neas y barras, asÃ­ como tablas analÃ­ticas, junto con utilidades de normalizaciÃ³n para el procesamiento de los datos obtenidos a travÃ©s de las APIs de dichas plataformas.
+  863: En materia de seguridad, se aplicÃ³ un control de acceso basado en roles con validaciones tanto en el frontend como en el backend, para que cada usuario visualice Ãºnicamente la informaciÃ³n permitida segÃºn su perfil y asignaciÃ³n, Las acciones permitidas para cada rol en este mÃ³dulo se presentan en el diagrama UML ilustrado en la figura X.
+  864: Este mÃ³dulo crÃ­tico ha significado enriquecerse de la documentaciÃ³n de las APIS mencionadas anteriormente para entender como se les debe de realizar peticiones y como debemos esperar las respuestas
+  865: Archivo
+  866: Tipo
+  867: DescripciÃ³n
+  868: ApisDashboardPage.jsx
+  869: PÃ¡gina
+  870: Vista principal del dashboard de KPIs.
+  871: IntegrationsRankingOverview.jsx
+  872: Componente
+  873: Overview/ranking general de proyectos con integraciones.
+  874: FacebookDashboard.jsx
+  875: PÃ¡gina/Componente
+  876: Dashboard de KPIs de Facebook.
+  877: DashboardCard.jsx
+  878: Componente
+  879: Tarjeta base reutilizable para mÃ©tricas de Facebook.
+  880: FollowersCard.jsx
+  881: Componente
+  882: KPI de seguidores en Facebook.
+  883: PageViewsCard.jsx
+  884: Componente
+  885: KPI de visitas de pÃ¡gina en Facebook.
+  886: PageImpressionsCard.jsx
+  887: Componente
+  888: KPI de impresiones en Facebook.
+  889: PostEngagementsCard.jsx
+  890: Componente
+  891: KPI de engagement de publicaciones en Facebook.
+  892: TotalActionsCard.jsx
+  893: Componente
+  894: KPI de acciones totales en Facebook.
+  895: TotalReactionsCard.jsx
+  896: Componente
+  897: KPI/desglose de reacciones en Facebook.
+  898: OrganicOrPaidViewsCard.jsx
+  899: Componente
+  900: VisualizaciÃ³n de vistas orgÃ¡nicas vs pagadas en Facebook.
+  901: ChartFollowersByCountry.jsx
+  902: Componente
+  903: GrÃ¡fico de seguidores por paÃ­s en Facebook.
+  904: TopPostOfThePeriod.jsx
+  905: Componente
+  906: Top publicaciones del perÃ­odo en Facebook.
+  907: formatForFollowersByCountryCard.js
+  908: Utilidad
+  909: Formateo de datos para card de seguidores por paÃ­s.
+  910: formatForFollowersCard.js
+  911: Utilidad
+  912: Formateo de datos para card de seguidores.
+  913: GitHubDashboard.jsx
+  914: PÃ¡gina/Componente
+  915: Dashboard de KPIs de GitHub.
+  916: CommitsInThePeriod.jsx
+  917: Componente
+  918: KPI de commits del perÃ­odo.
+  919: PullRequestCard.jsx
+  920: Componente
+  921: KPI de pullrequests.
+  922: TopCollaboratorsOfThePeriod.jsx
+  923: Componente
+  924: Ranking de colaboradores.
+  925: CollaboratorsWithoutPushCard.jsx
+  926: Componente
+  927: Colaboradores sin push reciente.
+  928: SessionsChart.jsx
+  929: Componente
+  930: Historial de commits por fecha.
+  931: ChartCommitsByAuthor.jsx
+  932: Componente
+  933: DistribuciÃ³n de commits por autor.
+  934: CommitsByWeekdayHour.jsx
+  935: Componente
+  936: Actividad por dÃ­a/hora.
+  937: HighlightedCard.jsx
+  938: Componente
+  939: Tarjeta de mÃ©trica destacada.
+  940: StatCard.jsx
+  941: Componente
+  942: Tarjeta estadÃ­stica base.
+  943: CustomizedDataGrid.jsx
+  944: Componente
+  945: Tabla de datos de actividad GitHub.
+  946: CustomizedTreeView.jsx
+  947: Componente
+  948: Vista jerÃ¡rquica complementaria.
+  949: dataGridAdapter.js
+  950: Utilidad
+  951: Adaptador de datos a DataGrid.
+  952: InstagramDashboard.jsx
+  953: PÃ¡gina/Componente
+  954: Dashboard de KPIs de Instagram.
+  955: MetricSparkCard.jsx
+  956: Componente
+  957: KPI con sparkline (Instagram).
+  958: EngagedAccountsCard.jsx
+  959: Componente
+  960: KPI de cuentas con interacciÃ³n.
+  961: EngagementRateCard.jsx
+  962: Componente
+  963: KPI de tasa de engagement.
+  964: ProfileViewsCard.jsx
+  965: Componente
+  966: KPI de visitas al perfil.
+  967: ProfileConversionFunnelCard.jsx
+  968: Componente
+  969: Embudo de conversiÃ³n del perfil.
+  970: InteractionsBreakdownCard.jsx
+  971: Componente
+  972: Desglose de interacciones por tipo.
+  973: ContentTypePerformanceCard.jsx
+  974: Componente
+  975: Rendimiento por formato de contenido.
+  976: TopInstagramPostsOfThePeriod.jsx
+  977: Componente
+  978: Top publicaciones de Instagram.
+  979: FollowersCard.jsx
+  980: Componente
+  981: KPI de seguidores en Instagram.
+  982: PageViewsCard.jsx
+  983: Componente
+  984: KPI de vistas complementarias.
+  985: PostsCard.jsx
+  986: Componente
+  987: KPI de publicaciones.
+  988: TotalLikesCard.jsx
+  989: Componente
+  990: KPI de likes totales.
+  991: TotalReactionsCard.jsx
+  992: Componente
+  993: KPI agregado de reacciones/interacciones.
+  994: AvgInteractionsPerPostCard.jsx
+  995: Componente
+  996: Promedio de interacciones por post.
+  997: Archivo
+  998: Tipo
+  999: DescripciÃ³n
+ 1000: dashboard.controller.js
+ 1001: Controlador
+ 1002: LÃ³gica del overview/ranking de proyectos con integraciones.
+ 1003: dashboard.routes.js
+ 1004: Rutas
+ 1005: Endpoints del overview de dashboard.
+ 1006: facebook.controller.js
+ 1007: Controlador
+ 1008: LÃ³gica de KPIs de Facebook.
+ 1009: instagram.controller.js
+ 1010: Controlador
+ 1011: LÃ³gica de KPIs de Instagram.
+ 1012: github.controller.js
+ 1013: Controlador
+ 1014: LÃ³gica de KPIs de GitHub.
+ 1015: projectIntegrations.controller.js
+ 1016: Controlador
+ 1017: GestiÃ³n de integraciones por proyecto.
+ 1018: facebook.routes.js
+ 1019: Rutas
+ 1020: Endpoints de Facebook para dashboard.
+ 1021: instagram.routes.js
+ 1022: Rutas
+ 1023: Endpoints de Instagram para dashboard.
+ 1024: github.routes.js
+ 1025: Rutas
+ 1026: Endpoints de GitHub para dashboard.
+ 1027: projectIntegrations.routes.js
+ 1028: Rutas
+ 1029: Endpoints de integraciones por proyecto.
+ 1030: formatInsights.js
+ 1031: Utilidad
+ 1032: NormalizaciÃ³n de insights para respuestas del dashboard.
+ 1033: formatPosts.js
+ 1034: Utilidad
+ 1035: NormalizaciÃ³n/formateo de publicaciones.
+ 1036: getFacebookPageAccessToken.js
+ 1037: Utilidad
+ 1038: ObtenciÃ³n de token de pÃ¡gina Facebook.
+ 1039: MÃ³dulo de reportes
+ 1040: SALJLÃ‘SALJSA
+ 1041: CONCLUSIONES
+ 1042: RECOMENDACIONES
+ 1043: BIBLIOGRAFIA
+ 1044: [1]
+ 1045: H. Kerzner, GestiÃ³n de Proyectos: Un enfoque de sistemas para la planificaciÃ³n, programaciÃ³n y control de proyectos, New Jersey: Pearson, 2009.
+ 1046: [2]
+ 1047: Laboratorio de TecnologÃ­as Sociales, Â«LabTecnoSocial,Â» [En lÃ­nea]. Available: https://labtecnosocial.org. [Ãšltimo acceso: 01 02 2026].
+ 1048: [3]
+ 1049: R. Pressman, IngenierÃ­a de Software: Un Enfoque PrÃ¡ctico, MÃ©xico: McGraw-Hill, 2010.
+ 1050: [4]
+ 1051: IEEE Computer Society, IEEE Standard Glossary of Software Engineering Terminology, New York: IEEE, 1990.
+ 1052: [5]
+ 1053: L. Bass, Clements y Kazman, Software Architecture in Practice, Boston: Addison-Wesley, 2021.
+ 1054: [6]
+ 1055: Richards, Fundamentals of Software Architecture: An Engineering Approach, Sebastopol: O'Reilly Media, 2020.
+ 1056: [7]
+ 1057: Fielding, Â«Architectural Styles and the Design of Network-based Software Architectures,Â» 2000. [En lÃ­nea]. Available: https://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm. [Ãšltimo acceso: 01 02 2026].
+ 1058: ANEXOSANEXOS
+ 1059: ANEXOS
+ 1060: ANEXOS
+ 1061: ANEXO 1
+ 1062: TABLERO DE SPRINTS DEL PROYECTO
+ 1063: Sprint 1
+ 1064: Nombre
+ 1065: Desarrollo del mÃ³dulo de gestiÃ³n de usuarios
+ 1066: Objetivo
+ 1067: Establecer la base funcional del sistema con el mÃ³dulo de gestiÃ³n de usuarios, permitiendo la gestiÃ³n de sesiones segura y operaciones CRUD para segÃºn corresponda por el tipo de rol.
+ 1068: DuraciÃ³n
+ 1069: (semanas)
+ 1070: 4
+ 1071: CÃ³digo
+ 1072: Prioridad
+ 1073: 1 - 5
+ 1074: Como
+ 1075: Quiero
+ 1076: Para
+ 1077: Criterios de aceptaciÃ³n
+ 1078: Fecha inicio
+ 1079: Fecha Fin
+ 1080: A111-1
+ 1081: 1
+ 1082: Usuario del sistema
+ 1083: Iniciar sesiÃ³n con mis credenciales de acceso
+ 1084: Poder interactuar con el sistema segÃºn mi rol
+ 1085: 1) Se debe ingresar en campos email y contraseÃ±a
+ 1086: 2) Debo poder presionar un botÃ³n que inicie sesiÃ³n en el sistema con duraciÃ³n de 1 hora.3) Debo ser advertido si ocurre cualquier error al iniciar sesiÃ³n4) La pÃ¡gina debe verse similar a la del mockup
+ 1087: A111-2
+ 1088: 1
+ 1089: Usuario del sistema
+ 1090: Recibir un mensaje claro cuando mis credenciales son incorrectas
+ 1091: Saber que debo verificar mi acceso
+ 1092: Si el email o la contraseÃ±a son incorrectos, el sistema no inicia sesiÃ³n.
+ 1093: Se muestra un mensaje de error legible.
+ 1094: No se redirige al dashboard.
+ 1095: A111-3
+ 1096: 1
+ 1097: Usuario administrador y super administrador del sistema
+ 1098: Que una cuenta deshabilitada no pueda iniciar sesiÃ³n
+ 1099: Mantener el control de acceso
+ 1100: Si la cuenta estÃ¡ â€œdeshabilitadaâ€, el sistema impide el login.
+ 1101: El usuario recibe un mensaje indicando el motivo.
+ 1102: A111-4
+ 1103: 2
+ 1104: Usuario autenticado del sistema
+ 1105: Que mi sesiÃ³n se mantenga activa mientras el token sea vÃ¡lido
+ 1106: Para no iniciar sesiÃ³n repetidamente
+ 1107: Al recargar la pÃ¡gina, el sistema valida la sesiÃ³n.
+ 1108: Si el token es vÃ¡lido, mantiene al usuario logueado.
+ 1109: A111-5
+ 1110: 3
+ 1111: Usuario autenticado del sistema
+ 1112: Recibir una alerta cuando mi sesiÃ³n estÃ© por expirar
+ 1113: Poder renovar mi sesiÃ³n activa y no perder mi trabajo
+ 1114: El sistema muestra un modal de advertencia antes de expirar.
+ 1115: El usuario puede refrescar la sesiÃ³n desde el modal.
+ 1116: Debe verse idÃ©ntico al prototipo de Figma.
+ 1117: A111-6
+ 1118: 2
+ 1119: Usuario autenticado del sistema
+ 1120: Cerrar sesiÃ³n desde el menÃº del sistema
+ 1121: Proteger mi cuenta
+ 1122: Al seleccionar â€œCerrar sesiÃ³nâ€, se limpia el token y los datos locales.
+ 1123: El sistema redirige a la pantalla de login.
+ 1124: A111-7
+ 1125: 2
+ 1126: Usuario autenticado del sistema
+ 1127: Que el sistema cierre mi sesiÃ³n automÃ¡ticamente al expirar
+ 1128: Mantener la seguridad
+ 1129: Cuando expira el token, el sistema realiza logout.
+ 1130: Se muestra una notificaciÃ³n informativa.
+ 1131: A111-8
+ 1132: 1
+ 1133: Usuario administrador o super administrador
+ 1134: Ver la lista de usuarios registrados
+ 1135: Gestionar sus cuentas.
+ 1136: La lista muestra nombre, email, rol, estado y proyectos asignados.
+ 1137: Incluye bÃºsqueda, filtros y ordenamiento.
+ 1138: Si no hay usuarios, se muestra mensaje y botÃ³n â€œCrear usuarioâ€.
+ 1139: A111-9
+ 1140: 1
+ 1141: Usuario administrador o super administrador
+ 1142: registrar nuevos usuarios
+ 1143: Ampliar el acceso al sistema.
+ 1144: El formulario valida nombre, apellido, email y contraseÃ±a.
+ 1145: Se puede asignar rol y estado.
+ 1146: Al guardar, el usuario se crea y se redirige a su perfil.
+ 1147: A111-10
+ 1148: 1
+ 1149: Usuario super administrador
+ 1150: solo mi rol pueda crear administradores
+ 1151: Mantener el control mÃ¡ximo de acceso.
+ 1152: Si un admin intenta crear super-admin, el sistema bloquea la acciÃ³n.
+ 1153: El sistema evita crear mÃ¡s de un super administrador.
+ 1154: A111-11
+ 1155: 2
+ 1156: Usuario con rol super administrador, administrador o usuario
+ 1157: ver el perfil de un usuario especÃ­fico
+ 1158: Consultar su informaciÃ³n y proyectos asignados.
+ 1159: El perfil muestra datos personales, rol, estado, proyectos asignados y creador.
+ 1160: Se permiten accesos segÃºn permisos del rol.
+ 1161: A111-12
+ 1162: 3
+ 1163: Usuario super administrador
+ 1164: Ver los usuarios creados por un administrador
+ 1165: Auditar responsabilidad
+ 1166: El perfil del administrador muestra su lista de usuarios creados.
+ 1167: Cada usuario se puede abrir desde la lista.
+ 1168: A111-13
+ 1169: 2
+ 1170: Usuario con rol usuario
+ 1171: Editar solo mi foto de perfil
+ 1172: mantener actualizada mi informaciÃ³n visual.
+ 1173: El usuario solo puede cambiar la foto.
+ 1174: No puede editar nombre, email, rol ni estado.
+ 1175: A111-14
+ 1176: 2
+ 1177: Usuario con rol administrador o super administrador
+ 1178: Editar datos del perfil de usuarios autorizados
+ 1179: Mantener la informaciÃ³n actualizada.
+ 1180: Admin puede editar usuarios con rol â€œuserâ€.
+ 1181: Super admin puede editar cualquier usuario.
+ 1182: Si se cambia email/rol/estado/contraseÃ±a, se invalida sesiÃ³n del usuario del cual se hizo los cambios.
+ 1183: A111-15
+ 1184: 2
+ 1185: Usuario con rol administrador o super administrador
+ 1186: Cambiar mi contraseÃ±a cumpliendo reglas de seguridad
+ 1187: Proteger mi cuenta
+ 1188: La contraseÃ±a debe tener 8 caracteres exactos, mayÃºscula, nÃºmero y especial.
+ 1189: El sistema muestra error si no cumple.
+ 1190: A111-16
+ 1191: 2
+ 1192: Usuario super administrador del sistema
+ 1193: Eliminar usuarios del sistema
+ 1194: Depurar cuentas inactivas
+ 1195: Se solicita email y contraseÃ±a del super admin.
+ 1196: Se muestra advertencia de acciÃ³n irreversible.
+ 1197: No puede eliminar su propia cuenta.
+ 1198: A111-17
+ 1199: 2
+ 1200: Usuario administrador del sistema
+ 1201: Eliminar usuarios con rol â€œusuarioâ€
+ 1202: Mantener el control operativo
+ 1203: El admin no puede eliminar a otro admin ni a sÃ­ mismo.
+ 1204: Se solicita email y contraseÃ±a del usuario a eliminar.
+ 1205: Se muestra advertencia irreversible.
+ 1206: Debe ser idÃ©ntico al prototipo en Figma.
+ 1207: A111-18
+ 1208: 3
+ 1209: Usuario administrador o super administrador del sistema
+ 1210: Ordenar y filtrar usuarios por rol/estado
+ 1211: Gestionar listas grandes fÃ¡cilmente.
+ 1212: Filtros por rol y estado.
+ 1213: Orden por nombre, fecha de creaciÃ³n y proyectos asignados.
+ 1214: A111-19
+ 1215: 3
+ 1216: Usuario administrador o super administrador del sistema
+ 1217: Buscar usuarios por nombre o email
+ 1218: Encontrarlos rÃ¡pidamente
+ 1219: BÃºsqueda por nombre, apellido y correo.
+ 1220: Resultados en tiempo real.
+ 1221: A111-20
+ 1222: 3
+ 1223: Usuario autenticado del sistema.
+ 1224: Acceder a mi perfil desde el menÃº superior en la cabecera del sistema
+ 1225: Visualizar o actualizar mis datos
+ 1226: El menÃº muestra datos bÃ¡sicos del usuario.
+ 1227: Al hacer clic, redirige al perfil.
+ 1228: A111-21
+ 1229: 1
+ 1230: Seguridad del Sistema
+ 1231: Validar el rol del usuario al ingresar a rutas protegidas
+ 1232: Impedir accesos no autorizados
+ 1233: Solo admin/super-admin pueden acceder a /usuarios y /usuarios/crear.
+ 1234: Todos pueden acceder a /usuario/:email segÃºn permisos.
+ 1235: Accesos no autorizados redirigen a /404.
+ 1236: A111-22
+ 1237: 2
+ 1238: Usuario autenticado del sistema
+ 1239: que el sistema me cierre sesiÃ³n si cambian datos crÃ­ticos de mi perfil
+ 1240: para evitar inconsistencias de seguridad
+ 1241: Si se modifica email, rol, estado o contraseÃ±a, se invalida sesiÃ³n.
+ 1242: El usuario es notificado y se realiza logout.
+ 1243: Sprint 2
+ 1244: Nombre
+ 1245: Desarrollo del mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+ 1246: Objetivo
+ 1247: Implementar el ciclo completo de administraciÃ³n de proyectos y su planificaciÃ³n operativa, con control por roles, vistas y exportaciÃ³n del plan pdf y xls.
+ 1248: DuraciÃ³n
+ 1249: (semanas)
+ 1250: 4
+ 1251: CÃ³digo
+ 1252: Prioridad
+ 1253: 1 - 5
+ 1254: Como
+ 1255: Quiero
+ 1256: Para
+ 1257: Criterios de aceptaciÃ³n
+ 1258: Fecha inicio
+ 1259: Fecha Fin
+ 1260: 1
+ 1261: Usuario autenticado del sistema
+ 1262: Ver el listado de proyectos disponibles
+ 1263: Identificar rÃ¡pidamente mis proyectos o los registrados en el sistema
+ 1264: Para el super administrador se listan todos los proyectos
+ 1265: Para el administrador y el usuario solo se debe mostrar en la lista los proyectos en los que este asignado como responsable
+ 1266: Se muestra la lista con nombre, descripciÃ³n, responsables e integraciones.
+ 1267: Si no hay proyectos, se muestra mensaje y acciÃ³n correspondiente.
+ 1268: Las pantallas deben verse similar a los prototipos en Figma
+ 1269: 2
+ 1270: Usuario autenticado del sistema
+ 1271: Buscar proyectos por nombre
+ 1272: Encontrar rÃ¡pidamente un proyecto especÃ­fico
+ 1273: La bÃºsqueda filtra en tiempo real de manera correcta.
+ 1274: Si no hay resultados, se muestra mensaje de â€œsin resultadosâ€.
+ 1275: 2
+ 1276: Usuario autenticado del sistema
+ 1277: Ordenar proyectos por criterios (nombre, responsables, integraciones, fechas)
+ 1278: Analizar la lista con distintos filtros aplicados
+ 1279: Se permite cambiar criterio desde un selector.
+ 1280: El orden se actualiza correctamente.
+ 1281: 1
+ 1282: Usuario super administrador
+ 1283: Crear un proyecto operativo
+ 1284: Registrar un nuevo proyecto con informaciÃ³n base
+ 1285: Se valida nombre y descripciÃ³n obligatorios.
+ 1286: Se permite asignar imagen opcional.
+ 1287: Al guardar, se crea el proyecto y redirige al detalle.
+ 1288: 2
+ 1289: Usuario super administrador
+ 1290: Vincular un proyecto con integraciones de APIs, de las plataformas de Facebook, Instagram y Github
+ 1291: Enlazar un repositorio y una pÃ¡gina de Instragam o Facebook a un proyecto.
+ 1292: Se pueden agregar integraciones vÃ¡lidas de las 3 plataformas mencionadas.
+ 1293: Las integraciones quedan asociadas al proyecto mediante la base de datos.
+ 1294: La UI debe verse idÃ©ntico al prototipo de Figma
+ 1295: 1
+ 1296: Usuario autenticado del sistema
+ 1297: Ver el detalle de un proyecto
+ 1298: Conocer su informaciÃ³n completa
+ 1299: Se muestran nombre, descripciÃ³n, imagen, responsables e integraciones.
+ 1300: Se muestra el programa/plan estratÃ©gico si aplica.
+ 1301: 2
+ 1302: Usuario super administrador o administrador asignado a un proyecto
+ 1303: Editar cualquier campo del proyecto
+ 1304: Mantener actualizada su informaciÃ³n
+ 1305: Se puede modificar nombre, descripciÃ³n, imagen.
+ 1306: Se pueden cambiar responsables e integraciones.
+ 1307: Se guardan cambios correctamente.
+ 1308: 2
+ 1309: Usuario super administrador
+ 1310: Eliminar un proyecto
+ 1311: Depurar proyectos obsoletos
+ 1312: Se exige confirmaciÃ³n con nombre exacto.
+ 1313: Se notifica correctamente al eliminar.
+ 1314: 2
+ 1315: Usuario autenticado del sistema
+ 1316: Visualizar responsables de un proyecto
+ 1317: Identificar quiÃ©nes son sus responsables
+ 1318: Se muestran responsables con rol y estado.
+ 1319: Se puede abrir el perfil de cada responsable.
+ 1320: 1
+ 1321: Usuario autenticado del sistema
+ 1322: Seleccionar un proyecto en planificaciÃ³n operativa
+ 1323: Consultar su plan operativo
+ 1324: El selector muestra proyectos disponibles
+ 1325: Al seleccionar, se carga el plan operativo
+ 1326: Debe verse similar a los prototipos en Figma
+ 1327: 2
+ 1328: Usuario administrador o super administrador
+ 1329: Cambiar el modo de vista (editable/solo lectura)
+ 1330: Controlar la ediciÃ³n del plan
+ 1331: El modo editable permite editar, borrar eliminar, filas del plan operativo.
+ 1332: El modo lectura solo muestra datos en una tabla no editable y permite su exportaciÃ³n en pdf y xls.
+ 1333: 1
+ 1334: Usuario administrador o super administrador
+ 1335: Crear filas en el plan operativo
+ 1336: Registrar objetivos y actividades
+ 1337: Se pueden agregar nuevas filas
+ 1338: No se permiten filas vacÃ­as al guardar el plan
+ 1339: Una fila se puede guardar, basta que tenga solo un item
+ 1340: 1
+ 1341: Usuario administrador o super administrador
+ 1342: Editar objetivos, indicadores, recursos, presupuesto y periodos
+ 1343: Completar la planificaciÃ³n operativa de un proyecto
+ 1344: Cada celda es editable en modo editable
+ 1345: Los cambios se reflejan inmediatamente en la interfaz de usuario
+ 1346: Debe verse similar a los prototipos en Figma
+ 1347: 2
+ 1348: Usuario administrador o super administrador
+ 1349: Eliminar una fila del plan operativo
+ 1350: Corregir la planificaciÃ³n operativa de un proyecto sin tener que estar eliminando manualmente el contenido de cada fila.
+ 1351: El sistema solicita confirmaciÃ³n antes de eliminar la fila
+ 1352: La fila se elimina correctamente una vez se presiona aceptar
+ 1353: 1
+ 1354: Usuario administrador o super administrador
+ 1355: Guardar el plan operativo
+ 1356: Persistir los cambios realizados
+ 1357: Se valida que no haya filas vacÃ­as.
+ 1358: Se incrementa versiÃ³n del plan.
+ 1359: Se muestra confirmaciÃ³n de guardado.
+ 1360: 2
+ 1361: Usuario administrador o super administrador
+ 1362: Descartar cambios no guardados
+ 1363: Volver al estado anterior
+ 1364: Se solicita confirmaciÃ³n.
+ 1365: El plan vuelve al Ãºltimo estado guardado.
+ 1366: 2
+ 1367: Usuario administrador o super administrador
+ 1368: Ver metadatos del plan (creaciÃ³n, actualizaciÃ³n, versiÃ³n)
+ 1369: Auditar el histÃ³rico de cambios
+ 1370: Se muestra fecha de creaciÃ³n y actualizaciÃ³n.
+ 1371: Se muestra versiÃ³n actual.
+ 1372: 1
+ 1373: Usuario super administrador
+ 1374: Eliminar el plan operativo completo
+ 1375: Eliminar la planificaciÃ³n operativa obsoleta de un proyecto
+ 1376: Se exige confirmaciÃ³n con nombre del proyecto.
+ 1377: Se eliminan todas las filas del plan.
+ 1378: El proyecto queda sin plan operativo y muestra la pantalla de â€œProyecto sin plan operativoâ€
+ 1379: Debe verse similar a los prototipos en Figma
+ 1380: 2
+ 1381: Usuario con rol usuario del sistema
+ 1382: Ver el plan en modo solo lectura
+ 1383: Consultar sin modificar informaciÃ³n
+ 1384: El contenido es visible y no editable.
+ 1385: Se muestra mensaje si no existe plan.
+ 1386: 2
+ 1387: Usuario autenticado del sistema con cualquier rol
+ 1388: Exportar el plan operativo a PDF
+ 1389: Presentar el plan en un reporte formal
+ 1390: Solo se puede exportar desde la vista solo lectura
+ 1391: Se genera PDF con encabezado institucional.
+ 1392: El archivo se descarga correctamente.
+ 1393: 2
+ 1394: Usuario autenticado del sistema con cualquier rol
+ 1395: Exportar el plan operativo a Excel
+ 1396: Analizar datos en una hoja de cÃ¡lculo
+ 1397: El archivo XLSX contiene toda la tabla.
+ 1398: Los campos estÃ¡n bien organizados.
+ 1399: 2
+ 1400: Usuario autenticado del sistema
+ 1401: Recibir mensaje cuando un proyecto no tiene plan operativo
+ 1402: Saber que aÃºn no se registrÃ³
+ 1403: Se muestra mensaje informativo.
+ 1404: Si tengo el rol de super administrador o administrador, aparece opciÃ³n de creaciÃ³n de plan.
+ 1405: 3
+ 1406: Usuario autenticado del sistema
+ 1407: Visualizar correctamente el plan en pantallas pequeÃ±as
+ 1408: Poder consultarlo en distintos dispositivos
+ 1409: Las tablas permiten scroll horizontal.
+ 1410: El contenido sigue siendo legible.
+ 1411: 2
+ 1412: Administrador asignado a un proyecto
+ 1413: Editar el plan solo si tengo permisos
+ 1414: Mantener el control de acceso
+ 1415: Si no tengo permisos, el modo editable no aparece.
+ 1416: Si tengo permisos, puedo editar.
+ 1417: 2
+ 1418: Usuario autenticado del sistema
+ 1419: Que los errores de carga de un plan se manejen con mensajes claros
+ 1420: Entender quÃ© hacer si algo falla
+ 1421: Se muestra pantalla de error.
+ 1422: Hay un botÃ³n de reintento para obtener el plan.
+ 1423: Al ser presionado llama al backend para volver a obtener el plan operativo
+ 1424: Sprint 3
+ 1425: Nombre
+ 1426: Desarrollo del mÃ³dulo de planificaciÃ³n estratÃ©gica
+ 1427: Objetivo
+ 1428: Implementar la administraciÃ³n integral del plan estratÃ©gico anual con control de roles, vistas jerÃ¡rquicas, versionado y exportaciÃ³n oficial (PDF/DOCX).
+ 1429: DuraciÃ³n
+ 1430: (semanas)
+ 1431: 4
+ 1432: CÃ³digo
+ 1433: Prioridad
+ 1434: 1 - 5
+ 1435: Como
+ 1436: Quiero
+ 1437: Para
+ 1438: Criterios de aceptaciÃ³n
+ 1439: Fecha inicio
+ 1440: Fecha Fin
+ 1441: 1
+ 1442: Usuario autenticado del sistema
+ 1443: Ver el listado de planes por aÃ±o
+ 1444: Seleccionar un plan disponible
+ 1445: Se listanÂ aÃ±os ÃºnicosÂ disponibles.
+ 1446: Los aÃ±os con plan estratÃ©gico serÃ¡n visibles desde el selector de aÃ±os como se ve en el prototipo de Figma.
+ 1447: Si no hay plan en el aÃ±o seleccionado, se muestra mensaje en la pantalla â€œNo hay planes estratÃ©gicos registradosâ€.
+ 1448: 1
+ 1449: Usuario autenticado del sistema
+ 1450: Seleccionar un aÃ±o
+ 1451: Cargar el plan correspondiente
+ 1452: Al seleccionar aÃ±o, se muestra el plan estratÃ©gico del aÃ±o seleccionado.
+ 1453: Si el aÃ±o no existe, se informa â€œPlan no encontradoâ€.
+ 1454: El cambio de aÃ±o limpia estado previo.
+ 1455: 1
+ 1456: Usuario autenticado del sistema
+ 1457: Ver plan en vista columnas editable
+ 1458: Comprender la jerarquÃ­a
+ 1459: La vista muestraÂ MisiÃ³n â†’ Objetivos â†’ Programas â†’ ProyectosÂ en columnas.
+ 1460: La estructura respeta el orden jerÃ¡rquico planteado por la organizaciÃ³n.
+ 1461: La vista debe verse similar a los prototipos en Figma.
+ 1462: 2
+ 1463: Usuario autenticado del sistema
+ 1464: Cambiar a vista a solo lectura
+ 1465: Revisar el plan en formato alterno
+ 1466: Existe selector de vista con opciones de columnas editable a solo lectura.
+ 1467: Al cambiar vista, los datos en ambas se mantienen iguales.
+ 1468: La vista solo lectura presenta jerarquÃ­a completa sin pÃ©rdida de nodos.
+ 1469: Usuario super administrador
+ 1470: Editar misiÃ³n
+ 1471: Mantenerla alineada a los criterios nuevos planteados por la organizaciÃ³n
+ 1472: El campo misiÃ³n esÂ obligatorio.
+ 1473: Al guardar se incrementaÂ la versiÃ³n del plan.
+ 1474: Si falla la API, se muestra error y no se pierde el contenido.
+ 1475: Usuario super administrador
+ 1476: Crear objetivos
+ 1477: Descomponer la estrategia
+ 1478: Se valida tÃ­tulo no vacÃ­o y longitud mÃ¡xima.
+ 1479: El objetivo se agrega en su columna.
+ 1480: Se marca el plan como â€œcon cambios pendientesâ€.
+ 1481: Al guardar se incrementa la versiÃ³n del plan.
+ 1482: Usuario super administrador
+ 1483: Editar objetivos
+ 1484: Ajustar el contenido
+ 1485: Se puede editar nombre/descripcion.
+ 1486: Cambios se reflejan tras guardar.
+ 1487: Si el guardado del objetivo falla, se mantiene el dato previo.
+ 1488: Usuario super administrador
+ 1489: Eliminar objetivos
+ 1490: Depurar el plan
+ 1491: Requiere confirmaciÃ³n antes de eliminar.
+ 1492: Se elimina objetivo y sus relaciones internas.
+ 1493: Se actualiza versiÃ³n del plan estratÃ©gico al guardar.
+ 1494: Usuario super administrador
+ 1495: Crear programas
+ 1496: Desplegar iniciativas
+ 1497: Solo se permite bajo un objetivo existente y seleccionado.
+ 1498: Se valida tÃ­tulo requerido del programa.
+ 1499: El programa se refleja en la interfaz de usuario.
+ 1500: Usuario super administrador
+ 1501: Editar programas
+ 1502: Ajustar iniciativas
+ 1503: Se actualiza nombre/descripciÃ³n.
+ 1504: No se puede guardar un programa con el nombre vacÃ­o.
+ 1505: Usuario super administrador
+ 1506: Eliminar programas
+ 1507: Mantener el plan limpio
+ 1508: Requiere confirmaciÃ³n antes de eliminar el programa.
+ 1509: El programa se elimina del objetivo.
+ 1510: Usuario super administrador
+ 1511: Vincular proyectos operativos
+ 1512: Conectar estrategia y ejecuciÃ³n
+ 1513: Solo proyectos vÃ¡lidos pueden vincularse.
+ 1514: Se permiteÂ asociar/desasociar.
+ 1515: Se reflejan los cambios en la columna de proyectos.
+ 1516: Usuario super administrador
+ 1517: Crear proyecto operativo rÃ¡pido
+ 1518: Agilizar la planificaciÃ³n
+ 1519: Se solicita nombre y descripciÃ³n obligatorios.
+ 1520: Se pide nombre y descripciÃ³n rÃ¡pida antes de crear el proyecto.
+ 1521: El nuevo proyecto aparece vinculado al programa.
+ 1522: Usuario super administrador
+ 1523: Guardar cambios del plan
+ 1524: Persistir el plan anual
+ 1525: El botÃ³n guardar solo aparece con cambios pendientes.
+ 1526: Guardar incrementa versiÃ³n del plan estratÃ©gico.
+ 1527: Al guardar, estado â€œcambios pendientesâ€ desaparece.
+ 1528: Usuario super administrador
+ 1529: Ver indicador de cambios
+ 1530: Evitar pÃ©rdida de informaciÃ³n
+ 1531: Cambios activan indicador visual tal como los prototipos en Figma.
+ 1532: Al guardar desaparece el indicador visual.
+ 1533: Usuario super administrador
+ 1534: Prevenir salida con cambios en el plan
+ 1535: Proteger el trabajo
+ 1536: Se muestra confirmaciÃ³n antes de salir de la pÃ¡gina de planificaciÃ³n estratÃ©gica.
+ 1537: Usuario puede cancelar la acciÃ³n o salir.
+ 1538: Usuario autenticado del sistema
+ 1539: Exportar a PDF
+ 1540: Generar informe oficial
+ 1541: PDF incluye aÃ±o, misiÃ³n, objetivos, programas y proyectos.
+ 1542: Se puede ver el progreso de la exportaciÃ³n con una barra de progreso sin errores.
+ 1543: Si falla, se muestra notificaciÃ³n.
+ 1544: Usuario autenticado del sistema
+ 1545: Exportar a DOCX
+ 1546: Compartir editable
+ 1547: DOCX incluye jerarquÃ­a completa.
+ 1548: El archivo se descarga correctamente.
+ 1549: Usuario con rol usuario y administrador
+ 1550: Ver modo solo lectura
+ 1551: Mantener seguridad
+ 1552: No se muestran controles de ediciÃ³n.
+ 1553: Intentar editar no genera cambios.
+ 1554: Usuario super administrador
+ 1555: Eliminar plan estratÃ©gico
+ 1556: Depurar planes obsoletos
+ 1557: Requiere confirmaciÃ³n explÃ­cita.
+ 1558: Solo super admin puede borrar.
+ 1559: Admin/usuario reciben mensaje de no autorizado.
+ 1560: Usuario autenticado del sistema
+ 1561: Ver estados de carga y error
+ 1562: Comprender el estado del mÃ³dulo
+ 1563: Aparece el spinner en carga.
+ 1564: Error de respuesta del servidor se muestra mensaje claro.
+ 1565: Usuario autenticado del sistema
+ 1566: Ver versiÃ³n del plan
+ 1567: Controlar cambios
+ 1568: Se muestra la versiÃ³n del plan actual.
+ 1569: Incrementa al guardar.
+ 1570: Usuario autenticado del sistema
+ 1571: Ver ayuda contextual
+ 1572: Reducir fricciÃ³n de uso
+ 1573: Tooltips visibles en acciones claves.
+ 1574: Se cierran en scroll.
+ 1575: Usuario super administrador
+ 1576: Usar acciones rÃ¡pidas
+ 1577: Aumentar productividad
+ 1578: Botones rÃ¡pidos visibles.
+ 1579: Ejecutan la acciÃ³n correcta.
+ 1580: ANEXO 2
+ 1581: TABLEROS DE PRUEBAS EJECUTADAS EN EL MÃ“DULO DE GESTIÃ“N DE USUARIOS
+ 1582: Tipo de prueba
+ 1583: Unitaria
+ 1584: TÃ­tulo del set
+ 1585: Pruebas unitarias al backend del mÃ³dulo de gestiÃ³n de usuarios
+ 1586: ID
+ 1587: Nombre
+ 1588: DescripciÃ³n
+ 1589: Precondiciones
+ 1590: Entradas
+ 1591: Procedimiento
+ 1592: Resultado esperado
+ 1593: Resultado obtenido
+ 1594: Estado
+ 1595: BU-01
+ 1596: Hash de contraseÃ±a
+ 1597: Verifica hash y comparaciÃ³n
+ 1598: Ninguna
+ 1599: Password en texto plano
+ 1600: Ejecutar test deÂ passwordUtils
+ 1601: Hash vÃ¡lido y comparaciÃ³n correcta
+ 1602: Hash vÃ¡lido, comparaciÃ³n OK
+ 1603: Aprobada
+ 1604: BU-02
+ 1605: JWT expira correctamente
+ 1606: Verifica expiraciÃ³n
+ 1607: Ninguna
+ 1608: Token con expiraciÃ³n corta
+ 1609: Ejecutar test JWT
+ 1610: Token expira
+ 1611: Token expira correctamente
+ 1612: Aprobada
+ 1613: BU-03
+ 1614: Token caducado en endpoint protegido
+ 1615: Rechazo de token expirado
+ 1616: Endpoint protegido
+ 1617: Token expirado
+ 1618: Llamar endpoint
+ 1619: 401Â INVALID_TOKEN
+ 1620: 401Â INVALID_TOKEN
+ 1621: Aprobada
+ 1622: BU-04
+ 1623: Token con firma incorrecta
+ 1624: Rechazo por firma invÃ¡lida
+ 1625: Endpoint protegido
+ 1626: Token invÃ¡lido
+ 1627: Llamar endpoint
+ 1628: 401Â INVALID_TOKEN
+ 1629: 401Â INVALID_TOKEN
+ 1630: Aprobada
+ 1631: Tipo de prueba
+ 1632: IntegraciÃ³n
+ 1633: TÃ­tulo del set
+ 1634: Pruebas de integraciÃ³n backend del mÃ³dulo de gestiÃ³n de usuarios
+ 1635: ID
+ 1636: Nombre
+ 1637: DescripciÃ³n
+ 1638: Precondiciones
+ 1639: Entradas
+ 1640: Procedimiento
+ 1641: Resultado esperado
+ 1642: Resultado obtenido
+ 1643: Estado
+ 1644: BIU-01
+ 1645: Listar usuarios
+ 1646: Listado general
+ 1647: Admin autenticado
+ 1648: Token admin
+ 1649: GET /api/users/getAllUsers
+ 1650: 200 + array
+ 1651: 200 + array
+ 1652: Aprobada
+ 1653: BIU-02
+ 1654: Crear usuario con estado invÃ¡lido
+ 1655: Estado invÃ¡lido â†’Â disabled
+ 1656: Admin autenticado
+ 1657: Usuario conÂ stateÂ invÃ¡lido
+ 1658: POST /api/users/createUser
+ 1659: 200 +Â state=disabled
+ 1660: 200 +Â state=disabled
+ 1661: Aprobada
+ 1662: BIU-03
+ 1663: Rechazar email duplicado
+ 1664: No permite duplicados
+ 1665: Admin autenticado
+ 1666: Email existente
+ 1667: POST /api/users/createUser
+ 1668: 409Â VALIDATION_ERROR
+ 1669: 409Â VALIDATION_ERROR
+ 1670: Aprobada
+ 1671: BIU-04
+ 1672: Admin no crea super-admin
+ 1673: RestricciÃ³n de rol
+ 1674: Admin autenticado
+ 1675: role=super-admin
+ 1676: POST /api/users/createUser
+ 1677: 403
+ 1678: 403
+ 1679: Aprobada
+ 1680: BIU-05
+ 1681: User sin permisos no crea
+ 1682: Bloqueo por rol
+ 1683: User autenticado
+ 1684: Payload vÃ¡lido
+ 1685: POST /api/users/createUser
+ 1686: 403Â USER_UNAUTHORIZED
+ 1687: 403Â USER_UNAUTHORIZED
+ 1688: Aprobada
+ 1689: BIU-06
+ 1690: Super-admin no crea segundo super-admin
+ 1691: Solo 1 super-admin
+ 1692: Super-admin autenticado
+ 1693: role=super-admin
+ 1694: POST /api/users/createUser
+ 1695: 403
+ 1696: 403
+ 1697: Aprobada
+ 1698: BIU-07
+ 1699: Obtener usuario por email
+ 1700: Recupera perfil
+ 1701: Admin autenticado
+ 1702: Email vÃ¡lido
+ 1703: GET /api/users/getUserByEmail/:email
+ 1704: 200 + usuario
+ 1705: 200 + usuario
+ 1706: Aprobada
+ 1707: BIU-08
+ 1708: Admin actualiza nombre
+ 1709: EdiciÃ³n permitida
+ 1710: Admin autenticado
+ 1711: firstName
+ 1712: PATCH /api/users/updateUser/:email
+ 1713: 200 + nombre actualizado
+ 1714: 200 + nombre actualizado
+ 1715: Aprobada
+ 1716: BIU-09
+ 1717: Rechaza email duplicado en update
+ 1718: ValidaciÃ³n email Ãºnico
+ 1719: Admin autenticado
+ 1720: Email duplicado
+ 1721: PATCH /api/users/updateUser/:email
+ 1722: 400Â VALIDATION_ERROR
+ 1723: 400Â VALIDATION_ERROR
+ 1724: Aprobada
+ 1725: BIU-10
+ 1726: Admin no asigna super-admin
+ 1727: RestricciÃ³n de rol
+ 1728: Admin autenticado
+ 1729: role=super-admin
+ 1730: PATCH /api/users/updateUser/:email
+ 1731: 403
+ 1732: 403
+ 1733: Aprobada
+ 1734: BIU-11
+ 1735: User no edita a otro
+ 1736: RestricciÃ³n ediciÃ³n
+ 1737: User autenticado
+ 1738: firstName
+ 1739: PATCH /api/users/updateUser/:email
+ 1740: 403Â USER_UNAUTHORIZED
+ 1741: 403Â USER_UNAUTHORIZED
+ 1742: Aprobada
+ 1743: BIU-12
+ 1744: User no edita su propio perfil (campos bloqueados)
+ 1745: Solo foto permitida
+ 1746: User autenticado
+ 1747: firstName
+ 1748: PATCH /api/users/updateUser/:email
+ 1749: 403Â USER_UNAUTHORIZED
+ 1750: 403Â USER_UNAUTHORIZED
+ 1751: Aprobada
+ 1752: BIU-13
+ 1753: Admin sin permiso delete
+ 1754: Bloqueo por permiso
+ 1755: Admin autenticado
+ 1756: email vÃ¡lido
+ 1757: DELETE /api/users/deleteUser/:email
+ 1758: 403
+ 1759: 403
+ 1760: Aprobada
+ 1761: BIU-14
+ 1762: Admin no elimina a otro admin
+ 1763: RestricciÃ³n de rol
+ 1764: Admin autenticado
+ 1765: email admin
+ 1766: DELETE /api/users/deleteUser/:email
+ 1767: 403
+ 1768: 403
+ 1769: Aprobada
+ 1770: BIU-15
+ 1771: Admin no elimina su propia cuenta
+ 1772: RestricciÃ³n auto-eliminaciÃ³n
+ 1773: Admin autenticado
+ 1774: email propio
+ 1775: DELETE /api/users/deleteUser/:email
+ 1776: 403
+ 1777: 403
+ 1778: Aprobada
+ 1779: BIU-16
+ 1780: Super-admin con contraseÃ±a incorrecta
+ 1781: ValidaciÃ³n de credenciales
+ 1782: Super-admin autenticado
+ 1783: password incorrecta
+ 1784: DELETE /api/users/deleteUser/:email
+ 1785: 401
+ 1786: 401
+ 1787: Aprobada
+ 1788: BIU17
+ 1789: Super-admin elimina usuario
+ 1790: EliminaciÃ³n vÃ¡lida
+ 1791: Super-admin autenticado
+ 1792: email usuario
+ 1793: DELETE /api/users/deleteUser/:email
+ 1794: 200
+ 1795: 200
+ 1796: Aprobada
+ 1797: Tipo de prueba:
+ 1798: IntegraciÃ³n
+ 1799: TÃ­tulo del set:
+ 1800: Pruebas de integraciÃ³n al backend (autenticaciÃ³n y sesiones)
+ 1801: ID
+ 1802: Nombre
+ 1803: DescripciÃ³n
+ 1804: Precondiciones
+ 1805: Entradas
+ 1806: Procedimiento
+ 1807: Resultado esperado
+ 1808: Resultado obtenido
+ 1809: Estado
+ 1810: BIA-01
+ 1811: Login exitoso
+ 1812: Retorna token + usuario
+ 1813: Usuario vÃ¡lido
+ 1814: Email/Password
+ 1815: POST /api/auth/login
+ 1816: 200 + accessToken
+ 1817: 200 + accessToken
+ 1818: Aprobada
+ 1819: BIA-02
+ 1820: Login credenciales invÃ¡lidas
+ 1821: Rechazo
+ 1822: Usuario vÃ¡lido
+ 1823: Password incorrecta
+ 1824: POST /api/auth/login
+ 1825: 401
+ 1826: 401
+ 1827: Aprobada
+ 1828: BIA-03
+ 1829: Login cuenta deshabilitada
+ 1830: Bloqueo por estado
+ 1831: Usuario disabled
+ 1832: Credenciales vÃ¡lidas
+ 1833: POST /api/auth/login
+ 1834: 403Â USER_DISABLED
+ 1835: 403Â USER_DISABLED
+ 1836: Aprobada
+ 1837: BIA-04
+ 1838: Perfil con token vÃ¡lido
+ 1839: Obtiene sesiÃ³n
+ 1840: Token vÃ¡lido
+ 1841: Token
+ 1842: GET /api/auth/me
+ 1843: 200 + user
+ 1844: 200 + user
+ 1845: Aprobada
+ 1846: BIA-05
+ 1847: Perfil con token invÃ¡lido
+ 1848: Rechazo token
+ 1849: Token invÃ¡lido
+ 1850: Token
+ 1851: GET /api/auth/me
+ 1852: 401
+ 1853: 401
+ 1854: Aprobada
+ 1855: BIA-06
+ 1856: Refresh sin cookie
+ 1857: Requiere refreshToken
+ 1858: Sin cookie
+ 1859: N/A
+ 1860: POST /api/auth/refresh
+ 1861: 401Â TOKEN_MISSING
+ 1862: 401Â TOKEN_MISSING
+ 1863: Aprobada
+ 1864: BIA-07
+ 1865: Refresh vÃ¡lido
+ 1866: Nuevo accessToken
+ 1867: Cookie vÃ¡lida
+ 1868: refreshToken
+ 1869: POST /api/auth/refresh
+ 1870: 200 + token
+ 1871: 200 + token
+ 1872: Aprobada
+ 1873: BIA-08
+ 1874: Logout
+ 1875: Limpia refreshToken
+ 1876: SesiÃ³n activa
+ 1877: N/A
+ 1878: POST /api/auth/logout
+ 1879: 200
+ 1880: 200
+ 1881: Aprobada
+ 1882: BIA-09
+ 1883: Summary data
+ 1884: Resumen para super-admin
+ 1885: Super-admin autenticado
+ 1886: ID vÃ¡lido
+ 1887: GET /api/auth/sumaryData/:id
+ 1888: 200 + lista
+ 1889: 200 + lista
+ 1890: Aprobada
+ 1891: BIA-10
+ 1892: Refresh con sessionVersion cambiado
+ 1893: Expira sesiÃ³n
+ 1894: Cookie vÃ¡lida
+ 1895: refreshToken
+ 1896: POST /api/auth/refresh
+ 1897: 401Â SESSION_EXPIRED
+ 1898: 401Â SESSION_EXPIRED
+ 1899: Aprobada
+ 1900: Tipo de prueba:
+ 1901: Unitarias / Componentes
+ 1902: TÃ­tulo del set:
+ 1903: Pruebas unitarias y de componentes (usuarios/sesiÃ³n)
+ 1904: ID
+ 1905: Nombre
+ 1906: Tipo
+ 1907: DescripciÃ³n
+ 1908: Precondiciones
+ 1909: Entradas
+ 1910: Procedimiento
+ 1911: Resultado esperado
+ 1912: Resultado obtenido
+ 1913: Estado
+ 1914: FU-01
+ 1915: LoginPage botÃ³n deshabilitado
+ 1916: Componente
+ 1917: Form vacÃ­o
+ 1918: Ninguna
+ 1919: N/A
+ 1920: Render
+ 1921: BotÃ³n deshabilitado
+ 1922: BotÃ³n deshabilitado
+ 1923: Aprobada
+ 1924: FU-02
+ 1925: LoginPage email invÃ¡lido
+ 1926: Componente
+ 1927: Email invÃ¡lido bloquea submit
+ 1928: Ninguna
+ 1929: Email invÃ¡lido
+ 1930: Render y fill
+ 1931: BotÃ³n deshabilitado
+ 1932: BotÃ³n deshabilitado
+ 1933: Aprobada
+ 1934: FU-03
+ 1935: LoginPage ejecuta login
+ 1936: Componente
+ 1937: LlamaÂ login
+ 1938: useAuthmock
+ 1939: Credenciales vÃ¡lidas
+ 1940: Clicksubmit
+ 1941: loginÂ llamado
+ 1942: loginÂ llamado
+ 1943: Aprobada
+ 1944: FU-04
+ 1945: PrivateRouteloading
+ 1946: Componente
+ 1947: Muestra loading
+ 1948: useAuthorization=loading
+ 1949: N/A
+ 1950: Render
+ 1951: Loading visible
+ 1952: Loading visible
+ 1953: Aprobada
+ 1954: FU-05
+ 1955: PrivateRouteunauthenticated
+ 1956: Componente
+ 1957: Redirige a login
+ 1958: useAuthorization=unauthenticated
+ 1959: N/A
+ 1960: Render
+ 1961: RedirecciÃ³n a /login
+ 1962: RedirecciÃ³n a /login
+ 1963: Aprobada
+ 1964: FU-06
+ 1965: PrivateRouteunauthorized
+ 1966: Componente
+ 1967: Redirige a 404
+ 1968: useAuthorization=unauthorized
+ 1969: N/A
+ 1970: Render
+ 1971: RedirecciÃ³n a /404
+ 1972: RedirecciÃ³n a /404
+ 1973: Aprobada
+ 1974: FU-07
+ 1975: PrivateRouteauthorized
+ 1976: Componente
+ 1977: Renderiza contenido
+ 1978: useAuthorization=authorized
+ 1979: N/A
+ 1980: Render
+ 1981: Contenido visible
+ 1982: Contenido visible
+ 1983: Aprobada
+ 1984: FU-08
+ 1985: useAuthorizationloading
+ 1986: Hook
+ 1987: Status loading
+ 1988: AuthContextloading
+ 1989: N/A
+ 1990: Ejecutar hook
+ 1991: loading
+ 1992: loading
+ 1993: Aprobada
+ 1994: FU-09
+ 1995: useAuthorization sin sesiÃ³n
+ 1996: Hook
+ 1997: Status unauthenticated
+ 1998: Sin user
+ 1999: N/A
+ 2000: Ejecutar hook
+ 2001: unauthenticated
+ 2002: unauthenticated
+ 2003: Aprobada
+ 2004: FU-10
+ 2005: useAuthorization rol no permitido
+ 2006: Hook
+ 2007: Status unauthorized
+ 2008: Rol no permitido
+ 2009: N/A
+ 2010: Ejecutar hook
+ 2011: unauthorized
+ 2012: unauthorized
+ 2013: Aprobada
+ 2014: FU-11
+ 2015: useAuthorization autorizado
+ 2016: Hook
+ 2017: Status authorized
+ 2018: Rol permitido
+ 2019: N/A
+ 2020: Ejecutar hook
+ 2021: authorized
+ 2022: authorized
+ 2023: Aprobada
+ 2024: FU-12
+ 2025: validateEmail
+ 2026: Unitario
+ 2027: Email vÃ¡lido
+ 2028: N/A
+ 2029: Email vÃ¡lido
+ 2030: Ejecutar util
+ 2031: Sin error
+ 2032: Sin error
+ 2033: Aprobada
+ 2034: FU-13
+ 2035: validatePasswordLength
+ 2036: Unitario
+ 2037: Longitud exacta
+ 2038: N/A
+ 2039: 8 caracteres
+ 2040: Ejecutar util
+ 2041: Sin error
+ 2042: Sin error
+ 2043: Aprobada
+ 2044: FU-14
+ 2045: validatePassword reglas
+ 2046: Unitario
+ 2047: Complejidad
+ 2048: N/A
+ 2049: MayÃºs/nÃºmero/sÃ­mbolo
+ 2050: Ejecutar util
+ 2051: Sin error
+ 2052: Sin error
+ 2053: Aprobada
+ 2054: FU-15
+ 2055: generateSecurePassword
+ 2056: Unitario
+ 2057: Genera password
+ 2058: N/A
+ 2059: N/A
+ 2060: Ejecutar util
+ 2061: 8 chars
+ 2062: 8 chars
+ 2063: Aprobada
+ 2064: FU-16
+ 2065: SessionExpirationModal visible
+ 2066: Componente
+ 2067: Muestra modal
+ 2068: showSessionModal=true
+ 2069: N/A
+ 2070: Render
+ 2071: Texto visible
+ 2072: Texto visible
+ 2073: Aprobada
+ 2074: FU-17
+ 2075: SessionExpirationModal cerrar
+ 2076: Componente
+ 2077: Cierra modal
+ 2078: showSessionModal=true
+ 2079: Click cerrar
+ 2080: Click botÃ³n
+ 2081: setShowSessionModal(false)
+ 2082: setShowSessionModal(false)
+ 2083: Aprobada
+ 2084: FU-18
+ 2085: SessionExpirationModalrefresh
+ 2086: Componente
+ 2087: Refresca sesiÃ³n
+ 2088: showSessionModal=true
+ 2089: Click refrescar
+ 2090: Click botÃ³n
+ 2091: refreshSession(true)
+ 2092: refreshSession(true)
+ 2093: Aprobada
+ 2094: Tipo de prueba
+ 2095: Pruebas de contrato API
+ 2096: TÃ­tulo del set
+ 2097: ComunicaciÃ³n frontend y backend mÃ³dulo de gestiÃ³n de usuarios y sesiones
+ 2098: ID
+ 2099: Nombre
+ 2100: DescripciÃ³n
+ 2101: Precondiciones
+ 2102: Entradas
+ 2103: Procedimiento
+ 2104: Resultado esperado
+ 2105: Resultado obtenido
+ 2106: Estado
+ 2107: FA-01
+ 2108: loginUserApi contrato vÃ¡lido
+ 2109: Retorna token
+ 2110: axiosmock
+ 2111: Email/Password
+ 2112: Ejecutar
+ 2113: accessToken presente
+ 2114: accessToken presente
+ 2115: Aprobada
+ 2116: FA-02
+ 2117: loginUserApi contrato invÃ¡lido
+ 2118: Rechaza contrato
+ 2119: axiosmock
+ 2120: Email/Password
+ 2121: Ejecutar
+ 2122: ErrorÂ INVALID_API_CONTRACT
+ 2123: ErrorÂ INVALID_API_CONTRACT
+ 2124: Aprobada
+ 2125: FA-03
+ 2126: meApi devuelve sesiÃ³n
+ 2127: Retorna user
+ 2128: axiosmock
+ 2129: N/A
+ 2130: Ejecutar
+ 2131: user presente
+ 2132: user presente
+ 2133: Aprobada
+ 2134: FA-04
+ 2135: refreshApi devuelve token
+ 2136: Retorna nuevo token
+ 2137: axiosmock
+ 2138: N/A
+ 2139: Ejecutar
+ 2140: token presente
+ 2141: token presente
+ 2142: Aprobada
+ 2143: FA-05
+ 2144: logoutUserApi responde OK
+ 2145: Cierra sesiÃ³n
+ 2146: axiosmock
+ 2147: N/A
+ 2148: Ejecutar
+ 2149: {}
+ 2150: {}
+ 2151: Aprobada
+ 2152: FA-06
+ 2153: getSummaryDataApi listado
+ 2154: Resumen
+ 2155: axiosmock
+ 2156: ID
+ 2157: Ejecutar
+ 2158: array
+ 2159: array
+ 2160: Aprobada
+ 2161: FA-07
+ 2162: getAllUsersApi contrato vÃ¡lido
+ 2163: Retorna usuarios
+ 2164: axiosmock
+ 2165: N/A
+ 2166: Ejecutar
+ 2167: lista
+ 2168: lista
+ 2169: Aprobada
+ 2170: FA-08
+ 2171: getAllUsersApi contrato invÃ¡lido
+ 2172: Rechaza contrato
+ 2173: axiosmock
+ 2174: N/A
+ 2175: Ejecutar
+ 2176: ErrorÂ INVALID_API_CONTRACT
+ 2177: ErrorÂ INVALID_API_CONTRACT
+ 2178: Aprobada
+ 2179: FA-09
+ 2180: getUserByEmailApi vÃ¡lido
+ 2181: Retorna usuario
+ 2182: axiosmock
+ 2183: Email
+ 2184: Ejecutar
+ 2185: usuario
+ 2186: usuario
+ 2187: Aprobada
+ 2188: FA-10
+ 2189: createUserApi contrato invÃ¡lido
+ 2190: Rechaza contrato
+ 2191: axiosmock
+ 2192: payload
+ 2193: Ejecutar
+ 2194: ErrorÂ INVALID_API_CONTRACT
+ 2195: ErrorÂ INVALID_API_CONTRACT
+ 2196: Aprobada
+ 2197: FA-11
+ 2198: updateUserApi contrato invÃ¡lido
+ 2199: Rechaza contrato
+ 2200: axiosmock
+ 2201: payload
+ 2202: Ejecutar
+ 2203: ErrorÂ INVALID_API_CONTRACT
+ 2204: ErrorÂ INVALID_API_CONTRACT
+ 2205: Aprobada
+ 2206: FA-12
+ 2207: deleteUserApi contrato invÃ¡lido
+ 2208: Rechaza contrato
+ 2209: axiosmock
+ 2210: payload
+ 2211: Ejecutar
+ 2212: ErrorÂ INVALID_API_CONTRACT
+ 2213: ErrorÂ INVALID_API_CONTRACT
+ 2214: Aprobada
+ 2215: Tipo de prueba
+ 2216: E2E
+ 2217: TÃ­tulo del set
+ 2218: Pruebas E2E para el mÃ³dulo de gestiÃ³n de usuarios y sesiones
+ 2219: ID
+ 2220: Nombre
+ 2221: DescripciÃ³n
+ 2222: Precondiciones
+ 2223: Entradas
+ 2224: Procedimiento
+ 2225: Resultado esperado
+ 2226: Resultado obtenido
+ 2227: Estado
+ 2228: FE-01
+ 2229: Login exitoso redirige aÂ /inicio
+ 2230: Flujo completo de login
+ 2231: MockÂ /auth/login
+ 2232: Email/Password vÃ¡lidos
+ 2233: Llenar formulario y enviar
+ 2234: URLÂ /inicio
+ 2235: URLÂ /inicio
+ 2236: Aprobada
+ 2237: FE-02
+ 2238: Admin accede aÂ /usuariosÂ y ve lista
+ 2239: Render lista de usuarios
+ 2240: MockÂ /auth/refresh,Â /users/getAllUsers
+ 2241: N/A
+ 2242: Ir aÂ /usuarios
+ 2243: â€œLista de usuariosâ€ visible
+ 2244: Visible
+ 2245: Aprobada
+ 2246: FE-03
+ 2247: CreaciÃ³n de usuario con validaciones
+ 2248: Validaciones y alta de usuario
+ 2249: MockÂ /auth/refresh,Â /users/createUser,Â /users/getUserByEmail
+ 2250: Nombre, apellidos, email, password
+ 2251: Completar formulario y crear
+ 2252: RedirecciÃ³n aÂ /usuario/:email
+ 2253: RedirecciÃ³n correcta
+ 2254: Aprobada
+ 2255: FE-04
+ 2256: Admin puede editar su perfil
+ 2257: BotÃ³n de ediciÃ³n visible en su perfil
+ 2258: MockÂ /auth/refresh,Â /users/getUserByEmail
+ 2259: N/A
+ 2260: Ir aÂ /usuario/admin@test.com
+ 2261: Ãcono editar visible
+ 2262: Visible
+ 2263: Aprobada
+ 2264: FE-05
+ 2265: Admin no puede editar otro admin
+ 2266: RestricciÃ³n de ediciÃ³n por rol
+ 2267: MockÂ /auth/refresh,Â /users/getUserByEmail
+ 2268: N/A
+ 2269: Ir aÂ /usuario/otro.admin@test.com
+ 2270: Ãcono editar NO visible
+ 2271: No visible
+ 2272: Aprobada
+ 2273: FE-06
+ 2274: EliminaciÃ³n de usuario con confirmaciÃ³n
+ 2275: Super-admin elimina con email y password
+ 2276: MockÂ /auth/refresh,Â /users/getUserByEmail,Â /users/deleteUser
+ 2277: Email destino, password 8 chars
+ 2278: Abrir tab â€œMÃ¡sâ€, confirmar y eliminar
+ 2279: RedirecciÃ³n aÂ /usuarios
+ 2280: RedirecciÃ³n correcta
+ 2281: Aprobada
+ 2282: FE-07
+ 2283: Usuario sin rol admin bloqueado
+ 2284: RestricciÃ³n de acceso aÂ /usuarios
+ 2285: MockÂ /auth/refreshÂ con rol user
+ 2286: N/A
+ 2287: Ir aÂ /usuarios
+ 2288: RedirecciÃ³n aÂ /404
+ 2289: RedirecciÃ³n correcta
+ 2290: Aprobada
+ 2291: Tipo de prueba:
+ 2292: Unitarias / Componentes
+ 2293: TÃ­tulo del set:
+ 2294: Pruebas unitarias y de componentes gestiÃ³n de proyectos + plan perativo
+ 2295: ID
+ 2296: Nombre
+ 2297: Tipo
+ 2298: DescripciÃ³n
+ 2299: Precondiciones
+ 2300: Entradas
+ 2301: Procedimiento
+ 2302: Resultado esperado
+ 2303: Resultado obtenido
+ 2304: Estado
+ 2305: FU-OP-01
+ 2306: isRowEmpty fila vacÃ­a
+ 2307: Unitario
+ 2308: Valida fila vacÃ­a
+ 2309: Ninguna
+ 2310: Row vacÃ­o
+ 2311: Ejecutar test
+ 2312: True
+ 2313: True
+ 2314: Aprobada
+ 2315: FU-OP-02
+ 2316: isRowEmpty con datos
+ 2317: Unitario
+ 2318: Valida fila con contenido
+ 2319: Ninguna
+ 2320: Row con objetivo
+ 2321: Ejecutar test
+ 2322: False
+ 2323: False
+ 2324: Aprobada
+ 2325: FU-OP-03
+ 2326: formatRow normaliza
+ 2327: Unitario
+ 2328: Normaliza datos
+ 2329: Ninguna
+ 2330: Row mixto
+ 2331: Ejecutar test
+ 2332: Row normalizado
+ 2333: Row normalizado
+ 2334: Aprobada
+ 2335: FU-OP-04
+ 2336: removeRowIfEmpty elimina
+ 2337: Unitario
+ 2338: Elimina fila vacÃ­a
+ 2339: Ninguna
+ 2340: rows[]
+ 2341: Ejecutar test
+ 2342: 1 fila
+ 2343: 1 fila
+ 2344: Aprobada
+ 2345: FU-OP-05
+ 2346: removeRowIfEmpty conserva
+ 2347: Unitario
+ 2348: No elimina si es Ãºnica
+ 2349: Ninguna
+ 2350: rows[1]
+ 2351: Ejecutar test
+ 2352: 1 fila
+ 2353: 1 fila
+ 2354: Aprobada
+ 2355: FU-PJ-01
+ 2356: FormData completo
+ 2357: Unitario
+ 2358: Construye payload
+ 2359: Ninguna
+ 2360: name/desc/file/etc
+ 2361: Ejecutar test
+ 2362: FormData correcto
+ 2363: FormData correcto
+ 2364: Aprobada
+ 2365: FU-PJ-02
+ 2366: FormData omite vacÃ­os
+ 2367: Unitario
+ 2368: Evita campos vacÃ­os
+ 2369: Ninguna
+ 2370: name solo
+ 2371: Ejecutar test
+ 2372: Solo name
+ 2373: Solo name
+ 2374: Aprobada
+ 2375: ANEXO 3
+ 2376: TABLEROS DE PRUEBAS EJECUTADAS EN EL MÃ“DULO DE GESTIÃ“N DE PROYECTOS Y PLANIFICACIÃ“N OPERATIVA
+ 2377: Tipo de prueba
+ 2378: Unitaria
+ 2379: TÃ­tulo del set
+ 2380: Pruebas unitarias al backend del mÃ³dulo de gestiÃ³n de proyectos yplanificaciÃ³noperativa
+ 2381: ID
+ 2382: Nombre
+ 2383: DescripciÃ³n
+ 2384: Precondiciones
+ 2385: Entradas
+ 2386: Procedimiento
+ 2387: Resultado esperado
+ 2388: Resultado obtenido
+ 2389: Estado
+ 2390: BU-OP-01
+ 2391: Hash de contraseÃ±a
+ 2392: Detecta fila sin datos
+ 2393: Ninguna
+ 2394: Row vacÃ­o
+ 2395: EjecutarÂ isRowEmpty
+ 2396: True
+ 2397: True
+ 2398: Aprobada
+ 2399: BU-OP-02
+ 2400: JWT expira correctamente
+ 2401: Detecta fila con contenido
+ 2402: Ninguna
+ 2403: Row con objetivo
+ 2404: EjecutarÂ isRowEmpty
+ 2405: False
+ 2406: False
+ 2407: Aprobada
+ 2408: BU-PJ-01
+ 2409: Acceso invÃ¡lido por ID
+ 2410: Rechaza projectId invÃ¡lido
+ 2411: Ninguna
+ 2412: projectId no numÃ©rico
+ 2413: EjecutarÂ canAccessProject
+ 2414: False
+ 2415: False
+ 2416: Aprobada
+ 2417: BU-PJ-02
+ 2418: Acceso super administrador
+ 2419: Super admin accede sin DB
+ 2420: Ninguna
+ 2421: role=superAdmin
+ 2422: EjecutarÂ canAccessProject
+ 2423: True
+ 2424: True
+ 2425: Aprobada
+ 2426: BU-PJ-03
+ 2427: Acceso administrador
+ 2428: Admin accede sin DB
+ 2429: Ninguna
+ 2430: role=admin
+ 2431: EjecutarÂ canAccessProject
+ 2432: True
+ 2433: True
+ 2434: Aprobada
+ 2435: BU-PJ-04
+ 2436: Rol desconocido
+ 2437: Bloquea rol no permitido
+ 2438: Ninguna
+ 2439: role="guest"
+ 2440: EjecutarÂ canAccessProject
+ 2441: False
+ 2442: False
+ 2443: Aprobada
+ 2444: BU-PJ-05
+ 2445: Usuario no asignado
+ 2446: Bloquea acceso si no estÃ¡ asignado
+ 2447: Ninguna
+ 2448: role=user + count=0
+ 2449: EjecutarÂ canAccessProject
+ 2450: False
+ 2451: False
+ 2452: Aprobada
+ 2453: BU-PJ-06
+ 2454: Usuario asignado
+ 2455: Permite acceso si estÃ¡ asignado
+ 2456: Ninguna
+ 2457: role=user + count>0
+ 2458: EjecutarÂ canAccessProject
+ 2459: True
+ 2460: True
+ 2461: Aprobada
+ 2462: BU-PJ-07
+ 2463: Responsables faltantes
+ 2464: Error si IDs no existen
+ 2465: Ninguna
+ 2466: responsibles=[1,2], users=[1]
+ 2467: EjecutarÂ assignResponsibles
+ 2468: Error
+ 2469: Error
+ 2470: Aprobada
+ 2471: BU-PJ-08
+ 2472: Crearresponsables
+ 2473: Crea y guarda responsables
+ 2474: Ninguna
+ 2475: responsibles=[1,2]
+ 2476: EjecutarÂ assignResponsibles
+ 2477: Guardado Ok
+ 2478: Guardado Ok
+ 2479: Aprobada
+ 2480: Tipo de prueba
+ 2481: IntegraciÃ³n
+ 2482: TÃ­tulo del set
+ 2483: Pruebas de integraciÃ³n API proyectos yplan operativo
+ 2484: ID
+ 2485: Nombre
+ 2486: DescripciÃ³n
+ 2487: Precondiciones
+ 2488: Entradas
+ 2489: Procedimiento
+ 2490: Resultado esperado
+ 2491: Resultado obtenido
+ 2492: Estado
+ 2493: BI-PJ-01
+ 2494: Crear proyecto completo
+ 2495: Crea proyecto con responsables/integraciones
+ 2496: Super admin autenticado
+ 2497: Payload vÃ¡lido
+ 2498: POSTÂ /api/projects/create
+ 2499: 200 + proyecto
+ 2500: 200 + proyecto
+ 2501: Aprobada
+ 2502: BI-PJ-02
+ 2503: Listar proyectos (admin)
+ 2504: Admin ve asignados
+ 2505: Admin autenticado
+ 2506: N/A
+ 2507: GETÂ /api/projects/getAll
+ 2508: Lista asignados
+ 2509: Lista asignados
+ 2510: Aprobada
+ 2511: BI-PJ-03
+ 2512: Ver detalle (admin)
+ 2513: Admin accede
+ 2514: Admin autenticado
+ 2515: projectId
+ 2516: GET /api/projects/getProjectById/:id
+ 2517: 200 + data
+ 2518: 200 + data
+ 2519: Aprobada
+ 2520: BI-PJ-04
+ 2521: Ver detalle (user no asignado)
+ 2522: Lectura permitida
+ 2523: User autenticado
+ 2524: projectId
+ 2525: GETÂ /api/projects/getProjectById/:id
+ 2526: 200 + data
+ 2527: 200 + data
+ 2528: Aprobada
+ 2529: BI-PJ-05
+ 2530: Asignar/desasignar responsables
+ 2531: Admin gestiona responsables
+ 2532: Admin autenticado
+ 2533: payload vÃ¡lido
+ 2534: PATCH /api/projects/:id
+ 2535: 200 + cambios
+ 2536: 200 + cambios
+ 2537: Aprobada
+ 2538: BI-PJ-06
+ 2539: Actualizar integraciones
+ 2540: CRUD integraciones
+ 2541: Admin autenticado
+ 2542: payload vÃ¡lido
+ 2543: PUTÂ /api/apis/project-integration/:id/integrations
+ 2544: 200 + cambios
+ 2545: 200 + cambios
+ 2546: Aprobada
+ 2547: BI-PJ-07
+ 2548: Eliminar proyecto
+ 2549: Super admin elimina
+ 2550: Super admin autenticado
+ 2551: projectId
+ 2552: DELETEÂ /api/projects/:id
+ 2553: 200
+ 2554: 200
+ 2555: Aprobada
+ 2556: BI-OP-01
+ 2557: Plan inicial vacÃ­o
+ 2558: Devuelve plan vacÃ­o
+ 2559: Admin autenticado
+ 2560: projectId
+ 2561: GETÂ /api/operational-plans/:id
+ 2562: 200 + rows
+ 2563: 200 + rows
+ 2564: Aprobada
+ 2565: BI-OP-02
+ 2566: Guardar plan
+ 2567: Guarda filas + versiona
+ 2568: Admin autenticado
+ 2569: payload vÃ¡lido
+ 2570: POST /api/operational-plans/updateOperationalPlan/:id
+ 2571: 200 + version
+ 2572: 200 + version
+ 2573: Aprobada
+ 2574: BI-OP-03
+ 2575: VersiÃ³n desactualizada
+ 2576: Rechaza version vieja
+ 2577: Admin autenticado
+ 2578: version vieja
+ 2579: POSTÂ /api/operational-plans/updateOperationalPlan/:id
+ 2580: 409
+ 2581: 409
+ 2582: Aprobada
+ 2583: BI-OP-04
+ 2584: Eliminar plan operativo
+ 2585: Borra plan
+ 2586: Super admin autenticado
+ 2587: projectId
+ 2588: DELETEÂ /api/operational-plans/deleteOperationalPlan/:id
+ 2589: 200
+ 2590: 200
+ 2591: Aprobada
+ 2592: Tipo de prueba
+ 2593: Pruebas de contrato API
+ 2594: TÃ­tulo del set
+ 2595: ComunicaciÃ³n frontend y backend mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+ 2596: ID
+ 2597: Nombre
+ 2598: DescripciÃ³n
+ 2599: Precondiciones
+ 2600: Entradas
+ 2601: Procedimiento
+ 2602: Resultado esperado
+ 2603: Resultado obtenido
+ 2604: Estado
+ 2605: FA-PJ-01
+ 2606: loginUserApi contrato vÃ¡lido
+ 2607: OperationalProjects contrato
+ 2608: axiosmock
+ 2609: Payloads vÃ¡lidos
+ 2610: Ejecutar
+ 2611: Contrato OK
+ 2612: OK
+ 2613: Aprobada
+ 2614: FA-OP-02
+ 2615: loginUserApi contrato invÃ¡lido
+ 2616: OperationalPlan contrato
+ 2617: axiosmock
+ 2618: Payloads vÃ¡lidos
+ 2619: Ejecutar
+ 2620: Contrato OK
+ 2621: OK
+ 2622: Aprobada
+ 2623: Tipo de prueba
+ 2624: E2E
+ 2625: TÃ­tulo del set
+ 2626: Pruebas E2E para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+ 2627: ID
+ 2628: Nombre
+ 2629: DescripciÃ³n
+ 2630: Precondiciones
+ 2631: Entradas
+ 2632: Procedimiento
+ 2633: Resultado esperado
+ 2634: Resultado obtenido
+ 2635: Estado
+ 2636: FE-PJ-01
+ 2637: Crear proyecto
+ 2638: Form + preview
+ 2639: Mocksauth + create
+ 2640: N/A
+ 2641: Completar form
+ 2642: Proyecto creado
+ 2643: OK
+ 2644: Aprobada
+ 2645: FE-PJ-02
+ 2646: Editar proyecto
+ 2647: Responsables/integraciones
+ 2648: Mocksauth + update
+ 2649: N/A
+ 2650: Editar y guardar
+ 2651: Cambios guardados
+ 2652: OK
+ 2653: Aprobada
+ 2654: FE-OP-01
+ 2655: Cargar plan operativo
+ 2656: Render header + tabla
+ 2657: Mocksauth + plan
+ 2658: N/A
+ 2659: Abrir plan
+ 2660: Plan visible
+ 2661: OK
+ 2662: Aprobada
+ 2663: FE-OP-02
+ 2664: Guardar plan operativo
+ 2665: Crear fila + guardar
+ 2666: Mocksauth + save
+ 2667: N/A
+ 2668: Editar y guardar
+ 2669: Guardado OK
+ 2670: OK
+ 2671: Aprobada
+ 2672: FE-OP-03
+ 2673: Modo de vista
+ 2674: Cambiar modo a lectura
+ 2675: Mocksauth + plan
+ 2676: N/A
+ 2677: Cambiar modo
+ 2678: UI lectura
+ 2679: OK
+ 2680: Aprobada
+ 2681: FE-OP-04
+ 2682: ExportaciÃ³n
+ 2683: PDF en modo lectura
+ 2684: Mocksauth + export
+ 2685: N/A
+ 2686: Exportar PDF
+ 2687: PDF generado
+ 2688: OK
+ 2689: Aprobada
+ 2690: ANEXO 4
+ 2691: TABLEROS DE PRUEBAS EJECUTADAS EN EL MÃ“DULO DE PLANIFICACIÃ“N ESTRATÃ‰GICA
+ 2692: Tipo de prueba
+ 2693: Unitaria backend
+ 2694: TÃ­tulo del set
+ 2695: Pruebas unitarias al backend del mÃ³dulo de planificaciÃ³n estratÃ©gica
+ 2696: ID
+ 2697: Nombre
+ 2698: DescripciÃ³n
+ 2699: Precondiciones
+ 2700: Entradas
+ 2701: Procedimiento
+ 2702: Resultado esperado
+ 2703: Resultado obtenido
+ 2704: Estado
+ 2705: BU-SP-01
+ 2706: Listar planes
+ 2707: Respuesta exitosa en listado
+ 2708: Repo mockeado con datos
+ 2709: N/A
+ 2710: EjecutarÂ getAllStrategicPlans
+ 2711: 200 +Â success:trueÂ + lista
+ 2712: 200 + lista correcta
+ 2713: Aprobada
+ 2714: BU-SP-02
+ 2715: AÃ±o invÃ¡lido en getByYear
+ 2716: Valida parÃ¡metro year
+ 2717: N/A
+ 2718: year=abc
+ 2719: EjecutarÂ getStrategicPlanByYear
+ 2720: 400Â VALIDATION_ERROR
+ 2721: 400Â VALIDATION_ERROR
+ 2722: Aprobada
+ 2723: BU-SP-03
+ 2724: AÃ±o invÃ¡lido en update
+ 2725: Valida parÃ¡metro year
+ 2726: N/A
+ 2727: year=xyz
+ 2728: EjecutarÂ updateStrategicPlan
+ 2729: 400Â VALIDATION_ERROR
+ 2730: 400Â VALIDATION_ERROR
+ 2731: Aprobada
+ 2732: BU-SP-04
+ 2733: Delete plan inexistente
+ 2734: Manejo de no encontrado
+ 2735: Repo retornaÂ null
+ 2736: year=2035
+ 2737: EjecutarÂ deleteStrategicPlanByYear
+ 2738: 404Â RESOURCE_NOT_FOUND
+ 2739: 404 correcto
+ 2740: Aprobada
+ 2741: BU-SP-05
+ 2742: Error interno en delete
+ 2743: Manejo de excepciÃ³n de servidor
+ 2744: Repo lanza excepciÃ³n
+ 2745: year=2035
+ 2746: EjecutarÂ deleteStrategicPlanByYear
+ 2747: 500Â SERVER_ERROR
+ 2748: 500 correcto
+ 2749: Aprobada
+ 2750: Tipo de prueba
+ 2751: IntegraciÃ³n
+ 2752: TÃ­tulo del set
+ 2753: Pruebas de integraciÃ³n al API mÃ³dulo de planificaciÃ³n estratÃ©gica
+ 2754: ID
+ 2755: Nombre
+ 2756: DescripciÃ³n
+ 2757: Precondiciones
+ 2758: Entradas
+ 2759: Procedimiento
+ 2760: Resultado esperado
+ 2761: Resultado obtenido
+ 2762: Estado
+ 2763: BI-SP-01
+ 2764: Listar aÃ±os
+ 2765: Lista planes existentes
+ 2766: Super admin autenticado
+ 2767: N/A
+ 2768: GET /api/strategic-plans
+ 2769: 200 + array
+ 2770: 200 + array
+ 2771: Aprobada
+ 2772: BI-SP-02
+ 2773: Crear plan estratÃ©gico
+ 2774: Alta de plan por aÃ±o
+ 2775: Super admin autenticado
+ 2776: mission,Â
+ 2777: plan_version,Â
+ 2778: objectives
+ 2779: PUT /api/strategic-plans/:year
+ 2780: 200 + plan creado
+ 2781: 200 +Â plan_versionÂ vÃ¡lido
+ 2782: Aprobada
+ 2783: BI-SP-03
+ 2784: Lectura por usuario
+ 2785: Usuario puede leer plan
+ 2786: Usuario autenticado
+ 2787: year vÃ¡lido
+ 2788: GET /api/strategic-plans/:year
+ 2789: 200 + data
+ 2790: 200 + data
+ 2791: Aprobada
+ 2792: BI-SP-04
+ 2793: Admin sin permiso update
+ 2794: Bloqueo por rol
+ 2795: Admin autenticado
+ 2796: payloadupdate
+ 2797: PUT /api/strategic-plans/:year
+ 2798: 403
+ 2799: 403
+ 2800: Aprobada
+ 2801: BI-SP-05
+ 2802: VersiÃ³n stale
+ 2803: Control de concurrencia
+ 2804: Super admin + plan previo
+ 2805: plan_versionÂ vieja
+ 2806: PUT /api/strategic-plans/:year
+ 2807: 409Â VERSION_ERROR
+ 2808: 409 correcto
+ 2809: Aprobada
+ 2810: BI-SP-06
+ 2811: AÃ±o invÃ¡lido
+ 2812: ValidaciÃ³n de pathparam
+ 2813: Super admin autenticado
+ 2814: year=abc
+ 2815: GET /api/strategic-plans/abc
+ 2816: 400Â VALIDATION_ERROR
+ 2817: 400 correcto
+ 2818: Aprobada
+ 2819: BI-SP-07
+ 2820: Admin sin permiso delete
+ 2821: Bloqueo por rol
+ 2822: Admin autenticado
+ 2823: year vÃ¡lido
+ 2824: DELETE /api/strategic-plans/deleteStrategicPlan/:year
+ 2825: 403
+ 2826: 403
+ 2827: Aprobada
+ 2828: BI-SP-08
+ 2829: Eliminar plan
+ 2830: Borrado completo por super admin
+ 2831: Super admin autenticado
+ 2832: year vÃ¡lido
+ 2833: DELETE /api/strategic-plans/deleteStrategicPlan/:year
+ 2834: 200 + eliminado
+ 2835: 200 + validado en DB (null)
+ 2836: Aprobada
+ 2837: Tipo de prueba
+ 2838: Pruebas de contrato API
+ 2839: TÃ­tulo del set
+ 2840: ComunicaciÃ³n frontend y backend mÃ³dulo de planificaciÃ³n estratÃ©gica
+ 2841: ID
+ 2842: Nombre
+ 2843: DescripciÃ³n
+ 2844: Precondiciones
+ 2845: Entradas
+ 2846: Procedimiento
+ 2847: Resultado esperado
+ 2848: Resultado obtenido
+ 2849: Estado
+ 2850: FA-SP-01
+ 2851: getAllsuccess
+ 2852: Devuelve listado si contrato vÃ¡lido
+ 2853: axiosÂ mock
+ 2854: respuestaÂ success:true
+ 2855: getAllStrategicPlansApi()
+ 2856: array de planes
+ 2857: array correcto
+ 2858: Aprobada
+ 2859: FA-SP-02
+ 2860: getAll contrato invÃ¡lido
+ 2861: RechazaÂ success:false
+ 2862: axiosÂ mock
+ 2863: respuesta invÃ¡lida
+ 2864: getAllStrategicPlansApi()
+ 2865: errorÂ INVALID_API_CONTRACT
+ 2866: error correcto
+ 2867: Aprobada
+ 2868: FA-SP-03
+ 2869: getByYearsuccess
+ 2870: Devuelve plan por aÃ±o
+ 2871: axiosÂ mock
+ 2872: year=2026
+ 2873: getStrategicPlanByYearApi(2026)
+ 2874: objeto plan
+ 2875: objeto correcto
+ 2876: Aprobada
+ 2877: FA-SP-04
+ 2878: updatesuccess
+ 2879: Retorna plan actualizado
+ 2880: axiosÂ mock
+ 2881: payloadupdate
+ 2882: updateStrategicPlanApi(...)
+ 2883: plan_versionÂ actualizado
+ 2884: correcto
+ 2885: Aprobada
+ 2886: FA-SP-05
+ 2887: deletesuccess
+ 2888: Retorna null al eliminar
+ 2889: axiosÂ mock
+ 2890: year=2026
+ 2891: deleteStrategicPlanApi(2026)
+ 2892: null
+ 2893: null
+ 2894: Aprobada
+ 2895: Tipo de prueba
+ 2896: Unitarias / Componentes
+ 2897: TÃ­tulo del set:
+ 2898: Pruebas unitarias y de componentes mÃ³dulo de planificaciÃ³n estratÃ©gica
+ 2899: ID
+ 2900: Nombre
+ 2901: Tipo
+ 2902: DescripciÃ³n
+ 2903: Precondiciones
+ 2904: Entradas
+ 2905: Procedimiento
+ 2906: Resultado esperado
+ 2907: Resultado obtenido
+ 2908: Estado
+ 2909: FU-SP-01
+ 2910: normalizePlanDataÂ nulo
+ 2911: Unitario
+ 2912: Retorna null si no hay datos
+ 2913: Ninguna
+ 2914: null
+ 2915: Ejecutar util
+ 2916: null
+ 2917: null
+ 2918: Aprobada
+ 2919: FU-SP-02
+ 2920: normalizePlanDataÂ defaults
+ 2921: Unitario
+ 2922: Normaliza misiÃ³n/programas/proyectos
+ 2923: Ninguna
+ 2924: Plan parcial
+ 2925: Ejecutar util
+ 2926: Estructura normalizada
+ 2927: Estructura correcta
+ 2928: Aprobada
+ 2929: FU-SP-03
+ 2930: normalizePlanDataÂ arrays vacÃ­os
+ 2931: Unitario
+ 2932: Garantiza arrays seguros
+ 2933: Ninguna
+ 2934: Plan sin objetivos
+ 2935: Ejecutar util
+ 2936: objectives=[]
+ 2937: objectives=[]
+ 2938: Aprobada
+ 2939: FU-SP-04
+ 2940: buildPayloadFromData
+ 2941: Unitario
+ 2942: Construye payload de guardado
+ 2943: Ninguna
+ 2944: Data estratÃ©gica
+ 2945: Ejecutar util
+ 2946: Payload vÃ¡lido
+ 2947: Payload correcto
+ 2948: Aprobada
+ 2949: FU-SP-05
+ 2950: isEqual
+ 2951: Unitario
+ 2952: Compara estructuras
+ 2953: Ninguna
+ 2954: Objetos
+ 2955: Ejecutar util
+ 2956: Boolean correcto
+ 2957: Correcto
+ 2958: Aprobada
+ 2959: FU-SP-06
+ 2960: sortById
+ 2961: Unitario
+ 2962: Ordena ascendente y soporta nulos
+ 2963: Ninguna
+ 2964: Array desordenado / null
+ 2965: Ejecutar util
+ 2966: Ordenado /Â []
+ 2967: Correcto
+ 2968: Aprobada
+ 2969: FU-SP-07
+ 2970: normalizeTargets
+ 2971: Unitario
+ 2972: Normaliza y ordena estructura
+ 2973: Ninguna
+ 2974: Targets mixtos
+ 2975: Ejecutar util
+ 2976: Estructura ordenada
+ 2977: Correcto
+ 2978: Aprobada
+ 2979: FU-SP-08
+ 2980: buildPayload
+ 2981: Unitario
+ 2982: Mapea payload final
+ 2983: Ninguna
+ 2984: MisiÃ³n + targets
+ 2985: Ejecutar util
+ 2986: Payload esperado
+ 2987: Correcto
+ 2988: Aprobada
+ 2989: FU-SP-09
+ 2990: updateTargetsWithEditedTarget
+ 2991: Unitario
+ 2992: Reemplaza objetivo editado
+ 2993: Ninguna
+ 2994: targets,Â updatedTarget
+ 2995: Ejecutar util
+ 2996: Objetivo actualizado
+ 2997: Correcto
+ 2998: Aprobada
+ 2999: FU-SP-10
+ 3000: updateTargetsWithNewProgram
+ 3001: Unitario
+ 3002: Agrega programa a objetivo seleccionado
+ 3003: Ninguna
+ 3004: targets,Â selectedTargetId, texto
+ 3005: Ejecutar util
+ 3006: Programa agregado
+ 3007: Correcto
+ 3008: Aprobada
+ 3009: FU-SP-11
+ 3010: updateTargetsWithEditedProject
+ 3011: Unitario
+ 3012: Edita proyecto especÃ­fico
+ 3013: Ninguna
+ 3014: IDs + proyecto actualizado
+ 3015: Ejecutar util
+ 3016: Proyecto editado
+ 3017: Correcto
+ 3018: Aprobada
+ 3019: FU-SP-12
+ 3020: getAllAssignedProjectIds
+ 3021: Unitario
+ 3022: Devuelve IDs Ãºnicos
+ 3023: Ninguna
+ 3024: Targets con repetidos
+ 3025: Ejecutar util
+ 3026: IDs Ãºnicos
+ 3027: Correcto
+ 3028: Aprobada
+ 3029: FU-SP-13
+ 3030: generateTempId
+ 3031: Unitario
+ 3032: Genera ID temporal vÃ¡lido
+ 3033: Ninguna
+ 3034: N/A
+ 3035: Ejecutar util
+ 3036: PrefijoÂ temp-
+ 3037: Correcto
+ 3038: Aprobada
+ 3039: FC-SP-01
+ 3040: SelectYearÂ selecciÃ³n
+ 3041: Componente
+ 3042: Permite abrir modal y cambiar aÃ±o
+ 3043: Render componente
+ 3044: Click aÃ±o
+ 3045: Render + click
+ 3046: onChange(year)
+ 3047: onChangeÂ ejecutado
+ 3048: Aprobada
+ 3049: FC-SP-02
+ 3050: SelectYearÂ deshabilitado
+ 3051: Componente
+ 3052: Bloquea interacciÃ³n si disabled
+ 3053: Render conÂ disabled=true
+ 3054: N/A
+ 3055: Render
+ 3056: BotÃ³n deshabilitado
+ 3057: BotÃ³n deshabilitado
+ 3058: Aprobada
+ 3059: Tipo de prueba
+ 3060: E2E
+ 3061: TÃ­tulo del set
+ 3062: Pruebas E2E lmÃ³dulo de planificaciÃ³n estratÃ©gica
+ 3063: ID
+ 3064: Nombre
+ 3065: DescripciÃ³n
+ 3066: Precondiciones
+ 3067: Entradas
+ 3068: Procedimiento
+ 3069: Resultado esperado
+ 3070: Resultado obtenido
+ 3071: Estado
+ 3072: FE-SP-01
+ 3073: VisualizaciÃ³n y menÃº exportar (desktop)
+ 3074: Usuario en modo documento ve contenido y opciones de exportaciÃ³n
+ 3075: Auth/API mock
+ 3076: year=2026
+ 3077: Navegar aÂ /planificacion-estrategica/2026Â y abrir menÃº exportar
+ 3078: Vista cargada + opciones PDF/DOCX visibles
+ 3079: Cumplido
+ 3080: Aprobada
+ 3081: FE-SP-02
+ 3082: Cambio de vista columnaâ†’documento (desktop)
+ 3083: Super admin cambia visualizaciÃ³n
+ 3084: Auth/API mock super admin
+ 3085: year=2026
+ 3086: Abrir selector de vista y elegir Documento
+ 3087: Cambio aplicado y render documento
+ 3088: Cumplido
+ 3089: Aprobada
+ 3090: FE-SP-03
+ 3091: Eliminar plan con confirmaciÃ³n (desktop)
+ 3092: Super admin confirma aÃ±o y elimina plan
+ 3093: Auth/API mock super admin
+ 3094: dÃ­gitos 2026
+ 3095: Abrir dialog, ingresar 4 dÃ­gitos, eliminar
+ 3096: plan eliminado y estado vacÃ­o visible
+ 3097: Cumplido
+ 3098: Aprobada
+ 3099: FE-SP-04
+ 3100: VisualizaciÃ³n y menÃº exportar (mobile)
+ 3101: Mismo flujo de lectura en mÃ³vil
+ 3102: Auth/API mock
+ 3103: year=2026
+ 3104: Navegar y abrir exportar
+ 3105: vista y menÃºs visibles
+ 3106: Cumplido
+ 3107: Aprobada
+ 3108: FE-SP-05
+ 3109: Cambio de vista columnaâ†’documento (mobile)
+ 3110: Mismo flujo en mÃ³vil
+ 3111: Auth/API mock super admin
+ 3112: year=2026
+ 3113: cambiar vista
+ 3114: cambio aplicado
+ 3115: Cumplido
+ 3116: Aprobada
+ 3117: FE-SP-06
+ 3118: Eliminar plan con confirmaciÃ³n (mobile)
+ 3119: Borrado confirmado en mÃ³vil
+ 3120: Auth/API mock super admin
+ 3121: dÃ­gitos 2026
+ 3122: confirmar y eliminar
+ 3123: estado vacÃ­o tras eliminar
+ 3124: Cumplido
+ 3125: Aprobada

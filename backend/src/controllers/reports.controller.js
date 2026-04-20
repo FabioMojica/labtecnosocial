@@ -149,7 +149,7 @@ export const updateReport = async (req, res) => {
   try {
     const { reportId } = req.params;
     const parsedReport = JSON.parse(req.body.report);
-    const { title, elements, elementsOrder } = parsedReport;
+    const { title, elements, elementsOrder, report_version: clientVersionRaw } = parsedReport;
 
     const reportRepo = AppDataSource.getRepository(Report);
 
@@ -161,6 +161,25 @@ export const updateReport = async (req, res) => {
         ERROR_CODES.RESOURCE_NOT_FOUND,
         'Reporte no encontrado',
         404
+      );
+    }
+
+    const clientVersion = Number(clientVersionRaw);
+    if (!Number.isInteger(clientVersion)) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'Debes enviar report_version para actualizar el reporte.',
+        400
+      );
+    }
+
+    if (clientVersion !== report.report_version) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VERSION_ERROR,
+        'Error al actualizar el reporte: asegurate de estar trabajando sobre la ultima version del reporte refrescando la pagina.',
+        409
       );
     }
 

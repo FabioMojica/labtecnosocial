@@ -138,10 +138,7 @@ export const saveOperationalPlanOfProject = async (req, res) => {
       return errorResponse(
         res,
         ERROR_CODES.VERSION_ERROR,
-        {
-          message: "Error al actualizar el plan estratégico: asegúrate de estar trabajando sobre la última versión del plan refrescando la página.",
-          currentVersion: project.operationalPlan_version,
-        },
+        "Error al actualizar el plan operativo: asegurate de estar trabajando sobre la ultima version del plan refrescando la pagina.",
         409
       );
     }

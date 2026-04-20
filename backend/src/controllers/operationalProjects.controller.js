@@ -66,25 +66,7 @@ export const createOperationalProject = async (req, res) => {
       );
     }
 
-    if (req.user.role === ALLOWED_ROLES.admin && responsibleIds.length > 0) {
-      const usersToAssign = await userRepository.find({
-        where: { id: In([...new Set(responsibleIds)]) }
-      });
-
-      const hasForbiddenAssignment = usersToAssign.some(
-        (u) => ![ALLOWED_ROLES.superAdmin, ALLOWED_ROLES.user].includes(u.role)
-      );
-
-      if (hasForbiddenAssignment) {
-        await queryRunner.rollbackTransaction();
-        return errorResponse(
-          res,
-          ERROR_CODES.USER_UNAUTHORIZED,
-          'Un administrador solo puede asignar responsables con rol super administrador o usuario.',
-          403
-        );
-      }
-    }
+    // Admin puede asignar responsables de cualquier rol
 
     // Manejo de imagen
     const imagePath = req.files?.[0]?.optimizedPath || null;
@@ -278,20 +260,7 @@ export const getProjectById = async (req, res) => {
       );
     }
 
-    const hasAccess = await canAccessProject({
-      projectId: project.id,
-      userId,
-      role,
-    });
-
-    if (!hasAccess) {
-      return errorResponse(
-        res,
-        ERROR_CODES.USER_UNAUTHORIZED,
-        'No tienes permisos para acceder a este proyecto.',
-        403
-      );
-    }
+    // Ahora cualquier usuario autenticado puede ver el detalle del proyecto.
 
     const responsiblesWithCount = [];
     for (const r of project.projectResponsibles) {
@@ -589,35 +558,7 @@ export const updateOperationalProject = async (req, res) => {
       ? await userRepository.find({ where: { id: In(uniquePreEliminadosIds) } })
       : [];
 
-    if (req.user.role === ALLOWED_ROLES.admin) {
-      const hasForbiddenUnassignment = usersToUnassign.some(
-        (u) => u.role !== ALLOWED_ROLES.user
-      );
-
-      if (hasForbiddenUnassignment) {
-        await queryRunner.rollbackTransaction();
-        return errorResponse(
-          res,
-          ERROR_CODES.USER_UNAUTHORIZED,
-          'Un administrador solo puede desasignar responsables con rol usuario.',
-          403
-        );
-      }
-
-      const hasForbiddenAssignment = usersToAdd.some(
-        (u) => ![ALLOWED_ROLES.superAdmin, ALLOWED_ROLES.user].includes(u.role)
-      );
-
-      if (hasForbiddenAssignment) {
-        await queryRunner.rollbackTransaction();
-        return errorResponse(
-          res,
-          ERROR_CODES.USER_UNAUTHORIZED,
-          'Un administrador solo puede asignar responsables con rol super administrador o usuario.',
-          403
-        );
-      }
-    }
+    // Admin puede asignar y desasignar responsables de cualquier rol
 
     if (uniquePreEliminadosIds.length > 0) {
       for (const userId of uniquePreEliminadosIds) {

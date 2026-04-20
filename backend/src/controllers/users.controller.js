@@ -260,31 +260,7 @@ export const getUserByEmail = async (req, res) => {
       return projectData;
     });
 
-    const shouldFilterBySharedProjects =
-      (requester?.role === ALLOWED_ROLES.admin && user.role === ALLOWED_ROLES.superAdmin) ||
-      (
-        requester?.role === ALLOWED_ROLES.user &&
-        [ALLOWED_ROLES.admin, ALLOWED_ROLES.superAdmin].includes(user.role)
-      );
-
-    if (shouldFilterBySharedProjects) {
-      const requesterWithProjects = await userRepository.findOne({
-        where: { id: requester.id },
-        relations: {
-          projectResponsibles: {
-            operationalProject: true,
-          },
-        },
-      });
-
-      const requesterProjectIds = new Set(
-        (requesterWithProjects?.projectResponsibles ?? [])
-          .map((pr) => pr.operationalProject?.id)
-          .filter((projectId) => Number.isInteger(projectId))
-      );
-
-      assignedProjects = assignedProjects.filter((project) => requesterProjectIds.has(project.id));
-    }
+    // Ahora todos los roles pueden ver todos los proyectos asignados del usuario.
 
     const responsibleData = creator
       ? {

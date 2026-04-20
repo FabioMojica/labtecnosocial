@@ -16,7 +16,7 @@ import { useFetchAndLoad } from "../../hooks";
 const OperationalPlanningDashboardPage = () => {
   const location = useLocation();
   const id = location.state?.id;
-  const { isUser } = useAuth();
+  const { isUser, isAdmin } = useAuth();
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const { loading, callEndpoint } = useFetchAndLoad();
@@ -185,7 +185,7 @@ const OperationalPlanningDashboardPage = () => {
                 </FormControl>
               )}
 
-              {(effectiveViewMode === 'editable' && selectedProject && !isUser) && (
+            {(effectiveViewMode === 'editable' && selectedProject && !isUser && !isAdmin) && (
                 <Box
                   sx={{
                     display: 'flex',

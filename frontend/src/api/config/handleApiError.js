@@ -20,9 +20,15 @@ export const handleApiError = (error, defaultMessage) => {
   if (error.response?.data) {
       const apiError = error.response.data;
       if (apiError.success === false) {
+        const apiMessage = apiError?.error?.message;
+        const normalizedMessage =
+          typeof apiMessage === "string"
+            ? apiMessage
+            : (apiMessage?.message || defaultMessage || 'Ocurrio un error inesperado. Intentalo nuevamente mas tarde.');
+
         throw {
           code: apiError.error.code,
-          message: apiError.error.message,
+          message: normalizedMessage,
         };
       } 
     }

@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Divider, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import { SearchBar, NoResultsScreen, FullScreenProgress, AssignResponsibleCheckBoxItem, ErrorScreen } from "../../../generalComponents";
-import { useAuth, useHeaderHeight, useNotification } from "../../../contexts";
+import { useHeaderHeight } from "../../../contexts";
 import CloseIcon from '@mui/icons-material/Close';
 
 import { useFetchAndLoad } from "../../../hooks";
 import { getAllUsersApi } from "../../../api";
-import { roleConfig } from "../../../utils";
 
 const MemoizedCheckBoxItem = React.memo(
     ({ responsible, checked, onChange, disabled, disabledReason }) => {
@@ -35,8 +34,6 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
     const [filteredUsers, setFilteredUsers] = useState(originalResponsibles);
     const height = `calc(100vh - ${headerHeight}px - ${panelHeight}px)`;
     const { loading, callEndpoint } = useFetchAndLoad();
-    const { notify } = useNotification();
-    const { user: userSession } = useAuth();
     const [selectedUsers, setSelectedUsers] = useState(() => {
         const initial = {};
         responsibles.forEach((user) => {
@@ -45,32 +42,6 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
         return initial;
     });
     const [ errorFetchAllUsers, setErrorFetchAllUsers ] = useState(null);
-    const isAdminSession = userSession?.role === roleConfig.admin.value;
-
-    const getRestrictionForToggle = (user, isChecked) => {
-        if (!isAdminSession) {
-            return { disabled: false, reason: "" };
-        }
-
-        const isUnassignAction = Boolean(isChecked);
-        const role = user?.role;
-
-        if (isUnassignAction && role !== roleConfig.user.value) {
-            return {
-                disabled: true,
-                reason: "Un administrador solo puede desasignar responsables con rol usuario.",
-            };
-        }
-
-        if (!isUnassignAction && ![roleConfig.superAdmin.value, roleConfig.user.value].includes(role)) {
-            return {
-                disabled: true,
-                reason: "Un administrador solo puede asignar responsables con rol super administrador o usuario.",
-            };
-        }
-
-        return { disabled: false, reason: "" };
-    };
 
     useEffect(() => {
         if ((responsibles?.length ?? 0) === 0) {
@@ -115,12 +86,6 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
     const handleToggleUser = (user) => {
         setSelectedUsers((prev) => {
             const currentlyChecked = Boolean(prev[user.email]);
-            const restriction = getRestrictionForToggle(user, currentlyChecked);
-            if (restriction.disabled) {
-                notify(restriction.reason, "warning");
-                return prev;
-            }
-
             const newChecked = !currentlyChecked;
             const updated = { ...prev, [user.email]: newChecked };
             const preEliminados = originalResponsibles.filter(u => !updated[u.email]);
@@ -362,15 +327,13 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
                                     {filteredUsers.length > 0 ? ( 
                                         filteredUsers.map((user) => {
                                             const isChecked = !!selectedUsers[user.email];
-                                            const restriction = getRestrictionForToggle(user, isChecked);
-
                                             return (
                                                 <MemoizedCheckBoxItem
                                                     key={user.email}
                                                     responsible={user}
                                                     checked={isChecked}
-                                                    disabled={restriction.disabled}
-                                                    disabledReason={restriction.reason}
+                                                    disabled={false}
+                                                    disabledReason={""}
                                                     onChange={() => handleToggleUser(user)}
                                                 />
                                             );

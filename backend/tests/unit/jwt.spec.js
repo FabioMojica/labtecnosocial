@@ -1,16 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { users } from '../fixtures/fixtures.js';
 import request from 'supertest';
-
-
-const { admin, coordinator, disabledUser, deletedUser } = users;
-
 import app from '../../src/app.js';
 
-describe('Seguridad / Autenticación - Unit Tests', () => {
-
-  test('Las contraseñas se almacenan en hash', async () => {
+describe('Seguridad / Autenticacion - Unit Tests', () => {
+  test('Las contrasenas se almacenan en hash', async () => {
     const plainPassword = 'Secret123';
     const hashed = await bcrypt.hash(plainPassword, 10);
 
@@ -28,31 +22,31 @@ describe('Seguridad / Autenticación - Unit Tests', () => {
 
     try {
       jwt.verify(token, secret);
-      throw new Error('El token no expiró');
+      throw new Error('El token no expiro');
     } catch (err) {
       expect(err.name).toBe('TokenExpiredError');
     }
   });
 
-  test('Token caducado debe fallar', async () => {
-  const token = jwt.sign({ email: admin.email }, 'testsecret', { expiresIn: '1s' });
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  test('Token caducado debe fallar en endpoint protegido', async () => {
+    const token = jwt.sign({ email: 'admin@test.com' }, 'testsecret', { expiresIn: '1s' });
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-  const res = await request(app)
-    .get('/api/auth-users/users')
-    .set('Authorization', `Bearer ${token}`);
+    const res = await request(app)
+      .get('/api/users/getAllUsers')
+      .set('Authorization', `Bearer ${token}`);
 
-  expect(res.statusCode).toBe(401);
-});
+    expect(res.statusCode).toBe(401);
+    expect(res.body?.success).toBe(false);
+  });
 
-test('Token con firma incorrecta debe fallar', async () => {
-  const token = jwt.sign({ email: admin.email }, 'wrongsecret');
-  const res = await request(app)
-    .get('/api/auth-users/users')
-    .set('Authorization', `Bearer ${token}`);
+  test('Token con firma incorrecta debe fallar', async () => {
+    const token = jwt.sign({ email: 'admin@test.com' }, 'wrongsecret');
+    const res = await request(app)
+      .get('/api/users/getAllUsers')
+      .set('Authorization', `Bearer ${token}`);
 
-  expect(res.statusCode).toBe(401);
-});
-
-
+    expect(res.statusCode).toBe(401);
+    expect(res.body?.success).toBe(false);
+  });
 });

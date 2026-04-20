@@ -10,6 +10,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 *.log
+playwright-report/
+test-results/
+frontend/playwright-report/
+frontend/test-results/
 
 # Env
 .env

@@ -8,9 +8,9 @@ import { useEffect, useState } from 'react';
 import { useFetchAndLoad } from '../../hooks';
 import { useAuth, useNotification } from '../../contexts';
 import { ErrorScreen, FullScreenProgress, NoResultsScreen } from '../../generalComponents';
-import { getOperationalProjectsWithIntegrationsApi } from '../../api';
+import { getAllOperationalProjectsApi, getOperationalProjectsWithIntegrationsApi } from '../../api';
 import { useNavigate } from 'react-router-dom';
-import { integrationsConfig } from '../../utils';
+import { integrationsConfig, roleConfig } from '../../utils';
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { GitHubDashboard } from './components/GitHub/GitHubDashboard';
@@ -27,12 +27,16 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
     const { notify } = useNotification();
     const navigate = useNavigate();
     const [selectedIntegration, setSelectedIntegration] = useState(null);
+    const [visibleProjectsCount, setVisibleProjectsCount] = useState(0);
 
     const fetchProjectsWithIntegrations = async () => {
         try {
             setError(false);
-            const res = await callEndpoint(getOperationalProjectsWithIntegrationsApi(user.email));
-            setProjects(res);
+            const projectsWithIntegrations = await callEndpoint(getOperationalProjectsWithIntegrationsApi(user.email));
+            setProjects(projectsWithIntegrations);
+
+            const visibleProjects = await callEndpoint(getAllOperationalProjectsApi());
+            setVisibleProjectsCount(Array.isArray(visibleProjects) ? visibleProjects.length : 0);
         } catch (fetchError) {
             setError(true);
             notify(fetchError.message, 'error');
@@ -80,9 +84,31 @@ export const APIsDashboardPage = ({ showingDialog = false }) => {
     }
 
     if (projects.length === 0) {
+        if (user?.role !== roleConfig.superAdmin.value) {
+            const hasAssignedProjects = visibleProjectsCount > 0;
+            return (
+                <NoResultsScreen
+                    message={
+                        hasAssignedProjects
+                            ? 'Ninguno de tus proyectos asignados esta integrado con APIs'
+                            : 'Aun no tienes proyectos asignados'
+                    }
+                    buttonText='Volver al inicio'
+                    onButtonClick={() => {
+                        navigate('/inicio');
+                    }}
+                />
+            );
+        }
+
+        const hasProjectsInSystem = visibleProjectsCount > 0;
         return (
             <NoResultsScreen
-                message='No tienes ningun proyecto registrado en el sistema'
+                message={
+                    hasProjectsInSystem
+                        ? 'No tienes ningun proyecto integrado con APIs'
+                        : 'No tienes ningun proyecto registrado en el sistema'
+                }
                 buttonText='Crear uno'
                 onButtonClick={() => {
                     navigate('/proyectos/crear');

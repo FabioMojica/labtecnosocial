@@ -27,3 +27,7 @@ Resumen:
 - [Variables de entorno](docs/environment-variables.md)
 - [Seguridad de secretos](docs/security-secrets.md)
 - [Estructura del sistema](docs/system-overview.md)
+- [Auditoria QA y plan de pruebas](docs/qa-auditoria-plan-pruebas.md)
+- [Resultados QA Fase A](docs/qa-fase-a-resultados.md)
+- [Resultados QA Fase B](docs/qa-fase-b-resultados.md)
+- [Resultados QA Fase B Frontend + E2E](docs/qa-fase-b-frontend-e2e-resultados.md)

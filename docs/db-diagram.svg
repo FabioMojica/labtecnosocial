@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="950" viewBox="0 0 1400 950">
+  <defs>
+    <style>
+      .title { font: 700 22px Arial, sans-serif; fill: #222; }
+      .box-title { font: 700 14px Arial, sans-serif; fill: #111; }
+      .box-text { font: 12px Arial, sans-serif; fill: #222; }
+      .box { fill: #f7f9fc; stroke: #2b2b2b; stroke-width: 1.2; }
+      .link { stroke: #444; stroke-width: 1.2; fill: none; }
+      .link-dashed { stroke: #666; stroke-width: 1.2; fill: none; stroke-dasharray: 6 4; }
+      .pk { font-weight: 700; }
+      .note { font: 11px Arial, sans-serif; fill: #666; }
+    </style>
+  </defs>
+
+  <text class="title" x="40" y="36">Modelo de datos - Sistema Lab Tecno Social</text>
+
+  <!-- Left column -->
+  <rect class="box" x="40" y="70" width="320" height="150" rx="8"/>
+  <text class="box-title" x="56" y="95">strategic_plans</text>
+  <text class="box-text pk" x="56" y="115">id (PK)</text>
+  <text class="box-text" x="56" y="133">year</text>
+  <text class="box-text" x="56" y="151">mission</text>
+  <text class="box-text" x="56" y="169">plan_version</text>
+  <text class="box-text" x="56" y="187">created_at, updated_at</text>
+
+  <rect class="box" x="40" y="250" width="320" height="140" rx="8"/>
+  <text class="box-title" x="56" y="275">objectives</text>
+  <text class="box-text pk" x="56" y="295">id (PK)</text>
+  <text class="box-text" x="56" y="313">title</text>
+  <text class="box-text" x="56" y="331">strategic_plan_id (FK)</text>
+
+  <rect class="box" x="40" y="420" width="320" height="130" rx="8"/>
+  <text class="box-title" x="56" y="445">indicators</text>
+  <text class="box-text pk" x="56" y="465">id (PK)</text>
+  <text class="box-text" x="56" y="483">amount</text>
+  <text class="box-text" x="56" y="501">concept</text>
+  <text class="box-text" x="56" y="519">objective_id (FK)</text>
+
+  <rect class="box" x="40" y="580" width="320" height="130" rx="8"/>
+  <text class="box-title" x="56" y="605">programs</text>
+  <text class="box-text pk" x="56" y="625">id (PK)</text>
+  <text class="box-text" x="56" y="643">description</text>
+  <text class="box-text" x="56" y="661">objective_id (FK)</text>
+
+  <!-- Right column -->
+  <rect class="box" x="520" y="150" width="360" height="180" rx="8"/>
+  <text class="box-title" x="536" y="175">operational_projects</text>
+  <text class="box-text pk" x="536" y="195">id (PK)</text>
+  <text class="box-text" x="536" y="213">name, description, image_url</text>
+  <text class="box-text" x="536" y="231">program_id (FK)</text>
+  <text class="box-text" x="536" y="249">project_version, operationalPlan_version</text>
+  <text class="box-text" x="536" y="267">created_at, updated_at</text>
+  <text class="box-text" x="536" y="285">operationalPlan_created_at/updated_at</text>
+
+  <rect class="box" x="520" y="360" width="360" height="190" rx="8"/>
+  <text class="box-title" x="536" y="385">operational_rows</text>
+  <text class="box-text pk" x="536" y="405">id (PK)</text>
+  <text class="box-text" x="536" y="423">objective</text>
+  <text class="box-text" x="536" y="441">indicator_amount, indicator_concept</text>
+  <text class="box-text" x="536" y="459">team, resources</text>
+  <text class="box-text" x="536" y="477">budget_amount, budget_description</text>
+  <text class="box-text" x="536" y="495">period_start, period_end</text>
+  <text class="box-text" x="536" y="513">operational_project_id (FK)</text>
+
+  <rect class="box" x="920" y="150" width="340" height="140" rx="8"/>
+  <text class="box-title" x="936" y="175">project_integrations</text>
+  <text class="box-text pk" x="936" y="195">id (PK)</text>
+  <text class="box-text" x="936" y="213">platform, integration_id</text>
+  <text class="box-text" x="936" y="231">name, url</text>
+  <text class="box-text" x="936" y="249">project_id (FK)</text>
+  <text class="box-text" x="936" y="267">created_at, updated_at</text>
+
+  <rect class="box" x="920" y="320" width="340" height="120" rx="8"/>
+  <text class="box-title" x="936" y="345">project_responsibles</text>
+  <text class="box-text pk" x="936" y="365">id (PK)</text>
+  <text class="box-text" x="936" y="383">user_id (FK)</text>
+  <text class="box-text" x="936" y="401">operational_project_id (FK)</text>
+
+  <rect class="box" x="920" y="470" width="340" height="170" rx="8"/>
+  <text class="box-title" x="936" y="495">users</text>
+  <text class="box-text pk" x="936" y="515">id (PK)</text>
+  <text class="box-text" x="936" y="533">firstName, lastName</text>
+  <text class="box-text" x="936" y="551">role, email</text>
+  <text class="box-text" x="936" y="569">state, session_version</text>
+  <text class="box-text" x="936" y="587">created_by (FK)</text>
+  <text class="box-text" x="936" y="605">created_at, updated_at</text>
+
+  <rect class="box" x="520" y="620" width="360" height="150" rx="8"/>
+  <text class="box-title" x="536" y="645">reports</text>
+  <text class="box-text pk" x="536" y="665">id (PK)</text>
+  <text class="box-text" x="536" y="683">title</text>
+  <text class="box-text" x="536" y="701">data (jsonb)</text>
+  <text class="box-text" x="536" y="719">report_version</text>
+  <text class="box-text" x="536" y="737">created_at, updated_at</text>
+
+  <!-- Links -->
+  <path class="link" d="M360 145 L520 200" />
+  <path class="link" d="M200 250 L200 220" />
+  <path class="link" d="M200 390 L200 420" />
+  <path class="link" d="M200 550 L200 580" />
+
+  <path class="link" d="M360 305 L520 230" />
+  <path class="link" d="M360 640 L520 230" />
+
+  <path class="link" d="M700 330 L700 360" />
+  <path class="link" d="M880 220 L920 220" />
+  <path class="link" d="M880 260 L920 360" />
+  <path class="link" d="M880 240 L920 380" />
+
+  <path class="link" d="M1090 440 L1090 470" />
+  <path class="link-dashed" d="M1090 470 C 1100 430, 1160 430, 1180 470" />
+
+  <!-- Notes -->
+  <text class="note" x="520" y="800">Nota: reports se almacena como JSONB sin relacion directa.</text>
+</svg>

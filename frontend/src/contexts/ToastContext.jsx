@@ -10,6 +10,10 @@ export const useNotification = () => {
     severity = "info",
     options = {}
   ) => {
+    const normalizedMessage =
+      typeof message === "string"
+        ? message
+        : (message?.message || "Ocurrio un error inesperado.");
 
     const action = options?.action ?? ((key) => (
       <IconButton onClick={() => closeSnackbar(key)} size="small" color="inherit">
@@ -19,7 +23,7 @@ export const useNotification = () => {
 
     const anchorOrigin = options?.anchorOrigin;
 
-    return enqueueSnackbar(message, {
+    return enqueueSnackbar(normalizedMessage, {
       variant: severity,
       autoHideDuration: options?.persist ? undefined : options?.duration ?? 2000,
       persist: options?.persist,

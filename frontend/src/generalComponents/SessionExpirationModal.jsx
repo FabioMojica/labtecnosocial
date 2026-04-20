@@ -43,10 +43,15 @@ export const SessionExpirationModal = () => {
     }
   };
 
+  const handleDialogClose = (_, reason) => {
+    if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+    setShowSessionModal(false);
+  };
+
   return (
     <Dialog
       open={showSessionModal}
-      onClose={() => setShowSessionModal(false)}
+      onClose={handleDialogClose}
       disableEscapeKeyDown
       maxWidth="xs"
       fullWidth

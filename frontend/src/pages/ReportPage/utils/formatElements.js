@@ -93,7 +93,7 @@ export const formatElementsForFrontend = (backendReport) => {
 };
 
 
-export const formatElementsForDb = (editedReport) => {
+export const formatElementsForDb = (editedReport, reportVersion = null) => {
   const { title, elements, elementsOrder } = editedReport;
 
   const normalizedTitle =
@@ -154,16 +154,19 @@ export const formatElementsForDb = (editedReport) => {
   }).filter(Boolean);
 
 
-  formData.append(
-    "report",
-    JSON.stringify({
-      title: normalizedTitle,
-      elements: Object.fromEntries(
-        data.map(el => [el.id, el])
-      ),
-      elementsOrder: elementsOrder.map((id) => idMap.get(id)).filter(Boolean),
-    })
-  );
+  const serializedReport = {
+    title: normalizedTitle,
+    elements: Object.fromEntries(
+      data.map(el => [el.id, el])
+    ),
+    elementsOrder: elementsOrder.map((id) => idMap.get(id)).filter(Boolean),
+  };
+
+  if (Number.isInteger(reportVersion)) {
+    serializedReport.report_version = reportVersion;
+  }
+
+  formData.append("report", JSON.stringify(serializedReport));
 
   return formData;
 };
