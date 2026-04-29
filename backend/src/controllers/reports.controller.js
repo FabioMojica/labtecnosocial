@@ -28,7 +28,7 @@ export const getReportById = async (req, res) => {
     const report = await reportRepo.findOneBy({ id: Number(reportId) });
 
     if (!report) {
-      return errorResponse(res, ERROR_CODES.NOT_FOUND, 'Reporte no encontrado', 404);
+      return errorResponse(res, ERROR_CODES.RESOURCE_NOT_FOUND, 'Reporte no encontrado', 404);
     }
 
     return successResponse(
@@ -73,7 +73,7 @@ export const createReport = async (req, res) => {
       }
     });
 
-    // Validamos con Zod (si tu esquema espera 'data' como objeto en vez de array, ajústalo)
+    // Validamos con Zod (si tu esquema espera 'data' como objeto en vez de array, ajustalo)
     const validated = reportSchema.parse({
       title,
       elements: finalElements,
@@ -111,8 +111,8 @@ export const createReport = async (req, res) => {
     if (error.name === "ZodError") {
       return errorResponse(
         res,
-        ERROR_CODES.BAD_REQUEST,
-        "Datos inválidos",
+        ERROR_CODES.VALIDATION_ERROR,
+        "Datos invalidos",
         400,
         error.errors
       );
@@ -156,12 +156,7 @@ export const updateReport = async (req, res) => {
     const report = await reportRepo.findOneBy({ id: Number(reportId) });
 
     if (!report) {
-      return errorResponse(
-        res,
-        ERROR_CODES.RESOURCE_NOT_FOUND,
-        'Reporte no encontrado',
-        404
-      );
+      return errorResponse(res, ERROR_CODES.RESOURCE_NOT_FOUND, 'Reporte no encontrado', 404);
     }
 
     const clientVersion = Number(clientVersionRaw);
@@ -265,8 +260,8 @@ export const updateReport = async (req, res) => {
     if (error.name === 'ZodError') {
       return errorResponse(
         res,
-        ERROR_CODES.BAD_REQUEST,
-        'Datos inválidos',
+        ERROR_CODES.VALIDATION_ERROR,
+        'Datos invalidos',
         400,
         error.errors
       );
@@ -292,7 +287,7 @@ export const deleteReport = async (req, res) => {
     const report = await reportRepo.findOneBy({ id: Number(reportId) });
 
     if (!report) {
-      return errorResponse(res, ERROR_CODES.NOT_FOUND, 'Reporte no encontrado', 404);
+      return errorResponse(res, ERROR_CODES.RESOURCE_NOT_FOUND, 'Reporte no encontrado', 404);
     }
 
     await reportRepo.remove(report);

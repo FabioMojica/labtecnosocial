@@ -97,6 +97,35 @@ describe("API core modules", () => {
     expect(result[0].name).toBe("Simi");
   });
 
+  test("dashboard API rechaza contrato invalido", async () => {
+    vi.spyOn(axiosInstance, "get").mockResolvedValueOnce({
+      data: { success: false, data: [] },
+    });
+
+    await expect(getOperationalProjectsWithIntegrationsApi("admin@test.com")).rejects.toMatchObject({
+      code: "INVALID_API_CONTRACT",
+    });
+  });
+
+  test("dashboard API propaga error controlado de backend", async () => {
+    vi.spyOn(axiosInstance, "get").mockRejectedValueOnce({
+      response: {
+        data: {
+          success: false,
+          error: {
+            code: "USER_UNAUTHORIZED",
+            message: "No tienes permisos para realizar esta acción.",
+          },
+        },
+      },
+    });
+
+    await expect(getOperationalProjectsWithIntegrationsApi("admin@test.com")).rejects.toMatchObject({
+      code: "USER_UNAUTHORIZED",
+      message: "No tienes permisos para realizar esta acción.",
+    });
+  });
+
   test("reports APIs cubren ciclo completo", async () => {
     vi.spyOn(axiosInstance, "get").mockResolvedValueOnce({
       data: { success: true, data: [{ id: 5, title: "Reporte" }] },

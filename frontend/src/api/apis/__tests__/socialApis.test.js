@@ -64,4 +64,53 @@ describe("Social APIs (GitHub/Facebook/Instagram)", () => {
     });
     await expect(getInstagramMedia("ig-1", "lastMonth")).resolves.toMatchObject({ media: [] });
   });
+
+  test("GitHub APIs rechazan contrato invalido", async () => {
+    vi.spyOn(axiosInstance, "get").mockResolvedValueOnce({
+      data: { success: false, data: [] },
+    });
+
+    await expect(getReposApi()).rejects.toMatchObject({
+      code: "INVALID_API_CONTRACT",
+    });
+  });
+
+  test("GitHub APIs propagan error de backend", async () => {
+    vi.spyOn(axiosInstance, "get").mockRejectedValueOnce({
+      response: {
+        data: {
+          success: false,
+          error: {
+            code: "RESOURCE_NOT_FOUND",
+            message: "Repositorio no encontrado",
+          },
+        },
+      },
+    });
+
+    await expect(getGithubBranchesApi("repo-x", "lab-tecnosocial")).rejects.toMatchObject({
+      code: "RESOURCE_NOT_FOUND",
+      message: "Repositorio no encontrado",
+    });
+  });
+
+  test("Facebook APIs rechazan contrato invalido", async () => {
+    vi.spyOn(axiosInstance, "get").mockResolvedValueOnce({
+      data: { success: false, data: {} },
+    });
+
+    await expect(getFacebookPageOverview("page-1")).rejects.toMatchObject({
+      code: "INVALID_API_CONTRACT",
+    });
+  });
+
+  test("Instagram APIs manejan error de red", async () => {
+    vi.spyOn(axiosInstance, "get").mockRejectedValueOnce({
+      code: "ERR_NETWORK",
+    });
+
+    await expect(getInstagramOverview("ig-1")).rejects.toMatchObject({
+      code: "ERR_NETWORK",
+    });
+  });
 });

@@ -1,0 +1,5990 @@
+﻿
+
+Departamento de IngenierÃ­a y Ciencias Exactas
+Carrera de IngenierÃ­a en Sistemas
+
+
+
+Sistema web para la gestiÃ³n de proyectos en el Laboratorio de TecnologÃ­as Sociales
+
+
+Licenciatura en IngenierÃ­a de Sistemas 
+
+
+
+
+
+Cochabamba â€“ Bolivia 
+Abril de 2026
+TRIBUNAL EXAMINADOR
+
+
+
+
+
+
+
+
+
+
+
+___________________________
+Mgr. Joel Reynaldo Alanes Duran
+Profesor GuÃ­a
+
+
+
+
+
+
+
+
+
+
+___________________________
+Lic. Alex Ojeda Copa
+Profesor Relator
+
+
+
+________________________
+Mgr. Wendoline Arteaga Sabja
+Directora de Carrera
+
+
+
+___________________________
+Mgr. MarÃ­a MÃ³nica Daza Ondarza Salamanca
+Rectora Regional
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dedicatoria
+
+Dedico este trabajo a
+ mis compaÃ±eros y amigos
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Agradecimientos
+
+Agradezco a Dios,
+a mis padres y a mis docentes
+por el apoyo a lo largo de
+estos aÃ±os de estudio.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RESUMEN Y PALABRAS CLAVE
+El presente trabajo desarrolla un sistema web para la gestiÃ³n de proyectos en el Laboratorio de TecnologÃ­as Sociales, organizaciÃ³n sin fines de lucro con sede en Cochabamba, Bolivia. El problema identificado se relaciona con la ineficiencia de los procesos manuales de planificaciÃ³n estratÃ©gica y operativa, el monitoreo de indicadores y la elaboraciÃ³n de reportes, lo que genera retrasos y errores en la toma de decisiones. El objetivo principal es diseÃ±ar e implementar un sistema que integre la gestiÃ³n de usuarios, planes estratÃ©gicos y proyectos operativos, ademÃ¡s de automatizar la recolecciÃ³n de datos desde APIs externas como GitHub, Facebook e Instagram, La metodologÃ­a aplicada se basÃ³ en la adaptaciÃ³n del marco Ã¡gil Scrum, con iteraciones cortas y entregas incrementales. Los resultados alcanzados incluyen un backend construido con Express.js y TypeORM, un frontend en React, una base de datos en PostgreSQL y un dashboard interactivo que visualiza indicadores clave de desempeÃ±o (KPIs). Se concluye que la soluciÃ³n propuesta reduce significativamente el tiempo de seguimiento de proyectos, minimiza errores humanos y fortalece la capacidad de anÃ¡lisis y decisiÃ³n de la organizaciÃ³n.
+Palabras clave: GestiÃ³n de proyectos, sistemas web, Scrum, APIs, KPIs, Lab TecnoSocial.
+
+
+
+
+
+
+
+
+
+
+
+
+
+ABSTRACT
+This work develops a web-based system for project management at the Social Technologies Laboratory, a non-profit organization based in Cochabamba, Bolivia. The identified problem is related to the inefficiency of manual processes for strategic and operational planning, monitoring of indicators, and report generation, which leads to delays and errors in decision-making.
+The main objective is to design and implement a system that integrates user management, strategic plans, and operational projects, as well as to automate data collection from external APIs such as GitHub, Google Play Console, Google Analytics, and social media platforms.
+The applied methodology was based on the adaptation of the Scrum agile framework, with short iterations and incremental deliveries. The results achieved include a backend built with Express.js and TypeORM, a frontend developed in React, a PostgreSQL database, and an interactive dashboard that visualizes key performance indicators (KPIs).
+It is concluded that the proposed solution significantly reduces project tracking time, minimizes human errors, and strengthens the organizationâ€™s analytical and decision-making capabilities.
+Keywords: Project management, web systems, Scrum, APIs, KPIs, Lab TecnoSocial.
+
+
+
+
+
+
+
+INDICE GENERAL
+ TOC \o \h \z \t "NIVEL 1;1;NIVEL 2;2;NIVEL 3;3" INTRODUCCION PAGEREF _Toc227620387 \h 14
+CAPÃTULO 1. MARCO CONTEXTUAL PAGEREF _Toc227620388 \h 15
+1.1. ANTECEDENTES ORGANIZACIONALES PAGEREF _Toc227620389 \h 15
+1.1.1. Monitoreo de indicadores de desempeÃ±o (KPIs) PAGEREF _Toc227620390 \h 19
+1.1.2. ElaboraciÃ³n de reportes PAGEREF _Toc227620391 \h 20
+1.2. PROBLEMA PAGEREF _Toc227620392 \h 20
+1.2.1. SituaciÃ³n problemÃ¡tica PAGEREF _Toc227620393 \h 20
+1.2.2. FormulaciÃ³n del problema PAGEREF _Toc227620394 \h 20
+1.3. OBJETIVOS PAGEREF _Toc227620395 \h 20
+1.3.1. Objetivo general PAGEREF _Toc227620396 \h 20
+1.3.2. Objetivos especÃ­ficos PAGEREF _Toc227620397 \h 21
+1.4. ALCANCES Y LÃMITES PAGEREF _Toc227620398 \h 21
+1.4.1. Alcances PAGEREF _Toc227620399 \h 21
+1.4.2. LÃ­mites PAGEREF _Toc227620400 \h 22
+1.5. JUSTIFICACION PAGEREF _Toc227620401 \h 23
+ CAPITULO 2. MARCO TEORICO PAGEREF _Toc227620402 \h 24
+2.1. Fundamentos de IngenierÃ­a de Software PAGEREF _Toc227620403 \h 24
+2.1.1. IngenierÃ­a de software PAGEREF _Toc227620404 \h 24
+2.1.2. Arquitectura de software PAGEREF _Toc227620405 \h 24
+2.1.2.1. Clienteâ€“Servidor y SPA (Single Page Application). PAGEREF _Toc227620406 \h 25
+2.1.2.2. Aplicaciones de una sola pÃ¡gina (SPA) PAGEREF _Toc227620407 \h 25
+2.1.2.3. Servicios Web RESTful PAGEREF _Toc227620408 \h 25
+2.1.2.4. Arquitectura en capas PAGEREF _Toc227620409 \h 26
+2.1.2.5. PatrÃ³n Modelo Vista Controlador (MVC) PAGEREF _Toc227620410 \h 26
+2.1.3. API PAGEREF _Toc227620411 \h 26
+2.2. MetodologÃ­as Ã¡giles y conceptos asociados PAGEREF _Toc227620412 \h 27
+2.2.1. Scrum PAGEREF _Toc227620413 \h 27
+2.2.2. Historias de usuario PAGEREF _Toc227620414 \h 27
+2.3. Pruebas de software PAGEREF _Toc227620415 \h 27
+2.3.1. Concepto de pruebas de software PAGEREF _Toc227620416 \h 27
+2.3.2. Tipos de pruebas PAGEREF _Toc227620417 \h 28
+2.3.2.1. Pruebas unitarias PAGEREF _Toc227620418 \h 28
+2.3.2.2. Pruebas de integraciÃ³n PAGEREF _Toc227620419 \h 28
+2.3.2.3. Pruebas de componentes PAGEREF _Toc227620420 \h 28
+2.3.2.4. Pruebas de flujo PAGEREF _Toc227620421 \h 28
+2.3.2.5. Casos de pruebas PAGEREF _Toc227620422 \h 28
+2.4. Modelado y diseÃ±o de software con UML PAGEREF _Toc227620423 \h 29
+2.4.1. DefiniciÃ³n de UML PAGEREF _Toc227620424 \h 29
+2.4.2. Diagrama de casos de uso PAGEREF _Toc227620425 \h 29
+2.4.3. Diagrama de secuencias PAGEREF _Toc227620426 \h 29
+2.5. Formato de datos y comunicaciÃ³n PAGEREF _Toc227620427 \h 29
+2.5.1. JSON PAGEREF _Toc227620428 \h 30
+2.6. TecnologÃ­as para el desarrollo frontend PAGEREF _Toc227620429 \h 30
+2.6.1. React y React Router DOM PAGEREF _Toc227620430 \h 30
+2.6.2. Material UI PAGEREF _Toc227620431 \h 30
+2.6.3. Vite PAGEREF _Toc227620432 \h 31
+2.6.4. Recharts PAGEREF _Toc227620433 \h 31
+2.7. TecnologÃ­as para el desarrollo Backend PAGEREF _Toc227620434 \h 31
+2.7.1. Express PAGEREF _Toc227620435 \h 31
+2.7.2. TypeORM PAGEREF _Toc227620436 \h 31
+2.8. TecnologÃ­as para el desarrollo y gestiÃ³n de bases de datos PAGEREF _Toc227620437 \h 32
+ CAPÃTULO 3. MARCO METODOLÃ“GICO PAGEREF _Toc227620438 \h 32
+3.1. AdaptaciÃ³n metodolÃ³gica PAGEREF _Toc227620439 \h 32
+3.2. PlanificaciÃ³n del desarrollo PAGEREF _Toc227620440 \h 33
+ CAPÃTULO 4. INGENIERÃA DEL PROYECTO PAGEREF _Toc227620441 \h 38
+4.1. Arquitectura del software PAGEREF _Toc227620442 \h 38
+4.1.1. Base de datos PAGEREF _Toc227620443 \h 38
+4.1.2. Backend PAGEREF _Toc227620444 \h 40
+4.1.3. Frontend PAGEREF _Toc227620445 \h 41
+4.2. Desarrollo PAGEREF _Toc227620446 \h 42
+4.2.1. MÃ³dulo de gestiÃ³n de usuarios y sesiones PAGEREF _Toc227620447 \h 44
+4.2.2. MÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa PAGEREF _Toc227620448 \h 54
+4.2.3. MÃ³dulo de planificaciÃ³n estratÃ©gica PAGEREF _Toc227620449 \h 64
+4.2.4. MÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs. PAGEREF _Toc227620450 \h 70
+4.2.5. MÃ³dulo de gestiÃ³n reportes PAGEREF _Toc227620451 \h 81
+CONCLUSIONES PAGEREF _Toc227620452 \h 87
+RECOMENDACIONES PAGEREF _Toc227620453 \h 87
+BIBLIOGRAFIA PAGEREF _Toc227620454 \h 87
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ÃNDICE DE FIGURAS
+ TOC \h \z \c "Figura" Figura 1 Organigrama del Ã¡rea operativa del Laboratorio de TecnologÃ­as Sociales PAGEREF _Toc227620563 \h 16
+Figura 2 Diagrama de la planificaciÃ³n estratÃ©gica PAGEREF _Toc227620564 \h 17
+Figura 3 PlanificaciÃ³n operativa de un proyecto dentro de un periodo PAGEREF _Toc227620565 \h 18
+Figura 4 Archivo XLS de la planificaciÃ³n operativa de los proyectos del Lab TecnoSocial PAGEREF _Toc227620566 \h 18
+Figura 5 Ciclo del desarrollo del sistema web de gestiÃ³n de proyectos PAGEREF _Toc227620567 \h 34
+Figura 6 Estructura de una historia de usuario PAGEREF _Toc227620568 \h 35
+Figura 7 Estructura de una historia de usuario correctiva PAGEREF _Toc227620569 \h 35
+Figura 8 Tablero del sistema web de gestiÃ³n de proyectos PAGEREF _Toc227620570 \h 36
+Figura 9 Flujo de desarrollo empleado para una historia de usuario PAGEREF _Toc227620571 \h 37
+Figura 10 Diagrama entidad relaciÃ³n de la base de datos PAGEREF _Toc227620572 \h 39
+Figura 11 Arquitectura y estructura del backend PAGEREF _Toc227620573 \h 41
+Figura 12 Arquitectura y estructura del frontend PAGEREF _Toc227620574 \h 42
+Figura 13 Modelo estÃ¡ndar de respuesta exitosa del Sistema PAGEREF _Toc227620575 \h 43
+Figura 14 Modelo estÃ¡ndar de respuesta errÃ³nea del sistema PAGEREF _Toc227620576 \h 43
+Figura 15 Diagrama UML de casos de uso del mÃ³dulo de gestiÃ³n de usuarios PAGEREF _Toc227620577 \h 44
+Figura 16 Diagrama de secuencia para el inicio de sesiÃ³n PAGEREF _Toc227620578 \h 46
+Figura 17 Estructura de peticiÃ³n y respuesta para el inicio de sesiÃ³n PAGEREF _Toc227620579 \h 46
+Figura 18 Diagrama de secuencia para refrescar la sesiÃ³n PAGEREF _Toc227620580 \h 47
+Figura 19 Estructura de peticiÃ³n y respuesta para refrescar sesiÃ³n PAGEREF _Toc227620581 \h 48
+Figura 20 Diagrama de secuencia para crear un usuario PAGEREF _Toc227620582 \h 48
+Figura 21 Diagrama de secuencia para editar un perfil de usuario PAGEREF _Toc227620583 \h 49
+Figura 22 Estructura de peticiÃ³n y respuesta para eliminar un usuario PAGEREF _Toc227620584 \h 49
+Figura 23 Prototipo de la pÃ¡gina de inicio de sesiÃ³n PAGEREF _Toc227620585 \h 50
+Figura 24 Prototipo de la pÃ¡gina de lista de usuarios del sistema PAGEREF _Toc227620586 \h 51
+Figura 25 Prototipos de las pÃ¡ginas de creaciÃ³n, ediciÃ³n y eliminaciÃ³n de usuarios del sistema PAGEREF _Toc227620587 \h 51
+Figura 26 Prototipos del cierre de sesiÃ³n de emergencia por cambios en el perfil PAGEREF _Toc227620588 \h 51
+Figura 27 Prototipos de ventana para refrescar sesiÃ³n PAGEREF _Toc227620589 \h 52
+Figura 28 Diagrama UML de casos de uso del mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa PAGEREF _Toc227620590 \h 55
+Figura 29 Pasos para obtener el token de acceso y nombre de la organizaciÃ³n en GitHub Rest API PAGEREF _Toc227620591 \h 56
+Figura 30 Estructura de peticiÃ³n y respuesta a GitHub Rest API para listar repositorios PAGEREF _Toc227620592 \h 56
+Figura 31 Estructura de peticiÃ³n y respuesta de la Meta Graph API para pÃ¡ginas de Facebook PAGEREF _Toc227620593 \h 57
+Figura 32 Estructura de peticiÃ³n y respuesta de la Meta Graph API para pÃ¡ginas de Instagram PAGEREF _Toc227620594 \h 57
+Figura 33 Diagrama de secuencia para crear un proyecto operativo PAGEREF _Toc227620595 \h 58
+Figura 34 Estructura de peticiÃ³n y respuesta para crear un proyecto operativo PAGEREF _Toc227620596 \h 58
+Figura 35 Diagrama de secuencia para crear o editar un plan operativo PAGEREF _Toc227620597 \h 59
+Figura 36 Estructura de peticiÃ³n y respuesta para crear un plan operativo PAGEREF _Toc227620598 \h 59
+Figura 37 Prototipos de la pÃ¡gina de creaciÃ³n de proyectos operativos PAGEREF _Toc227620599 \h 61
+Figura 38 Prototipo de la pÃ¡gina de ediciÃ³n y eliminaciÃ³n de proyectos operativos PAGEREF _Toc227620600 \h 61
+Figura 39 Prototipo de la pÃ¡gina de creaciÃ³n, ediciÃ³n y exportaciÃ³n de planes operativos PAGEREF _Toc227620601 \h 62
+Figura 40 Prototipo de la advertencia por versiÃ³n de plan operativo al guardar PAGEREF _Toc227620602 \h 62
+Figura 41 Diagrama UML de casos de uso del mÃ³dulo de planificaciÃ³n estratÃ©gica PAGEREF _Toc227620603 \h 65
+Figura 42 Diagrama de secuencia para crear un plan estratÃ©gico PAGEREF _Toc227620604 \h 66
+Figura 43 Estructura de peticiÃ³n y respuesta para crear un plan estratÃ©gico PAGEREF _Toc227620605 \h 66
+Figura 44 Diagrama de secuencia para eliminar un plan estratÃ©gico PAGEREF _Toc227620606 \h 67
+Figura 45 Prototipos de la pÃ¡gina de creaciÃ³n y ediciÃ³n de planes estratÃ©gicos PAGEREF _Toc227620607 \h 68
+Figura 46 Prototipos de la pÃ¡gina de vista solo lectura y prevenciÃ³n de guardado de plan PAGEREF _Toc227620608 \h 68
+Figura 47 Diagrama UML de casos de uso del mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs PAGEREF _Toc227620609 \h 71
+Figura 48 Diagrama de secuencia para obtener los KPIs por plataforma PAGEREF _Toc227620610 \h 75
+Figura 49 Estructura de peticiÃ³n y respuesta para obtener stats de GitHub Rest Api PAGEREF _Toc227620611 \h 75
+Figura 50 Estructura de peticiÃ³n y respuesta para obtener insights de Meta GraphApi Facebook PAGEREF _Toc227620612 \h 76
+Figura 51 Estructura de peticiÃ³n y respuesta para obtener insights de Meta GraphApi Instagram PAGEREF _Toc227620613 \h 76
+Figura 52 Prototipos del dashboard de ranking de los proyectos por plataforma PAGEREF _Toc227620614 \h 77
+Figura 53 Prototipos del dashboard de visualizaciÃ³n grÃ¡fica de KPIs por plataforma PAGEREF _Toc227620615 \h 78
+Figura 54 Diagrama UML de casos de uso del mÃ³dulo de gestiÃ³n de reportes PAGEREF _Toc227620616 \h 81
+Figura 55 Diagrama se secuencia para crear un reporte PAGEREF _Toc227620617 \h 82
+Figura 56 Diagrama de secuencia para editar un reporte PAGEREF _Toc227620618 \h 83
+Figura 57 Estructura de peticiÃ³n y respuesta para la creaciÃ³n de un reporte PAGEREF _Toc227620619 \h 83
+Figura 58 Prototipos de pantallas para listar, crear, editar y eliminar reportes PAGEREF _Toc227620620 \h 84
+Figura 59 Prototipo de la advertencia por versiÃ³n al guardar un reporte PAGEREF _Toc227620621 \h 84
+Figura 60 Prototipo de barra de progreso al exportar un reporte PAGEREF _Toc227620622 \h 85
+
+
+
+
+
+
+
+
+
+ÃNDICE DE TABLAS
+ TOC \h \z \c "Tabla" Tabla 1 Campos de la respuesta exitosa del sistema PAGEREF _Toc227620539 \h 43
+Tabla 2 Campos de la respuesta errÃ³nea del sistema PAGEREF _Toc227620540 \h 43
+Tabla 3 Matriz de permisos y restricciones por rol en el mÃ³dulo de gestiÃ³n de usuarios PAGEREF _Toc227620541 \h 45
+Tabla 4 Endpoints creados para el mÃ³dulo de gestiÃ³n de usuarios y sesiones PAGEREF _Toc227620542 \h 49
+Tabla 5 Archivos implementados en frontend para el mÃ³dulo de gestiÃ³n de usuarios y sesiones PAGEREF _Toc227620543 \h 52
+Tabla 6 Archivos desarrollados en el backend para el mÃ³dulo de gestiÃ³n de usuarios y sesiones PAGEREF _Toc227620544 \h 53
+Tabla 7 Matriz de permisos y restricciones por rol en el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa PAGEREF _Toc227620545 \h 55
+Tabla 8 Endpoints creados para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa PAGEREF _Toc227620546 \h 59
+Tabla 9 Archivos implementados en frontend para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa PAGEREF _Toc227620547 \h 62
+Tabla 10 Archivos desarrollados en el backend para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa PAGEREF _Toc227620548 \h 63
+Tabla 11 Endpoints creados para el mÃ³dulo de planificaciÃ³n estratÃ©gica PAGEREF _Toc227620549 \h 67
+Tabla 12 Archivos implementados en frontend para el mÃ³dulo de planificaciÃ³n estratÃ©gica PAGEREF _Toc227620550 \h 68
+Tabla 13 Archivos desarrollados en el backend para el mÃ³dulo de planificaciÃ³n estratÃ©gica PAGEREF _Toc227620551 \h 69
+Tabla 14 GestiÃ³n de rangos temporales para la visualizaciÃ³n de KPIs PAGEREF _Toc227620552 \h 70
+Tabla 15 MÃ©tricas obtenidas de Meta Graph API para el dashboard de Facebook PAGEREF _Toc227620553 \h 71
+Tabla 16 MÃ©tricas obtenidas de Meta Graph API para el dashboard de Instagram PAGEREF _Toc227620554 \h 72
+Tabla 17 GrÃ¡ficas desarrolladas por plataforma para el mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs PAGEREF _Toc227620555 \h 73
+Tabla 18 Endpoints creados para el mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs PAGEREF _Toc227620556 \h 76
+Tabla 19 Archivos desarrollados en el frontend para el mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs PAGEREF _Toc227620557 \h 78
+Tabla 20 Archivos desarrollados en el backend para el mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs PAGEREF _Toc227620558 \h 80
+Tabla 21  Estructura de un reporte en la base de datos PAGEREF _Toc227620559 \h 81
+Tabla 22 Endpoints creados para el mÃ³dulo de reportes PAGEREF _Toc227620560 \h 85
+Tabla 23 Archivos desarrollados en el frontend para el mÃ³dulo de reportes PAGEREF _Toc227620561 \h 85
+Tabla 24 Archivos desarrollados en el backend para el mÃ³dulo de reportes PAGEREF _Toc227620562 \h 86
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INTRODUCCION
+En la actualidad, las organizaciones que gestionan mÃºltiples procesos dependen cada vez mÃ¡s de sistemas informÃ¡ticos que permitan registrar, procesar y analizar informaciÃ³n de manera oportuna. En este contexto, el desarrollo de herramientas orientadas a la gestiÃ³n de proyectosCITATION Har \l 16394  [1] y los datos que generan estos mismos se ha convertido en una necesidad dentro del campo de la IngenierÃ­a de Sistemas y que es de gran ayuda para las organizaciones.
+Hoy en dÃ­a las organizaciones trabajan con grandes volÃºmenes de informaciÃ³n que deben ser gestionados de forma ordenada, segura y oportuna. En este escenario, la IngenierÃ­a de Sistemas cumple un rol fundamental al desarrollar herramientas que permiten registrar datos, organizarlos adecuadamente y facilitar su anÃ¡lisis.
+Para lograrlo, es indispensable que los sistemas informÃ¡ticos integren informaciÃ³n de diversas fuentes, automaticen tareas y presenten resultados de forma fÃ¡cilmente accesible y clara. AdemÃ¡s, deben contribuir a la gestiÃ³n de proyectos de una organizaciÃ³n, facilitando la coordinaciÃ³n de recursos, la planificaciÃ³n de cronogramas, el seguimiento de tareas y la evaluaciÃ³n del progreso. Todo ello permite minimizar errores humanos, reducir el trabajo manual y mejorar la toma de decisiones dentro de las organizaciones.
+Es importante considerar tanto los aspectos tÃ©cnicos, como la estructura del software y la protecciÃ³n de los datos, como los aspectos funcionales, relacionados con la facilidad de uso y la forma en que los usuarios interactÃºan con el sistema. De esta manera, se consolida un enfoque que articula la ingenierÃ­a de software, la administraciÃ³n de bases de datos, la integraciÃ³n de Application Programming Interfaces (API) externas y la visualizaciÃ³n dinÃ¡mica de indicadores clave. Todo esto responde a una demanda creciente por soluciones mÃ¡s inteligentes, automatizadas y alineadas con los objetivos estratÃ©gicos de cada organizaciÃ³n.
+CAPÃTULO 1. MARCO CONTEXTUAL
+ANTECEDENTES ORGANIZACIONALES
+El Laboratorio de TecnologÃ­as Sociales (Lab TecnoSocial) es una organizaciÃ³n sin fines de lucro con sede en Cochabamba, Bolivia. Trabaja de forma presencial en el departamento de Cochabamba y de manera remota con pasantes y voluntarios de distintas Ã¡reas, como sociologÃ­a, lingÃ¼Ã­stica, informÃ¡tica, diseÃ±o y comunicaciÃ³n. La instituciÃ³n se dedica al desarrollo de soluciones tecnolÃ³gicas y sociales con impacto positivo, enfocÃ¡ndose en innovaciÃ³n abierta, anÃ¡lisis de datos, educaciÃ³n, inclusiÃ³n digital y fortalecimiento comunitario, especialmente en contextos y comunidades vulnerables.
+Su misiÃ³n es investigar, diseÃ±ar y aplicar tecnologÃ­as innovadoras que contribuyan a resolver problemas sociales, promoviendo la creaciÃ³n de herramientas accesibles y sostenibles que permitan a organizaciones y comunidades mejorar su calidad de vida. A travÃ©s de sus proyectos, busca facilitar el acceso a tecnologÃ­as de la informaciÃ³n y la comunicaciÃ³n (TIC), generando oportunidades de desarrollo personal y profesional.
+Actualmente, en el Lab TecnoSocial trabajan ocho coordinadores de proyectos, quienes lideran a mÃ¡s de treinta pasantes y voluntarios de las Ã¡reas ya mencionadas anteriormente.
+La estructura organizativa de la fundaciÃ³n se compone de diversas Ã¡reas funcionales, responsables de la planificaciÃ³n, desarrollo y monitoreo de las iniciativas, como se muestra en la figura 1.
+Figura  SEQ Figura \* ARABIC 1 Organigrama del Ã¡rea operativa del Laboratorio de TecnologÃ­as Sociales
+
+Fuente: Laboratorio de TecnologÃ­as Sociales, 2026
+Los coordinadores gestionan una cartera que integra herramientas tecnolÃ³gicas consolidadas con nuevas apuestas estratÃ©gicas. Dentro de los proyectos que se encuentran actualmente en curso y operativos destacan SIMI, Arbu, Thani, BiciDatos, CiuDatos y el proyecto PAP Sacaba. A estos se suman iniciativas como Mujeres Constructoras y ParticipaBOt.
+Respecto a los nuevos proyectos y los que estÃ¡n marcando la hoja de ruta inmediata, el laboratorio ha lanzado recientemente Tarpuy. TambiÃ©n se incluyen en esta nueva fase el Visualizador de Programas de Gobierno 2025 y el Archivo Comunitario de El Alto. AdemÃ¡s, se integran actualizaciones y componentes tecnolÃ³gicos de impacto como Mi Huella 2.0 y el Consejo de Llamita  CITATION Lab26 \l 16394 [2].
+La estructura jerÃ¡rquica utilizada como parte de la planificaciÃ³n estratÃ©gica de la gestiÃ³n se representa como en la figura 2.
+Figura  SEQ Figura \* ARABIC 2 Diagrama de la planificaciÃ³n estratÃ©gica
+
+Fuente: ElaboraciÃ³n propia, 2026
+La planificaciÃ³n estratÃ©gica en la organizaciÃ³n no es un proceso estÃ¡tico; puede ser editada y ajustada en cualquier momento segÃºn las necesidades de la organizaciÃ³n. Este proceso se lleva a cabo por gestiones, las cuales tienen una duraciÃ³n un aÃ±o. Actualmente, se realiza utilizando hojas de cÃ¡lculo en Google Sheets.
+Por otro lado, la planificaciÃ³n operativa se define como un procedimiento derivado de un proyecto vinculado a un programa especÃ­fico. En la organizaciÃ³n, este proceso se orienta a la determinaciÃ³n de objetivos, indicadores, responsables, plazos y recursos necesarios para el cumplimiento de metas concretas. La estructura de un plan operativo se detalla en la figura 3.
+Figura  SEQ Figura \* ARABIC 3 PlanificaciÃ³n operativa de un proyecto dentro de un periodo
+
+Fuente: ElaboraciÃ³n propia, 2026
+La planificaciÃ³n operativa tambiÃ©n es flexible, permitiendo aÃ±adir, editar o eliminar acciones segÃºn sea necesario y en cualquier momento. Actualmente, este proceso en la organizaciÃ³n se realiza en hojas de cÃ¡lculo de Google Sheets como se observa en la Figura 4.
+Figura  SEQ Figura \* ARABIC 4 Archivo XLS de la planificaciÃ³n operativa de los proyectos del Lab TecnoSocial
+
+Fuente: Laboratorio de tecnologÃ­as Sociales, 2026
+En la organizaciÃ³n, ademÃ¡s del proceso de desarrollo, se utiliza unÂ monitoreo recurrenteÂ para evaluar el desempeÃ±o de las aplicaciones ya desplegadas. Este monitoreo se ejecuta enÂ intervalos definidosÂ (diario, semanal, mensual, semestral o histÃ³rico), con el objetivo de observar tendencias, detectar desviaciones y tomar decisiones oportunas sobre la operaciÃ³n del sistema. Para ello, se analizan indicadores generados por las integraciones y tableros del sistema (por ejemplo, actividad, alcance e interacciÃ³n en plataformas conectadas), lo que permite medir resultados con evidencia. En los siguientes puntos, se describe en detalle cÃ³mo se implementa este procedimiento en la organizaciÃ³n.
+Monitoreo de indicadores de desempeÃ±o (KPIs)
+El proceso de monitoreo de los indicadores de desempeÃ±o de los proyectos se estructura en tres fases consecutivas. Estas comprenden la recolecciÃ³n de datos desde las pÃ¡ginas de las redes sociales en Facebook e Instagram de los proyectos que hemos mencionado anteriormente, seguida del anÃ¡lisis de los repositorios en la plataforma GitHub. Es pertinente seÃ±alar que, segÃºn la naturaleza de cada proyecto, la revisiÃ³n en GitHub se diferencia entre aplicaciones web y mÃ³viles.
+Este procedimiento requiere un tiempo estimado de 45 minutos por unidad de proyecto. A continuaciÃ³n, se detallan los pasos a seguir, las plataformas de consulta y los indicadores tÃ©cnicos recolectados:
+Facebook (Meta Business Suite): se debe ingresar al portal de Meta Business Suite en su versiÃ³n de escritorio, accediendo especÃ­ficamente a la secciÃ³n de estadÃ­sticas para visualizar el crecimiento de seguidores, visitas a la pÃ¡gina, interacciones en publicaciones (reacciones, comentarios y compartidos), impresiones/visualizaciones de contenido y acciones totales.
+Instagram (Instagram Insights): el acceso se realiza a travÃ©s del Panel para profesionales dentro de la aplicaciÃ³n mÃ³vil de Instagram o mediante el centro de estadÃ­sticas de Meta Business Suite, donde se contempla el alcance por perÃ­odo, cuentas con interacciÃ³n, interacciones en publicaciones (me gusta, comentarios, compartidos, guardados), visitas al perfil y clics en enlaces.
+GitHub (Insights / Activity / Commits): los datos se obtienen ingresando directamente a la pestaÃ±a Insights de cada repositorio oficial en la plataforma GitHub, la cual abarca el nÃºmero total de commits, total de commits, actividad por colaborador, pull requests y evoluciÃ³n temporal de contribuciones.
+ElaboraciÃ³n de reportes
+La elaboraciÃ³n de reportes se realiza generalmente despuÃ©s de hacer un monitoreo a las plataformas mencionadas, es un proceso que se lleva a cabo usando los datos recopilados de las plataformas anteriormente mencionadas; se hace manualmente en Google Sheets, para esto se elabora distintas grÃ¡ficas que se consideran Ãºtiles como lÃ­neas, barras y tortas; y se guarda la hoja de cÃ¡lculo, este proceso toma alrededor de 1 hora por proyecto.
+PROBLEMA
+SituaciÃ³n problemÃ¡tica
+La creaciÃ³n de mÃºltiples hojas de cÃ¡lculo generadas necesariamente durante el proceso de monitoreo, planificaciÃ³n estratÃ©gica y operativa dificulta el acceso, localizaciÃ³n, organizaciÃ³n y la lectura rÃ¡pida de la informaciÃ³n.
+El proceso manual, periÃ³dico, repetitivo y constante del monitoreo de proyecto demora el acceso a informaciÃ³n Ãºtil para el futuro de las aplicaciones.
+La transcripciÃ³n manual de los datos recolectados de las plataformas de anÃ¡lisis de los proyectos genera errores humanos y datos poco confiables para los reportes.
+FormulaciÃ³n del problema
+La aplicaciÃ³n de ineficientes procedimientos manuales en la gestiÃ³n de proyectos provoca demora en la generaciÃ³n de reportes confiables e impide una oportuna toma de decisiones en la organizaciÃ³n.
+OBJETIVOS
+Objetivo general
+Desarrollar el sistema web para la gestiÃ³n de proyectos en el laboratorio de tecnologÃ­as sociales.
+Objetivos especÃ­ficos
+Desarrollar el mÃ³dulo de gestiÃ³n de usuarios.
+Desarrollar el mÃ³dulo de gestiÃ³n estratÃ©gica y operativa de proyectos.
+Implementar mecanismos de integraciÃ³n para los proyectos operativos con APIs de plataformas como GitHub, Facebook e Instagram.
+Desarrollar un dashboard interactivo de visualizaciÃ³n grÃ¡fica de KPIs de datos extraÃ­dos de las APIs.
+Implementar el mÃ³dulo de generaciÃ³n de reportes.
+ALCANCES Y LÃMITES
+Alcances
+El mÃ³dulo de gestiÃ³n de usuarios serÃ¡ desarrollado con JSON Web Token (JWT) y permitirÃ¡ el acceso al sistema web, de manera segura, diferenciando tres roles: super administrador, administrador y usuario.
+El mÃ³dulo de planificaciÃ³n estratÃ©gica y operativa permitirÃ¡ operaciones CRUD sobre ambas planificaciones. Para la planificaciÃ³n estratÃ©gica se contemplarÃ¡n una vista jerÃ¡rquica editable (tipo columnas) y una vista de solo lectura, con exportaciÃ³n a PDF. Para la planificaciÃ³n operativa se habilitarÃ¡n una vista de tabla editable y una vista de tabla de solo lectura, con exportaciÃ³n en XLS y PDF.
+Cada proyecto operativo podrÃ¡ vincularse con laÂ Facebook Graph API (Meta), laÂ Instagram Graph APIÂ y laÂ GitHub REST APIÂ para la extracciÃ³n de los indicadores mencionados anteriormente. Esta integraciÃ³n permitirÃ¡ el monitoreo recurrente de indicadores clave como alcance, visitas al perfil/pÃ¡gina, crecimiento de seguidores, interacciones en publicaciones y actividad de desarrollo (commits), generando evidencia cuantitativa para la evaluaciÃ³n del desempeÃ±o de los proyectos.
+El dashboard interactivo se construirÃ¡ en base a los indicadores recuperados de las APIs y permitirÃ¡ visualizar KPIs mediante grÃ¡ficos de barras, lÃ­neas, anillos (torta) y tablas comparativas.
+La generaciÃ³n de reportes personalizada de los planes estratÃ©gicos operativos y de las grÃ¡ficas del dashboard en formato PDF permitirÃ¡ la personalizaciÃ³n de informes segÃºn las grÃ¡ficas generadas y datos especÃ­ficos como una planificaciÃ³n estratÃ©gica y operativa.
+Se realizarÃ¡n pruebas al software en dos niveles incluyendo para el backend, se ejecutarÃ¡n pruebas de integraciÃ³n, y en el frontend, se aplicarÃ¡n pruebas funcionales y de flujo.
+LÃ­mites 
+La interfaz grÃ¡fica del sistema web se implementarÃ¡ Ãºnicamente en idioma espaÃ±ol, no se considerarÃ¡ el soporte para otros idiomas.
+El sistema restringe el acceso y la gestiÃ³n de permisos a tres niveles jerÃ¡rquicos de usuario: Super administrador, Administrador y Usuario.
+No se incluirÃ¡ la integraciÃ³n con otras plataformas externas a las mencionadas (Facebook, Instagram y GitHub).
+Los intervalos temporales para la extracciÃ³n de indicadores mediante las API de Instagram y Facebook comprenderÃ¡n el dÃ­a en curso, el Ãºltimo mes y el Ãºltimo semestre. En el caso de GitHub, se incluirÃ¡n los periodos anteriormente citados, adicionando el registro histÃ³rico completo de la plataforma.
+El alcance del desarrolloÂ no incluyeÂ el aprovisionamiento ni la implementaciÃ³n de infraestructura para hospedaje o puesta en producciÃ³n. Se establece que, una vez entregado el sistema alÂ Lab TecnoSocial, el despliegue y la operaciÃ³n en servidor serÃ¡n gestionados por dicha organizaciÃ³n.
+El sistema web estÃ¡ desarrollado principalmente para su uso en equipos de escritorio y laptops. Aunque incluye un diseÃ±o responsivo bÃ¡sico, la prioridad de usabilidad y validaciÃ³n se concentra en pantallas de escritorio; el correcto funcionamiento en dispositivos mÃ³viles o tabletas no forma parte del alcance principal de la versiÃ³n que serÃ¡ entregada a la organizaciÃ³n.
+JUSTIFICACION
+El sistema web propuesto reducirÃ¡ la necesidad de transcripciones manuales y visitas recurrentes a plataformas de anÃ¡lisis externas. Mediante la integraciÃ³n conÂ Facebook Graph API,Â Instagram Graph APIÂ yÂ GitHub REST API, se automatiza la extracciÃ³n de los KPIs previamente mencionados, por periodos de tiempo. Esto permitirÃ¡ agilizar el seguimiento y la evaluaciÃ³n de los proyectos, disminuir la carga operativa manual y reducir el riesgo de errores humanos en la recolecciÃ³n de datos.
+El control de accesos y acciones en la plataforma, mediante control de sesiones segura con JWT garantizarÃ¡ que solo los usuarios con los permisos correspondientes puedan realizar determinadas tareas de acuerdo a su rol.
+La vista de planificaciÃ³n estratÃ©gica en formato deÂ columnas jerÃ¡rquicas editablesÂ proporcionarÃ¡ un entorno estructurado para la gestiÃ³n de planes estratÃ©gicos anuales. Esta interfaz permitirÃ¡ registrar y organizar laÂ misiÃ³n, objetivos, programas e indicadores, asÃ­ como asociar programas para vincularlos a los proyectos operativos y realizar su seguimiento. El enfoque visual facilita la trazabilidad entre niveles estratÃ©gicos y operativos, fortaleciendo el control y la toma de decisiones sobre los proyectos. 
+La implementaciÃ³n del dashboard interactivo que integre visualizaciones grÃ¡ficas de los indicadores obtenidos a partir de las API proporcionarÃ¡ a los perfiles de super administrador y usuario una herramienta que automatiza la generaciÃ³n de grÃ¡ficas, que se elaboraban de forma manual, lo que permitirÃ¡ evaluar el progreso y los resultados de los proyectos de manera rÃ¡pida, reduciendo significativamente el tiempo requerido para su anÃ¡lisis y facilitando la toma de decisiones informadas en relaciÃ³n con el futuro de las aplicaciones.
+El sistema permitirÃ¡ la generaciÃ³n de reportes a partir de las grÃ¡ficas que el usuario seleccione en los dashboards creados y la exportaciÃ³n de planes estratÃ©gicos y operativos, lo cual agilizarÃ¡ significativamente el tiempo que normalmente se invertirÃ­a en la elaboraciÃ³n de reportes manuales. Estos reportes, proporcionarÃ¡n una visiÃ³n clara y fiable del desempeÃ±o y los resultados obtenidos, sin necesidad de intervenciÃ³n manual. Al automatizar estos procedimientos, no solo se reduce el riesgo de errores humanos, sino que tambiÃ©n se aporta a la productividad, permitiendo a los usuarios obtener informaciÃ³n precisa y relevante de manera mucho mÃ¡s rÃ¡pida, lo que les permitirÃ¡ tomar decisiones informadas de forma mÃ¡s oportuna.
+
+
+
+
+
+CAPITULO 2. MARCO TEORICO
+Fundamentos de IngenierÃ­a de Software
+IngenierÃ­a de software
+La ingenierÃ­a de software es una disciplina de la ingenierÃ­a que se enfoca en la aplicaciÃ³n de un enfoque sistemÃ¡tico, riguroso y cuantificable para el desarrollo, operaciÃ³n su mantenimiento. Su objetivo principal es la creaciÃ³n de sistemas de alta calidad que sean fiables, eficientes y que satisfagan los requisitos del cliente. Esta disciplina abarca una serie de metodologÃ­as, herramientas y tÃ©cnicas que facilitan la producciÃ³n de software de manera profesional  CITATION Rog10 \l 16394 [3]. SegÃºn la IEEE, "es la aplicaciÃ³n de un enfoque sistemÃ¡tico y disciplinado para el desarrollo, la operaciÃ³n y el mantenimiento del software; es decir, la aplicaciÃ³n de la ingenierÃ­a al software" CITATION IEE90 \l 16394  [4].
+Arquitectura de software
+Se define como el conjunto de decisiones mÃ¡s importantes sobre la organizaciÃ³n de un sistema de software. Esto incluye la selecciÃ³n de elementos estructurales y sus interfaces, asÃ­ como su comportamiento, segÃºn se especifica en las colaboraciones entre dichos elementos. La arquitectura tambiÃ©n considera los estilos de arquitectura que guÃ­an esta organizaciÃ³n, como el patrÃ³n de "frontend-backend", y las propiedades de alta calidad que se desean del sistema, como la escalabilidad y la fiabilidad  CITATION LBa21 \l 16394 [5].
+Clienteâ€“Servidor y SPA (Single Page Application).
+La arquitectura cliente-servidor es un modelo en el que las funciones de procesamiento se dividen entre clientes, que solicitan servicios, y servidores, que proveen recursos y respuestas. Los clientes y servidores pueden ejecutarse en mÃ¡quinas diferentes y comunicarse a travÃ©s de una red. Este modelo promueve la escalabilidad, el modularidad y la separaciÃ³n de responsabilidades al centralizar la gestiÃ³n de datos y recursos en el servidor, mientras que el cliente se encarga de la interfaz de usuario. Este estilo de arquitectura es fundamental en la computaciÃ³n distribuida moderna, ya que permite que mÃºltiples clientes accedan a servicios de un Ãºnico servidor de manera concurrente CITATION LBa21 \l 16394  [5].
+Aplicaciones de una sola pÃ¡gina (SPA)
+Una Single-Page Application (SPA) es un tipo de aplicaciÃ³n web que carga un Ãºnico documento HTML y actualiza dinÃ¡micamente sus contenidos mediante JavaScript, evitando recargas completas de la pÃ¡gina. Este enfoque mejora la experiencia de usuario al ofrecer una navegaciÃ³n fluida y tiempos de respuesta mÃ¡s cortos, similar a una aplicaciÃ³n de escritorio. La lÃ³gica de presentaciÃ³n y la interacciÃ³n con el usuario se gestionan en el lado del cliente, mientras que el servidor se enfoca en proporcionar los datos necesarios, generalmente a travÃ©s de APIs. Este modelo reduce la carga en el servidor y optimiza el uso del ancho de banda, lo que resulta en una experiencia de usuario mÃ¡s Ã¡gil  CITATION Ric20 \l 16394 [6].
+Servicios Web RESTful
+La arquitectura REST (Representational State Transfer) define un estilo de interacciÃ³n para sistemas distribuidos en red, basado en recursos identificados por URIs, operaciones uniformes (GET, POST, PUT, DELETE) y representaciones intercambiables como JSON o XML. REST, a diferencia de otros protocolos como SOAP, es ligero y se basa en el protocolo HTTP, lo que facilita su implementaciÃ³n y adopciÃ³n. Este estilo favorece la simplicidad, la escalabilidad y la interoperabilidad entre sistemas, ya que permite a diferentes aplicaciones comunicarse de manera estandarizada y sin estado. La popularidad de REST ha llevado a su uso generalizado en la construcciÃ³n de APIs para servicios web CITATION Fie00 \l 16394  [7].
+Arquitectura en capas
+La arquitectura en capas organiza el sistema en niveles donde cada capa proporciona servicios a la inmediatamente superior y consume los de la inferior. Las capas tÃ­picas en una aplicaciÃ³n web pueden ser la capa de presentaciÃ³n (interfaz de usuario), la capa de lÃ³gica de negocio y la capa de acceso a datos. Este estilo facilita la mantenibilidad, la reutilizaciÃ³n y la separaciÃ³n de preocupaciones, ya que los cambios en una capa no afectan directamente a las demÃ¡s, siempre y cuando la interfaz entre ellas se mantenga. Este modularidad simplifica el desarrollo, las pruebas y la evoluciÃ³n del software, permitiendo a los desarrolladores trabajar en componentes especÃ­ficos sin preocuparse por la implementaciÃ³n interna de otras capas  CITATION Rog10 \l 16394 [3].
+
+PatrÃ³n Modelo Vista Controlador (MVC)
+El patrÃ³n Modelo-Vista-Controlador (MVC) establece una separaciÃ³n clara entre la gestiÃ³n de datos (Modelo), la interfaz de usuario (Vista) y la lÃ³gica de control (Controlador). El modelo gestiona la lÃ³gica de negocio y los datos; la vista es responsable de la presentaciÃ³n de los datos al usuario; y el controlador actÃºa como un intermediario, recibiendo las entradas del usuario y coordinando las interacciones entre el modelo y la vista. Este enfoque reduce el acoplamiento y mejora la capacidad de evoluciÃ³n del software, ya que permite que cada componente se modifique de forma independiente, es ampliamente utilizado en el desarrollo de aplicaciones de escritorio y web para estructurar el cÃ³digo de manera organizada  CITATION Fow02 \l 16394 [8].
+API
+Una API es un conjunto de reglas que permite que diferentes aplicaciones de software se comuniquen entre sÃ­. Funciona como un intermediario entre dos sistemas, permitiendo que uno solicite un servicio o un dato del otro sin la necesidad de entender los detalles de su implementaciÃ³n interna. Las API son esenciales en la arquitectura de software moderna para permitir la interoperabilidad, el intercambio de datos y la integraciÃ³n de servicios web  CITATION Red24 \l 16394 [9].
+MetodologÃ­as Ã¡giles y conceptos asociados
+Scrum
+Scrum es un marco de trabajo para gestionar y desarrollar productos complejos, fundamentado en la teorÃ­a de control de procesos empÃ­ricos. Promueve la transparencia, la inspecciÃ³n y la adaptaciÃ³n a travÃ©s de ciclos de trabajo cortos llamados Sprints. Los componentes esenciales de Scrum son sus tres roles (Product Owner, Scrum Master, Equipo de Desarrollo), sus cinco eventos (Sprint Planning, Daily Scrum, Sprint Review, Sprint Retrospective) y sus tres artefactos (Product Backlog, Sprint Backlog, Incremento). Este marco de trabajo estÃ¡ diseÃ±ado para fomentar la colaboraciÃ³n, la creatividad y el valor de los productos de manera incremental  CITATION Sch20 \l 16394 [10].
+Historias de usuario
+En el contexto de las metodologÃ­as Ã¡giles, una historia de usuario es una descripciÃ³n breve y sencilla de una caracterÃ­stica del sistema, contada desde la perspectiva del usuario final. Estas historias capturan la funcionalidad necesaria en un formato simple: "Como [rol], quiero [objetivo], para poder [beneficio]". Su propÃ³sito no es detallar la implementaciÃ³n, sino facilitar la conversaciÃ³n y el entendimiento compartido entre el equipo de desarrollo y el cliente  CITATION Mik24 \l 16394 [11].
+Pruebas de software
+Concepto de pruebas de software
+Las pruebas de software son un proceso de evaluaciÃ³n que se ejecuta en un sistema o en sus componentes con el objetivo de verificar que cumplen con los requisitos definidos. Este proceso tiene dos propÃ³sitos principales: por un lado, confirmar que el software se comporta como se espera, y por otro, descubrir defectos, fallas o errores que puedan comprometer su funcionamiento. Las pruebas son una parte crucial del ciclo de vida del desarrollo de software para garantizar la calidad y la fiabilidad del producto final  CITATION Amm16 \l 16394 [12].
+Tipos de pruebas
+Pruebas unitarias
+Las pruebas unitarias consisten en la evaluaciÃ³n individual de las unidades mÃ¡s pequeÃ±as del cÃ³digo fuente, como funciones, mÃ©todos o clases. Su objetivo es verificar que cada componente del software funciona correctamente y que su lÃ³gica interna produce los resultados esperados. Estas pruebas se realizan tÃ­picamente por los propios desarrolladores y son la primera lÃ­nea de defensa para la detecciÃ³n temprana de errores CITATION IST18 \l 16394  [13].
+Pruebas de integraciÃ³n
+Las pruebas de integraciÃ³n se llevan a cabo despuÃ©s de las pruebas unitarias, combinando mÃ³dulos de software individuales y probÃ¡ndolos como un grupo. El propÃ³sito es validar que la interacciÃ³n y la comunicaciÃ³n entre los componentes integrados funcione sin errores. Estas pruebas buscan descubrir fallos en las interfaces de comunicaciÃ³n, el paso de datos y las dependencias entre los diferentes mÃ³dulos  CITATION IST18 \l 16394 [13].
+Pruebas de componentes
+Las pruebas de componentes, tambiÃ©n denominadas pruebas de mÃ³dulos, se centran en la verificaciÃ³n de componentes de software de forma aislada, sin integrarlos con otros elementos del sistema. A diferencia de las pruebas unitarias, estas pueden evaluar funcionalidades mÃ¡s complejas o "componentes" completos que encapsulan diversas unidades de cÃ³digo. Su objetivo primordial es asegurar que el comportamiento del objeto de prueba cumpla cabalmente con las especificaciones funcionales definidas, validando tanto las entradas y salidas como el manejo de estados internos  CITATION IST18 \l 16394 [13].
+Pruebas de flujo
+Casos de pruebas
+Un caso de prueba es un conjunto de condiciones, datos de entrada, pasos de ejecuciÃ³n y resultados esperados que se utiliza para probar la funcionalidad de una aplicaciÃ³n. Sirve como una guÃ­a estructurada para el evaluador, garantizando que el proceso de prueba sea sistemÃ¡tico y reproducible. Los casos de prueba son la base para determinar si una funcionalidad especÃ­fica del software cumple con los criterios de aceptaciÃ³n CITATION Mye11 \l 16394  [14].
+Modelado y diseÃ±o de software con UML
+DefiniciÃ³n de UML
+El Lenguaje Unificado de Modelado (UML) es un lenguaje grÃ¡fico estandarizado que se utiliza para especificar, visualizar, construir y documentar artefactos de un sistema de software. Su propÃ³sito principal es ofrecer un medio para que desarrolladores, clientes y otros interesados puedan entender y comunicar la arquitectura y el diseÃ±o del software. Dentro de las herramientas de UML, los diagramas de casos de uso y los diagramas de secuencia son fundamentales para el anÃ¡lisis y diseÃ±o de sistemas  CITATION Boo05 \l 16394 [15].
+Diagrama de casos de uso
+Un diagrama de casos de uso es una representaciÃ³n de las interacciones entre los actores (usuarios o sistemas externos) y el sistema. Este tipo de diagrama es especialmente Ãºtil para capturar los requisitos funcionales del software desde la perspectiva del usuario, mostrando quÃ© puede hacer el sistema sin entrar en detalles de la implementaciÃ³n  CITATION Fow03 \l 16394 [16].
+Diagrama de secuencias
+Los diagramas de secuencia ilustran la interacciÃ³n entre los objetos o componentes del sistema en un orden cronolÃ³gico. Muestran los mensajes que se envÃ­an y reciben entre los objetos, y el orden en que estos eventos ocurren. Son valiosos para visualizar y documentar los flujos de trabajo especÃ­ficos y la lÃ³gica de negocio de un sistema, lo cual es crucial para el diseÃ±o de la arquitectura y la depuraciÃ³n  CITATION Fow03 \l 16394 [16].
+Formato de datos y comunicaciÃ³n
+JSON
+JavaScript Objeto Notation (JSON) es un formato de intercambio de datos ligero, legible y estructurado que se utiliza para transmitir informaciÃ³n entre un servidor y un cliente web  CITATION IET17 \l 16394 [17]. Basado en un subconjunto del lenguaje de programaciÃ³n JavaScript, JSON utiliza una sintaxis simple de pares clave-valor y matrices (arrays) para representar datos complejos. Debido a su simplicidad, su formato legible por humanos y la facilidad de ser analizado y generado por mÃ¡quinas, JSON se ha convertido en el estÃ¡ndar de facto para la comunicaciÃ³n de datos en el desarrollo de APIs y aplicaciones web modernas.
+TecnologÃ­as para el desarrollo frontend
+React y React Router DOM 
+React (v18.3.1) es una biblioteca de JavaScript de cÃ³digo abierto para la creaciÃ³n de interfaces de usuario interactivas y declarativas. Su principio fundamental es la composiciÃ³n basada en componentes, lo que permite construir interfaces complejas a partir de pequeÃ±as piezas reutilizables. Una de sus principales innovaciones es el Virtual DOM, que optimiza el rendimiento al actualizar Ãºnicamente los componentes afectados cuando cambia el estado, en lugar de renderizar toda la pÃ¡gina  CITATION Abr13 \l 16394 [18].Sobre esta base, React Router DOM (v18.3.1) se presenta como una librerÃ­a complementaria que aÃ±ade capacidades de enrutamiento declarativo, permitiendo gestionar la navegaciÃ³n entre diferentes vistas en aplicaciones SPA sin recargar la pÃ¡gina completa. Ofrece una API intuitiva para definir rutas anidadas, manejar parÃ¡metros de URL y proteger accesos, facilitando asÃ­ la construcciÃ³n de aplicaciones web complejas con una experiencia de usuario fluida  CITATION Rem26 \l 16394 [19].
+Material UI
+Material-UI (MUI v6.4.7) es una biblioteca de componentes de React que implementa el sistema de diseÃ±o Material Design de Google. Proporciona una colecciÃ³n completa y pre construida de elementos de UI, como botones, tarjetas y formularios, que se adhieren a los principios de accesibilidad y usabilidad. Su sistema de temas personalizable permite a los desarrolladores mantener una coherencia visual en toda la aplicaciÃ³n, reduciendo el tiempo y el esfuerzo necesarios para construir una interfaz de usuario atractiva y funcional  CITATION MUI24 \l 16394 [20].
+Vite
+Vite (v6.2.0) es un servidor de desarrollo y herramienta de compilaciÃ³n (build tool) de Ãºltima generaciÃ³n para proyectos web. Fue creado con el objetivo de ofrecer una experiencia de desarrollo mÃ¡s rÃ¡pida. A diferencia de las herramientas tradicionales, que empaquetan todo el cÃ³digo antes de servirlo, Vite aprovecha la compatibilidad de los navegadores con los mÃ³dulos ES nativos para servir el cÃ³digo fuente directamente, reduciendo significativamente los tiempos de arranque y recarga en caliente (HMR), lo que se traduce en un flujo de trabajo mÃ¡s Ã¡gil y productivo  CITATION Eva26 \l 16394 [21].
+Recharts
+Recharts (v3.1.2) es una biblioteca de componentes de grÃ¡ficos para React basada en que permite construir visualizaciones de datos interactivas y reutilizables de manera declarativa. Su arquitectura modular facilita la creaciÃ³n de grÃ¡ficos como lÃ­neas, barras, Ã¡reas, pasteles y combinaciones de estos, permitiendo a los desarrolladores personalizar completamente el estilo y comportamiento de las visualizaciones. Recharts se integra de manera nativa con React, lo que garantiza una renderizaciÃ³n fluida y reactiva ante cambios en los datos  CITATION Rec24 \l 16394 [22].
+TecnologÃ­as para el desarrollo Backend
+Express
+Express.js (v4.21.2) es un framework web minimalista y flexible para Node.js (Java script corriendo en el servidor), diseÃ±ado para construir aplicaciones web y API RESTful de forma rÃ¡pida y robusta. Se caracteriza por su sencillez y un conjunto de caracterÃ­sticas esenciales para definir rutas, manejar solicitudes HTTP y gestionar respuestas. Su arquitectura basada en middlewares lo hace altamente personalizable y extensible a travÃ©s de un amplio ecosistema de mÃ³dulos, para adaptarse a diversas necesidades de desarrollo de backend [26].
+TypeORM
+TypeORM (v0.3.22) es un mapeador Objeto-Relacional (ORM) para TypeScript y JavaScript, que facilita la interacciÃ³n con bases de datos relacionales como PostgreSQL, MySQL y SQLite. Su funciÃ³n principal es abstraer las consultas SQL, permitiendo a los desarrolladores trabajar con entidades y objetos en un lenguaje de programaciÃ³n familiar como java script. Al modelar la base de datos a travÃ©s de clases, TypeORM simplifica tareas como la migraciÃ³n de esquemas y la gestiÃ³n de relaciones [27].
+TecnologÃ­as para el desarrollo y gestiÃ³n de bases de datos
+
+CAPÃTULO 3. MARCO METODOLÃ“GICO
+Para el desarrollo del sistema se tomÃ³ como referencia algunas de las caracterÃ­sticas mÃ¡s importantes de la metodologÃ­a Ã¡gil Scrum.
+AdaptaciÃ³n metodolÃ³gica
+Las responsabilidades clave del marco de trabajo fueron asumidas por los participantes del proyecto. En este sentido, se adoptÃ³ una aplicaciÃ³n prÃ¡ctica y adaptada de la metodologÃ­a. El seÃ±or Alex Ojeda Copa, gerente administrativo del Laboratorio de TecnologÃ­as Sociales, fungiÃ³ como el interesado principal y Product Owner, siendo el responsable de la validaciÃ³n y conformidad de los avances del producto. Por su parte, el ingeniero Joel Reynaldo Alanez Duran, quien tambiÃ©n actuÃ³ como tutor del proyecto, asumiÃ³ el rol de Scrum Master, guio el proceso y resolviÃ³ impedimentos presentados durante el desarrollo. El autor del proyecto, a su vez, desempeÃ±Ã³ el papel de desarrollador y tester, asumiendo la creaciÃ³n del producto y su posterior validaciÃ³n tÃ©cnica.
+Se realizaron sesiones de retroalimentaciÃ³n individuales donde se evaluÃ³ los avances, se analizÃ³ problemas detectados y se definiÃ³ acciones correctivas. Estas sesiones diarias tuvieron una duraciÃ³n aproximada de quince minutos y fueron conducidas Ãºnicamente por el autor del proyecto, siguiendo la dinÃ¡mica de las reuniones tipo daily scrum empleadas en metodologÃ­as Ã¡giles.
+Por otra parte, los avances del proyecto se presentaron al usuario final cada miÃ©rcoles a las 12:30 p.m., con el fin de mantenerlo informado sobre el progreso.
+Se definieron ciclos de trabajo denominados sprints, con una duraciÃ³n de cuatro semanas cada uno, al tÃ©rmino de los cuales se entregÃ³ un incremento de software funcional alineado con los objetivos especÃ­ficos de cada periodo. El product backlog se estructurÃ³ de manera jerÃ¡rquica, donde se desglosÃ³ los requisitos en sucesivos sprint backlogs, los cuales fueron cinco correspondientes a cada mÃ³dulo del sistema. Cada uno de estos Ãºltimos incluyÃ³ las historias de usuario necesarias para su elaboraciÃ³n completa.
+La plataforma Jira se empleÃ³ como herramienta principal para la gestiÃ³n de las tareas del proyecto. Los requerimientos funcionales para construir un mÃ³dulo se definieron mediante historias de usuario, y su progreso fue monitoreado de manera continua a travÃ©s de los tableros.
+PlanificaciÃ³n del desarrollo
+El cronograma de desarrollo del sistema se ilustra en el diagrama del Anexo X, mientras que los sprint backlogs y sus respectivas historias de usuario se detallan en el Anexo X. Los principales artefactos del proceso se presentan en la Figura 4; entre ellos destaca el product backlog, el cual se descompuso en sprint backlogs (cada uno equivalente a un mÃ³dulo del sistema) conformados por historias de usuario.
+Figura  SEQ Figura \* ARABIC 5 Ciclo del desarrollo del sistema web de gestiÃ³n de proyectos
+ 
+Fuente: ElaboraciÃ³n propia, 2026
+La estructura de cada historia de usuario comprendiÃ³ una descripciÃ³n detallada, una categorÃ­a (desarrollo o bug), un plazo de inicio y fin, un conjunto de criterios de aceptaciÃ³n y, en los casos pertinentes, una captura de pantalla de un prototipo en Figma. Estas condiciones tÃ©cnicas y funcionales permitieron validar el cumplimiento de los requerimientos alineados con las necesidades de la organizaciÃ³n durante el desarrollo. El formato empleado para la redacciÃ³n de dichas historias se ilustra en la Figura 5.
+Figura  SEQ Figura \* ARABIC 6 Estructura de una historia de usuario
+
+Fuente: Captura de pantalla de Jira, 2026
+Al concluir el desarrollo de cada mÃ³dulo, fueron sometidos a pruebas de frontend y backend mencionadas anteriormente. En caso de detectarse fallos, pruebas no superadas, bugs o inconsistencias, se crearon nuevas historias de usuario, con categorÃ­a bug las mismas se muestran en la figura 6.
+Figura  SEQ Figura \* ARABIC 7 Estructura de una historia de usuario correctiva
+
+Fuente: Captura de pantalla de Jira, 2026
+La gestiÃ³n de las historias de usuario se realizÃ³ mediante un tablero scrum. Este tablero, ilustrado en la Figura 7, se estructurÃ³ en tres columnas que representan el ciclo de vida del desarrollo. El flujo de trabajo consistiÃ³ en el desplazamiento dinÃ¡mico entre las columnas del tablero de las historias segÃºn su estado de avance:
+Por hacer: Historias pendientes de inicio.
+En curso: Historias en fase de desarrollo activo.
+Finalizado: Historias que cumplen satisfactoriamente los criterios de aceptaciÃ³n.
+Figura  SEQ Figura \* ARABIC 8 Tablero del sistema web de gestiÃ³n de proyectos
+
+Fuente: Captura de pantalla de Jira, 2026
+Por otro lado, el flujo operativo que siguiÃ³ cada historia de usuario para su transiciÃ³n entre columnas se describe en la figura 8. Una vez que la historia alcanzÃ³ la columna finalizada, se procediÃ³ a la integraciÃ³n y carga de los cambios en el repositorio remoto de GitHub.
+Figura  SEQ Figura \* ARABIC 9 Flujo de desarrollo empleado para una historia de usuario
+
+Fuente: ElaboraciÃ³n propia, 2026
+
+
+
+
+
+
+
+
+
+
+
+CAPÃTULO 4. INGENIERÃA DEL PROYECTO
+Arquitectura del software
+La arquitectura del sistema se definiÃ³ bajo un enfoque modular clienteservidor, con el objetivo deÂ separar responsabilidades y permitirÂ escalabilidad funcional. 
+Base de datos
+La base de datos del sistema se diseÃ±Ã³ bajo un enfoqueÂ relacional, orientado a la gestiÃ³n de proyectos, planificaciÃ³n estratÃ©gica y operativa, y al registro de configuraciones e integraciones. Se priorizÃ³ laÂ integridad referencial, laÂ normalizaciÃ³nÂ y laÂ separaciÃ³n lÃ³gica de entidades, de modo que cada tabla represente un concepto definido dentro del dominio (usuarios, proyectos, planes, reportes e integraciones). La estructura planteada permitiÃ³ mantener coherencia en los datos, facilitÃ³ el mantenimiento y aporta al crecimiento futuro del sistema. La representaciÃ³n grÃ¡fica del modelo se presenta en la figura 9.
+Figura  SEQ Figura \* ARABIC 10 Diagrama entidad relaciÃ³n de la base de datos
+
+Fuente: Captura de pantalla de PgAdministrador, 2026
+El modelo de base de datos del sistema engloba la planificaciÃ³n estratÃ©gica y operativa de forma jerÃ¡rquica. En la jerarquÃ­a superior, la entidad para los planes estratÃ©gicos (strategic_plans), representa los planes anuales en la organizaciÃ³n; cada plan agrupa mÃºltiples objetivos (objectives). A su vez, cada objetivo permite vincular indicadores (indicators) para cuantificar el avance, asÃ­ como programas (programs) entendidos como unidades de acciÃ³n que conectan la planificaciÃ³n estratÃ©gica con la ejecuciÃ³n.
+Los programas se relacionan con los proyectos operativos (operational_projects), que representan las iniciativas de la organizaciÃ³n. Para dar base a la planificaciÃ³n operativa cada proyecto se enlaza con mÃºltiples filas operativas (operational_rows), donde se registran objetivos, indicadores, recursos, presupuestos y periodos de ejecuciÃ³n.
+La relaciÃ³n entre usuarios y proyectos se gestiona mediante la tabla de rotura project_responsibles, la cual implementa una relaciÃ³n de muchos a muchos entre usuarios (users) y proyectos operativos, para la trazabilidad de los responsables. Las integraciones externas con Facebook, Instagram y GitHub se registran en project_integrations, donde se asocia cada proyecto operativo con sus respectivas fuentes de datos.
+Finalmente, la entidad de reportes (reports) se implementÃ³ utilizando el tipo de dato JSONB que ofrece PostgreSQL para almacenar la informaciÃ³n de objetos complejos generada por el usuario en el sistema. Esta incluye metadatos, texto, estructura de grÃ¡ficas, e imÃ¡genes. 
+Backend
+El backend del sistema se desarrollÃ³ empleando Node.js, Express y TypeORM, siguiendo un patrÃ³n de arquitectura Modelo-Vista-Controlador (MVC) adaptado a servicios REST. En esta estructura, la capa de modelo estÃ¡ representada por las entidades definidas mediante el mapeo objeto-relacional (ORM), las cuales describen la estructura de datos y su persistencia en la base de datos relacional. Por su parte, la capa de controladores concentra la lÃ³gica de negocio y la interacciÃ³n con los datos, procesando las solicitudes HTTP y retornando respuestas en formato JSON.
+Las rutas actÃºan como la capa de enrutamiento, vinculando cada punto de acceso (endpoint) con su controlador correspondiente. AdemÃ¡s, el sistema incorpora funciones de procesamiento intermedio (middlewares) transversales para la autenticaciÃ³n y autorizaciÃ³n mediante JSON Web Tokens (JWT) y roles, asÃ­ como para tareas tÃ©cnicas de gestiÃ³n de archivos y manejo de imÃ¡genes. El mÃ³dulo de integraciones expone controladores especÃ­ficos para Facebook, Instagram y GitHub, permite el consumo de interfaces de programaciÃ³n de aplicaciones (APIs) externas desde un punto centralizado. La estructura y arquitectura del backend se muestra en la Figura 10.
+Finalmente, la capa de utilidades se creÃ³ para encapsular funciones comunes, tales como el formateo de datos obtenidos de las plataformas por de rangos de tiempo.
+Figura  SEQ Figura \* ARABIC 11 Arquitectura y estructura del backend
+
+Fuente: ElaboraciÃ³n propia, 2026
+Frontend
+El frontend del sistema se implementÃ³ como una aplicaciÃ³n de pÃ¡gina Ãºnica SPA empleando la biblioteca React y la herramienta de construcciÃ³n Vite. La estructura del proyecto es modular por funcionalidades, establece una separaciÃ³n entre las vistas, los componentes, la lÃ³gica reutilizable y los servicios de comunicaciÃ³n con el backend. 
+Las pÃ¡ginas del sistema se organizan en el directorio pages/, y cada mÃ³dulo contiene sus propios subcomponentes dentro de components/. La gestiÃ³n del estado global disponible en todo el sistema se centraliza en contexts/, mientras que la lÃ³gica transversal reutilizable se ubica en hooks/ sencillos o personalizados.
+Por otro lado, la capa de comunicaciÃ³n con el backend se implementa en api/ y services/. Los componentes reutilizables comunes a todo el sistema se agrupan en generalComponents/, y las funciones auxiliares se concentran en utils/. La arquitectura detallada del frontend se presenta en la Figura 11.
+Figura  SEQ Figura \* ARABIC 12 Arquitectura y estructura del frontend
+
+Fuentes: ElaboraciÃ³n propia, 2026
+Desarrollo
+Al inicio del proyecto, se elaboraron los prototipos bÃ¡sicos de la interfaz de usuario y el flujo de funcionamiento ideal en Figma; estos se presentan en diversas figuras a lo largo de las siguientes secciones. Posteriormente, se estructurÃ³ la jerarquÃ­a de directorios y archivos, tal como se ilustrÃ³ en las Figuras 10 y 11.
+Posteriormente, el desarrollo de los mÃ³dulos se fundamentÃ³ en la definiciÃ³n de protocolos para una comunicaciÃ³n estandarizada entre el frontend y el backend; para ello, se establecieron contratos de solicitudes y respuestas que determinan la estructura de los datos intercambiados. Cuando el sistema procesa una solicitud exitosamente, la API devuelve una respuesta estructurada como se observa en la Figura 12 y cuyos campos se describen detalladamente en la Tabla 1.
+Figura  SEQ Figura \* ARABIC 13 Modelo estÃ¡ndar de respuesta exitosa del Sistema
+
+Fuente: ElaboraciÃ³n propia
+Tabla  SEQ Tabla \* ARABIC 1 Campos de la respuesta exitosa del sistema
+Campo
+Tipo
+DescripciÃ³n
+success (true) 
+Boolean
+Indica si la operaciÃ³n se ejecutÃ³ correctamente.
+message
+String
+Mensaje informativo opcional sobre el resultado de la operaciÃ³n. Generalmente segÃºn sea conveniente se muestra en una notificaciÃ³n con color verde en la interfaz de usuario.
+data
+Object
+Contiene la informaciÃ³n solicitada o el resultado de la operaciÃ³n.
+Fuente: ElaboraciÃ³n propia, 2026
+En caso de que ocurra un error durante el procesamiento de la solicitud, la API devuelve una respuesta estructurada como se muestra en la Figura 13, para identificar y gestionar la incidencia. La descripciÃ³n de los campos de esta respuesta se muestra en la Tabla 2.
+Figura  SEQ Figura \* ARABIC 14 Modelo estÃ¡ndar de respuesta errÃ³nea del sistema
+
+Fuente: ElaboraciÃ³n propia, 2026
+Tabla  SEQ Tabla \* ARABIC 2 Campos de la respuesta errÃ³nea del sistema
+Campo
+Tipo
+DescripciÃ³n
+success (false)
+Boolean
+Indica que la operaciÃ³n no se completÃ³ correctamente.
+error.code
+String
+CÃ³digo Ãºnico que identifica el tipo de error. Generalmente se muestra en una notificaciÃ³n con color rojo en la interfaz de usuario.
+error.message
+String
+DescripciÃ³n clara del error para facilitar su comprensiÃ³n y resoluciÃ³n.
+Fuente: ElaboraciÃ³n propia, 2026
+Esta base permitiÃ³ la construcciÃ³n de los cinco mÃ³dulos del sistema, los cuales se describen de manera detallada en las siguientes secciones de este capÃ­tulo.
+MÃ³dulo de gestiÃ³n de usuarios y sesiones
+El mÃ³dulo de gestiÃ³n de usuarios y sesiones se desarrollÃ³ para controlar de forma segura el acceso al sistema, administrar el ciclo de vida de las cuentas y que cada operaciÃ³n en el sistema se ejecute conforme al rol del usuario autenticado. Se integrÃ³ la autenticaciÃ³n basada en JWT, autorizaciÃ³n por permisos, control de sesiÃ³n con renovaciÃ³n de credenciales.
+El mÃ³dulo se estructurÃ³ a partir de la definiciÃ³n de la entidad user, donde se definieron tres roles operativos: super administrador, administrador y usuario. Los permisos y acciones asignados a cada rol en este mÃ³dulo se detallan en la Figura 14.
+Figura  SEQ Figura \* ARABIC 15 Diagrama UML de casos de uso del mÃ³dulo de gestiÃ³n de usuarios
+
+Fuente: ElaboraciÃ³n propia, 2026
+Algunos casos de uso presentados anteriormente en el diagrama tienen escenarios secundarios que se detallan en la Tabla 3.
+Tabla  SEQ Tabla \* ARABIC 3 Matriz de permisos y restricciones por rol en el mÃ³dulo de gestiÃ³n de usuarios
+AcciÃ³n
+Super administrador
+Administrador
+Usuario
+Iniciar sesiÃ³n
+SÃ­ (Con cualquier estado)
+SÃ­ (Solo con estado habilitado)
+SÃ­ (Solo con estado habilitado)
+Crear usuario
+SÃ­ (Crea rol administrador y usuario)
+SÃ­ (Solo crea rol usuario)
+No
+Actualizar usuario 
+SÃ­
+SÃ­ (Solo al rol usuario)
+No
+Actualizar perfil propio
+SÃ­
+SÃ­ 
+Solo la foto de perfil
+Eliminar usuario
+SÃ­
+SÃ­ (Solo al rol usuario)
+No
+Fuente: ElaboraciÃ³n propia, 2026
+Para la seguridad del mÃ³dulo y del sistema en general, se aplicÃ³ una estrategia de sesiÃ³n basada en JWT y tomando en cuenta dos tokens:
+Access token: Posee una vigencia de dos horas y se utiliza para autorizar solicitudes a los endpoints protegidos del sistema.
+Refresh token: Tiene una vigencia de siete dÃ­as. Se almacena en una cookie de tipo httpOnly y permite renovar la sesiÃ³n sin reingresar credenciales.
+InvalidaciÃ³n por versiÃ³n de sesiÃ³n (session_version): El sistema incrementa el valor de session_version de la tabla user en la base de datos cuando se ejecutan cambios sensibles en un perfil, ya sea por propio o sobre el perfil de usuarios de jerarquÃ­a inferior. Estas modificaciones incluyen la actualizaciÃ³n del rol, estado, correo electrÃ³nico o contraseÃ±a. Como consecuencia, cualquier token previo pierde validez, redirige al usuario a la pÃ¡gina de inicio de sesiÃ³n obligÃ¡ndolo a realizar una nueva autenticaciÃ³n.
+Control de expiraciÃ³n en cliente: Se configurÃ³ que por defecto una sesiÃ³n activa en el sistema tenga una duraciÃ³n de dos horas y se desarrollaron funciones de control de tiempo de sesiÃ³n que permiten mostrar una advertencia en la interfaz de usuario 15 minutos antes de su vencimiento, tambiÃ©n se le permie al usuario refrescar antes de que expire la sesiÃ³n.
+El flujo que se sigue cuando un usuario requiere iniciar sesiÃ³n en el sistema se detalla en la Figura 15.  
+Figura  SEQ Figura \* ARABIC 16 Diagrama de secuencia para el inicio de sesiÃ³n
+
+Fuente: ElaboraciÃ³n propia, 2026
+En este flujo el usuario ingresa su correo y contraseÃ±a, y luegoÂ el contexto se encarga de enviar esos datos al backend. El cual al recibir la peticiÃ³n en su controlador consulta la base de datos para verificar que el usuario exista, estÃ© habilitado para iniciar sesiÃ³n en el sistema (que el usuario tenga su estado habilitado) y tenga la contraseÃ±a correcta; si todo es vÃ¡lido, devuelve el usuario y un token. Finalmente,Â el contextoÂ guarda esa sesiÃ³n disponible en toda la aplicaciÃ³n, activa los tiempos de control de expiraciÃ³n y permite que el usuario navegue y realice acciones segÃºn su rol y permisos. Un ejemplo de la estructura de peticiÃ³n y respuesta empleado en este flujo se muestra en la Figura 16.
+Figura  SEQ Figura \* ARABIC 17 Estructura de peticiÃ³n y respuesta para el inicio de sesiÃ³n
+
+Fuente: ElaboraciÃ³n propia, 2026
+Por otro lado, tal como se explicÃ³ anteriormente, se desarrollÃ³ el mecanismo de renovaciÃ³n de sesiones de usuarios autenticados mediante una ventana flotante en la interfaz de usuario como se muestra en la Figura 26. El objetivo fue evitar la finalizaciÃ³n automÃ¡tica de la sesiÃ³n por la expiraciÃ³n del JWT y la consecuente redirecciÃ³n a la pÃ¡gina de inicio de sesiÃ³n. El flujo que permite este proceso se ilustra en la Figura 17.
+Figura  SEQ Figura \* ARABIC 18 Diagrama de secuencia para refrescar la sesiÃ³n
+
+Fuente: ElaboraciÃ³n propia, 2026
+Un ejemplo del formato de peticiÃ³n y respuesta empleado en este flujo se muestra en la Figura 18.
+Figura  SEQ Figura \* ARABIC 19 Estructura de peticiÃ³n y respuesta para refrescar sesiÃ³n
+
+Fuente: ElaboraciÃ³n propia, 2026
+En cuanto a la gestiÃ³n de usuarios, los procesos de creaciÃ³n y ediciÃ³n se rigen por un protocolo de seguridad uniforme. Como se ilustra en la Figura 19, el flujo inicia cuando un administrador o super administrador completa el formulario de registro; posteriormente, los datos se envÃ­an al backend. Antes de procesar la solicitud, el sistema verifica la vigencia de la sesiÃ³n y los permisos del solicitante. Asimismo, se validan los campos, las reglas de negocio segÃºn el rol y la unicidad del correo electrÃ³nico. Tras una validaciÃ³n exitosa, la informaciÃ³n se almacena en la base de datos con la contraseÃ±a cifrada, y se envÃ­a la respuesta al frontend para notificar el Ã©xito en la operaciÃ³n.
+Figura  SEQ Figura \* ARABIC 20 Diagrama de secuencia para crear un usuario
+
+Fuente: ElaboraciÃ³n propia, 2026
+Se considera informaciÃ³n crÃ­tica la ediciÃ³n de la contraseÃ±a, el estado o el correo electrÃ³nico de un usuario. Ante la modificaciÃ³n de estos campos, el sistema incrementa el valor de session_version del perfil afectado; este mecanismo permite invalidar las credenciales vigentes, lo que obliga al usuario a realizar una nueva autenticaciÃ³n, ya sea desde la sesiÃ³n activa que ejecutÃ³ el cambio o desde el perfil editado. Este flujo se detalla en la Figura 20.
+Figura  SEQ Figura \* ARABIC 21 Diagrama de secuencia para editar un perfil de usuario
+
+Fuente: ElaboraciÃ³n propia, 2026
+En cuanto al procedimiento de eliminaciÃ³n, el super administrador solo requiere ingresar el correo electrÃ³nico del usuario y su propia contraseÃ±a para ejecutar la acciÃ³n. Por el contrario, un administrador debe conocer tanto el correo como la contraseÃ±a exacta de la cuenta que desea eliminar; para garantizar que los administradores solo puedan dar de baja a usuarios creados por ellos mismos y sobre los cuales poseen conocimiento de sus credenciales. Un ejemplo del formato de peticiÃ³n y respuesta empleado en este flujo se muestra en la Figura 21.
+Figura  SEQ Figura \* ARABIC 22 Estructura de peticiÃ³n y respuesta para eliminar un usuario
+
+Fuente: ElaboraciÃ³n propia, 2026
+Los endpoints creados para el funcionamiento de este mÃ³dulo se detallan en la Tabla 4.
+Tabla  SEQ Tabla \* ARABIC 4 Endpoints creados para el mÃ³dulo de gestiÃ³n de usuarios y sesiones
+Endpoint
+MÃ©todo
+PropÃ³sito
+/api/auth/login
+POST
+Autenticar usuario
+/api/auth/refresh
+POST
+Renovar sesiÃ³n
+/api/auth/me
+GET
+Validar sesiÃ³n activa
+/api/auth/logout
+POST
+Cerrar sesiÃ³n
+/api/users/createUser
+POST
+Crear usuario
+/api/users/getAllUsers
+GET
+Listar usuarios
+/api/users/getUserByEmail/:email
+GET
+Ver perfil detallado
+/api/users/updateUser/:originalEmail
+PATCH
+Actualizar usuario o perdil propio
+/api/users/deleteUser/:email
+DELETE
+Eliminar usuario
+Fuente: ElaboraciÃ³n propia, 2026
+AsÃ­ mismo se desarrollaron las pÃ¡ginas de inicio de sesiÃ³n, lista de usuarios, pÃ¡gina general de la aplicaciÃ³n, algunas de las pÃ¡ginas con sus escenarios principales se muestran en las figuras 22, 23, 24, 25 y 26 respectivamente.
+Figura  SEQ Figura \* ARABIC 23 Prototipo de la pÃ¡gina de inicio de sesiÃ³n
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 24 Prototipo de la pÃ¡gina de lista de usuarios del sistema
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 25 Prototipos de las pÃ¡ginas de creaciÃ³n, ediciÃ³n y eliminaciÃ³n de usuarios del sistema
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 26 Prototipos del cierre de sesiÃ³n de emergencia por cambios en el perfil
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 27 Prototipos de ventana para refrescar sesiÃ³n
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Para el desarrollo de este mÃ³dulo se implementaron mÃºltiples interfaces, rutas, contextos, controladores y entidades, siguiendo las estructuras previamente documentadas para el frontend y el backend, los archivos mÃ¡s importantes y crÃ­ticos para el funcionamiento de este mÃ³dulo se presentan en las tablas 5 y 6, respectivamente.
+Tabla  SEQ Tabla \* ARABIC 5 Archivos implementados en frontend para el mÃ³dulo de gestiÃ³n de usuarios y sesiones
+Archivo
+Tipo
+DescripciÃ³n
+LoginPage.jsx
+PÃ¡gina
+PÃ¡gina de inicio de sesiÃ³n con validaciÃ³n de email/contraseÃ±a, botÃ³n de acceso y manejo de errores.
+HomePage.jsx
+PÃ¡gina
+PÃ¡gina principal del sistema una vez un usuario estÃ¡ logueado. Diferencia entre roles al mostrar la informaciÃ³n.
+UsersListPage.jsx
+PÃ¡gina
+Listado de usuarios con bÃºsqueda, filtros por rol/estado, ordenamiento y acceso a detalle.
+CreateUserPage.jsx
+PÃ¡gina
+Pantalla de registro de usuarios; renderiza el panel principal y gestiona layout.
+UserPage.jsx
+PÃ¡gina
+Perfil de usuario (vista/ediciÃ³n segÃºn rol). Maneja permisos y recarga de datos.
+App.jsx
+Punto de entrada
+Define rutas, protecciÃ³n conÂ PrivateRoute, y roles permitidos por ruta.
+PrivateRoute.jsx
+ProtecciÃ³n de rutas
+Control de acceso por rol y estado de autenticaciÃ³n.
+AuthContext.jsx
+Contexto
+Â Login, logout, refresh, expiraciÃ³n de sesiÃ³n, flags por rol.
+ToastContext.jsx
+Contexto
+Notificaciones globales.
+auth.js
+API (comunicaciÃ³n con backend)
+Login, logout, refresh,Â me, resumen del sistema.
+users.js
+API (comunicaciÃ³n con backend)
+CRUD de usuarios, obtener admins, obtener user por email.
+axiosConfig.js
+API (comunicaciÃ³n con backend)
+Rutas base para auth y users.
+handleApiError.js
+API (comunicaciÃ³n con backend)
+NormalizaciÃ³n de errores.
+authConfig.js
+API (comunicaciÃ³n con backend)
+Minutos de aviso de expiraciÃ³n.
+loadAbort.js
+API (comunicaciÃ³n con backend)
+Abort controllers para peticiones.
+sessionTimmer.js
+Servicio
+Warnings y expiraciÃ³n automÃ¡tica.
+
+callLogout.js
+Servicio
+Callback global para logout.
+auth.service.js
+Servicio
+Valida sesiÃ³n, refresca token, guarda sesiÃ³n local.
+useFetchAndLoad.js
+Hook
+Wrapper de loading y errores.
+useAuthorization.js
+Hook
+ValidaciÃ³n de roles.
+useAuthEffects.js
+Hook
+Manejo global de sesiÃ³n (warning/logout automÃ¡tico).
+generateSecurePassword.js
+Utilidad
+GeneraciÃ³n local de contraseÃ±a.
+Fuente: ElaboraciÃ³n propia, 2026
+Tabla  SEQ Tabla \* ARABIC 6 Archivos desarrollados en el backend para el mÃ³dulo de gestiÃ³n de usuarios y sesiones
+Archivo
+Tipo
+DescripciÃ³n
+server.js
+Entry point
+Inicializa DB y levanta Express.
+app.js
+ConfiguraciÃ³n
+Registra rutas de auth/users y middlewares globales.
+
+
+
+data-source.js
+ConfiguraciÃ³n
+ConexiÃ³n principal TypeORM y entidades.
+allowedStatesAndRoles.js
+ConfiguraciÃ³n
+Roles y estados permitidos.
+rolePermissions.js
+ConfiguraciÃ³n
+Permisos por rol.
+User.js
+Entidad
+Modelo User con roles, estado, sesiÃ³n y relaciones.
+auth.controller.js
+Controlador
+Login, refresh, logout,Â me, summary data.
+users.controller.js
+Controlador
+CRUD de usuarios, filtros y reglas de permisos.
+auth.routes.js
+Rutas
+EndpointsÂ /authÂ con login/refresh/me/logout.
+user.routes.js
+Rutas
+EndpointsÂ /usersÂ con create/read/update/delete.
+verifyJwt.js
+Middleware
+Valida JWT y session_version.
+authorize.js
+Middleware
+Valida permisos por rol.
+uploads.js
+Middleware
+ConfiguraciÃ³n de multer y lÃ­mites (2MB).
+optimizeImage.js
+Middleware
+Optimiza imÃ¡genes a webp.
+uploadSingleFiles.js
+Utilidad
+Wrapper para subir archivos.
+passwordUtils.js
+Utilidad
+Hash y comparaciÃ³n de contraseÃ±as.
+apiResponse.js
+Utilidad
+Respuestas estÃ¡ndar y cÃ³digos de error.
+attachFileUrls.js
+Utilidad
+Inyecta URLs completas de imÃ¡genes en respuestas.
+Fuente: ElaboraciÃ³n propia, 2026
+La evidencia de las pruebas ejecutadas a este mÃ³dulo y sus resultados se detallan en el anexo 2, respectivamente.
+MÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+El mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa se desarrollÃ³ para administrar el ciclo completo de los proyectos de la organizaciÃ³n, incluye la creaciÃ³n de proyectos operativos, asignaciÃ³n de responsables, vinculaciÃ³n con APIs externas con GitHub, Facebook e Instagram, ediciÃ³n controlada por roles y la gestiÃ³n versionada de su plan operativo asociado. Los permisos y acciones asignados a cada rol en este mÃ³dulo se detallan en la Figura 27.
+Figura  SEQ Figura \* ARABIC 28 Diagrama UML de casos de uso del mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+
+Fuente: ElaboraciÃ³n propia, 2026
+Algunos de los casos de uso presentados en el diagrama poseen casos especiales y efectos secundarios que se muestran en la Tabla 7.
+Tabla  SEQ Tabla \* ARABIC 7 Matriz de permisos y restricciones por rol en el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+AcciÃ³n
+Super administrador
+Administrador
+Usuario
+Listar proyectos
+SÃ­ (todos)
+SÃ­ (solo asignados)
+SÃ­ (solo asignados)
+Ver detalle de proyecto
+SÃ­
+SÃ­
+SÃ­
+Crear proyecto operativo
+SÃ­
+No
+No
+Editar proyecto operativo
+SÃ­
+SÃ­ (solo si es responsable)
+No
+Eliminar proyecto operativo
+SÃ­
+No
+No
+Ver plan operativo (Vista solo lectura)
+SÃ­
+SÃ­ (solo si es responsable)
+SÃ­ (solo si es responsable)
+Crear plan operativo
+SÃ­
+SÃ­ (solo si es responsable)
+No
+Editar plan operativo
+SÃ­
+SÃ­ (solo si es responsable)
+No
+Eliminar plan operativo
+SÃ­
+No
+No
+Exportar plan en solo lectura (PDF/XLS)
+SÃ­
+SÃ­
+SÃ­
+Fuente: ElaboraciÃ³n propia, 2026
+Para permitir la integraciÃ³n del sistema con las APIs externas, se adoptÃ³ un modelo backend-to-backend; es decir, el frontend no consume servicios externos de forma directa, sino que solicita los datos al backend del sistema propio, el cual actÃºa como intermediario con las plataformas. Esta estrategia evita la exposiciÃ³n de credenciales en el cliente y estandariza la transformaciÃ³n de los datos recibidos para enviarlos a la interfaz de usuario. 
+La integraciÃ³n con servicios externos demanda un token de autenticaciÃ³n especÃ­fico. Para la API de GitHub, el proceso requiere ademÃ¡s el nombre de la organizaciÃ³n. La obtenciÃ³n de estos se detalla en la Figura 28.
+Figura  SEQ Figura \* ARABIC 29 Pasos para obtener el token de acceso y nombre de la organizaciÃ³n en GitHub Rest API
+
+Fuente: ElaboraciÃ³n propia, 2026
+Ya con el token y la organizaciÃ³n se logrÃ³ obtener los repositorios con una peticiÃ³n GET, un ejemplo se detalla en la Figura 29.
+Figura  SEQ Figura \* ARABIC 30 Estructura de peticiÃ³n y respuesta a GitHub Rest API para listar repositorios
+
+Fuente: ElaboraciÃ³n propia, 2026
+En el caso de la API de Meta, para la obtenciÃ³n de las pÃ¡ginas de Facebook e Instagram, se requiriÃ³ el user access token vinculado a la cuenta de la organizaciÃ³n en Meta for Developers. Este procedimiento fue gestionado por el usuario final, quien suministrÃ³ las credenciales de acceso basÃ¡ndose en la documentaciÃ³n oficial del API. Con esta informaciÃ³n, el sistema logrÃ³ ejecutar las solicitudes para listar las pÃ¡ginas vinculadas a la organizaciÃ³n por cada red social. Un ejemplo de la peticiÃ³nes y sus correspondientes respuestas se ilustra en las Figuras 30 y 31, respectivamente.
+Figura  SEQ Figura \* ARABIC 31 Estructura de peticiÃ³n y respuesta de la Meta Graph API para pÃ¡ginas de Facebook
+
+Fuente: ElaboraciÃ³n propia, 2026
+Figura  SEQ Figura \* ARABIC 32 Estructura de peticiÃ³n y respuesta de la Meta Graph API para pÃ¡ginas de Instagram
+
+Fuente: ElaboraciÃ³n propia, 2026
+Las integraciones permitieron que el sistema obtenga y enlace pÃ¡ginas de redes sociales y repositorios a los proyectos operativos. La secuencia tÃ©cnica para la creaciÃ³n de proyectos, la asignaciÃ³n de responsables y la vinculaciÃ³n con servicios externos se detalla en la Figura 32. 
+Figura  SEQ Figura \* ARABIC 33 Diagrama de secuencia para crear un proyecto operativo
+
+Fuente: ElaboraciÃ³n propia, 2026
+Para crear un proyecto operativo es necesario mÃ­nimamente que se enviÃ© un nombre y una descripciÃ³n, los demÃ¡s campos que usa operational_project como los responsables (almacenados en la tabla project_responsibles), integraciones (que se almacenan en la tabla project_integrations) e imagen de proyecto son opcionales. Un ejemplo de peticiÃ³n y respuesta que se realiza para crear un proyecto operativo se muestra en la Figura 33.
+Figura  SEQ Figura \* ARABIC 34 Estructura de peticiÃ³n y respuesta para crear un proyecto operativo
+
+Fuente: ElaboraciÃ³n propia, 2026
+Por otro lado, para la creaciÃ³n o ediciÃ³n de un plan operativo, con la estructura presentada anteriormente en la Figura 3, se desarrollÃ³ la entidad operational_rows la cual se asocia a un proyecto operativo mediante su relaciÃ³n por id. Con el fin de resolver conflictos de concurrencia cuando dos sesiones activas editan el mismo plan (acciÃ³n permitida para los roles de super administrador y administrador), se configurÃ³ un campo incremental en la entidad operational_project denominado operationalPlan_version. Este campo aumenta su valor cada vez que un usuario guarda cambios en un plan operativo. De esta manera, si un usuario intenta guardar su progreso y existe una versiÃ³n mÃ¡s reciente, el sistema notifica la necesidad de recargar la pÃ¡gina para trabajar sobre la Ãºltima versiÃ³n del plan, como se ilustra en los prototipos de la Figura 39. Este flujo de secuencia se detalla en la Figura 34.
+Figura  SEQ Figura \* ARABIC 35 Diagrama de secuencia para crear o editar un plan operativo
+
+Fuente: ElaboraciÃ³n propia, 2026
+Figura  SEQ Figura \* ARABIC 36 Estructura de peticiÃ³n y respuesta para crear un plan operativo
+
+Fuente: ElaboraciÃ³n propia, 2026
+Este mÃ³dulo requiriÃ³ del desarrollo de distintos endpoints para su funcionamiento los cuales se muestran en la Tabla 8. 
+Tabla  SEQ Tabla \* ARABIC 8 Endpoints creados para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+Endpoint
+MÃ©todo
+PropÃ³sito
+/api/projects/getAll
+GET
+Listar proyectos visibles para el usuario
+/api/projects/create
+POST
+Crear proyecto con responsables e integraciones
+/api/projects/getProjectById/:id
+GET
+Obtener detalle de un proyecto
+/api/projects/:id
+PATCH
+Actualizar info, responsables e integraciones
+/api/projects/:id
+DELETE
+Eliminar proyecto
+/api/operational-plans/:id
+GET
+Cargar plan operativo de proyecto
+/api/operational-plans/updateOperationalPlan/:id
+POST
+Guardar cambios del plan (create/update/delete)
+/api/operational-plans/deleteOperationalPlan/:id
+DELETE
+Eliminar plan operativo completo
+/api/apis/project-integration/:projectId/integrations
+PUT
+Mantenimiento de integraciones (endpoint auxiliar)
+Fuente: ElaboraciÃ³n propia, 2026
+AsÃ­ mismo se desarrollÃ³ las interfaces de usuario de lista de proyectos, crear proyecto, detalles de un proyecto, vista editable y solo lectura de la planificaciÃ³n operativa, algunas de las pÃ¡ginas con sus escenarios principales se muestran en las figuras 35, 36 y 37 respectivamente.
+Figura  SEQ Figura \* ARABIC 37 Prototipos de la pÃ¡gina de creaciÃ³n de proyectos operativos
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 38 Prototipo de la pÃ¡gina de ediciÃ³n y eliminaciÃ³n de proyectos operativos
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 39 Prototipo de la pÃ¡gina de creaciÃ³n, ediciÃ³n y exportaciÃ³n de planes operativos
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 40 Prototipo de la advertencia por versiÃ³n de plan operativo al guardar
+
+Fuente: ElaboraciÃ³n propia, 2026
+Los archivos mÃ¡s importantes y crÃ­ticos desarrollados se presentan en las tablas 9 y 10, respectivamente.
+Tabla  SEQ Tabla \* ARABIC 9 Archivos implementados en frontend para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+Archivo
+Tipo
+DescripciÃ³n
+ProjectsListPage.jsx
+PÃ¡gina
+Listado de proyectos con bÃºsqueda, filtros, ordenamiento y acceso a detalle.
+CreateProjectPage.jsx
+PÃ¡gina
+CreaciÃ³n de proyecto con flujo por pestaÃ±as y validaciones.
+ProjectPage.jsx
+PÃ¡gina
+Detalle de proyecto con vista y ediciÃ³n segÃºn rol.
+OperationalPlanningDashboardPage.jsx
+PÃ¡gina
+Entrada principal a planificaciÃ³n operativa con selector de proyecto y modo editable/solo lectura.
+OperationalPlannigTable.jsx
+Componente
+Tabla editable del plan operativo con filas, validaciÃ³n, guardado y control de cambios.
+OperationalPlanningReadOnlyTable.jsx
+Componente
+Vista solo lectura del plan operativo con exportaciÃ³n PDF/Excel.
+DeleteOperationalPlanningTableDialog.jsx
+Componente
+Modal de confirmaciÃ³n para eliminar un plan operativo.
+AssignResponsiblesPanel.jsx
+Componente
+SelecciÃ³n de responsables al crear proyecto.
+EditProjectDialog.jsx
+Componente
+Modal de ediciÃ³n de proyecto (info, responsables, integraciones).
+ResponsiblesPanel.jsx
+Componente
+GestiÃ³n de responsables en ediciÃ³n de proyecto.
+ProjectInfoPanel.jsx
+Componente
+EdiciÃ³n de nombre, descripciÃ³n e imagen del proyecto.
+ProjectIntegrationsWithApisPanel.jsx
+Componente
+GestiÃ³n de integraciones con GitHub/Facebook/Instagram.
+ViewProject.jsx
+Componente
+Vista de informaciÃ³n del proyecto y relaciones (programa, responsables, integraciones).
+MorePanel.jsx
+Componente
+Panel de eliminaciÃ³n de proyecto con confirmaciÃ³n.
+OperationalPdfWorker.js
+Utilidad
+Worker que genera PDF del plan operativo.
+generateOperationalPlanPdf.js
+Utilidad
+LÃ³gica completa de exportaciÃ³n PDF del plan operativo.
+ExportMenu.jsx
+Componente
+MenÃº de exportaciÃ³n en vista solo lectura (PDF/Excel).
+Fuente: ElaboraciÃ³n propia, 2026
+Tabla  SEQ Tabla \* ARABIC 10 Archivos desarrollados en el backend para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+Archivo
+Tipo
+DescripciÃ³n
+operationalProjects.controller.js
+Controlador
+CRUD de proyectos, responsables e integraciones.
+OperationalPlan.controller.js
+Controlador
+CRUD del plan operativo, validaciÃ³n de versiÃ³n y permisos.
+operationalProject.routes.js
+Rutas
+Endpoints de proyectos: create, update, getAll, getById, delete.
+operationalPlan.routes.js
+Rutas
+Endpoints de plan operativo: get, update, delete.
+OperationalProject.js
+Entidad
+Modelo principal de proyecto operativo.
+OperationalRow.js
+Entidad
+Filas del plan operativo (objetivo, indicador, recursos, etc.).
+ProjectResponsible.js
+Entidad
+RelaciÃ³n usuario â†” proyecto (responsables).
+ProjectIntegration.js
+Entidad
+Integraciones externas del proyecto.
+Program.js
+Entidad
+Programa estratÃ©gico asociado a proyectos.
+canAccessProject.js
+Utilidad
+Reglas de acceso a proyectos por rol/asignaciÃ³n.
+assignResponsibles.js
+Utilidad
+LÃ³gica para asignar responsables en creaciÃ³n/ediciÃ³n.
+createProjectIntegrations.js
+Utilidad
+LÃ³gica para registrar integraciones del proyecto.
+isRowEmpty.js
+Utilidad
+ValidaciÃ³n de filas vacÃ­as en plan operativo.
+Fuente: ElaboraciÃ³n propia, 2026
+La tabla de pruebas ejecutadas a este mÃ³dulo y sus resultados se detallan en el anexo X.
+MÃ³dulo de planificaciÃ³n estratÃ©gica
+El presente mÃ³dulo se desarrollÃ³ teniendo como objetivo la formulaciÃ³n, organizaciÃ³n y mantenimiento del plan estratÃ©gico anual de la instituciÃ³n, mediante una estructura jerÃ¡rquica compuesta por los niveles de misiÃ³n, objetivos estratÃ©gicos, programas y proyectos operativos como se observÃ³ anteriormente en la Figura 3. Su implementaciÃ³n permite la gestiÃ³n integral del ciclo de vida del plan, incluyendo los procesos de consulta, creaciÃ³n, actualizaciÃ³n versionada y eliminaciÃ³n anual.
+Asimismo, se crearon dos modalidades de interfaz: una vista de columnas jerÃ¡rquicas diseÃ±ada para la ediciÃ³n de datos y una vista de carÃ¡cter documental para procesos de revisiÃ³n y comunicaciÃ³n institucional. Adicionalmente, se incorporÃ³ funcionalidades para la exportaciÃ³n del plan en formatos PDF y DOCX. Las acciones autorizadas para cada rol se ilustran en el diagrama UML de la figura 40.
+Figura  SEQ Figura \* ARABIC 41 Diagrama UML de casos de uso del mÃ³dulo de planificaciÃ³n estratÃ©gica
+
+Fuente: ElaboraciÃ³n propia, 2026
+La creaciÃ³n de un plan estratÃ©gico anual requiere como requisito fundamental la definiciÃ³n de la misiÃ³n, la cual constituye la base de la estructura jerÃ¡rquica. Un ejemplo de la solicitud procesada para la apertura o ediciÃ³n del plan se ilustra en la Figura 42. Para resolver conflictos de concurrencia ante la ediciÃ³n simultÃ¡nea en distintas sesiones, se implementÃ³ un campo incremental denominado plan_version. Este campo aumenta su valor cada vez que se guardan, editan o eliminan Ã­tems de las columnas; en caso de detectarse una discrepancia de versiones, el sistema notifica al usuario la necesidad de actualizar la pÃ¡gina para trabajar sobre la Ãºltima revisiÃ³n. El flujo lÃ³gico de esta operaciÃ³n se detalla en la Figura 41.
+Figura  SEQ Figura \* ARABIC 42 Diagrama de secuencia para crear un plan estratÃ©gico
+
+Fuente: ElaboraciÃ³n propia, 2026
+Figura  SEQ Figura \* ARABIC 43 Estructura de peticiÃ³n y respuesta para crear un plan estratÃ©gico
+
+Fuente: ElaboraciÃ³n propia, 2026
+Por otro lado, la eliminaciÃ³n de un plan conlleva la supresiÃ³n en cascada de su misiÃ³n, objetivos y programas; consecuentemente, se eliminan tambiÃ©n los proyectos asignados a cada uno de estos Ãºltimos. El flujo tÃ©cnico que rige esta operaciÃ³n se detalla en la Figura 43.
+Figura  SEQ Figura \* ARABIC 44 Diagrama de secuencia para eliminar un plan estratÃ©gico
+
+Fuente: ElaboraciÃ³n propia, 2026
+Para este mÃ³dulo se desarrollÃ³ distintos endpoints para su funcionamiento los cuales se muestran en la Tabla 11.
+Tabla  SEQ Tabla \* ARABIC 11 Endpoints creados para el mÃ³dulo de planificaciÃ³n estratÃ©gica
+Endpoint
+MÃ©todo
+PropÃ³sito
+/api/strategic-plans
+GET
+Listar aÃ±os con plan disponible
+/api/strategic-plans/:year
+GET
+Obtener plan completo por aÃ±o
+/api/strategic-plans/:year
+PUT
+Crear/actualizar plan jerÃ¡rquico por aÃ±o
+/api/strategic-plans/deleteStrategicPlan/:year
+DELETE
+Eliminar plan del aÃ±o y desvincular proyectos
+Fuente: ElaboraciÃ³n propia, 2026
+Las interfaces que se desarrollaron incluyen una vista de columnas editable y una vista de documento en modo de solo lectura. Asimismo, se implementaron diversos componentes funcionales que permiten la exportaciÃ³n (PDF y DOCX), ediciÃ³n y eliminaciÃ³n del plan estratÃ©gico. Los prototipos desarrollados para este mÃ³dulo se ilustran en las figuras 44 y 45, respectivamente.
+Figura  SEQ Figura \* ARABIC 45 Prototipos de la pÃ¡gina de creaciÃ³n y ediciÃ³n de planes estratÃ©gicos
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 46 Prototipos de la pÃ¡gina de vista solo lectura y prevenciÃ³n de guardado de plan
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Los archivos mÃ¡s importantes y crÃ­ticos desarrollados para el funcionamiento del mÃ³dulo de planificaciÃ³n estratÃ©gica se presentan en la Tabla 12 y 13, respectivamente.
+Tabla  SEQ Tabla \* ARABIC 12 Archivos implementados en frontend para el mÃ³dulo de planificaciÃ³n estratÃ©gica
+Archivo
+Tipo
+DescripciÃ³n
+StrategicPlanningDashboardPage.jsx
+PÃ¡gina
+Entrada principal del mÃ³dulo. Gestiona carga del plan por aÃ±o, estado, permisos y vista (columnas/Ã¡rbol).
+StrategicPlanningColumnsView.jsx
+PÃ¡gina
+Vista editable en columnas jerÃ¡rquicas (misiÃ³n â†’ objetivos â†’ programas â†’ proyectos). Permite ediciÃ³n y guardado.
+StrategicPlanningTreeView.jsx
+PÃ¡gina
+Vista alternativa tipo Ã¡rbol, con exportaciÃ³n a PDF/DOCX y navegaciÃ³n jerÃ¡rquica.
+components/DeleteStrategicPlanDialog.jsx
+Componente
+Modal de confirmaciÃ³n para eliminar plan estratÃ©gico por aÃ±o.
+components/mision/MisionColumn.jsx
+Componente
+Columna â€œMisiÃ³nâ€ con ediciÃ³n y creaciÃ³n de items.
+components/objetives/ObjectiveColumn.jsx
+Componente
+Columna de objetivos estratÃ©gicos.
+components/programs/ProgramsColumn.jsx
+Componente
+Columna de programas estratÃ©gicos.
+components/projects/ProjectsColumn.jsx
+Componente
+Columna de proyectos asociados a programas.
+utils/exportStrategicPlanPDF.js
+Utilidad
+Exporta el plan estratÃ©gico en PDF.
+utils/exportStrategicPlanDOCX.js
+Utilidad
+Exporta el plan estratÃ©gico en DOCX.
+utils/strategicPdfWorker.js
+Utilidad
+Worker para generaciÃ³n asÃ­ncrona de PDF.
+utils/generatePdf/generateStrategicPlanPdf.js
+Utilidad
+Generador principal del PDF del plan estratÃ©gico.
+Fuente: ElaboraciÃ³n propia, 2026
+Tabla  SEQ Tabla \* ARABIC 13 Archivos desarrollados en el backend para el mÃ³dulo de planificaciÃ³n estratÃ©gica
+Archivo
+Tipo
+DescripciÃ³n
+strategicPlan.controller.js
+Controlador
+LÃ³gica CRUD del plan estratÃ©gico por aÃ±o, validaciones, versionado y reglas de negocio.
+strategicPlan.routes.js
+Rutas
+Endpoints del plan estratÃ©gico: list, get by year, update, delete.
+StrategicPlan.js
+Entidad
+Modelo del plan estratÃ©gico (aÃ±o, misiÃ³n, versiÃ³n, timestamps).
+Objetive.js
+Entidad
+Objetivos estratÃ©gicos asociados a plan estratÃ©gico.
+Program.js
+Entidad
+Programas estratÃ©gicos asociados a objetivos.
+Indicator.js
+Entidad
+Indicadores vinculados a objetivos/mediciÃ³n.
+OperationalProject.js
+Entidad
+Proyectos operativos relacionados con programas estratÃ©gicos.
+ProjectResponsible.js
+Entidad
+RelaciÃ³n de responsables asignados a proyectos.
+Fuente: ElaboraciÃ³n propia, 2026
+Las pruebas ejecutadas a este mÃ³dulo se detallan en el anexo X.
+MÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs.
+El mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs se desarrollÃ³ con el propÃ³sito de centralizar, transformar y presentar indicadores de desempeÃ±o provenientes de las plataformas externas Meta Graph API y GitHub REST API en una interfaz especÃ­fica para cada proyecto operativo. Su diseÃ±o tiene como objetivo principal sustituir la revisiÃ³n manual en mÃºltiples portales por un flujo automatizado de consulta, normalizaciÃ³n y visualizaciÃ³n de datos. Asimismo, el sistema facilita el filtrado de mÃ©tricas mediante rangos temporales como se muestra en la Tabla 14, esto para posteriormente renderizar los indicadores en tarjetas y grÃ¡ficos orientados al anÃ¡lisis operativo. Las acciones permitidas para cada rol en este mÃ³dulo se detallan en la Figura 46.
+Tabla  SEQ Tabla \* ARABIC 14 GestiÃ³n de rangos temporales para la visualizaciÃ³n de KPIs
+Rango UI
+DÃ­as
+Backend base
+Hoy 
+1
+dÃ­a actual
+Ãšltima semana
+7
+hoy - 6 dÃ­as
+Ãšltimo mes
+30
+hoy - 29 dÃ­as
+Ãšltimos seis meses
+180
+hoy - 179 dÃ­as
+Todo (Solo en GitHub)
+histÃ³rico
+Todos los datos
+Fuentes: ElaboraciÃ³n propia, 2026
+Figura  SEQ Figura \* ARABIC 47 Diagrama UML de casos de uso del mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+
+Fuente: ElaboraciÃ³n propia, 2026
+Como se mencionÃ³ anteriormente, las mÃ©tricas obtenidas en periodos de tiempo para cada plataforma poseen una nomenclatura especÃ­fica definida por la lÃ³gica de negocio interna de cada proveedor, la cual fue identificada mediante el estudio de la documentaciÃ³n oficial de las APIs. En cuanto a GitHub, se obtienen las ramas (branches), los commits y los pull requests para visualizar la informaciÃ³n en el dashboard. Por otro lado, los indicadores recuperados del Meta Graph API para Facebook e Instagram se detallan y explican en la Tabla 15 y la Tabla 16, respectivamente.
+Tabla  SEQ Tabla \* ARABIC 15 MÃ©tricas obtenidas de Meta Graph API para el dashboard de Facebook
+KPI 
+Nombre de la mÃ©trica
+Significado (definiciÃ³n)
+Nuevos seguidores de la pÃ¡gina
+page_follows
+VariaciÃ³n de seguidores de la pÃ¡gina en el periodo. 
+Visitas a la pÃ¡gina
+page_views_total
+NÃºmero de visitas a la pÃ¡gina/perfil.
+Impresiones de la pÃ¡gina
+page_impressions
+Veces que contenido de la pÃ¡gina entra en pantalla de un usuario.
+Impresiones de la pÃ¡gina orgÃ¡nicas vs pagadas
+page_media_viewÂ +Â breakdown=is_from_ads
+SeparaciÃ³n del volumen en orgÃ¡nico (is_from_ads=0) y pagado (is_from_ads=1).
+Acciones totales
+page_total_actions
+Acciones totales realizadas por usuarios sobre activos de la pÃ¡gina (interacciones/acciones agregadas definidas por Meta).
+Post engagements
+page_post_engagements
+Interacciones de usuarios con publicaciones de la pÃ¡gina (engagement de contenido).
+Reacciones totales (por tipo)
+page_actions_post_reactions_total
+Total de reacciones en publicaciones, con desglose por tipo (Me gusta, Me encanta, Me asombra, Me divierte, Me entristece, Me enoja).
+Seguidores por paÃ­s
+page_follows_country
+DistribuciÃ³n geogrÃ¡fica de seguidores por paÃ­s (audiencia).
+Top 5 posts populares
+/postsÂ + score interno
+Ranking de publicaciones con mayor impacto con formula interna en el sistema:Â reacciones + (comentarios*2) + (compartidos*3).
+Fuente: ElaboraciÃ³n propia, 2026
+Tabla  SEQ Tabla \* ARABIC 16 MÃ©tricas obtenidas de Meta Graph API para el dashboard de Instagram
+KPI 
+Nombre de la mÃ©trica
+Significado (definiciÃ³n)
+Alcance
+reach
+Cuentas Ãºnicas que vieron contenido al menos una vez en el periodo.
+Cuentas con interacciÃ³n
+accounts_engaged
+Cuentas Ãºnicas que interactuaron con el contenido de una pÃ¡gina.
+Visitas al perfil
+profile_views
+NÃºmero de visitas al perfil de la pÃ¡gina.
+Tasa de engagement
+total_interactionsÂ yÂ reach
+KPI calculado internamente en el sistema:Â (total_interactions / reach) * 100.
+Rendimiento por formato
+media_typeÂ 
+Compara interacciÃ³n por tipo de contenido (Video, Imagen, Carrusel, Reel). 
+Desglose de interacciones
+Me gusta(likes),Â comments(comentarios),Â shares(compartidos),Â saves(guardados).
+Volumen total por tipo de interacciÃ³n dentro del periodo.
+Top publicaciones (score ponderado)
+/mediaÂ + insights por media 
+Ranking de posts con fÃ³rmula interna:Â likes + (comments*2) + (shares*3) + (saves*2).
+Fuente: ElaboraciÃ³n propia, 2026
+Estos KPIs permitieron estructurar el panel de visualizaciÃ³n por plataforma y desarrollar grÃ¡ficas para mostrarse visualmente las cuales se explican en la Tabla 17.
+Tabla  SEQ Tabla \* ARABIC 17 GrÃ¡ficas desarrolladas por plataforma para el mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+Plataforma
+KPI
+Tipo de grÃ¡fica
+DescripciÃ³n funcional
+Facebook
+Nuevos seguidores de la pÃ¡gina
+Tarjeta KPI + lÃ­nea
+VariaciÃ³n de seguidores ganados en el periodo.
+Facebook
+Visitas a la pÃ¡gina
+Tarjeta KPI + lÃ­nea
+Cantidad de visitas a la pÃ¡gina/perfil en el rango seleccionado.
+Facebook
+Page impressions
+Tarjeta KPI + lÃ­nea
+Total de veces que el contenido se mostrÃ³ (impresiones).
+Facebook
+Page impressions orgÃ¡nicas vs pagadas
+Dona (torta) + barra comparativa
+DistribuciÃ³n de impresiones por origen orgÃ¡nico o pagado.
+Facebook
+Total actions
+Tarjeta KPI
+Total de acciones realizadas sobre la pÃ¡gina/contenido.
+Facebook
+Post engagements
+Tarjeta KPI + lÃ­nea
+Interacciones totales en publicaciones del periodo.
+Facebook
+Reacciones totales (desglose por tipo)
+Barras por categorÃ­a
+Desglose de reacciones por tipo (like, love, etc.).
+Facebook
+Seguidores por paÃ­s
+Barras horizontales
+DistribuciÃ³n geogrÃ¡fica de seguidores.
+Facebook
+Top 5 posts populares
+Ranking / tarjetas
+Publicaciones con mejor rendimiento.
+Instagram
+Alcance (reach)
+Tarjeta KPI + lÃ­nea
+Cuentas Ãºnicas alcanzadas en el periodo.
+Instagram
+Cuentas con interacciÃ³n (accounts_engaged)
+Tarjeta KPI + lÃ­nea
+Cuentas Ãºnicas que interactuaron con el contenido.
+Instagram
+Visitas al perfil (profile_views)
+Tarjeta KPI + lÃ­nea
+Cantidad de visitas al perfil.
+Instagram
+Tasa de engagement
+Tarjeta KPI (%)
+RelaciÃ³n interacciones/alcance en porcentaje.
+Instagram
+Rendimiento por formato
+Barras horizontales
+Interacciones por tipo de contenido (imagen, video, carrusel).
+Instagram
+Desglose de interacciones
+Barras horizontales por mÃ©trica
+Total por likes, comments, shares, saves, replies, reposts.
+Instagram
+Embudo de conversiÃ³n (profile_views, profile_links_taps, website_clicks)
+Embudo + barras por etapa
+Flujo de conversiÃ³n desde perfil hasta clic al sitio web.
+Instagram
+Top publicaciones por score ponderado
+Ranking / tarjetas
+Ranking por puntaje compuesto de rendimiento.
+GitHub
+Cantidad de commits
+Tarjeta KPI + lÃ­nea
+Total de commits en el periodo.
+GitHub
+Top colaboradores del perÃ­odo
+Ranking (barras o tarjetas)
+Colaboradores con mÃ¡s commits.
+GitHub
+Pull requests del perÃ­odo
+Tarjeta KPI + lÃ­nea
+NÃºmero de PRs dentro del rango seleccionado.
+GitHub
+Colaboradores sin push reciente
+Tarjeta de estado / lista
+Usuarios sin actividad de push reciente.
+GitHub
+Historial de commits (serie temporal)
+LÃ­nea temporal
+EvoluciÃ³n de commits a lo largo del tiempo.
+GitHub
+Horas con mÃ¡s commits
+Barras verticales
+Franja horaria con mayor actividad de commits.
+GitHub
+Historial tabular de commits
+Tabla
+Detalle de commits con fecha, autor y mensaje.
+GitHub
+Porcentaje de commits por autor
+Dona (torta) o barra 100%
+
+Fuente: ElaboraciÃ³n propia, 2026
+Como se mencionÃ³ anteriormente el mÃ³dulo gestiona las peticiones (segÃºn un periodo de tiempo seleccionado) hacia las APIs externas y renderiza la informaciÃ³n en grÃ¡ficas. La secuencia tÃ©cnica de este procedimiento se ilustra en la Figura 48.
+Figura  SEQ Figura \* ARABIC 48 Diagrama de secuencia para obtener los KPIs por plataforma
+
+Fuentes: ElaboraciÃ³n propia, 2026
+Un ejemplo de las solicitudes y respuestas del sistema al obtener las mÃ©tricas por plataforma se muestran en la Figura 49, 50 y 51.
+Figura  SEQ Figura \* ARABIC 49 Estructura de peticiÃ³n y respuesta para obtener stats de GitHub Rest Api
+
+Fuente: ElaboraciÃ³n propia, 2026
+Figura  SEQ Figura \* ARABIC 50 Estructura de peticiÃ³n y respuesta para obtener insights de Meta GraphApi Facebook
+
+Fuente: ElaboraciÃ³n propia, 2026
+Figura  SEQ Figura \* ARABIC 51 Estructura de peticiÃ³n y respuesta para obtener insights de Meta GraphApi Instagram
+
+Fuente: ElaboraciÃ³n propia, 2026
+Por otro lado, los endpoints que se desarrollaron para el funcionamiento del mÃ³dulo cuales se muestran en la Tabla 18.
+Tabla  SEQ Tabla \* ARABIC 18 Endpoints creados para el mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+Endpoint
+MÃ©todo
+PropÃ³sito
+/api/dashboard/getProjectsWithIntegrations
+GET
+Obtener proyectos con integraciones habilitadas (github/facebook/instagram)
+/api/apis/github/:projectName/branches
+GET
+Obtener ramas de un repositorio
+/api/apis/github/:projectName/github-stats
+GET
+Obtener commits y PRs por rango y rama
+/api/apis/facebook/:pageId/overview
+GET
+Obtener overview de pÃ¡gina Facebook
+/api/apis/facebook/:pageId/insights
+GET
+Obtener insights Facebook
+/api/apis/facebook/:pageId/posts
+GET
+Obtener posts Facebook
+/api/apis/instagram/:instagramId/overview
+GET
+Obtener overview Instagram
+/api/apis/instagram/:instagramId/insights
+GET
+Obtener insights Instagram 
+/api/apis/instagram/:instagramId/media
+GET
+Obtener media, analytics y top posts
+Fuente: ElaboraciÃ³n propia, 2026
+AsÃ­ mismo se implementaron mÃºltiples vistas para al anÃ¡lisis visual de desempeÃ±o de cada proyecto operativo en cuanto a sus repositorios y pÃ¡ginas de redes sociales. Estas incluyen tarjetas informativas, grÃ¡ficos de barras, grÃ¡ficos de torta, series de tiempo (lÃ­neas) y rankings de publicaciones destacadas. Los prototipos y las vistas finales del mÃ³dulo se presentan en las Figuras 52 y 53, respectivamente.
+Figura  SEQ Figura \* ARABIC 52 Prototipos del dashboard de ranking de los proyectos por plataforma
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 53 Prototipos del dashboard de visualizaciÃ³n grÃ¡fica de KPIs por plataforma
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Los archivos mÃ¡s importantes y crÃ­ticos desarrollados para el funcionamiento del mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs se presentan en la Tabla 19 y 20, respectivamente.
+Tabla  SEQ Tabla \* ARABIC 19 Archivos desarrollados en el frontend para el mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+Archivo
+Tipo
+DescripciÃ³n
+ApisDashboardPage.jsx
+PÃ¡gina
+Vista principal del dashboard de KPIs.
+IntegrationsRankingOverview.jsx
+Componente
+Overview/ranking general de proyectos con integraciones.
+FacebookDashboard.jsx
+PÃ¡gina/Componente
+Dashboard de KPIs de Facebook.
+DashboardCard.jsx
+Componente
+Tarjeta base reutilizable para mÃ©tricas de Facebook.
+FollowersCard.jsx
+Componente
+KPI de seguidores en Facebook.
+PageViewsCard.jsx
+Componente
+KPI de visitas de pÃ¡gina en Facebook.
+PageImpressionsCard.jsx
+Componente
+KPI de impresiones en Facebook.
+PostEngagementsCard.jsx
+Componente
+KPI de engagement de publicaciones en Facebook.
+TotalActionsCard.jsx
+Componente
+KPI de acciones totales en Facebook.
+TotalReactionsCard.jsx
+Componente
+KPI/desglose de reacciones en Facebook.
+OrganicOrPaidViewsCard.jsx
+Componente
+VisualizaciÃ³n de vistas orgÃ¡nicas vs pagadas en Facebook.
+ChartFollowersByCountry.jsx
+Componente
+GrÃ¡fico de seguidores por paÃ­s en Facebook.
+TopPostOfThePeriod.jsx
+Componente
+Top publicaciones del perÃ­odo en Facebook.
+GitHubDashboard.jsx
+PÃ¡gina/Componente
+Dashboard de KPIs de GitHub.
+CommitsInThePeriod.jsx
+Componente
+KPI de commits del perÃ­odo.
+PullRequestCard.jsx
+Componente
+KPI de pull requests.
+TopCollaboratorsOfThePeriod.jsx
+Componente
+Ranking de colaboradores.
+CollaboratorsWithoutPushCard.jsx
+Componente
+Colaboradores sin push reciente.
+SessionsChart.jsx
+Componente
+Historial de commits por fecha.
+ChartCommitsByAuthor.jsx
+Componente
+DistribuciÃ³n de commits por autor.
+CommitsByWeekdayHour.jsx
+Componente
+Actividad por dÃ­a/hora.
+HighlightedCard.jsx
+Componente
+Tarjeta de mÃ©trica destacada.
+StatCard.jsx
+Componente
+Tarjeta estadÃ­stica base.
+CustomizedDataGrid.jsx
+Componente
+Tabla de datos de actividad GitHub.
+CustomizedTreeView.jsx
+Componente
+Vista jerÃ¡rquica complementaria.
+InstagramDashboard.jsx
+PÃ¡gina/Componente
+Dashboard de KPIs de Instagram.
+MetricSparkCard.jsx
+Componente
+KPI con sparkline (Instagram).
+EngagedAccountsCard.jsx
+Componente
+KPI de cuentas con interacciÃ³n.
+EngagementRateCard.jsx
+Componente
+KPI de tasa de engagement.
+ProfileViewsCard.jsx
+Componente
+KPI de visitas al perfil.
+ProfileConversionFunnelCard.jsx
+Componente
+Embudo de conversiÃ³n del perfil.
+InteractionsBreakdownCard.jsx
+Componente
+Desglose de interacciones por tipo.
+ContentTypePerformanceCard.jsx
+Componente
+Rendimiento por formato de contenido.
+TopInstagramPostsOfThePeriod.jsx
+Componente
+Top publicaciones de Instagram.
+FollowersCard.jsx
+Componente
+KPI de seguidores en Instagram.
+PageViewsCard.jsx
+Componente
+KPI de vistas complementarias.
+PostsCard.jsx
+Componente
+KPI de publicaciones.
+TotalLikesCard.jsx
+Componente
+KPI de likes totales.
+TotalReactionsCard.jsx
+Componente
+KPI agregado de reacciones/interacciones.
+AvgInteractionsPerPostCard.jsx
+Componente
+Promedio de interacciones por post.
+Fuente: ElaboraciÃ³n propia, 2026
+Tabla  SEQ Tabla \* ARABIC 20 Archivos desarrollados en el backend para el mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+Archivo
+Tipo
+DescripciÃ³n
+dashboard.controller.js
+Controlador
+LÃ³gica del overview/ranking de proyectos con integraciones.
+Dashboard.routes.js
+Rutas
+Endpoints del overview de dashboard.
+Instagra.controller.js
+Controlador
+LÃ³gica de KPIs de Facebook.
+Instagram.controller.js
+Controlador
+LÃ³gica de KPIs de Instagram.
+Github.controller.js
+Controlador
+LÃ³gica de KPIs de GitHub.
+projectIntegrations.controller.js
+Controlador
+GestiÃ³n de integraciones por proyecto.
+Instagra.routes.js
+Rutas
+Endpoints de Facebook para dashboard.
+Instagram.routes.js
+Rutas
+Endpoints de Instagram para dashboard.
+Github.routes.js
+Rutas
+Endpoints de GitHub para dashboard.
+projectIntegrations.routes.js
+Rutas
+Endpoints de integraciones por proyecto.
+formatInsights.js
+Utilidad
+NormalizaciÃ³n de insights para respuestas del dashboard.
+formatPosts.js
+Utilidad
+NormalizaciÃ³n/formateo de publicaciones.
+getFacebookPageAccessToken.js
+Utilidad
+ObtenciÃ³n de token de pÃ¡gina Facebook.
+Fuente: ElaboraciÃ³n propia, 2026
+Mientras que las pruebas que se ejecutaron al mÃ³dulo se muestran en el Anexo X.
+
+MÃ³dulo de gestiÃ³n reportes
+El mÃ³dulo se desarrollÃ³ con el propÃ³sito de facilitar la construcciÃ³n de documentos ejecutivos personalizados mediante la integraciÃ³n de bloques de contenido, tales como texto, imÃ¡genes y grÃ¡ficas del dashboard de KPIs. Su diseÃ±o incorpora un editor visual con funcionalidad de ordenamiento de bloques por arrastre, para asegurar la persistencia versionada de los datos en la base de datos y la exportaciÃ³n a formato PDF a travÃ©s de un proceso en segundo plano (Web Worker), lo cual evita el bloqueo de la interfaz durante la generaciÃ³n del archivo. Asimismo, se gestionÃ³ el guardado de cambios con control de versiones, la eliminaciÃ³n de reportes bajo confirmaciÃ³n explÃ­cita y la exportaciÃ³n documental asistida por una barra de progreso global que informa al usuario sobre el estado de la operaciÃ³n. Las acciones permitidas para cada rol en este mÃ³dulo se detallan en la Figura 53.
+Figura  SEQ Figura \* ARABIC 54 Diagrama UML de casos de uso del mÃ³dulo de gestiÃ³n de reportes
+
+Fuente: ElaboraciÃ³n propia, 2026
+La entidadÂ reportÂ se desarrollÃ³ con una estructura hÃ­brida capaz de aceptar metadatos relacionales y contenido flexible enÂ jsonb como se muestra en la Tabla 21.
+Tabla  SEQ Tabla \* ARABIC 21  Estructura de un reporte en la base de datos
+Campo
+Tipo
+DescripciÃ³n
+id
+serial
+Identificador del reporte
+title
+varchar(60)
+TÃ­tulo visible del reporte
+data
+jsonb
+Estructura completa de bloques (elements,Â elementsOrder)
+report_version
+integer
+VersiÃ³n incremental del reporte
+created_at
+timestamp
+Fecha de creaciÃ³n
+updated_at
+timestamp
+Fecha de Ãºltima actualizaciÃ³n
+Fuente: ElaboraciÃ³n propia, 2026
+Esta estructura permitiÃ³ insertar texto, imÃ¡genes y seleccionar grÃ¡ficas del dashboard de Facebook, Instagram y GitHub. El flujo que sigue esta operaciÃ³n se detalla en la Figura 53.
+Figura  SEQ Figura \* ARABIC 55 Diagrama se secuencia para crear un reporte
+
+Fuente: ElaboraciÃ³n propia, 2026
+Con el objetivo de mitigar conflictos de concurrencia durante la ediciÃ³n simultÃ¡nea de un reporte, se implementÃ³ un atributo denominado report_version en la entidad report. Este campo se incrementa automÃ¡ticamente cada vez que un usuario guarda cambios en el documento; de este modo, el sistema detecta discrepancias de versiÃ³n y notifica a los demÃ¡s usuarios que se encuentran editando el mismo reporte la necesidad de actualizar la interfaz para trabajar sobre la revisiÃ³n mÃ¡s reciente. Los prototipos de esta acciÃ³n se muestran en la Figura 58, mientras que el flujo de secuencia en la Figura 55.
+Figura  SEQ Figura \* ARABIC 56 Diagrama de secuencia para editar un reporte
+
+Fuente: ElaboraciÃ³n propia, 2026
+Para la creaciÃ³n de un reporte, el sistema exige como requisitos indispensables la definiciÃ³n de un tÃ­tulo y la inclusiÃ³n de al menos un bloque de contenido, ya sea texto, grÃ¡fica o imagen. Un ejemplo de la estructura de solicitud y la respuesta correspondiente para esta operaciÃ³n se ilustra en la Figura 56.
+Figura  SEQ Figura \* ARABIC 57 Estructura de peticiÃ³n y respuesta para la creaciÃ³n de un reporte
+
+Fuente: ElaboraciÃ³n propia, 2026
+Las interfaces desarrolladas para este mÃ³dulo incluyeron pantallas que le permiten al usuario listar, crear, editar, exportar y eliminar un reporte, estos se muestran en las Figuras 57, 58 y 59 respectivamente.
+Figura  SEQ Figura \* ARABIC 58 Prototipos de pantallas para listar, crear, editar y eliminar reportes
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 59 Prototipo de la advertencia por versiÃ³n al guardar un reporte
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Figura  SEQ Figura \* ARABIC 60 Prototipo de barra de progreso al exportar un reporte
+
+Fuente: ElaboraciÃ³n propia en Figma, 2026
+Para realizar las operaciones CRUD y listar los reportes del sistema se desarrollaron varios endpoints los cuales se muestran en la Tabla 22.
+Tabla  SEQ Tabla \* ARABIC 22 Endpoints creados para el mÃ³dulo de reportes
+Endpoint
+MÃ©todo
+PropÃ³sito
+/api/reports
+GET
+Listar reportes
+/api/reports/:reportId
+GET
+Obtener reporte por id
+/api/reports/createReport
+POST
+Crear reporte
+/api/reports/:reportId
+PUT
+Actualizar reporte
+/api/reports/:reportId
+DELETE
+Eliminar reporte
+Fuente: ElaboraciÃ³n propia, 2026
+Los archivos que fueron creados para el desarrollo de este mÃ³dulo se detallan en la Tabla 23 y Tabla 24 respectivamente.
+Tabla  SEQ Tabla \* ARABIC 23 Archivos desarrollados en el frontend para el mÃ³dulo de reportes
+Archivo
+Tipo
+Responsabilidad
+ReportListPage.jsx
+PÃ¡gina
+Listado, bÃºsqueda, ordenamiento y navegaciÃ³n a editor
+ReportEditor.jsx
+PÃ¡gina
+Editor principal, inserciÃ³n de bloques, guardar, eliminar y exportar
+useReportEditor.js
+Hook
+LÃ³gica de negocio del editor (fetch/save/delete, historial, dirty state)
+reports.js
+API client
+Contratos CRUD de reportes
+ReportContext.jsx
+Contexto
+Carrito temporal de grÃ¡ficas seleccionadas
+PdfExportContext.jsx
+Contexto
+OrquestaciÃ³n de exportaciÃ³n PDF vÃ­a Worker
+GlobalPdfExportProgress.jsx
+Componente global
+Barra de progreso de exportaciÃ³n
+ChartSelectorDialog.jsx
+Componente
+Modal que integra dashboard KPI para selecciÃ³n de grÃ¡ficas
+ChartRenderer.jsx
+Componente
+Render dinÃ¡mico por plataforma y tipo de grÃ¡fico
+formatElements.js
+Utilidad
+ConversiÃ³n Frontend â†” Backend (FormDataÂ + JSON estructurado)
+chartRegistry.js
+Utilidad
+Registro de componentes grÃ¡ficos por plataforma
+chartUtils.js
+Utilidad
+Metadatos de grÃ¡ficas y parse deÂ id_name
+pdfWorker.js
+Worker
+GeneraciÃ³n asÃ­ncrona y notificaciÃ³n de progreso
+generatePdf.js
+Utilidad PDF
+Render base de encabezado y bloques
+drawChartBlock.js
+Utilidad PDF
+Dispatcher de grÃ¡ficas (Facebook/Instagram/GitHub)
+Fuente: ElaboraciÃ³n propia, 2026
+Tabla  SEQ Tabla \* ARABIC 24 Archivos desarrollados en el backend para el mÃ³dulo de reportes
+Archivo
+Tipo
+Responsabilidad
+report.routes.js
+Rutas
+DefiniciÃ³n de endpoints, JWT, permisos y middlewares de archivo
+reports.controller.js
+Controlador
+CRUD completo, validaciÃ³n Zod, versionado, limpieza de imÃ¡genes
+Report.js
+Entidad
+ModeloÂ reportsÂ + esquema de validaciÃ³n de elementos
+verifyJwt.js
+Middleware
+ValidaciÃ³n de token y sesiÃ³n
+authorize.js
+Middleware
+Control de permisos por rol
+uploadSingleFiles.js
+Utilidad middleware
+CargaÂ multipartÂ de archivos
+uploads.js
+Middleware de almacenamiento
+ConfiguraciÃ³n Multer (lÃ­mite y destino)
+optimizeImage.js
+Middleware
+ConversiÃ³n de imÃ¡genes a webp y optimizaciÃ³n
+Fuente: ElaboraciÃ³n propia, 2026
+Las pruebas que se ejecutaron al mÃ³dulo tanto de frontend como de backend se detallan en el anexo X. 
+CONCLUSIONES
+RECOMENDACIONES
+BIBLIOGRAFIA BIBLIOGRAPHY  \l 16394 
+[1] 
+H. Kerzner, GestiÃ³n de Proyectos: Un enfoque de sistemas para la planificaciÃ³n, programaciÃ³n y control de proyectos, New Jersey: Pearson, 2009. 
+[2] 
+Laboratorio de TecnologÃ­as Sociales, Â«LabTecnoSocial,Â» [En lÃ­nea]. Available: https://labtecnosocial.org. [Ãšltimo acceso: 01 02 2026].
+[3] 
+R. Pressman, IngenierÃ­a de Software: Un Enfoque PrÃ¡ctico, MÃ©xico: McGraw-Hill, 2010. 
+[4] 
+IEEE Computer Society, IEEE Standard Glossary of Software Engineering Terminology, New York: IEEE, 1990. 
+[5] 
+L. Bass, Clements y Kazman, Software Architecture in Practice, Boston: Addison-Wesley, 2021. 
+[6] 
+Richards, Fundamentals of Software Architecture: An Engineering Approach, Sebastopol: O'Reilly Media, 2020. 
+[7] 
+Fielding, Â«Architectural Styles and the Design of Network-based Software Architectures,Â» 2000. [En lÃ­nea]. Available: https://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm. [Ãšltimo acceso: 01 02 2026].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+left-1088927
+
+
+
+
+
+
+
+ANEXOS
+00
+
+
+
+
+
+
+
+ANEXOS
+-803275-66689700
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANEXO 1
+DIAGRAMA DE GANTT DEL PLAZO DEL PROYECTO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANEXO 2
+TABLERO DE SPRINTS DEL PROYECTO
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sprint 1
+Nombre
+Desarrollo del mÃ³dulo de gestiÃ³n de usuarios
+
+Objetivo
+Establecer la base funcional del sistema con el mÃ³dulo de gestiÃ³n de usuarios, permitiendo la gestiÃ³n de sesiones segura y operaciones CRUD para segÃºn corresponda por el tipo de rol.
+
+DuraciÃ³n
+(semanas)
+4
+CÃ³digo 
+Prioridad 
+1 - 5
+Como
+Quiero
+Para
+Criterios de aceptaciÃ³n
+Fecha inicio
+Fecha Fin
+
+1
+Usuario del sistema
+Iniciar sesiÃ³n con mis credenciales de acceso
+Poder interactuar con el sistema segÃºn mi rol
+1) Se debe ingresar en campos email y contraseÃ±a
+2) Debo poder presionar un botÃ³n que inicie sesiÃ³n en el sistema con duraciÃ³n de 1 hora.3) Debo ser advertido si ocurre cualquier error al iniciar sesiÃ³n4) La pÃ¡gina debe verse similar a la del mockup
+
+
+
+1
+Usuario del sistema
+Recibir un mensaje claro cuando mis credenciales son incorrectas
+Saber que debo verificar mi acceso
+Si el email o la contraseÃ±a son incorrectos, el sistema no inicia sesiÃ³n.
+Se muestra un mensaje de error legible.
+No se redirige al dashboard.
+
+
+
+1
+Usuario administrador y super administrador del sistema
+Que una cuenta deshabilitada no pueda iniciar sesiÃ³n
+Mantener el control de acceso
+Si la cuenta estÃ¡ â€œdeshabilitadaâ€, el sistema impide el login.
+El usuario recibe un mensaje indicando el motivo.
+
+
+
+2
+Usuario autenticado del sistema
+Que mi sesiÃ³n se mantenga activa mientras el token sea vÃ¡lido
+Para no iniciar sesiÃ³n repetidamente
+Al recargar la pÃ¡gina, el sistema valida la sesiÃ³n.
+Si el token es vÃ¡lido, mantiene al usuario logueado.
+
+
+
+3
+Usuario autenticado del sistema
+Recibir una alerta cuando mi sesiÃ³n estÃ© por expirar
+Poder renovar mi sesiÃ³n activa y no perder mi trabajo
+El sistema muestra un modal de advertencia antes de expirar.
+El usuario puede refrescar la sesiÃ³n desde el modal.
+Debe verse idÃ©ntico al prototipo de Figma.
+
+
+
+2
+Usuario autenticado del sistema
+Cerrar sesiÃ³n desde el menÃº del sistema
+Proteger mi cuenta
+Al seleccionar â€œCerrar sesiÃ³nâ€, se limpia el token y los datos locales.
+El sistema redirige a la pantalla de login.
+
+
+
+2
+Usuario autenticado del sistema
+Que el sistema cierre mi sesiÃ³n automÃ¡ticamente al expirar
+Mantener la seguridad
+Cuando expira el token, el sistema realiza logout.
+Se muestra una notificaciÃ³n informativa.
+
+
+
+1
+Usuario administrador o super administrador
+Ver la lista de usuarios registrados
+Gestionar sus cuentas.
+La lista muestra nombre, email, rol, estado y proyectos asignados.
+Incluye bÃºsqueda, filtros y ordenamiento.
+Si no hay usuarios, se muestra mensaje y botÃ³n â€œCrear usuarioâ€.
+
+
+
+1
+Usuario administrador o super administrador
+registrar nuevos usuarios
+Ampliar el acceso al sistema.
+El formulario valida nombre, apellido, email y contraseÃ±a.
+Se puede asignar rol y estado.
+Al guardar, el usuario se crea y se redirige a su perfil.
+
+
+
+1
+Usuario super administrador
+solo mi rol pueda crear administradores
+Mantener el control mÃ¡ximo de acceso.
+Si un admin intenta crear super-admin, el sistema bloquea la acciÃ³n.
+El sistema evita crear mÃ¡s de un super administrador.
+
+
+
+2
+Usuario con rol super administrador, administrador o usuario
+ver el perfil de un usuario especÃ­fico
+Consultar su informaciÃ³n y proyectos asignados.
+El perfil muestra datos personales, rol, estado, proyectos asignados y creador.
+Se permiten accesos segÃºn permisos del rol.
+
+
+
+3
+Usuario super administrador
+Ver los usuarios creados por un administrador
+Auditar responsabilidad
+El perfil del administrador muestra su lista de usuarios creados.
+Cada usuario se puede abrir desde la lista.
+
+
+
+2
+Usuario con rol usuario
+Editar solo mi foto de perfil
+mantener actualizada mi informaciÃ³n visual.
+El usuario solo puede cambiar la foto.
+No puede editar nombre, email, rol ni estado.
+
+
+
+2
+Usuario con rol administrador o super administrador
+Editar datos del perfil de usuarios autorizados
+Mantener la informaciÃ³n actualizada.
+Administrador puede editar usuarios con rol â€œuserâ€.
+Super admin puede editar cualquier usuario.
+Si se cambia email/rol/estado/contraseÃ±a, se invalida sesiÃ³n del usuario del cual se hizo los cambios.
+
+
+
+2
+Usuario con rol administrador o super administrador
+Cambiar mi contraseÃ±a cumpliendo reglas de seguridad
+Proteger mi cuenta
+La contraseÃ±a debe tener 8 caracteres exactos, mayÃºscula, nÃºmero y especial.
+El sistema muestra error si no cumple.
+
+
+
+2
+Usuario super administrador del sistema
+Eliminar usuarios del sistema
+Depurar cuentas inactivas
+Se solicita email y contraseÃ±a del super admin.
+Se muestra advertencia de acciÃ³n irreversible.
+No puede eliminar su propia cuenta.
+
+
+
+2
+Usuario administrador del sistema
+Eliminar usuarios con rol â€œusuarioâ€
+Mantener el control operativo
+El admin no puede eliminar a otro admin ni a sÃ­ mismo.
+Se solicita email y contraseÃ±a del usuario a eliminar.
+Se muestra advertencia irreversible.
+Debe ser idÃ©ntico al prototipo en Figma.
+
+
+
+3
+Usuario administrador o super administrador del sistema
+Ordenar y filtrar usuarios por rol/estado
+Gestionar listas grandes fÃ¡cilmente.
+Filtros por rol y estado.
+Orden por nombre, fecha de creaciÃ³n y proyectos asignados.
+
+
+
+3
+Usuario administrador o super administrador del sistema
+Buscar usuarios por nombre o email
+Encontrarlos rÃ¡pidamente
+BÃºsqueda por nombre, apellido y correo.
+Resultados en tiempo real.
+
+
+
+3
+Usuario autenticado del sistema.
+Acceder a mi perfil desde el menÃº superior en la cabecera del sistema
+Visualizar o actualizar mis datos
+El menÃº muestra datos bÃ¡sicos del usuario.
+Al hacer clic, redirige al perfil.
+
+
+
+1
+Seguridad del Sistema
+Validar el rol del usuario al ingresar a rutas protegidas
+Impedir accesos no autorizados
+Solo admin/super-admin pueden acceder a /usuarios y /usuarios/crear.
+Todos pueden acceder a /usuario/:email segÃºn permisos.
+Accesos no autorizados redirigen a /404.
+
+
+
+2
+Usuario autenticado del sistema
+que el sistema me cierre sesiÃ³n si cambian datos crÃ­ticos de mi perfil
+para evitar inconsistencias de seguridad
+Si se modifica email, rol, estado o contraseÃ±a, se invalida sesiÃ³n.
+El usuario es notificado y se realiza logout.
+
+
+
+Sprint 2
+Nombre
+Desarrollo del mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+
+Objetivo
+Implementar el ciclo completo de administraciÃ³n de proyectos y su planificaciÃ³n operativa, con control por roles, vistas y exportaciÃ³n del plan pdf y xls.
+
+DuraciÃ³n
+(semanas)
+4
+CÃ³digo 
+Prioridad 
+1 - 5
+Como
+Quiero
+Para
+Criterios de aceptaciÃ³n
+Fecha inicio
+Fecha Fin
+
+1
+Usuario autenticado del sistema
+Ver el listado de proyectos disponibles
+Identificar rÃ¡pidamente mis proyectos o los registrados en el sistema
+Para el super administrador se listan todos los proyectos
+Para el administrador y el usuario solo se debe mostrar en la lista los proyectos en los que este asignado como responsable
+Se muestra la lista con nombre, descripciÃ³n, responsables e integraciones.
+Si no hay proyectos, se muestra mensaje y acciÃ³n correspondiente.
+Las pantallas deben verse similar a los prototipos en Figma
+
+
+
+2
+Usuario autenticado del sistema
+Buscar proyectos por nombre
+Encontrar rÃ¡pidamente un proyecto especÃ­fico
+La bÃºsqueda filtra en tiempo real de manera correcta.
+Si no hay resultados, se muestra mensaje de â€œsin resultadosâ€.
+
+
+
+2
+Usuario autenticado del sistema
+Ordenar proyectos por criterios (nombre, responsables, integraciones, fechas)
+Analizar la lista con distintos filtros aplicados
+Se permite cambiar criterio desde un selector.
+El orden se actualiza correctamente.
+
+
+
+1
+Usuario super administrador
+Crear un proyecto operativo
+Registrar un nuevo proyecto con informaciÃ³n base
+Se valida nombre y descripciÃ³n obligatorios.
+Se permite asignar imagen opcional.
+Al guardar, se crea el proyecto y redirige al detalle.
+
+
+
+2
+Usuario super administrador
+Vincular un proyecto con integraciones de APIs, de las plataformas de Facebook, Instagram y Github
+Enlazar un repositorio y una pÃ¡gina de Instragam o Facebook a un proyecto.
+Se pueden agregar integraciones vÃ¡lidas de las 3 plataformas mencionadas.
+Las integraciones quedan asociadas al proyecto mediante la base de datos.
+La UI debe verse idÃ©ntico al prototipo de Figma
+
+
+
+1
+Usuario autenticado del sistema
+Ver el detalle de un proyecto
+Conocer su informaciÃ³n completa
+Se muestran nombre, descripciÃ³n, imagen, responsables e integraciones.
+Se muestra el programa/plan estratÃ©gico si aplica.
+
+
+
+2
+Usuario super administrador o administrador asignado a un proyecto
+Editar cualquier campo del proyecto
+Mantener actualizada su informaciÃ³n
+Se puede modificar nombre, descripciÃ³n, imagen.
+Se pueden cambiar responsables e integraciones.
+Se guardan cambios correctamente.
+
+
+
+2
+Usuario super administrador
+Eliminar un proyecto
+Depurar proyectos obsoletos
+Se exige confirmaciÃ³n con nombre exacto.
+Se notifica correctamente al eliminar.
+
+
+
+2
+Usuario autenticado del sistema
+Visualizar responsables de un proyecto
+Identificar quiÃ©nes son sus responsables
+Se muestran responsables con rol y estado.
+Se puede abrir el perfil de cada responsable.
+
+
+
+1
+Usuario autenticado del sistema
+Seleccionar un proyecto en planificaciÃ³n operativa
+Consultar su plan operativo
+El selector muestra proyectos disponibles
+Al seleccionar, se carga el plan operativo
+Debe verse similar a los prototipos en Figma
+
+
+
+2
+Usuario administrador o super administrador
+Cambiar el modo de vista (editable/solo lectura)
+Controlar la ediciÃ³n del plan
+El modo editable permite editar, borrar eliminar, filas del plan operativo.
+El modo lectura solo muestra datos en una tabla no editable y permite su exportaciÃ³n en pdf y xls.
+
+
+
+1
+Usuario administrador o super administrador
+Crear filas en el plan operativo
+Registrar objetivos y actividades
+Se pueden agregar nuevas filas
+No se permiten filas vacÃ­as al guardar el plan
+Una fila se puede guardar, basta que tenga solo un item
+
+
+
+1
+Usuario administrador o super administrador
+Editar objetivos, indicadores, recursos, presupuesto y periodos
+Completar la planificaciÃ³n operativa de un proyecto
+Cada celda es editable en modo editable
+Los cambios se reflejan inmediatamente en la interfaz de usuario
+Debe verse similar a los prototipos en Figma
+
+
+
+2
+Usuario administrador o super administrador
+Eliminar una fila del plan operativo
+Corregir la planificaciÃ³n operativa de un proyecto sin tener que estar eliminando manualmente el contenido de cada fila.
+El sistema solicita confirmaciÃ³n antes de eliminar la fila
+La fila se elimina correctamente una vez se presiona aceptar
+
+
+
+1
+Usuario administrador o super administrador
+Guardar el plan operativo
+Persistir los cambios realizados
+Se valida que no haya filas vacÃ­as.
+Se incrementa versiÃ³n del plan.
+Se muestra confirmaciÃ³n de guardado.
+
+
+
+2
+Usuario administrador o super administrador
+Descartar cambios no guardados
+Volver al estado anterior
+Se solicita confirmaciÃ³n.
+El plan vuelve al Ãºltimo estado guardado.
+
+
+
+2
+Usuario administrador o super administrador
+Ver metadatos del plan (creaciÃ³n, actualizaciÃ³n, versiÃ³n)
+Auditar el histÃ³rico de cambios
+Se muestra fecha de creaciÃ³n y actualizaciÃ³n.
+Se muestra versiÃ³n actual.
+
+
+
+1
+Usuario super administrador
+Eliminar el plan operativo completo
+Eliminar la planificaciÃ³n operativa obsoleta de un proyecto
+Se exige confirmaciÃ³n con nombre del proyecto.
+Se eliminan todas las filas del plan.
+El proyecto queda sin plan operativo y muestra la pantalla de â€œProyecto sin plan operativoâ€
+Debe verse similar a los prototipos en Figma
+
+
+
+2
+Usuario con rol usuario del sistema
+Ver el plan en modo solo lectura
+Consultar sin modificar informaciÃ³n
+El contenido es visible y no editable.
+Se muestra mensaje si no existe plan.
+
+
+
+2
+Usuario autenticado del sistema con cualquier rol
+Exportar el plan operativo a PDF
+Presentar el plan en un reporte formal
+Solo se puede exportar desde la vista solo lectura
+Se genera PDF con encabezado institucional.
+El archivo se descarga correctamente.
+
+
+
+2
+Usuario autenticado del sistema con cualquier rol
+Exportar el plan operativo a Excel
+Analizar datos en una hoja de cÃ¡lculo
+El archivo XLSX contiene toda la tabla.
+Los campos estÃ¡n bien organizados.
+
+
+
+2
+Usuario autenticado del sistema
+Recibir mensaje cuando un proyecto no tiene plan operativo
+Saber que aÃºn no se registrÃ³
+Se muestra mensaje informativo.
+Si tengo el rol de super administrador o administrador, aparece opciÃ³n de creaciÃ³n de plan.
+
+
+
+3
+Usuario autenticado del sistema
+Visualizar correctamente el plan en pantallas pequeÃ±as
+Poder consultarlo en distintos dispositivos
+Las tablas permiten scroll horizontal.
+El contenido sigue siendo legible.
+
+
+
+2
+Administrador asignado a un proyecto
+Editar el plan solo si tengo permisos
+Mantener el control de acceso
+Si no tengo permisos, el modo editable no aparece.
+Si tengo permisos, puedo editar.
+
+
+
+2
+Usuario autenticado del sistema
+Que los errores de carga de un plan se manejen con mensajes claros
+Entender quÃ© hacer si algo falla
+Se muestra pantalla de error.
+Hay un botÃ³n de reintento para obtener el plan.
+Al ser presionado llama al backend para volver a obtener el plan operativo
+
+
+
+Sprint 3
+Nombre
+Desarrollo del mÃ³dulo de planificaciÃ³n estratÃ©gica
+
+Objetivo
+Implementar la administraciÃ³n integral del plan estratÃ©gico anual con control de roles, vistas jerÃ¡rquicas, versionado y exportaciÃ³n oficial (PDF/DOCX).
+
+DuraciÃ³n
+(semanas)
+4
+CÃ³digo 
+Prioridad 
+1 - 5
+Como
+Quiero
+Para
+Criterios de aceptaciÃ³n
+Fecha inicio
+Fecha Fin
+
+1
+Usuario autenticado del sistema
+Ver el listado de planes por aÃ±o
+Seleccionar un plan disponible
+Se listanÂ aÃ±os ÃºnicosÂ disponibles.
+Los aÃ±os con plan estratÃ©gico serÃ¡n visibles desde el selector de aÃ±os como se ve en el prototipo de Figma. 
+Si no hay plan en el aÃ±o seleccionado, se muestra mensaje en la pantalla â€œNo hay planes estratÃ©gicos registradosâ€. 
+
+
+
+1
+Usuario autenticado del sistema
+Seleccionar un aÃ±o
+Cargar el plan correspondiente
+Al seleccionar aÃ±o, se muestra el plan estratÃ©gico del aÃ±o seleccionado. 
+Si el aÃ±o no existe, se informa â€œPlan no encontradoâ€. 
+El cambio de aÃ±o limpia estado previo.
+
+
+
+1
+Usuario autenticado del sistema
+Ver plan en vista columnas editable
+Comprender la jerarquÃ­a
+La vista muestraÂ MisiÃ³n â†’ Objetivos â†’ Programas â†’ ProyectosÂ en columnas.
+La estructura respeta el orden jerÃ¡rquico planteado por la organizaciÃ³n. 
+La vista debe verse similar a los prototipos en Figma.
+
+
+
+2
+Usuario autenticado del sistema
+Cambiar a vista a solo lectura
+Revisar el plan en formato alterno
+Existe selector de vista con opciones de columnas editable a solo lectura. 
+Al cambiar vista, los datos en ambas se mantienen iguales. 
+La vista solo lectura presenta jerarquÃ­a completa sin pÃ©rdida de nodos.
+
+
+
+
+Usuario super administrador
+Editar misiÃ³n
+Mantenerla alineada a los criterios nuevos planteados por la organizaciÃ³n
+El campo misiÃ³n esÂ obligatorio. 
+Al guardar se incrementaÂ la versiÃ³n del plan. 
+Si falla la API, se muestra error y no se pierde el contenido.
+
+
+
+
+Usuario super administrador
+Crear objetivos
+Descomponer la estrategia
+Se valida tÃ­tulo no vacÃ­o y longitud mÃ¡xima. 
+El objetivo se agrega en su columna. 
+Se marca el plan como â€œcon cambios pendientesâ€.
+Al guardar se incrementa la versiÃ³n del plan.
+
+
+
+
+Usuario super administrador
+Editar objetivos
+Ajustar el contenido
+Se puede editar nombre/descripcion. 
+Cambios se reflejan tras guardar. 
+Si el guardado del objetivo falla, se mantiene el dato previo.
+
+
+
+
+Usuario super administrador
+Eliminar objetivos
+Depurar el plan
+Requiere confirmaciÃ³n antes de eliminar. 
+Se elimina objetivo y sus relaciones internas. 
+Se actualiza versiÃ³n del plan estratÃ©gico al guardar.
+
+
+
+
+Usuario super administrador
+Crear programas
+Desplegar iniciativas
+Solo se permite bajo un objetivo existente y seleccionado. 
+Se valida tÃ­tulo requerido del programa. 
+El programa se refleja en la interfaz de usuario.
+
+
+
+
+Usuario super administrador
+Editar programas
+Ajustar iniciativas
+Se actualiza nombre/descripciÃ³n.
+No se puede guardar un programa con el nombre vacÃ­o.
+
+
+
+
+
+Usuario super administrador
+Eliminar programas
+Mantener el plan limpio
+Requiere confirmaciÃ³n antes de eliminar el programa. 
+El programa se elimina del objetivo.
+
+
+
+
+Usuario super administrador
+Vincular proyectos operativos
+Conectar estrategia y ejecuciÃ³n
+Solo proyectos vÃ¡lidos pueden vincularse. 
+Se permiteÂ asociar/desasociar. 
+Se reflejan los cambios en la columna de proyectos.
+
+
+
+
+Usuario super administrador
+Crear proyecto operativo rÃ¡pido
+Agilizar la planificaciÃ³n
+Se solicita nombre y descripciÃ³n obligatorios. 
+Se pide nombre y descripciÃ³n rÃ¡pida antes de crear el proyecto.
+El nuevo proyecto aparece vinculado al programa.
+
+
+
+
+Usuario super administrador
+Guardar cambios del plan
+Persistir el plan anual
+El botÃ³n guardar solo aparece con cambios pendientes. 
+Guardar incrementa versiÃ³n del plan estratÃ©gico. 
+Al guardar, estado â€œcambios pendientesâ€ desaparece.
+
+
+
+
+Usuario super administrador
+Ver indicador de cambios
+Evitar pÃ©rdida de informaciÃ³n
+Cambios activan indicador visual tal como los prototipos en Figma. 
+Al guardar desaparece el indicador visual.
+
+
+
+
+Usuario super administrador
+Prevenir salida con cambios en el plan
+Proteger el trabajo
+Se muestra confirmaciÃ³n antes de salir de la pÃ¡gina de planificaciÃ³n estratÃ©gica. 
+Usuario puede cancelar la acciÃ³n o salir.
+
+
+
+
+Usuario autenticado del sistema
+Exportar a PDF
+Generar informe oficial
+PDF incluye aÃ±o, misiÃ³n, objetivos, programas y proyectos.
+Se puede ver el progreso de la exportaciÃ³n con una barra de progreso sin errores. 
+Si falla, se muestra notificaciÃ³n.
+
+
+
+
+Usuario autenticado del sistema
+Exportar a DOCX
+Compartir editable
+DOCX incluye jerarquÃ­a completa. 
+El archivo se descarga correctamente.
+
+
+
+
+Usuario con rol usuario y administrador
+Ver modo solo lectura
+Mantener seguridad
+No se muestran controles de ediciÃ³n. 
+Intentar editar no genera cambios.
+
+
+
+
+Usuario super administrador
+Eliminar plan estratÃ©gico
+Depurar planes obsoletos
+Requiere confirmaciÃ³n explÃ­cita. 
+Solo super admin puede borrar. 
+Administrador/usuario reciben mensaje de no autorizado.
+
+
+
+
+Usuario autenticado del sistema
+Ver estados de carga y error
+Comprender el estado del mÃ³dulo
+Aparece el spinner en carga. 
+Error de respuesta del servidor se muestra mensaje claro.
+
+
+
+
+Usuario autenticado del sistema
+Ver versiÃ³n del plan
+Controlar cambios
+Se muestra la versiÃ³n del plan actual. 
+Incrementa al guardar.
+
+
+
+
+Usuario autenticado del sistema
+Ver ayuda contextual
+Reducir fricciÃ³n de uso
+Tooltips visibles en acciones claves. 
+Se cierran en scroll.
+
+
+
+
+Usuario super administrador
+Usar acciones rÃ¡pidas
+Aumentar productividad
+Botones rÃ¡pidos visibles. 
+Ejecutan la acciÃ³n correcta.
+
+
+
+Sprint 4
+Nombre
+Desarrollo del mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+
+Objetivo
+Implementar la visualizaciÃ³n grÃ¡fica por periodos de tiempo de los indicadores extraÃ­dos desde Meta Graph API y GitHub Rest API
+
+DuraciÃ³n
+(semanas)
+4
+CÃ³digo
+Prioridad (1-5)
+Como
+Quiero
+Para
+Criterios de aceptaciÃ³n
+Fecha inicio
+Fecha fin
+
+1
+Usuario autenticado del sistema
+Acceder al dashboard de KPIs
+Consultar el desempeÃ±o del proyecto desde una vista centralizada
+La rutaÂ /dashboardÂ requiere sesiÃ³n activa. 
+Si el token no es vÃ¡lido, redirige a login.
+El layout principal carga sin errores.
+
+
+
+1
+Super administrador
+Ver proyectos disponibles en dashboard
+Elegir cualquier proyecto operativo del sistema
+El selector lista todos los proyectos del sistema. 
+El cambio de proyecto actualiza la fuente de datos.
+Se conserva proyecto activo durante la sesiÃ³n.
+
+
+
+1
+Administrador o usuario
+Ver solo proyectos donde soy responsable
+Respetar control de acceso funcional
+El selector muestra solo proyectos asignados. 
+No aparecen proyectos no autorizados. 
+El backend valida acceso por rol/responsabilidad.
+
+
+
+1
+Administrador o usuario
+Ver mensaje â€œAÃºn no tienes proyectos asignadosâ€
+Evitar UX ambigua cuando no tengo contexto de trabajo
+Si no hay asignaciones, se muestra estado vacÃ­o especÃ­fico. 
+Se ocultan controles no Ãºtiles. 
+Se habilita acciÃ³n â€œVolver al inicioâ€.
+
+
+
+1
+Administrador o usuario
+Ver mensaje â€œNinguno de tus proyectos asignados estÃ¡ integrado con APIsâ€
+Entender por quÃ© no hay KPIs disponibles
+Si hay proyectos asignados sin integraciones, se muestra estado vacÃ­o especÃ­fico. 
+No se rompe la UI. 
+Se muestra acciÃ³n de retorno.
+
+
+
+1
+Super administrador
+Ver estado â€œNo tienes proyectos registrados en el sistemaâ€
+Distinguir ausencia real de proyectos
+Si no existen proyectos globalmente, se muestra estado correcto. 
+Se presenta CTA â€œCrear unoâ€. 
+No se muestran grÃ¡ficos vacÃ­os engaÃ±osos.
+
+
+
+1
+Super administrador
+Ver estado â€œNo tienes proyectos integrados con APIsâ€
+Distinguir entre proyectos existentes y proyectos conectados
+Si existen proyectos, pero sin integraciones, se muestra mensaje especÃ­fico. 
+Se mantiene consistencia visual con otros estados vacÃ­os.
+
+
+
+1
+Usuario autenticado
+Cambiar plataforma (Facebook/Instagram/GitHub)
+Analizar KPIs por fuente de datos
+El switch de plataforma responde al clic. 
+Solo se renderiza el dashboard de la plataforma activa.
+El estado de carga se muestra durante la consulta.
+
+
+
+1
+Usuario autenticado
+Aplicar filtros temporales (Hoy, Ãšltima semana, Ãšltimo mes, Ãšltimos seis meses, histÃ³rico donde aplique)
+Comparar comportamiento por periodos
+Al cambiar periodo se refrescan mÃ©tricas y grÃ¡ficas.
+El label del periodo coincide con el rango usado. 
+Se evita inconsistencia entre frontend y backend.
+
+
+
+1
+Usuario autenticado
+Ver datos â€œhoy parcialâ€ cuando la API lo permita
+Mantener consistencia temporal entre plataformas
+El Ãºltimo punto puede corresponder al dÃ­a actual parcial. 
+Si la API no entrega hoy parcial, se comunica sin error tÃ©cnico. 
+Tooltip muestra fecha real de corte.
+
+
+
+2
+Super administrador
+Ver ranking overview de alcance en redes
+Comparar impacto de proyectos integrados
+Se grafica alcance por proyecto combinando FB+IG.
+Incluye leyenda clara por plataforma. 
+Tooltip detalla contribuciÃ³n por red.
+
+
+
+2
+Super administrador
+Ver ranking overview de commits
+Comparar actividad tÃ©cnica histÃ³rica de proyectos
+Se grafica commits por proyecto integrado con GitHub. 
+Orden descendente por valor. 
+Si no hay datos, se muestra mensaje de ausencia.
+
+
+
+2
+Administrador o usuario
+Ver overview solo de proyectos asignados
+Cumplir principio de mÃ­nimo privilegio
+El ranking excluye proyectos no asignados. 
+El backend aplica filtro por responsabilidad. 
+No hay fuga de datos en tooltips ni labels.
+
+
+
+2
+Usuario autenticado del sistema
+Ver estados de carga y error por tarjeta/grÃ¡fica
+Entender el estado de la consulta
+Se muestra skeleton/spinner durante fetch. 
+Errores muestran mensaje legible. 
+Existe acciÃ³n â€œReintentarâ€ en fallas recuperables.
+
+
+
+1
+Usuario autenticado del sistema
+Visualizar KPIs base de Facebook
+Evaluar desempeÃ±o de pÃ¡ginas del proyecto
+Se muestran: nuevos seguidores, visitas, page impressions, total actions y post engagements. 
+Los valores son del periodo seleccionado. 
+Tooltips muestran fecha y acumulado.
+
+
+
+2
+Usuario autenticado del sistema
+Ver â€œPage impressions orgÃ¡nicas vs pagadasâ€
+Analizar composiciÃ³n del alcance
+Se renderiza grÃ¡fica tipo torta/anillo o equivalente.
+Muestra porcentaje por categorÃ­a. 
+Total coincide con la suma de segmentos.
+
+
+
+2
+Usuario autenticado del sistema
+Ver reacciones totales de Facebook por tipo
+Analizar calidad de interacciÃ³n
+Se desglosa por reacciÃ³n (like/love/haha/wow/sad/angry). 
+Se muestran totales y proporciones. 
+Maneja periodos sin reacciones sin romper UI.
+
+
+
+3
+Usuario autenticado del sistema
+Ver seguidores por paÃ­s en Facebook
+Entender distribuciÃ³n geogrÃ¡fica
+Se lista/grafica top paÃ­ses del periodo. 
+Si no hay dato geogrÃ¡fico, se muestra estado vacÃ­o claro.
+
+
+
+2
+Usuario autenticado del sistema
+Ver top 5 posts populares de Facebook
+Identificar contenido de mayor desempeÃ±o
+Ranking ordenado por criterio definido. 
+Incluye mÃ©tricas de interacciÃ³n visibles. 
+Enlace al post cuando exista URL.
+
+
+
+1
+Usuario autenticado del sistema
+Visualizar KPIs base de Instagram
+Evaluar alcance e interacciÃ³n de cuenta
+Se muestran: alcance, cuentas con interacciÃ³n, visitas al perfil y tasa de engagement. 
+CÃ¡lculo de engagement consistente con fÃ³rmula definida. 
+Valores respetan periodo seleccionado.
+
+
+
+2
+Usuario autenticado del sistema
+Ver rendimiento por formato en Instagram
+Comparar performance por tipo de publicaciÃ³n
+Se desglosa interacciones por formato (video/imagen/carrusel). 
+Muestra total + proporciones. 
+Si no hay publicaciones, se muestra vacÃ­o controlado.
+
+
+
+2
+Usuario autenticado del sistema
+Ver desglose de interacciones en Instagram
+Analizar composiciÃ³n de engagement
+Se muestran likes/comments/shares/saves/replies/reposts segÃºn disponibilidad API. 
+No se permiten valores negativos visualizados.
+Etiquetas y porcentajes son coherentes con el total.
+
+
+
+2
+Usuario autenticado del sistema
+Ver embudo de conversiÃ³n de Instagram
+Medir avance perfil â†’ enlace â†’ web
+Se muestran profile_views, profile_links_taps y website_clicks. 
+Se calculan tasas de conversiÃ³n entre etapas. 
+La visualizaciÃ³n conserva legibilidad en desktop y mÃ³vil.
+
+
+
+2
+Usuario autenticado del sistema
+Ver top publicaciones de Instagram por score
+Priorizar contenidos mÃ¡s efectivos
+Ranking ordenado por score definido. 
+Score formateado sin decimales excesivos. 
+Se muestran mÃ©tricas del post y enlace si existe.
+
+
+
+1
+Usuario autenticado del sistema
+Seleccionar repositorio y rama en GitHub
+Delimitar anÃ¡lisis tÃ©cnico correcto
+Se cargan repositorios integrados del proyecto activo.
+Se listan ramas del repositorio seleccionado. 
+Ante error de contrato/API se muestra pantalla de error con reintento.
+
+
+
+1
+Usuario autenticado del sistema
+Ver KPIs principales de GitHub
+Medir productividad del equipo
+Se muestran cantidad de commits, pull requests, top colaboradores y colaboradores sin push. 
+MÃ©tricas actualizan al cambiar periodo/rama.
+
+
+
+2
+Usuario autenticado del sistema
+Ver historial temporal de commits en GitHub
+Analizar tendencia de actividad
+GrÃ¡fica temporal renderiza puntos y lÃ­nea por fecha.
+Tooltip muestra autor, fecha/hora y mensaje de commit. 
+Scroll horizontal funciona cuando hay alta densidad de puntos.
+
+
+
+2
+Usuario autenticado del sistema
+Ver horas con mÃ¡s commits + historial tabular + porcentaje por autor
+Identificar patrones y distribuciÃ³n de contribuciÃ³n
+Se calculan top horas en zona horaria local. 
+Tabla lista commits con campos principales. 
+Se muestra participaciÃ³n porcentual por colaborador.
+
+
+
+1
+Usuario autenticado del sistema
+Recibir errores funcionales y no tÃ©cnicos
+Mantener experiencia profesional en fallas
+Mensajes de error son legibles y orientados a acciÃ³n.
+Notificaciones de error usan estilo visual correcto (error en rojo). 
+No se exponen stack traces.
+
+
+
+2
+Usuario autenticado del sistema
+Usar dashboard en desktop y mÃ³vil sin pÃ©rdida de informaciÃ³n
+Garantizar operatividad multi-dispositivo
+En desktop se usan contenedores con scroll cuando aplica. 
+En mÃ³vil las tarjetas crecen y evitan recortes de contenido. 
+Tooltips/leyendas no tapan informaciÃ³n clave de forma permanente.
+
+
+
+
+Sprint 5
+Nombre
+Desarrollo del mÃ³dulo de gestiÃ³n de reportes
+
+Objetivo
+Implementar mecanismos de exportaciÃ³n en PDF y las operaciones CRUD para gestionar reportes por bloques de texto, imÃ¡genes y grÃ¡ficas.
+
+DuraciÃ³n
+(semanas)
+4
+CÃ³digo
+Prioridad (1-5)
+Como
+Quiero
+Para
+Criterios de aceptaciÃ³n
+Fecha inicio
+Fecha fin
+
+1
+Usuario administrador o super administrador autenticado
+Acceder al mÃ³dulo de reportes
+Gestionar reportes institucionales desde una pantalla dedicada
+La rutaÂ /reportesÂ requiere sesiÃ³n activa. 
+Solo roles autorizados acceden al mÃ³dulo.
+Si no hay permiso, se bloquea acceso y se muestra mensaje claro.
+
+
+
+1
+Usuario administrador o super administrador
+Ver listado de reportes
+Identificar rÃ¡pidamente reportes existentes
+Se listan tÃ­tulo, versiÃ³n, fecha de creaciÃ³n y actualizaciÃ³n. 
+El listado se ordena por criterio seleccionado. 
+El estado de carga se muestra mientras consulta API.
+
+
+
+2
+Usuario administrador o super administrador
+Buscar reportes por nombre
+Encontrar un reporte especÃ­fico de forma eficiente
+La bÃºsqueda filtra en tiempo real por tÃ­tulo. 
+Si no hay coincidencias, se muestra estado â€œsin resultadosâ€.
+
+
+
+2
+Usuario administrador o super administrador
+Ordenar reportes
+Analizar por antigÃ¼edad o nombre
+Existen opciones de orden A-Z, Z-A, mÃ¡s antiguos, menos antiguos. 
+El orden seleccionado se aplica sin recargar manualmente la pÃ¡gina.
+
+
+
+1
+Usuario administrador o super administrador
+Ver estado vacÃ­o de reportes
+Entender que aÃºn no existen reportes cargados
+Si no hay reportes, se muestra mensaje â€œAÃºn no tienes reportes registradosâ€. 
+Se habilita acciÃ³n â€œCrear unoâ€.
+
+
+
+1
+Usuario administrador o super administrador
+Crear un reporte nuevo
+Iniciar un documento desde cero
+El editor abre en modo creaciÃ³n. 
+Se inicializa con estructura vacÃ­a vÃ¡lida. 
+El tÃ­tulo por defecto se establece correctamente si no se ingresa uno.
+
+
+
+1
+Usuario administrador o super administrador
+Editar tÃ­tulo del reporte
+Identificar formalmente el documento
+El tÃ­tulo admite hasta longitud mÃ¡xima definida. 
+El cambio se refleja en el estado de ediciÃ³n. 
+El guardado persiste el tÃ­tulo final.
+
+
+
+1
+Usuario administrador o super administrador
+Agregar bloques de texto
+Documentar anÃ¡lisis narrativo en el reporte
+Se puede insertar bloque de texto en posiciÃ³n deseada. 
+El contenido admite formato enriquecido. 
+El bloque se guarda y se recupera correctamente.
+
+
+
+1
+Usuario administrador o super administrador
+Agregar bloques de imagen
+Incluir evidencia visual en el reporte
+Solo se aceptan tipos de imagen vÃ¡lidos. 
+Se genera vista previa local. 
+Al guardar, la imagen queda asociada al reporte en backend.
+
+
+
+1
+Usuario administrador o super administrador
+Agregar bloques de grÃ¡ficas seleccionadas
+Integrar KPIs del dashboard dentro del reporte
+El selector de grÃ¡ficos permite elegir tarjetas/grÃ¡ficas disponibles. 
+Cada bloque conserva plataforma, periodo y metadatos. 
+Se renderiza correctamente en editor y exportaciÃ³n.
+
+
+
+2
+Usuario administrador o super administrador
+Insertar bloques entre elementos existentes
+Mantener control editorial del flujo del reporte
+Se puede insertar texto/imagen/grÃ¡fica antes o despuÃ©s de un bloque. 
+Se preserva el orden final de elementos.
+
+
+
+2
+Usuario administrador o super administrador
+Reordenar bloques por drag and drop
+Ajustar estructura narrativa del documento
+Se puede arrastrar y soltar bloques. 
+El nuevo orden se refleja en Ã­ndice y contenido. 
+El orden persiste tras guardar.
+
+
+
+2
+Usuario administrador o super administrador
+Eliminar bloques individuales
+Depurar contenido no necesario
+Cada bloque tiene acciÃ³n de eliminar. 
+Al eliminar, se actualiza orden e Ã­ndice. 
+No quedan referencias huÃ©rfanas en payload.
+
+
+
+2
+Usuario administrador o super administrador
+Visualizar Ã­ndice del reporte
+Navegar rÃ¡pidamente por bloques
+El Ã­ndice lista bloques por tipo y numeraciÃ³n. 
+Al hacer clic en un Ã­tem, la vista navega al bloque. 
+El Ã­ndice respeta orden actual.
+
+
+
+3
+Usuario administrador o super administrador
+Alternar modo visualizaciÃ³n/orden
+Facilitar ediciÃ³n sin ruido visual
+Existe control para alternar modo de interacciÃ³n. 
+En modo correspondiente se prioriza orden o ediciÃ³n segÃºn configuraciÃ³n.
+
+
+
+1
+Usuario administrador o super administrador
+Guardar reporte
+Persistir cambios en backend
+No se permite guardar reporte vacÃ­o. 
+En creaciÃ³n se invoca endpoint de alta. 
+En ediciÃ³n se invoca endpoint de actualizaciÃ³n. 
+Se muestra notificaciÃ³n de Ã©xito.
+
+
+
+1
+Usuario administrador o super administrador
+Controlar versiones al guardar
+Evitar sobreescritura concurrente
+El update envÃ­aÂ report_version. 
+Si la versiÃ³n no coincide, backend responde conflicto. 
+La UI informa que debe refrescar para continuar.
+
+
+
+1
+Usuario administrador o super administrador
+Ver metadatos del reporte
+Auditar cambios del documento
+Se muestran creado, actualizado y versiÃ³n actual. 
+Los metadatos se actualizan tras guardado exitoso.
+
+
+
+2
+Usuario administrador o super administrador
+Descartar cambios no guardados
+Evitar persistir ediciones accidentales
+Se solicita confirmaciÃ³n antes de descartar. 
+Al confirmar, se restaura Ãºltimo estado guardado.
+
+
+
+1
+Usuario administrador o super administrador
+Eliminar reporte completo
+Retirar documentos obsoletos
+Se exige confirmaciÃ³n escribiendo tÃ­tulo exacto. 
+Si coincide, se elimina y redirige al listado. 
+Si no coincide, no permite eliminar.
+
+
+
+2
+Usuario administrador o super administrador
+Exportar reporte a PDF
+Compartir documento final formal
+Existe acciÃ³n â€œExportar PDFâ€.
+Se genera archivo con bloques en orden. 
+Se muestra progreso de generaciÃ³n. 
+El archivo se descarga correctamente.
+
+
+
+2
+Usuario administrador o super administrador
+Mantener estilo consistente en PDF
+Garantizar legibilidad y presentaciÃ³n profesional
+El PDF incluye encabezado, tÃ­tulo y pie de fuente.
+Texto, imÃ¡genes y grÃ¡ficas se renderizan dentro de mÃ¡rgenes vÃ¡lidos.
+
+
+
+2
+Usuario administrador o super administrador
+Exportar grÃ¡ficas con fallback seguro
+Evitar fallas al dibujar componentes complejos
+Si una grÃ¡fica no puede renderizarse, se aplica fallback controlado. 
+La exportaciÃ³n no se interrumpe completamente.
+
+
+
+2
+Usuario administrador o super administrador
+Gestionar imÃ¡genes reemplazadas/eliminadas
+Evitar archivos huÃ©rfanos en servidor
+Al actualizar reporte, imÃ¡genes removidas se depuran del storage. 
+ImÃ¡genes vigentes permanecen referenciadas correctamente.
+
+
+
+1
+Usuario administrador o super administrador
+Recuperar reporte por ID en editor
+Continuar ediciÃ³n de un reporte existente
+Se consulta endpoint porÂ id del reporte.
+Se normaliza estructura de elementos para frontend. 
+Si no existe, se muestra error legible.
+
+
+
+1
+Usuario administrador o super administrador
+Ver errores controlados de API
+Operar de forma confiable ante fallas
+Contratos invÃ¡lidos se detectan y notifican. 
+Errores de red/timeout muestran mensajes claros. 
+No se exponen detalles tÃ©cnicos sensibles al usuario final.
+
+
+
+3
+Usuario administrador o super administrador
+Mantener rendimiento aceptable en ediciÃ³n
+Trabajar reportes medianos sin degradaciÃ³n severa
+Operaciones comunes (insertar, mover, guardar) mantienen respuesta fluida. 
+Cargas y guardados muestran feedback visual continuo.
+
+
+
+2
+Usuario administrador o super administrador
+Usar editor en desktop y mÃ³vil
+Garantizar continuidad operativa
+En desktop se prioriza productividad de ediciÃ³n. 
+En mÃ³vil el contenido se adapta sin romper acciones crÃ­ticas (guardar/eliminar/exportar).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANEXO 2
+TABLEROS DE PRUEBAS EJECUTADAS EN EL MÃ“DULO DE GESTIÃ“N DE USUARIOS
+
+
+
+
+
+Tipo de prueba
+  Unitaria
+ TÃ­tulo del set
+Pruebas unitarias al backend del mÃ³dulo de gestiÃ³n de usuarios
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BU-01
+Hash de contraseÃ±a
+Verifica hash y comparaciÃ³n
+Ninguna
+Password en texto plano
+Ejecutar test deÂ passwordUtils
+Hash vÃ¡lido y comparaciÃ³n correcta
+Hash vÃ¡lido, comparaciÃ³n OK
+Aprobada
+BU-02
+JWT expira correctamente
+Verifica expiraciÃ³n
+Ninguna
+Token con expiraciÃ³n corta
+Ejecutar test JWT
+Token expira
+Token expira correctamente
+Aprobada
+BU-03
+Token caducado en endpoint protegido
+Rechazo de token expirado
+Endpoint protegido
+Token expirado
+Llamar endpoint
+401Â INVALID_TOKEN
+401Â INVALID_TOKEN
+Aprobada
+BU-04
+Token con firma incorrecta
+Rechazo por firma invÃ¡lida
+Endpoint protegido
+Token invÃ¡lido
+Llamar endpoint
+401Â INVALID_TOKEN
+401Â INVALID_TOKEN
+Aprobada
+
+Tipo de prueba
+ IntegraciÃ³n
+TÃ­tulo del set
+Pruebas de integraciÃ³n backend del mÃ³dulo de gestiÃ³n de usuarios
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BIU-01
+Listar usuarios
+Listado general
+Administrador autenticado
+Token administrador
+GET /api/users/getAllUsers
+200 + array
+200 + array
+Aprobada
+BIU-02
+Crear usuario con estado invÃ¡lido
+Estado invÃ¡lido (disabled)
+Administrador autenticado
+Usuario conÂ stateÂ invÃ¡lido
+POST /api/users/createUser
+200 +Â state=disabled
+200 +Â state=disabled
+Aprobada
+BIU-03
+Rechazar email duplicado
+No permite duplicados
+Administrador autenticado
+Email existente
+POST /api/users/createUser
+409Â VALIDATION_ERROR
+409Â VALIDATION_ERROR
+Aprobada
+BIU-04
+Administrador no crea super administrador
+RestricciÃ³n de rol
+Administrador
+autenticado
+role=super-admin
+POST /api/users/createUser
+403
+403
+Aprobada
+BIU-05
+Rol usuario sin permisos no crea
+Bloqueo por rol
+Usuario autenticado
+Payload vÃ¡lido
+POST /api/users/createUser
+403Â USER_UNAUTHORIZED
+403Â USER_UNAUTHORIZED
+Aprobada
+BIU-06
+Super administrador no crea segundo super administrador
+Solo 1 super administrador en el sistema
+Super administrador autenticado
+role=super-admin
+POST /api/users/createUser
+403
+403
+Aprobada
+BIU-07
+Obtener usuario por email
+Recupera perfil
+Administrador autenticado
+Email vÃ¡lido
+GET /api/users/getUserByEmail/:email
+200 + usuario
+200 + usuario
+Aprobada
+BIU-08
+Administrador actualiza nombre
+EdiciÃ³n permitida
+Administrador autenticado
+firstName
+PATCH /api/users/updateUser/:email
+200 + nombre actualizado
+200 + nombre actualizado
+Aprobada
+BIU-09
+Rechaza email duplicado en update
+ValidaciÃ³n email Ãºnico
+Administrador autenticado
+Email duplicado
+PATCH /api/users/updateUser/:email
+400Â VALIDATION_ERROR
+400Â VALIDATION_ERROR
+Aprobada
+BIU-10
+Administrador no asigna super administrador
+RestricciÃ³n de rol
+Administrador autenticado
+role=super-admin
+PATCH /api/users/updateUser/:email
+403
+403
+Aprobada
+BIU-11
+User no edita a otro
+RestricciÃ³n ediciÃ³n
+User autenticado
+firstName
+PATCH /api/users/updateUser/:email
+403Â USER_UNAUTHORIZED
+403Â USER_UNAUTHORIZED
+Aprobada
+BIU-12
+User no edita su propio perfil (campos bloqueados)
+Solo foto permitida
+User autenticado
+firstName
+PATCH /api/users/updateUser/:email
+403Â USER_UNAUTHORIZED
+403Â USER_UNAUTHORIZED
+Aprobada
+BIU-13
+Administrador sin permiso delete
+Bloqueo por permiso
+Administrador autenticado
+email vÃ¡lido
+DELETE /api/users/deleteUser/:email
+403
+403
+Aprobada
+BIU-14
+Administrador no elimina a otro admin
+RestricciÃ³n de rol
+Administrador autenticado
+email admin
+DELETE /api/users/deleteUser/:email
+403
+403
+Aprobada
+BIU-15
+Administrador no elimina su propia cuenta
+RestricciÃ³n auto-eliminaciÃ³n
+Administrador autenticado
+email propio
+DELETE /api/users/deleteUser/:email
+403
+403
+Aprobada
+BIU-16
+Super administrador con contraseÃ±a incorrecta
+ValidaciÃ³n de credenciales
+Super administrador autenticado
+password incorrecta
+DELETE /api/users/deleteUser/:email
+401
+401
+Aprobada
+BIU17
+Super administrador elimina usuario
+EliminaciÃ³n vÃ¡lida
+Super administrador autenticado
+email usuario
+DELETE /api/users/deleteUser/:email
+200
+200
+Aprobada
+
+Tipo de prueba:
+ IntegraciÃ³n
+TÃ­tulo del set:
+Pruebas de integraciÃ³n al backend (autenticaciÃ³n y sesiones)
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BIA-01
+Login exitoso
+Retorna token + usuario
+Usuario vÃ¡lido
+Email/Password
+POST /api/auth/login
+200 + accessToken
+200 + accessToken
+Aprobada
+BIA-02
+Login credenciales invÃ¡lidas
+Rechazo
+Usuario vÃ¡lido
+Password incorrecta
+POST /api/auth/login
+401
+401
+Aprobada
+BIA-03
+Login cuenta deshabilitada
+Bloqueo por estado
+Usuario disabled
+Credenciales vÃ¡lidas
+POST /api/auth/login
+403Â USER_DISABLED
+403Â USER_DISABLED
+Aprobada
+BIA-04
+Perfil con token vÃ¡lido
+Obtiene sesiÃ³n
+Token vÃ¡lido
+Token
+GET /api/auth/me
+200 + user
+200 + user
+Aprobada
+BIA-05
+Perfil con token invÃ¡lido
+Rechazo token
+Token invÃ¡lido
+Token
+GET /api/auth/me
+401
+401
+Aprobada
+BIA-06
+Refresh sin cookie
+Requiere refreshToken
+Sin cookie
+N/A
+POST /api/auth/refresh
+401Â TOKEN_MISSING
+401Â TOKEN_MISSING
+Aprobada
+BIA-07
+Refresh vÃ¡lido
+Nuevo accessToken
+Cookie vÃ¡lida
+refreshToken
+POST /api/auth/refresh
+200 + token
+200 + token
+Aprobada
+BIA-08
+Logout
+Limpia refreshToken
+SesiÃ³n activa
+N/A
+POST /api/auth/logout
+200
+200
+Aprobada
+BIA-09
+Summary data
+Resumen para super-admin
+Super administrador autenticado
+ID vÃ¡lido
+GET /api/auth/sumaryData/:id
+200 + lista
+200 + lista
+Aprobada
+BIA-10
+Refresh con sessionVersion cambiado
+Expira sesiÃ³n
+Cookie vÃ¡lida
+refreshToken
+POST /api/auth/refresh
+401Â SESSION_EXPIRED
+401Â SESSION_EXPIRED
+Aprobada
+
+Tipo de prueba:
+ Unitarias / Componentes
+ TÃ­tulo del set:
+Pruebas unitarias y de componentes (usuarios/sesiÃ³n)
+ID
+Nombre
+Tipo
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FU-01
+LoginPage botÃ³n deshabilitado
+Componente
+Form vacÃ­o
+Ninguna
+N/A
+Render
+BotÃ³n deshabilitado
+BotÃ³n deshabilitado
+Aprobada
+FU-02
+LoginPage email invÃ¡lido
+Componente
+Email invÃ¡lido bloquea submit
+Ninguna
+Email invÃ¡lido
+Render y fill
+BotÃ³n deshabilitado
+BotÃ³n deshabilitado
+Aprobada
+FU-03
+LoginPage ejecuta login
+Componente
+LlamaÂ login
+useAuth mock
+Credenciales vÃ¡lidas
+Click submit
+loginÂ llamado
+loginÂ llamado
+Aprobada
+FU-04
+PrivateRoute loading
+Componente
+Muestra loading
+useAuthorization=loading
+N/A
+Render
+Loading visible
+Loading visible
+Aprobada
+FU-05
+PrivateRoute unauthenticated
+Componente
+Redirige a login
+useAuthorization=unauthenticated
+N/A
+Render
+RedirecciÃ³n a /login
+RedirecciÃ³n a /login
+Aprobada
+FU-06
+PrivateRoute unauthorized
+Componente
+Redirige a 404
+useAuthorization=unauthorized
+N/A
+Render
+RedirecciÃ³n a /404
+RedirecciÃ³n a /404
+Aprobada
+FU-07
+PrivateRoute authorized
+Componente
+Renderiza contenido
+useAuthorization=authorized
+N/A
+Render
+Contenido visible
+Contenido visible
+Aprobada
+FU-08
+useAuthorization loading
+Hook
+Status loading
+AuthContext loading
+N/A
+Ejecutar hook
+loading
+loading
+Aprobada
+FU-09
+useAuthorization sin sesiÃ³n
+Hook
+Status unauthenticated
+Sin user
+N/A
+Ejecutar hook
+unauthenticated
+unauthenticated
+Aprobada
+FU-10
+useAuthorization rol no permitido
+Hook
+Status unauthorized
+Rol no permitido
+N/A
+Ejecutar hook
+unauthorized
+unauthorized
+Aprobada
+FU-11
+useAuthorization autorizado
+Hook
+Status authorized
+Rol permitido
+N/A
+Ejecutar hook
+authorized
+authorized
+Aprobada
+FU-12
+validateEmail
+Unitario
+Email vÃ¡lido
+N/A
+Email vÃ¡lido
+Ejecutar util
+Sin error
+Sin error
+Aprobada
+FU-13
+validatePasswordLength
+Unitario
+Longitud exacta
+N/A
+8 caracteres
+Ejecutar util
+Sin error
+Sin error
+Aprobada
+FU-14
+validatePassword reglas
+Unitario
+Complejidad
+N/A
+MayÃºs/nÃºmero/sÃ­mbolo
+Ejecutar util
+Sin error
+Sin error
+Aprobada
+FU-15
+generateSecurePassword
+Unitario
+Genera password
+N/A
+N/A
+Ejecutar util
+8 chars
+8 chars
+Aprobada
+FU-16
+SessionExpirationModal visible
+Componente
+Muestra modal
+showSessionModal=true
+N/A
+Render
+Texto visible
+Texto visible
+Aprobada
+FU-17
+SessionExpirationModal cerrar
+Componente
+Cierra modal
+showSessionModal=true
+Click cerrar
+Click botÃ³n
+setShowSessionModal(false)
+setShowSessionModal(false)
+Aprobada
+FU-18
+SessionExpirationModal refresh
+Componente
+Refresca sesiÃ³n
+showSessionModal=true
+Click refrescar
+Click botÃ³n
+refreshSession(true)
+refreshSession(true)
+Aprobada
+
+Tipo de prueba
+ Pruebas de contrato API
+TÃ­tulo del set
+ ComunicaciÃ³n frontend y backend mÃ³dulo de gestiÃ³n de usuarios y sesiones
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FA-01
+loginUserApi contrato vÃ¡lido
+Retorna token
+axios mock
+Email/Password
+Ejecutar
+accessToken presente
+accessToken presente
+Aprobada
+FA-02
+loginUserApi contrato invÃ¡lido
+Rechaza contrato
+axios mock
+Email/Password
+Ejecutar
+ErrorÂ INVALID_API_CONTRACT
+ErrorÂ INVALID_API_CONTRACT
+Aprobada
+FA-03
+meApi devuelve sesiÃ³n
+Retorna user
+axios mock
+N/A
+Ejecutar
+user presente
+user presente
+Aprobada
+FA-04
+refreshApi devuelve token
+Retorna nuevo token
+axios mock
+N/A
+Ejecutar
+token presente
+token presente
+Aprobada
+FA-05
+logoutUserApi responde OK
+Cierra sesiÃ³n
+axios mock
+N/A
+Ejecutar
+{}
+{}
+Aprobada
+FA-06
+getSummaryDataApi listado
+Resumen
+axios mock
+ID
+Ejecutar
+array
+array
+Aprobada
+FA-07
+getAllUsersApi contrato vÃ¡lido
+Retorna usuarios
+axios mock
+N/A
+Ejecutar
+lista
+lista
+Aprobada
+FA-08
+getAllUsersApi contrato invÃ¡lido
+Rechaza contrato
+axios mock
+N/A
+Ejecutar
+ErrorÂ INVALID_API_CONTRACT
+ErrorÂ INVALID_API_CONTRACT
+Aprobada
+FA-09
+getUserByEmailApi vÃ¡lido
+Retorna usuario
+axios mock
+Email
+Ejecutar
+usuario
+usuario
+Aprobada
+FA-10
+createUserApi contrato invÃ¡lido
+Rechaza contrato
+axios mock
+payload
+Ejecutar
+ErrorÂ INVALID_API_CONTRACT
+ErrorÂ INVALID_API_CONTRACT
+Aprobada
+FA-11
+updateUserApi contrato invÃ¡lido
+Rechaza contrato
+axios mock
+payload
+Ejecutar
+ErrorÂ INVALID_API_CONTRACT
+ErrorÂ INVALID_API_CONTRACT
+Aprobada
+FA-12
+deleteUserApi contrato invÃ¡lido
+Rechaza contrato
+axios mock
+payload
+Ejecutar
+ErrorÂ INVALID_API_CONTRACT
+ErrorÂ INVALID_API_CONTRACT
+Aprobada
+
+Tipo de prueba
+ E2E
+ TÃ­tulo del set
+ Pruebas E2E para el mÃ³dulo de gestiÃ³n de usuarios y sesiones
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FE-01
+Login exitoso redirige aÂ /inicio
+Flujo completo de login
+MockÂ /auth/login
+Email/Password vÃ¡lidos
+Llenar formulario y enviar
+URLÂ /inicio
+URLÂ /inicio
+Aprobada
+FE-02
+Administrador accede aÂ /usuariosÂ y ve lista
+Render lista de usuarios
+MockÂ /auth/refresh,Â /users/getAllUsers
+N/A
+Ir aÂ /usuarios
+â€œLista de usuariosâ€ visible
+Visible
+Aprobada
+FE-03
+CreaciÃ³n de usuario con validaciones
+Validaciones y alta de usuario
+MockÂ /auth/refresh,Â /users/createUser,Â /users/getUserByEmail
+Nombre, apellidos, email, password
+Completar formulario y crear
+RedirecciÃ³n aÂ /usuario/:email
+RedirecciÃ³n correcta
+Aprobada
+FE-04
+Administrador puede editar su perfil
+BotÃ³n de ediciÃ³n visible en su perfil
+MockÂ /auth/refresh,Â /users/getUserByEmail
+N/A
+Ir aÂ /usuario/admin@test.com
+Ãcono editar visible
+Visible
+Aprobada
+FE-05
+Administrador no puede editar otro admin
+RestricciÃ³n de ediciÃ³n por rol
+MockÂ /auth/refresh,Â /users/getUserByEmail
+N/A
+Ir aÂ /usuario/otro.admin@test.com
+Ãcono editar NO visible
+No visible
+Aprobada
+FE-06
+EliminaciÃ³n de usuario con confirmaciÃ³n
+Super administrador elimina con email y password
+MockÂ /auth/refresh,Â /users/getUserByEmail,Â /users/deleteUser
+Email destino, password 8 chars
+Abrir tab â€œMÃ¡sâ€, confirmar y eliminar
+RedirecciÃ³n aÂ /usuarios
+RedirecciÃ³n correcta
+Aprobada
+FE-07
+Usuario sin rol admin bloqueado
+RestricciÃ³n de acceso aÂ /usuarios
+MockÂ /auth/refreshÂ con rol user
+N/A
+Ir aÂ /usuarios
+RedirecciÃ³n aÂ /404
+RedirecciÃ³n correcta
+Aprobada
+
+Tipo de prueba:
+ Unitarias / Componentes
+TÃ­tulo del set:
+Pruebas unitarias y de componentes gestiÃ³n de proyectos + plan perativo
+ID
+Nombre
+Tipo
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FU-OP-01
+isRowEmpty fila vacÃ­a
+Unitario
+Valida fila vacÃ­a
+Ninguna
+Row vacÃ­o
+Ejecutar test
+True
+True
+Aprobada
+FU-OP-02
+isRowEmpty con datos
+Unitario
+Valida fila con contenido
+Ninguna
+Row con objetivo
+Ejecutar test
+False
+False
+Aprobada
+FU-OP-03
+formatRow normaliza
+Unitario
+Normaliza datos
+Ninguna
+Row mixto
+Ejecutar test
+Row normalizado
+Row normalizado
+Aprobada
+FU-OP-04
+removeRowIfEmpty elimina
+Unitario
+Elimina fila vacÃ­a
+Ninguna
+rows[]
+Ejecutar test
+1 fila
+1 fila
+Aprobada
+FU-OP-05
+removeRowIfEmpty conserva
+Unitario
+No elimina si es Ãºnica
+Ninguna
+rows[1]
+Ejecutar test
+1 fila
+1 fila
+Aprobada
+FU-PJ-01
+FormData completo
+Unitario
+Construye payload
+Ninguna
+name/desc/file/etc
+Ejecutar test
+FormData correcto
+FormData correcto
+Aprobada
+FU-PJ-02
+FormData omite vacÃ­os
+Unitario
+Evita campos vacÃ­os
+Ninguna
+name solo
+Ejecutar test
+Solo name
+Solo name
+Aprobada
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANEXO 3
+TABLEROS DE PRUEBAS EJECUTADAS EN EL MÃ“DULO DE GESTIÃ“N DE PROYECTOS Y PLANIFICACIÃ“N OPERATIVA
+
+
+
+
+
+Tipo de prueba
+Unitaria
+TÃ­tulo del set
+Pruebas unitarias al backend del mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BU-OP-01
+Hash de contraseÃ±a
+Detecta fila sin datos
+Ninguna
+Row vacÃ­o
+EjecutarÂ isRowEmpty
+True
+True
+Aprobada
+BU-OP-02
+JWT expira correctamente
+Detecta fila con contenido
+Ninguna
+Row con objetivo
+EjecutarÂ isRowEmpty
+False
+False
+Aprobada
+BU-PJ-01
+Acceso invÃ¡lido por ID
+Rechaza projectId invÃ¡lido
+Ninguna
+projectId no numÃ©rico
+EjecutarÂ canAccessProject
+False
+False
+Aprobada
+BU-PJ-02
+Acceso super administrador
+Super admin accede sin DB
+Ninguna
+role=superAdministrador
+EjecutarÂ canAccessProject
+True
+True
+Aprobada
+BU-PJ-03
+Acceso administrador
+Administrador accede sin DB
+Ninguna
+role=admin
+EjecutarÂ canAccessProject
+True
+True
+Aprobada
+BU-PJ-04
+Rol desconocido
+Bloquea rol no permitido
+Ninguna
+role="guest"
+EjecutarÂ canAccessProject
+False
+False 
+Aprobada
+BU-PJ-05
+Usuario no asignado
+Bloquea acceso si no estÃ¡ asignado
+Ninguna
+role=user + count=0
+EjecutarÂ canAccessProject
+False
+False
+Aprobada
+BU-PJ-06
+Usuario asignado
+Permite acceso si estÃ¡ asignado
+Ninguna
+role=user + count>0
+EjecutarÂ canAccessProject
+True
+True
+Aprobada
+BU-PJ-07
+Responsables faltantes
+Error si IDs no existen
+Ninguna
+responsibles=[1,2], users=[1]
+EjecutarÂ assignResponsibles
+Error
+Error
+Aprobada
+BU-PJ-08
+Crear responsables
+Crea y guarda responsables
+Ninguna
+responsibles=[1,2]
+EjecutarÂ assignResponsibles
+Guardado Ok
+Guardado Ok
+Aprobada
+
+Tipo de prueba
+ IntegraciÃ³n
+TÃ­tulo del set
+Pruebas de integraciÃ³n API proyectos y plan operativo
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BI-PJ-01
+Crear proyecto completo
+Crea proyecto con responsables/integraciones
+Super admin autenticado
+Payload vÃ¡lido
+POSTÂ /api/projects/create
+200 + proyecto
+200 + proyecto
+Aprobada
+BI-PJ-02
+Listar proyectos (admin)
+Administrador ve asignados
+Administrador autenticado
+N/A
+GETÂ /api/projects/getAll
+Lista asignados
+Lista asignados
+Aprobada
+BI-PJ-03
+Ver detalle (admin)
+Administrador accede
+Administrador autenticado
+projectId
+GET /api/projects/getProjectById/:id
+200 + data
+200 + data
+Aprobada
+BI-PJ-04
+Ver detalle (user no asignado)
+Lectura permitida
+User autenticado
+projectId
+GETÂ /api/projects/getProjectById/:id
+200 + data
+200 + data
+Aprobada
+BI-PJ-05
+Asignar/desasignar responsables
+Administrador gestiona responsables
+Administrador autenticado
+payload vÃ¡lido
+PATCH /api/projects/:id
+200 + cambios
+200 + cambios
+Aprobada
+BI-PJ-06
+Actualizar integraciones
+CRUD integraciones
+Administrador autenticado
+payload vÃ¡lido
+PUTÂ /api/apis/project-integration/:id/integrations
+200 + cambios
+200 + cambios
+Aprobada
+BI-PJ-07
+Eliminar proyecto
+Super admin elimina
+Super admin autenticado
+projectId
+DELETEÂ /api/projects/:id
+200
+200
+Aprobada
+BI-OP-01
+Plan inicial vacÃ­o
+Devuelve plan vacÃ­o
+Administrador autenticado
+projectId
+GETÂ /api/operational-plans/:id
+200 + rows
+200 + rows
+Aprobada
+BI-OP-02
+Guardar plan
+Guarda filas + versiona
+Administrador autenticado
+payload vÃ¡lido
+POST /api/operational-plans/updateOperationalPlan/:id
+200 + version
+200 + version
+Aprobada
+BI-OP-03
+VersiÃ³n desactualizada
+Rechaza version vieja
+Administrador autenticado
+version vieja
+POSTÂ /api/operational-plans/updateOperationalPlan/:id
+409
+409
+Aprobada
+BI-OP-04
+Eliminar plan operativo
+Borra plan
+Super admin autenticado
+projectId
+DELETEÂ /api/operational-plans/deleteOperationalPlan/:id
+200
+200
+Aprobada
+
+Tipo de prueba
+ Pruebas de contrato API
+TÃ­tulo del set
+ComunicaciÃ³n frontend y backend mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FA-PJ-01
+loginUserApi contrato vÃ¡lido
+OperationalProjects contrato
+axios mock
+Payloads vÃ¡lidos
+Ejecutar
+Contrato OK
+OK
+Aprobada
+FA-OP-02
+loginUserApi contrato invÃ¡lido
+OperationalPlan contrato
+axios mock
+Payloads vÃ¡lidos
+Ejecutar
+Contrato OK
+OK
+Aprobada
+
+Tipo de prueba
+ E2E
+TÃ­tulo del set
+Pruebas E2E para el mÃ³dulo de gestiÃ³n de proyectos y planificaciÃ³n operativa
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FE-PJ-01
+Crear proyecto
+Form + preview
+Mocks auth + create
+N/A
+Completar form
+Proyecto creado
+OK
+Aprobada
+FE-PJ-02
+Editar proyecto
+Responsables/integraciones
+Mocks auth + update
+N/A
+Editar y guardar
+Cambios guardados
+OK
+Aprobada
+FE-OP-01
+Cargar plan operativo
+Render header + tabla
+Mocks auth + plan
+N/A
+Abrir plan
+Plan visible
+OK
+Aprobada
+FE-OP-02
+Guardar plan operativo
+Crear fila + guardar
+Mocks auth + save
+N/A
+Editar y guardar
+Guardado OK
+OK
+Aprobada
+FE-OP-03
+Modo de vista
+Cambiar modo a lectura
+Mocks auth + plan
+N/A
+Cambiar modo
+UI lectura
+OK
+Aprobada
+FE-OP-04
+ExportaciÃ³n
+PDF en modo lectura
+Mocks auth + export
+N/A
+Exportar PDF
+PDF generado
+OK
+Aprobada
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANEXO 4
+TABLEROS DE PRUEBAS EJECUTADAS EN EL MÃ“DULO DE PLANIFICACIÃ“N ESTRATÃ‰GICA
+Tipo de prueba
+ Unitaria backend
+TÃ­tulo del set
+Pruebas unitarias al backend del mÃ³dulo de planificaciÃ³n estratÃ©gica
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BU-SP-01
+Listar planes
+Respuesta exitosa en listado
+Repositorio mockeado con datos
+N/A
+EjecutarÂ getAllStrategicPlans
+200 +Â success:trueÂ + lista
+200 + lista correcta
+Aprobada
+BU-SP-02
+AÃ±o invÃ¡lido en getByYear
+Valida parÃ¡metro year
+N/A
+year=abc
+EjecutarÂ getStrategicPlanByYear
+400Â VALIDATION_ERROR
+400Â VALIDATION_ERROR
+Aprobada
+BU-SP-03
+AÃ±o invÃ¡lido en update
+Valida parÃ¡metro year
+N/A
+year=xyz
+EjecutarÂ updateStrategicPlan
+400Â VALIDATION_ERROR
+400Â VALIDATION_ERROR
+Aprobada
+BU-SP-04
+Delete plan inexistente
+Manejo de no encontrado
+Repositorio retornaÂ null
+year=2035
+EjecutarÂ deleteStrategicPlanByYear
+404Â RESOURCE_NOT_FOUND
+404 correcto
+Aprobada
+BU-SP-05
+Error interno en delete
+Manejo de excepciÃ³n de servidor
+Repositorio lanza excepciÃ³n
+year=2035
+EjecutarÂ deleteStrategicPlanByYear
+500Â SERVER_ERROR
+500 correcto
+Aprobada
+
+Tipo de prueba
+ IntegraciÃ³n
+TÃ­tulo del set
+Pruebas de integraciÃ³n al API mÃ³dulo de planificaciÃ³n estratÃ©gica
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BI-SP-01
+Listar aÃ±os
+Lista planes existentes
+Super admin autenticado
+N/A
+GET /api/strategic-plans
+200 + array
+200 + array
+Aprobada
+BI-SP-02
+Crear plan estratÃ©gico
+Alta de plan por aÃ±o
+Super admin autenticado
+mission,Â 
+plan_version,Â 
+objectives
+PUT /api/strategic-plans/:year
+200 + plan creado
+200 +Â plan_versionÂ vÃ¡lido
+Aprobada
+BI-SP-03
+Lectura por usuario
+Usuario puede leer plan
+Usuario autenticado
+year vÃ¡lido
+GET /api/strategic-plans/:year
+200 + data
+200 + data
+Aprobada
+BI-SP-04
+Administrador sin permiso update
+Bloqueo por rol
+Administrador autenticado
+payload update
+PUT /api/strategic-plans/:year
+403
+403
+Aprobada
+BI-SP-05
+VersiÃ³n stale
+Control de concurrencia
+Super admin + plan previo
+plan_versionÂ vieja
+PUT /api/strategic-plans/:year
+409Â VERSION_ERROR
+409 correcto
+Aprobada
+BI-SP-06
+AÃ±o invÃ¡lido
+ValidaciÃ³n de path param
+Super admin autenticado
+year=abc
+GET /api/strategic-plans/abc
+400Â VALIDATION_ERROR
+400 correcto
+Aprobada
+BI-SP-07
+Administrador sin permiso delete
+Bloqueo por rol
+Administrador autenticado
+year vÃ¡lido
+DELETE /api/strategic-plans/deleteStrategicPlan/:year
+403
+403
+Aprobada
+BI-SP-08
+Eliminar plan
+Borrado completo por super admin
+Super admin autenticado
+year vÃ¡lido
+DELETE /api/strategic-plans/deleteStrategicPlan/:year
+200 + eliminado
+200 + validado en DB (null)
+Aprobada
+
+Tipo de prueba
+Pruebas de contrato API 
+TÃ­tulo del set
+ ComunicaciÃ³n frontend y backend mÃ³dulo de planificaciÃ³n estratÃ©gica
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FA-SP-01
+getAll success
+Devuelve listado si contrato vÃ¡lido
+axiosÂ mock
+respuestaÂ success:true
+getAllStrategicPlansApi()
+array de planes
+array correcto
+Aprobada
+FA-SP-02
+getAll contrato invÃ¡lido
+RechazaÂ success:false
+axiosÂ mock
+respuesta invÃ¡lida
+getAllStrategicPlansApi()
+errorÂ INVALID_API_CONTRACT
+error correcto
+Aprobada
+FA-SP-03
+getByYear success
+Devuelve plan por aÃ±o
+axiosÂ mock
+year=2026
+getStrategicPlanByYearApi(2026)
+objeto plan
+objeto correcto
+Aprobada
+FA-SP-04
+update success
+Retorna plan actualizado
+axiosÂ mock
+payload update
+updateStrategicPlanApi(...)
+plan_versionÂ actualizado
+correcto
+Aprobada
+FA-SP-05
+delete success
+Retorna null al eliminar
+axiosÂ mock
+year=2026
+deleteStrategicPlanApi(2026)
+null
+null
+Aprobada
+
+Tipo de prueba
+Unitarias / Componentes
+ TÃ­tulo del set:
+ Pruebas unitarias y de componentes mÃ³dulo de planificaciÃ³n estratÃ©gica
+ID
+Nombre
+Tipo
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FU-SP-01
+normalizePlanDataÂ nulo
+Unitario
+Retorna null si no hay datos
+Ninguna
+null
+Ejecutar util
+null
+null
+Aprobada
+FU-SP-02
+normalizePlanDataÂ defaults
+Unitario
+Normaliza misiÃ³n/programas/proyectos
+Ninguna
+Plan parcial
+Ejecutar util
+Estructura normalizada
+Estructura correcta
+Aprobada
+FU-SP-03
+normalizePlanDataÂ arrays vacÃ­os
+Unitario
+Garantiza arrays seguros
+Ninguna
+Plan sin objetivos
+Ejecutar util
+objectives=[]
+objectives=[]
+Aprobada
+FU-SP-04
+buildPayloadFromData
+Unitario
+Construye payload de guardado
+Ninguna
+Data estratÃ©gica
+Ejecutar util
+Payload vÃ¡lido
+Payload correcto
+Aprobada
+FU-SP-05
+isEqual
+Unitario
+Compara estructuras
+Ninguna
+Objetos
+Ejecutar util
+Boolean correcto
+Correcto
+Aprobada
+FU-SP-06
+sortById
+Unitario
+Ordena ascendente y soporta nulos
+Ninguna
+Array desordenado / null
+Ejecutar util
+Ordenado /Â []
+Correcto
+Aprobada
+FU-SP-07
+normalizeTargets
+Unitario
+Normaliza y ordena estructura
+Ninguna
+Targets mixtos
+Ejecutar util
+Estructura ordenada
+Correcto
+Aprobada
+FU-SP-08
+buildPayload
+Unitario
+Mapea payload final
+Ninguna
+MisiÃ³n + targets
+Ejecutar util
+Payload esperado
+Correcto
+Aprobada
+FU-SP-09
+updateTargetsWithEditedTarget
+Unitario
+Reemplaza objetivo editado
+Ninguna
+targets,Â updatedTarget
+Ejecutar util
+Objetivo actualizado
+Correcto
+Aprobada
+FU-SP-10
+updateTargetsWithNewProgram
+Unitario
+Agrega programa a objetivo seleccionado
+Ninguna
+targets,Â selectedTargetId, texto
+Ejecutar util
+Programa agregado
+Correcto
+Aprobada
+FU-SP-11
+updateTargetsWithEditedProject
+Unitario
+Edita proyecto especÃ­fico
+Ninguna
+IDs + proyecto actualizado
+Ejecutar util
+Proyecto editado
+Correcto
+Aprobada
+FU-SP-12
+getAllAssignedProjectIds
+Unitario
+Devuelve IDs Ãºnicos
+Ninguna
+Targets con repetidos
+Ejecutar util
+IDs Ãºnicos
+Correcto
+Aprobada
+FU-SP-13
+generateTempId
+Unitario
+Genera ID temporal vÃ¡lido
+Ninguna
+N/A
+Ejecutar util
+PrefijoÂ temp-
+Correcto
+Aprobada
+FC-SP-01
+SelectYearÂ selecciÃ³n
+Componente
+Permite abrir modal y cambiar aÃ±o
+Render componente
+Click aÃ±o
+Render + click
+onChange(year)
+onChangeÂ ejecutado
+Aprobada
+FC-SP-02
+SelectYearÂ deshabilitado
+Componente
+Bloquea interacciÃ³n si disabled
+Render conÂ disabled=true
+N/A
+Render
+BotÃ³n deshabilitado
+BotÃ³n deshabilitado
+Aprobada
+
+Tipo de prueba
+ E2E
+TÃ­tulo del set
+Pruebas E2E lmÃ³dulo de planificaciÃ³n estratÃ©gica
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FE-SP-01
+VisualizaciÃ³n y menÃº exportar (desktop)
+Usuario en modo documento ve contenido y opciones de exportaciÃ³n
+Auth/API mock
+year=2026
+Navegar aÂ /planificacion-estrategica/2026Â y abrir menÃº exportar
+Vista cargada + opciones PDF/DOCX visibles
+Cumplido
+Aprobada
+FE-SP-02
+Cambio de vista columnaâ†’documento (desktop)
+Super admin cambia visualizaciÃ³n
+Auth/API mock super admin
+year=2026
+Abrir selector de vista y elegir Documento
+Cambio aplicado y render documento
+Cumplido
+Aprobada
+FE-SP-03
+Eliminar plan con confirmaciÃ³n (desktop)
+Super admin confirma aÃ±o y elimina plan
+Auth/API mock super admin
+dÃ­gitos 2026
+Abrir dialog, ingresar 4 dÃ­gitos, eliminar
+plan eliminado y estado vacÃ­o visible
+Cumplido
+Aprobada
+FE-SP-04
+VisualizaciÃ³n y menÃº exportar (mobile)
+Mismo flujo de lectura en mÃ³vil
+Auth/API mock
+year=2026
+Navegar y abrir exportar
+vista y menÃºs visibles
+Cumplido
+Aprobada
+FE-SP-05
+Cambio de vista columnaâ†’documento (mobile)
+Mismo flujo en mÃ³vil
+Auth/API mock super admin
+year=2026
+cambiar vista
+cambio aplicado
+Cumplido
+Aprobada
+FE-SP-06
+Eliminar plan con confirmaciÃ³n (mobile)
+Borrado confirmado en mÃ³vil
+Auth/API mock super admin
+dÃ­gitos 2026
+confirmar y eliminar
+estado vacÃ­o tras eliminar
+Cumplido
+Aprobada
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANEXO 5
+TABLEROS DE PRUEBAS EJECUTADAS EN EL MÃ“DULO DE VISUALIZACIÃ“N GRÃFICA DE KPIS
+
+
+
+
+
+
+Tipo de prueba
+Unitaria backend
+TÃ­tulo del set
+Pruebas unitarias al backend del mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BU-KPI-01
+resolveDateRange all
+Rango abierto para histÃ³rico
+Ninguna
+range=all
+Ejecutar util
+RetornaÂ [{}]
+[{}]
+Aprobada
+BU-KPI-02
+resolveDateRange today
+Intervalo exacto del dÃ­a
+Fecha de sistema fija
+range=today
+Ejecutar util
+since==untilÂ del dÃ­a actual
+Cumplido
+Aprobada
+BU-KPI-03
+resolveDateRange lastMonth
+Ventana de 30 dÃ­as
+Fecha de sistema fija
+range=lastMonth
+Ejecutar util
+30 dÃ­as inclusivos
+Cumplido
+Aprobada
+BU-KPI-04
+resolveDateRange lastSixMonths
+SegmentaciÃ³n en chunks
+Fecha de sistema fija
+range=lastSixMonths
+Ejecutar util
+ChunksÂ <=93Â dÃ­as
+Cumplido
+Aprobada
+BU-KPI-05
+normalizeGetAPIsData github
+Normaliza repos para UI
+Ninguna
+payload GitHub
+Ejecutar util
+id,name,url,image_url
+Cumplido
+Aprobada
+BU-KPI-06
+normalizeGetAPIsData fb/ig
+Normaliza pÃ¡ginas Meta
+Ninguna
+payload FB/IG
+Ejecutar util
+estructura normalizada
+Cumplido
+Aprobada
+BU-KPI-07
+formatInsights
+Agrupa mÃ©tricas repetidas
+Ninguna
+insights repetidos
+Ejecutar util
+concatenaÂ valuesÂ porÂ name
+Cumplido
+Aprobada
+BU-KPI-08
+formatPopularPosts
+Ranking por score y lÃ­mite
+Ninguna
+posts mock
+Ejecutar util
+orden correcto + limit + filtra score 0
+Cumplido
+Aprobada
+
+
+
+
+
+
+
+
+Tipo de prueba
+Pruebas de contrato API
+TÃ­tulo del set
+ComunicaciÃ³n frontend-backend del mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BI-KPI-01
+Repos GitHub normalizados
+Endpoint repos responde formato dashboard
+Administrador autenticado
+GET /api/apis/github/repos
+Llamar endpoint
+200 + success:true + data[]
+200Â correcto
+Aprobada
+BI-KPI-02
+Ramas GitHub simplificadas
+Lista de ramas para selector
+Administrador autenticado
+GET /api/apis/github/:repo/branches
+Llamar endpoint
+200 + [{name,protected}]
+200Â correcto
+Aprobada
+BI-KPI-03
+Ramas repo inexistente
+Manejo de 404 externo
+Administrador autenticado
+repo invÃ¡lido
+Llamar endpoint
+404 RESOURCE_NOT_FOUND
+404Â correcto
+Aprobada
+BI-KPI-04
+Stats rango invÃ¡lido
+Valida parÃ¡metroÂ range
+Administrador autenticado
+range=invalid-range
+Llamar endpoint
+400 VALIDATION_ERROR
+400Â correcto
+Aprobada
+BI-KPI-05
+Insights Facebook
+ObtenciÃ³n + formateo insights
+Administrador autenticado
+GET /api/apis/facebook/:pageId/insights
+Llamar endpoint
+200 + metrics agregadas
+200Â correcto
+Aprobada
+BI-KPI-06
+Insights Instagram
+Daily +Â total_value
+Administrador autenticado
+GET /api/apis/instagram/:id/insights
+Llamar endpoint
+200 + mÃ©tricas (reach/profile_views/...)
+200Â correcto
+Aprobada
+BI-KPI-07
+Overview Instagram (rol user)
+Permiso de lectura dashboard
+User autenticado
+GET /api/apis/instagram/:id/overview
+Llamar endpoint
+200 + data
+200Â correcto
+Aprobada
+BI-KPI-08
+Facebook pages sin token
+Seguridad de acceso
+Sin token
+GET /api/apis/facebook/pages
+Llamar endpoint
+403
+403Â correcto
+Aprobada
+BI-KPI-09
+Crear proyecto con integraciones
+Fuente de datos para dashboard
+Super admin autenticado
+payload proyecto + integraciones
+POST /api/projects/create
+200 + proyecto
+200Â correcto
+Aprobada
+BI-KPI-10
+Actualizar integraciones proyecto
+Alta/ediciÃ³n integraciones activas
+Administrador autenticado
+PUT /api/apis/project-integration/:id/integrations
+Llamar endpoint
+200 + integraciones actualizadas
+200Â correcto
+Aprobada
+BI-KPI-11
+Dashboard por admin
+Ranking sÃ³lo proyectos visibles con integraciones
+Administrador autenticado
+GET /api/dashboard/getProjectsWithIntegrations
+Llamar endpoint
+200 + data[]
+200Â correcto
+Aprobada
+BI-KPI-12
+Dashboard por user asignado
+Respeta filtro por responsables
+User autenticado
+GET /api/dashboard/getProjectsWithIntegrations
+Llamar endpoint
+200 + data[] asignados
+200Â correcto
+Aprobada
+
+
+
+
+
+
+
+
+
+Tipo de prueba
+IntegraciÃ³n backend
+TÃ­tulo del set
+Pruebas de integraciÃ³n API del mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BI-KPI-01
+Repos GitHub normalizados
+Endpoint repos responde formato dashboard
+Administrador autenticado
+GET /api/apis/github/repos
+Llamar endpoint
+200 + success:true + data[]
+200Â correcto
+Aprobada
+BI-KPI-02
+Ramas GitHub simplificadas
+Lista de ramas para selector
+Administrador autenticado
+GET /api/apis/github/:repo/branches
+Llamar endpoint
+200 + [{name,protected}]
+200Â correcto
+Aprobada
+BI-KPI-03
+Ramas repo inexistente
+Manejo de 404 externo
+Administrador autenticado
+repo invÃ¡lido
+Llamar endpoint
+404 RESOURCE_NOT_FOUND
+404Â correcto
+Aprobada
+BI-KPI-04
+Stats rango invÃ¡lido
+Valida parÃ¡metroÂ range
+Administrador autenticado
+range=invalid-range
+Llamar endpoint
+400 VALIDATION_ERROR
+400Â correcto
+Aprobada
+BI-KPI-05
+Insights Facebook
+ObtenciÃ³n + formateo insights
+Administrador autenticado
+GET /api/apis/facebook/:pageId/insights
+Llamar endpoint
+200 + metrics agregadas
+200Â correcto
+Aprobada
+BI-KPI-06
+Insights Instagram
+Daily +Â total_value
+Administrador autenticado
+GET /api/apis/instagram/:id/insights
+Llamar endpoint
+200 + mÃ©tricas (reach/profile_views/...)
+200Â correcto
+Aprobada
+BI-KPI-07
+Overview Instagram (rol user)
+Permiso de lectura dashboard
+User autenticado
+GET /api/apis/instagram/:id/overview
+Llamar endpoint
+200 + data
+200Â correcto
+Aprobada
+BI-KPI-08
+Facebook pages sin token
+Seguridad de acceso
+Sin token
+GET /api/apis/facebook/pages
+Llamar endpoint
+403
+403Â correcto
+Aprobada
+BI-KPI-09
+Crear proyecto con integraciones
+Fuente de datos para dashboard
+Super admin autenticado
+payload proyecto + integraciones
+POST /api/projects/create
+200 + proyecto
+200Â correcto
+Aprobada
+BI-KPI-10
+Actualizar integraciones proyecto
+Alta/ediciÃ³n integraciones activas
+Administrador autenticado
+PUT /api/apis/project-integration/:id/integrations
+Llamar endpoint
+200 + integraciones actualizadas
+200Â correcto
+Aprobada
+BI-KPI-11
+Dashboard por admin
+Ranking sÃ³lo proyectos visibles con integraciones
+Administrador autenticado
+GET /api/dashboard/getProjectsWithIntegrations
+Llamar endpoint
+200 + data[]
+200Â correcto
+Aprobada
+BI-KPI-12
+Dashboard por user asignado
+Respeta filtro por responsables
+User autenticado
+GET /api/dashboard/getProjectsWithIntegrations
+Llamar endpoint
+200 + data[] asignados
+200Â correcto
+Aprobada
+
+
+
+Tipo de prueba
+Â Unitarias / Componentes (frontend)
+TÃ­tulo del set
+Pruebas unitarias del mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs
+ID
+Nombre
+Tipo
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FU-KPI-01
+Organic vs Paid views
+Unitario
+Separa orgÃ¡nicas/pagadas
+Ninguna
+values conÂ is_from_ads
+Ejecutar formatter FB
+totales correctos
+OK
+Aprobada
+FU-KPI-02
+Page impressions agrupadas
+Unitario
+Agrupa y suma por fecha
+Ninguna
+rawData multi-registro por dÃ­a
+Ejecutar formatter FB
+suma por dÃ­a + delta
+OK
+Aprobada
+FU-KPI-03
+Total actions mixto
+Unitario
+SoportaÂ valueÂ nÃºmero/objeto
+Ninguna
+rawData mixto
+Ejecutar formatter FB
+total/latest/delta correctos
+OK
+Aprobada
+FU-KPI-04
+IG metric fallback total_value
+Unitario
+ConvierteÂ total_valueÂ a serie
+Ninguna
+insightsÂ total_value
+Ejecutar formatter IG
+total y serie vÃ¡lidos
+OK
+Aprobada
+FU-KPI-05
+IG engagement rate
+Unitario
+CalculaÂ interactions/reach
+Ninguna
+reach + total_interactions
+Ejecutar formatter IG
+tasa correcta
+OK
+Aprobada
+FU-KPI-06
+IG breakdown sin negativos
+Unitario
+Normaliza negativos a 0
+Ninguna
+likes negativos + otros positivos
+Ejecutar formatter IG
+no negativos + total correcto
+OK
+Aprobada
+FU-KPI-07
+IG embudo conversiÃ³n
+Unitario
+Construye pie + conversiones
+Ninguna
+profile_views/taps/clicks
+Ejecutar formatter IG
+funnel coherente
+OK
+Aprobada
+FU-KPI-08
+GitHub grid adapter
+Unitario
+Agrupa commits por autor y ordena
+Ninguna
+commits mock
+Ejecutar adapter
+ranking/posiciÃ³n correctos
+OK
+Aprobada
+
+
+
+
+
+
+Tipo de prueba
+E2E (frontend)
+TÃ­tulo del set
+Pruebas E2E del mÃ³dulo de visualizaciÃ³n grÃ¡fica de KPIs (Dashboard)
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FE-KPI-01-D
+Ranking overview desktop
+Render overview KPI
+sesiÃ³n mock admin + APIs mock
+/dashboard
+Navegar y validar headings
+ranking visible
+Cumplido
+Aprobada
+FE-KPI-01-M
+Ranking overview mÃ³vil
+Render overview KPI en mÃ³vil
+sesiÃ³n mock admin + APIs mock
+/dashboard
+Navegar y validar headings
+ranking visible
+Cumplido
+Aprobada
+FE-KPI-02-D
+User sin asignaciones desktop
+Mensaje correcto por rol user
+sesiÃ³n mock user +Â projects=[]
+/dashboard
+Navegar y validar empty state
+â€œAun no tienes proyectos asignadosâ€
+Cumplido
+Aprobada
+FE-KPI-02-M
+User sin asignaciones mÃ³vil
+Mensaje correcto por rol user
+sesiÃ³n mock user +Â projects=[]
+/dashboard
+Navegar y validar empty state
+mensaje visible
+Cumplido
+Aprobada
+FE-KPI-03-D
+Administrador sin integraciones desktop
+Mensaje correcto por rol admin
+sesiÃ³n mock admin + asignados sin integraciones
+/dashboard
+Navegar y validar empty state
+â€œNinguno de tus proyectos...â€
+Cumplido
+Aprobada
+FE-KPI-03-M
+Administrador sin integraciones mÃ³vil
+Mensaje correcto por rol admin
+sesiÃ³n mock admin + asignados sin integraciones
+/dashboard
+Navegar y validar empty state
+mensaje visible
+Cumplido
+Aprobada
+FE-KPI-04-D
+Super admin sin integraciones desktop
+Diferencia â€œsin integracionesâ€ vs â€œsin proyectosâ€
+sesiÃ³n mock super-admin + proyectos existentes
+/dashboard
+Navegar y validar mensaje
+â€œNo tienes ningun proyecto integrado con APIsâ€
+Cumplido
+Aprobada
+FE-KPI-04-M
+Super admin sin integraciones mÃ³vil
+Misma regla en mÃ³vil
+sesiÃ³n mock super-admin + proyectos existentes
+/dashboard
+Navegar y validar mensaje
+mensaje visible
+Cumplido
+Aprobada
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANEXO 6
+TABLEROS DE PRUEBAS EJECUTADAS EN EL MÃ“DULO DE GESTIÃ“N 
+DE REPORTE
+Tipo de prueba
+Unitaria backend
+
+TÃ­tulo del set
+Pruebas unitarias al backend del mÃ³dulo de gestiÃ³n de reportes
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+ResultadoÂ esperado
+ResultadoÂ obtenido
+Estado
+BU-RP-01
+ListarÂ reportes
+VerificaÂ respuestaÂ exitosaÂ delÂ listado
+RepositorioÂ mockeado
+N/A
+EjecutarÂ getAllReports
+200 +Â listaÂ ordenadaÂ desc
+200 +Â listaÂ correcta
+Aprobada
+BU-RP-02
+ObtenerÂ reporteÂ inexistente
+ValidaÂ noÂ encontradoÂ porÂ id
+RepositorioÂ mockeadoÂ conÂ null
+reportId=999
+EjecutarÂ getReportById
+404Â RESOURCE_NOT_FOUND
+404Â correcto
+Aprobada
+BU-RP-03
+CrearÂ reporteÂ conÂ imagen
+VerificaÂ mapeoÂ deÂ imagenÂ yÂ guardado
+RepositorioÂ mockeadoÂ create/save
+reportÂ +Â files
+EjecutarÂ createReport
+201 +Â srcÂ reemplazado +Â versiÃ³nÂ 1
+201 +Â persistenciaÂ correcta
+Aprobada
+BU-RP-04
+CrearÂ reporteÂ invÃ¡lido
+RechazaÂ payloadÂ queÂ incumpleÂ esquema
+RepositorioÂ mockeado
+title=""
+EjecutarÂ createReport
+400Â VALIDATION_ERROR
+400Â correcto
+Aprobada
+BU-RP-05
+UpdateÂ sinÂ versiÃ³n
+ExigeÂ controlÂ deÂ concurrencia
+ReporteÂ existenteÂ mockeado
+payloadÂ sinÂ report_version
+EjecutarÂ updateReport
+400Â VALIDATION_ERROR
+400Â correcto
+Aprobada
+BU-RP-06
+UpdateÂ conÂ versiÃ³nÂ stale
+RechazaÂ sobreescrituraÂ concurrente
+ReporteÂ conÂ versiÃ³nÂ actualÂ 2
+report_version=1
+EjecutarÂ updateReport
+409Â VERSION_ERROR
+409Â correcto
+Aprobada
+BU-RP-07
+UpdateÂ exitoso
+IncrementaÂ versiÃ³nÂ yÂ guarda
+ReporteÂ existenteÂ mockeado
+report_versionÂ vÃ¡lido
+EjecutarÂ updateReport
+200 +Â report_version+1
+200 +Â incrementoÂ correcto
+Aprobada
+BU-RP-08
+DeleteÂ inexistente
+RechazaÂ eliminarÂ noÂ existente
+RepositorioÂ mockeadoÂ conÂ null
+reportIdÂ invÃ¡lido
+EjecutarÂ deleteReport
+404Â RESOURCE_NOT_FOUND
+404Â correcto
+Aprobada
+BU-RP-09
+DeleteÂ exitoso
+EliminaÂ reporteÂ existente
+RepositorioÂ mockeado
+reportIdÂ vÃ¡lido
+EjecutarÂ deleteReport
+200 +Â idÂ eliminado
+200Â correcto
+Aprobada
+
+Tipo de prueba
+IntegraciÃ³n backend
+
+TÃ­tulo del set
+ Pruebas de integraciÃ³n API del mÃ³dulo de gestiÃ³n de reportes
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+BI-RP-01
+Crear reporte vÃ¡lido
+Alta de reporte por admin
+Admin autenticado
+payload vÃ¡lido
+POST /api/reports/createReport
+201 + reporte creado
+201 + creaciÃ³n correcta
+Aprobada
+BI-RP-02
+Listar reportes admin
+Acceso de lectura autorizado
+Admin autenticado
+N/A
+GET /api/reports
+200 + array
+200 + array
+Aprobada
+BI-RP-03
+Listar reportes user
+Bloqueo por rol
+User autenticado
+N/A
+GET /api/reports
+403Â USER_UNAUTHORIZED
+403 correcto
+Aprobada
+BI-RP-04
+Obtener reporte por id
+Recupera detalle completo
+Admin autenticado
+reportIdÂ existente
+GET /api/reports/:id
+200 + objeto
+200 + objeto
+Aprobada
+BI-RP-05
+Actualizar reporte
+Guardado e incremento de versiÃ³n
+Admin + reporte existente
+payload vÃ¡lido +Â report_version
+PUT /api/reports/:id
+200 + versiÃ³n incrementada
+200 correcto
+Aprobada
+BI-RP-06
+Actualizar con versiÃ³n stale
+Control de concurrencia
+Admin + reporte existente
+report_versionÂ antigua
+PUT /api/reports/:id
+409Â VERSION_ERROR
+409 correcto
+Aprobada
+BI-RP-07
+Eliminar reporte
+EliminaciÃ³n exitosa
+Admin + reporte existente
+reportId
+DELETE /api/reports/:id
+200
+200 correcto
+Aprobada
+BI-RP-08
+Leer tras eliminar
+Verifica eliminaciÃ³n efectiva
+Admin
+reportIdÂ eliminado
+GET /api/reports/:id
+404
+404 correcto
+Aprobada
+BI-RP-09
+Crear sin autenticaciÃ³n
+Endpoint protegido
+Sin token
+payload vÃ¡lido
+POST /api/reports/createReport
+403
+403 correcto
+Aprobada
+BI-RP-10
+Crear invÃ¡lido
+Valida esquema en API
+Admin autenticado
+title=""
+POST /api/reports/createReport
+400Â VALIDATION_ERROR
+400 correcto
+Aprobada
+BI-RP-11
+Ver reporte con rol user
+Lectura individual restringida
+User autenticado
+reportIdÂ existente
+GET /api/reports/:id
+403
+403 correcto
+Aprobada
+BI-RP-12
+Update sin version
+Rechazo por falta de versionado
+Admin autenticado
+payload sinÂ report_version
+PUT /api/reports/:id
+400Â VALIDATION_ERROR
+400 correcto
+Aprobada
+BI-RP-13
+Update reporte inexistente
+Manejo de no encontrado
+Admin autenticado
+reportIdÂ inexistente
+PUT /api/reports/:id
+404Â RESOURCE_NOT_FOUND
+404 correcto
+Aprobada
+BI-RP-14
+Orden del listado
+Verifica orden descendente por id
+Admin + 2 reportes
+N/A
+GET /api/reports
+primer id > segundo id
+Orden correcto
+Aprobada
+BI-RP-15
+Delete inexistente
+Manejo de no encontrado en delete
+Admin autenticado
+reportIdÂ inexistente
+DELETE /api/reports/:id
+404Â RESOURCE_NOT_FOUND
+404 correcto
+Aprobada
+BI-RP-16
+Flujo completo ciclo CRUD
+Cobertura end-to-end de API interna
+Admin autenticado
+create/read/update/delete
+Ejecutar secuencia completa
+Todas las etapas correctas
+Cumplido
+Aprobada
+
+Tipo de prueba
+Contrato API (frontend)
+
+TÃ­tulo del set
+LÃ³gica y componentes del mÃ³dulo de reportes
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FA-RP-01
+getAllReportsApiÂ success
+Retorna listado vÃ¡lido
+axios mock
+success:true
+Ejecutar funciÃ³n
+array de reportes
+array correcto
+Aprobada
+FA-RP-02
+getAllReportsApiÂ contrato invÃ¡lido
+Rechaza contrato inconsistente
+axios mock
+success:false
+Ejecutar funciÃ³n
+INVALID_API_CONTRACT
+error correcto
+Aprobada
+FA-RP-03
+getAllReportsApiÂ backend error
+Propaga error controlado
+axios mock
+error API
+Ejecutar funciÃ³n
+cÃ³digo y mensaje API
+propagaciÃ³n correcta
+Aprobada
+FA-RP-04
+getReportByIdApiÂ contrato invÃ¡lido
+Valida estructura de respuesta
+axios mock
+success:false
+Ejecutar funciÃ³n
+INVALID_API_CONTRACT
+error correcto
+Aprobada
+FA-RP-05
+createReportApiÂ success
+Alta de reporte desde frontend
+axios mock
+success:true
+Ejecutar funciÃ³n
+objeto creado
+objeto correcto
+Aprobada
+FA-RP-06
+createReportApiÂ contrato invÃ¡lido
+Rechaza respuesta inesperada
+axios mock
+success:false
+Ejecutar funciÃ³n
+INVALID_API_CONTRACT
+error correcto
+Aprobada
+FA-RP-07
+updateReportApiÂ contrato invÃ¡lido
+Rechaza update inconsistente
+axios mock
+success:false
+Ejecutar funciÃ³n
+INVALID_API_CONTRACT
+error correcto
+Aprobada
+FA-RP-08
+updateReportApiÂ conflicto de versiÃ³n
+PropagaÂ VERSION_ERROR
+axios mock
+error 409
+Ejecutar funciÃ³n
+VERSION_ERROR
+error correcto
+Aprobada
+FA-RP-09
+deleteReportApiÂ contrato invÃ¡lido
+Rechaza respuesta invÃ¡lida
+axios mock
+success:false
+Ejecutar funciÃ³n
+INVALID_API_CONTRACT
+error correcto
+Aprobada
+FA-RP-10
+deleteReportApiÂ not found
+PropagaÂ NOT_FOUNDÂ del backend
+axios mock
+error API
+Ejecutar funciÃ³n
+NOT_FOUNDÂ + mensaje
+propagaciÃ³n correcta
+Aprobada
+
+Tipo de prueba
+E2E 
+
+TÃ­tulo del set
+Flujos E2E del mÃ³dulo de gestiÃ³n de reportes
+ID
+Nombre
+DescripciÃ³n
+Precondiciones
+Entradas
+Procedimiento
+Resultado esperado
+Resultado obtenido
+Estado
+FE-RP-01
+Listado de reportes
+Carga de mÃ³dulo de lista
+Auth/API mock
+reporte existente
+Ir aÂ /reportes
+tÃ­tulo de mÃ³dulo + card visible
+Cumplido en desktop y mÃ³vil
+Aprobada
+FE-RP-02
+Estado vacÃ­o de reportes
+UX sin datos
+Auth/API mock
+lista vacÃ­a
+Ir aÂ /reportes
+mensaje vacÃ­o + botÃ³n crear
+Cumplido en desktop y mÃ³vil
+Aprobada
+FE-RP-03
+Crear reporte desde editor
+Flujo de alta por UI
+Auth/API mock
+texto + tÃ­tulo
+Ir aÂ /reportes/editor, agregar bloque, guardar
+POST createReportÂ + redirecciÃ³n al editor
+Cumplido en desktop y mÃ³vil
+Aprobada
+FE-RP-04
+Conflicto de versiÃ³n al actualizar
+Concurrencia funcional
+Auth/API mock
+update con 409
+Abrir reporte, editar, guardar
+mensaje de conflicto visible sin romper vista
+Cumplido en desktop y mÃ³vil
+Aprobada
+FE-RP-05
+Eliminar reporte desde editor
+Borrado por confirmaciÃ³n
+Auth/API mock
+tÃ­tulo exacto
+Abrir menÃº, eliminar, confirmar
+DELETEÂ exitoso + redirecciÃ³n aÂ /reportes
+Cumplido en desktop y mÃ³vil
+Aprobada
+
+
