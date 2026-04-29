@@ -1,10 +1,11 @@
 export function updateProjectFormData(projectData) {
     const formData = new FormData();
 
-    console.log("oroject frm data", projectData);
-
     if (projectData.name) formData.append("name", projectData.name);
     if (projectData.description) formData.append("description", projectData.description);
+    if (projectData.budget_amount !== undefined && projectData.budget_amount !== null) {
+        formData.append("budget_amount", projectData.budget_amount);
+    }
 
     if (projectData.program?.id) formData.append("program_id", projectData.program.id);
 

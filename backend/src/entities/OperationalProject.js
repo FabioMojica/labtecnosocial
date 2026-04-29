@@ -27,6 +27,12 @@ export const OperationalProject = new EntitySchema({
       length: 300,
       nullable: true,
     },
+    budget_amount: {
+      type: 'decimal',
+      precision: 14,
+      scale: 2,
+      nullable: true,
+    },
     image_url: {
       type: String,
       nullable: true, 
@@ -74,6 +80,12 @@ export const OperationalProject = new EntitySchema({
     integrations: { 
       type: 'one-to-many',
       target: 'ProjectIntegration',
+      inverseSide: 'project',
+      cascade: true,
+    },
+    budgetRequests: {
+      type: 'one-to-many',
+      target: 'BudgetRequest',
       inverseSide: 'project',
       cascade: true,
     },

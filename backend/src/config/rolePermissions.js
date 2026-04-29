@@ -22,6 +22,11 @@ export const PERMISSIONS = {
         DELETE: 'operational_project:delete',
     },
 
+    BUDGET_REQUEST: {
+        READ: 'budget_request:read',
+        CREATE: 'budget_request:create',
+    },
+
     SUMMARY_DATA: {
         READ: 'summary_data:read',
     },
@@ -64,6 +69,8 @@ export const ROLE_PERMISSIONS = {
 
         PERMISSIONS.OPERATIONAL_PROJECT,
 
+        PERMISSIONS.BUDGET_REQUEST,
+
         PERMISSIONS.SUMMARY_DATA,
 
         PERMISSIONS.USER, 
@@ -83,6 +90,9 @@ export const ROLE_PERMISSIONS = {
 
         PERMISSIONS.OPERATIONAL_PROJECT.READ,
         PERMISSIONS.OPERATIONAL_PROJECT.UPDATE,
+
+        PERMISSIONS.BUDGET_REQUEST.READ,
+        PERMISSIONS.BUDGET_REQUEST.CREATE,
 
         PERMISSIONS.SUMMARY_DATA.READ,
 

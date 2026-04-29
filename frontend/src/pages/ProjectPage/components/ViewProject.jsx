@@ -1,4 +1,4 @@
-import {
+﻿import {
     Grid,
     Typography,
     Box,
@@ -20,6 +20,7 @@ import { integrationsConfig } from "../../../utils";
 import { getUserIcons, getRoleAndStateData } from "../../../utils/getRoleAndStateData";
 
 import EditIcon from '@mui/icons-material/Edit';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { EditProjectDialog } from "./EditProjectDialog";
 import { useNavigate } from "react-router-dom";
 
@@ -141,6 +142,49 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
                     </Typography>
                 </Box>
                 <Divider sx={{ width: '100%' }} />
+                {(isAdmin || isSuperAdmin) && (
+                    <>
+                        <Typography variant="h6" fontWeight="bold">
+                            Presupuesto del proyecto
+                        </Typography>
+                        <Paper
+                            elevation={2}
+                            sx={{
+                                p: 2,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1.5,
+                                width: 'fit-content',
+                                maxWidth: '100%',
+                            }}
+                        >
+                            <Avatar
+                                sx={{
+                                    bgcolor: 'success.main',
+                                    width: 44,
+                                    height: 44,
+                                    borderRadius: 2,
+                                }}
+                            >
+                                <AttachMoneyIcon sx={{ color: '#fff' }} />
+                            </Avatar>
+                            <Box sx={{ minWidth: 0 }}>
+                                <Typography variant="caption" color="text.secondary" display="block">
+                                    Monto asignado en bolivianos
+                                </Typography>
+                                <Typography variant="h6" fontWeight="bold" noWrap>
+                                    {project?.budget_amount !== null && project?.budget_amount !== undefined && project?.budget_amount !== ''
+                                        ? `Bs ${Number(project.budget_amount).toLocaleString('es-BO', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        })}`
+                                        : 'No definido'}
+                                </Typography>
+                            </Box>
+                        </Paper>
+                        <Divider sx={{ width: '100%' }} />
+                    </>
+                )}
                 <Typography variant="h6" fontWeight="bold">
                     Programa
                 </Typography>
@@ -168,7 +212,7 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
                                 {/* Plan estratégico */}
                                 <Box display="flex" alignItems="center" gap={1}>
                                     <Typography variant="body1" fontWeight="bold" sx={{ flexShrink: 0 }} lineHeight={1}>
-                                        🧭 Plan estratégico:
+                                        Plan estratégico:
                                     </Typography>
                                     <Typography
                                         variant="caption"
@@ -188,7 +232,7 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
                                 {/* Objetivo */}
                                 <Box display="flex" alignItems="center" gap={1}>
                                     <Typography variant="body1" fontWeight="bold" sx={{ flexShrink: 0 }} lineHeight={1}>
-                                        🎯 Objetivo:
+                                        Objetivo:
                                     </Typography>
                                     <Typography
                                         variant="caption"
@@ -209,7 +253,7 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
                                 {/* Programa */}
                                 <Box display="flex" alignItems="center" gap={1}>
                                     <Typography variant="body1" fontWeight="bold" sx={{ flexShrink: 0 }} lineHeight={1}>
-                                        📦 Programa:
+                                        Programa:
                                     </Typography>
                                     <Typography
                                         lineHeight={1}
@@ -461,3 +505,5 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
         </Grid>
     );
 };
+
+

@@ -3,6 +3,9 @@ export function createProjectFormData(projectData) {
 
   if (projectData.name) formData.append("name", projectData.name);
   if (projectData.description) formData.append("description", projectData.description);
+  if (projectData.budget_amount !== undefined && projectData.budget_amount !== null && projectData.budget_amount !== "") {
+    formData.append("budget_amount", projectData.budget_amount);
+  }
 
   if (projectData.image_file instanceof File) {
     formData.append("file", projectData.image_file);

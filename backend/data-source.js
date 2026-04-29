@@ -11,6 +11,8 @@ import { OperationalRow } from './src/entities/OperationalRow.js';
 import { ProjectResponsible } from './src/entities/ProjectResponsible.js';
 import { ProjectIntegration } from './src/entities/ProjectIntegration.js';
 import { Report } from './src/entities/Report.js';
+import { BudgetRequest } from './src/entities/BudgetRequest.js';
+import { BudgetRequestItem } from './src/entities/BudgetRequestItem.js';
 
 dotenv.config();
 
@@ -43,5 +45,7 @@ export const AppDataSource = new DataSource({
     ProjectResponsible,
     ProjectIntegration,
     Report,
+    BudgetRequest,
+    BudgetRequestItem,
   ],
 });

@@ -21,6 +21,7 @@ describe("Fase B - Projects + Integrations + Dashboard", () => {
   let projectId;
   let restrictedProjectId;
   let githubIntegrationId;
+  let createdBudgetRequestId;
 
   beforeAll(async () => {
     await initFreshTestDb();
@@ -47,6 +48,7 @@ describe("Fase B - Projects + Integrations + Dashboard", () => {
     const payload = {
       name: "Proyecto QA Fase B",
       description: "Proyecto de prueba de integraciones",
+      budget_amount: "1500.75",
       responsibles: [adminId, userId],
       integrations: [
         { type: "github", data: { id: "repo-test-1", name: "repo-test", url: "https://github.com/org/repo-test" } },
@@ -62,9 +64,11 @@ describe("Fase B - Projects + Integrations + Dashboard", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body?.success).toBe(true);
     expect(res.body?.data?.name).toBe(payload.name);
+    projectId = res.body.data.id;
+    expect(projectId).toBeTruthy();
+    expect(Number(res.body?.data?.budget_amount)).toBe(1500.75);
     expect(Array.isArray(res.body?.data?.integrations)).toBe(true);
     expect(res.body.data.integrations.length).toBeGreaterThanOrEqual(2);
-    projectId = res.body.data.id;
 
     const githubIntegration = res.body.data.integrations.find((i) => i.platform === "github");
     expect(githubIntegration).toBeTruthy();
@@ -121,6 +125,7 @@ describe("Fase B - Projects + Integrations + Dashboard", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body?.success).toBe(true);
     expect(res.body?.data?.id).toBe(projectId);
+    expect(Number(res.body?.data?.budget_amount)).toBe(1500.75);
     expect(Array.isArray(res.body?.data?.integrations)).toBe(true);
   });
 
@@ -132,6 +137,21 @@ describe("Fase B - Projects + Integrations + Dashboard", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body?.success).toBe(true);
     expect(res.body?.data?.id).toBe(restrictedProjectId);
+    expect(res.body?.data).not.toHaveProperty("budget_amount");
+  });
+
+  test("POST /api/projects/create bloquea presupuesto para admin", async () => {
+    const res = await request(app)
+      .post("/api/projects/create")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({
+        name: "Proyecto con presupuesto admin",
+        description: "No deberia permitirlo",
+        budget_amount: "900.00",
+      });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body?.success).toBe(false);
   });
 
   test("PATCH /api/projects/:id permite a admin asignar y desasignar responsables de cualquier rol", async () => {
@@ -166,6 +186,101 @@ describe("Fase B - Projects + Integrations + Dashboard", () => {
     expect(removeRes.statusCode).toBe(200);
     expect(removeRes.body?.success).toBe(true);
     expect(removeRes.body?.data?.projectResponsibles?.some((r) => r.id === superAdminId)).toBe(false);
+  });
+
+  test("PATCH /api/projects/:id bloquea actualizacion de presupuesto para admin", async () => {
+    const res = await request(app)
+      .patch(`/api/projects/${projectId}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ budget_amount: "2000.00" });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body?.success).toBe(false);
+  });
+
+  test("PATCH /api/projects/:id permite a super admin actualizar presupuesto", async () => {
+    const res = await request(app)
+      .patch(`/api/projects/${projectId}`)
+      .set("Authorization", `Bearer ${superAdminToken}`)
+      .send({ budget_amount: "3200.50" });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body?.success).toBe(true);
+    expect(Number(res.body?.data?.budget_amount)).toBe(3200.5);
+  });
+
+  test("POST /api/projects/:id/budget-requests permite a admin crear una solicitud dentro del presupuesto", async () => {
+    const res = await request(app)
+      .post(`/api/projects/${projectId}/budget-requests`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .field("objective", "Comprar materiales para validaciones")
+      .field(
+        "items",
+        JSON.stringify([
+          { item_name: "Lápices", quantity: 10, unit_cost: 2.5 },
+          { item_name: "Cuadernos", quantity: 5, unit_cost: 12 },
+        ])
+      );
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body?.success).toBe(true);
+    expect(res.body?.data?.status).toBe("pending");
+    expect(Number(res.body?.data?.total_amount)).toBe(85);
+    expect(Array.isArray(res.body?.data?.items)).toBe(true);
+    expect(res.body?.data?.items).toHaveLength(2);
+    createdBudgetRequestId = res.body?.data?.id;
+    expect(Number.isInteger(createdBudgetRequestId)).toBe(true);
+  });
+
+  test("POST /api/projects/:id/budget-requests bloquea solicitudes que exceden el presupuesto", async () => {
+    const res = await request(app)
+      .post(`/api/projects/${projectId}/budget-requests`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .field("objective", "Solicitud fuera de presupuesto")
+      .field(
+        "items",
+        JSON.stringify([
+          { item_name: "Equipo", quantity: 1, unit_cost: 5000 },
+        ])
+      );
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body?.success).toBe(false);
+    expect(res.body?.error?.message).toContain("excede el presupuesto");
+  });
+
+  test("GET /api/projects/:id/budget-requests retorna solo solicitudes propias para admin", async () => {
+    const res = await request(app)
+      .get(`/api/projects/${projectId}/budget-requests`)
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body?.success).toBe(true);
+    expect(Array.isArray(res.body?.data?.requests)).toBe(true);
+    expect(res.body?.data?.requests).toHaveLength(1);
+    expect(res.body?.data?.requests[0]?.id).toBe(createdBudgetRequestId);
+    expect(res.body?.data?.requests[0]).not.toHaveProperty("requested_by");
+  });
+
+  test("GET /api/projects/:id/budget-requests retorna todas las solicitudes para super admin", async () => {
+    const res = await request(app)
+      .get(`/api/projects/${projectId}/budget-requests`)
+      .set("Authorization", `Bearer ${superAdminToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body?.success).toBe(true);
+    expect(Array.isArray(res.body?.data?.requests)).toBe(true);
+    expect(res.body?.data?.requests.length).toBeGreaterThanOrEqual(1);
+    expect(res.body?.data?.requests[0]?.requested_by?.email).toBe(seedUsers.admin.email);
+  });
+
+  test("GET /api/projects/:id/budget-requests bloquea acceso para user", async () => {
+    const res = await request(app)
+      .get(`/api/projects/${projectId}/budget-requests`)
+      .set("Authorization", `Bearer ${regularUserToken}`);
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body?.success).toBe(false);
   });
 
   test("PUT /api/apis/project-integration/:projectId/integrations actualiza integraciones", async () => {

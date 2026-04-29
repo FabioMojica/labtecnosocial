@@ -1,8 +1,17 @@
 import { Router } from 'express';
-import { createOperationalProject, getAllOperationalProjects, updateOperationalProject, getProjectById, deleteProjectById } from '../controllers/operationalProjects.controller.js';
+import {
+  createOperationalProject,
+  getAllOperationalProjects,
+  updateOperationalProject,
+  getProjectById,
+  deleteProjectById,
+  getBudgetRequestsByProjectId,
+  createBudgetRequestByProjectId,
+} from '../controllers/operationalProjects.controller.js';
 import { verifyJwt } from '../middlewares/verifyJwt.js';
 import { optimizeImage } from '../middlewares/optimizeImage.js';
 import { uploadSingleFile } from '../utils/uploadSingleFiles.js';
+import { uploadAnyFiles } from '../utils/uploadAnyFiles.js';
 import { authorize } from '../middlewares/authorize.js';
 import { PERMISSIONS } from '../config/rolePermissions.js';
   
@@ -17,6 +26,10 @@ operationalProjectRoutes.post('/create', authorize(PERMISSIONS.OPERATIONAL_PROJE
 operationalProjectRoutes.patch('/:id', authorize(PERMISSIONS.OPERATIONAL_PROJECT.UPDATE), uploadSingleFile, optimizeImage, updateOperationalProject);
 
 operationalProjectRoutes.get('/getProjectById/:id', authorize(PERMISSIONS.OPERATIONAL_PROJECT.READ), getProjectById);  
+
+operationalProjectRoutes.get('/:id/budget-requests', authorize(PERMISSIONS.BUDGET_REQUEST.READ), getBudgetRequestsByProjectId);
+
+operationalProjectRoutes.post('/:id/budget-requests', authorize(PERMISSIONS.BUDGET_REQUEST.CREATE), uploadAnyFiles, optimizeImage, createBudgetRequestByProjectId);
 
 operationalProjectRoutes.delete('/:id', authorize(PERMISSIONS.OPERATIONAL_PROJECT.DELETE),deleteProjectById);
   

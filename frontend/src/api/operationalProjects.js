@@ -110,3 +110,51 @@ export const updateProjectApi = async (id, formData) => {
     throw handleApiError(error, 'Ocurrió un error inesperado al actualizar el proyecto. Inténtalo nuevamente más tarde.');
   }
 };
+
+export const getProjectBudgetRequestsApi = async (projectId) => {
+  const controller = loadAbort();
+  try {
+    const { data } = await axiosInstance.get(
+      Routes.GET_PROJECT_BUDGET_REQUESTS(projectId),
+      { signal: controller.signal }
+    );
+
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+
+    return data?.data;
+  } catch (error) {
+    throw handleApiError(error, 'Ocurrió un error inesperado al obtener las solicitudes al presupuesto. Inténtalo nuevamente más tarde.');
+  }
+};
+
+export const createProjectBudgetRequestApi = async (projectId, formData) => {
+  const controller = loadAbort();
+  try {
+    const { data } = await axiosInstance.post(
+      Routes.CREATE_PROJECT_BUDGET_REQUEST(projectId),
+      formData,
+      {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+
+    return data?.data;
+  } catch (error) {
+    throw handleApiError(error, 'Ocurrió un error inesperado al crear la solicitud al presupuesto. Inténtalo nuevamente más tarde.');
+  }
+};

@@ -1,9 +1,11 @@
-import { AppDataSource } from '../../data-source.js';
+﻿import { AppDataSource } from '../../data-source.js';
 import { OperationalProject } from '../entities/OperationalProject.js';
 import { User } from '../entities/User.js';
 import { ProjectResponsible } from '../entities/ProjectResponsible.js';
 import { ProjectIntegration } from '../entities/ProjectIntegration.js';
 import { Program } from '../entities/Program.js';
+import { BudgetRequest, BUDGET_REQUEST_STATUS } from '../entities/BudgetRequest.js';
+import { BudgetRequestItem } from '../entities/BudgetRequestItem.js';
 import { assignResponsibles } from '../utils/assignResponsibles.js';
 import { createProjectIntegrations } from '../utils/createProjectIntegrations.js';
 import fs from 'fs';
@@ -29,11 +31,176 @@ const normalizeEntityIds = (items = []) => {
   };
 };
 
+const parseBudgetAmount = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return { value: null, hasValue: false, error: null };
+  }
+
+  const normalizedValue = typeof value === 'string'
+    ? value.replace(',', '.').trim()
+    : value;
+
+  const parsedValue = Number(normalizedValue);
+
+  if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+    return {
+      value: null,
+      hasValue: true,
+      error: 'El presupuesto del proyecto debe ser un número válido mayor o igual a 0.',
+    };
+  }
+
+  return {
+    value: Number(parsedValue.toFixed(2)),
+    hasValue: true,
+    error: null,
+  };
+};
+
+const parseMoneyAmount = (value, label) => {
+  const normalizedValue = typeof value === 'string'
+    ? value.replace(',', '.').trim()
+    : value;
+
+  const parsedValue = Number(normalizedValue);
+
+  if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+    return {
+      value: null,
+      error: `${label} debe ser un número válido mayor o igual a 0.`,
+    };
+  }
+
+  return {
+    value: Number(parsedValue.toFixed(2)),
+    error: null,
+  };
+};
+
+const parsePositiveQuantity = (value) => {
+  const normalizedValue = typeof value === 'string'
+    ? value.replace(',', '.').trim()
+    : value;
+
+  const parsedValue = Number(normalizedValue);
+
+  if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+    return {
+      value: null,
+      error: 'La cantidad de cada Ã­tem debe ser un número válido mayor a 0.',
+    };
+  }
+
+  return {
+    value: Number(parsedValue.toFixed(2)),
+    error: null,
+  };
+};
+
+const normalizeBudgetRequestStatusLabel = (status) => {
+  switch (status) {
+    case BUDGET_REQUEST_STATUS.approved:
+      return 'Aprobada';
+    case BUDGET_REQUEST_STATUS.rejected:
+      return 'Rechazada';
+    case BUDGET_REQUEST_STATUS.pending:
+    default:
+      return 'Pendiente';
+  }
+};
+
+const formatBudgetRequest = (budgetRequest, { includeRequester = true } = {}) => {
+  const base = {
+    id: budgetRequest.id,
+    objective: budgetRequest.objective,
+    status: budgetRequest.status,
+    status_label: normalizeBudgetRequestStatusLabel(budgetRequest.status),
+    total_amount: budgetRequest.total_amount !== null ? Number(budgetRequest.total_amount) : 0,
+    created_at: budgetRequest.created_at,
+    updated_at: budgetRequest.updated_at,
+    items: (budgetRequest.items ?? []).map((item) => ({
+      id: item.id,
+      item_name: item.item_name,
+      quantity: item.quantity !== null ? Number(item.quantity) : 0,
+      unit_cost: item.unit_cost !== null ? Number(item.unit_cost) : 0,
+      total_cost: item.total_cost !== null ? Number(item.total_cost) : 0,
+      support_url: item.support_url ?? null,
+    })),
+  };
+
+  if (includeRequester) {
+    base.requested_by = budgetRequest.requestedBy
+      ? {
+          id: budgetRequest.requestedBy.id,
+          firstName: budgetRequest.requestedBy.firstName,
+          lastName: budgetRequest.requestedBy.lastName,
+          email: budgetRequest.requestedBy.email,
+          role: budgetRequest.requestedBy.role,
+          state: budgetRequest.requestedBy.state,
+          image_url: budgetRequest.requestedBy.image_url,
+        }
+      : null;
+  }
+
+  return base;
+};
+
+const parseBudgetRequestItems = (itemsRaw, files = []) => {
+  const parsedItems = typeof itemsRaw === 'string' ? JSON.parse(itemsRaw) : itemsRaw;
+
+  if (!Array.isArray(parsedItems) || parsedItems.length === 0) {
+    return { items: [], totalAmount: 0, error: 'Debes registrar al menos un Ã­tem en la solicitud.' };
+  }
+
+  let totalAmount = 0;
+
+  const normalizedItems = parsedItems.map((item, index) => {
+    const itemName = String(item?.item_name ?? item?.item ?? '').trim();
+
+    if (!itemName) {
+      throw new Error(`El ítem ${index + 1} debe tener un nombre.`);
+    }
+
+    if (itemName.length > 120) {
+      throw new Error(`El nombre del Ã­tem ${index + 1} no puede exceder 120 caracteres.`);
+    }
+
+    const parsedQuantity = parsePositiveQuantity(item?.quantity);
+    if (parsedQuantity.error) {
+      throw new Error(parsedQuantity.error);
+    }
+
+    const parsedUnitCost = parseMoneyAmount(item?.unit_cost, `El costo unitario del Ã­tem ${index + 1}`);
+    if (parsedUnitCost.error) {
+      throw new Error(parsedUnitCost.error);
+    }
+
+    const totalCost = Number((parsedQuantity.value * parsedUnitCost.value).toFixed(2));
+    totalAmount = Number((totalAmount + totalCost).toFixed(2));
+
+    return {
+      item_name: itemName,
+      quantity: parsedQuantity.value,
+      unit_cost: parsedUnitCost.value,
+      total_cost: totalCost,
+      support_url: files.find((file) => file.fieldname === `file_${index}`)?.optimizedPath || null,
+    };
+  });
+
+  return { items: normalizedItems, totalAmount, error: null };
+};
+
 export const createOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
 
   try {
-    const { name, description, responsibles: responsiblesRaw, integrations: integrationsRaw } = req.body;
+    const {
+      name,
+      description,
+      budget_amount,
+      responsibles: responsiblesRaw,
+      integrations: integrationsRaw
+    } = req.body;
 
     if (!name || !description) {
       return errorResponse(
@@ -41,6 +208,26 @@ export const createOperationalProject = async (req, res) => {
         ERROR_CODES.VALIDATION_ERROR,
         'Faltan datos requeridos: nombre y descripción de proyecto son obligatorios.',
         400
+      );
+    }
+
+    const parsedBudget = parseBudgetAmount(budget_amount);
+
+    if (parsedBudget.error) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        parsedBudget.error,
+        400
+      );
+    }
+
+    if (parsedBudget.hasValue && req.user.role !== ALLOWED_ROLES.superAdmin) {
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'Solo un super administrador puede definir el presupuesto del proyecto.',
+        403
       );
     }
 
@@ -73,7 +260,12 @@ export const createOperationalProject = async (req, res) => {
 
     // Crear proyecto 
 
-    const newProject = projectRepository.create({ name, description, image_url: imagePath });
+    const newProject = projectRepository.create({
+      name,
+      description,
+      budget_amount: parsedBudget.value,
+      image_url: imagePath
+    });
     const savedProject = await projectRepository.save(newProject);
 
     // Asignar responsables si existen
@@ -123,6 +315,8 @@ export const createOperationalProject = async (req, res) => {
 export const getAllOperationalProjects = async (req, res) => {
   try {
     const { id: userId } = req.user;
+    const canSeeBudget =
+      req.user.role === ALLOWED_ROLES.admin || req.user.role === ALLOWED_ROLES.superAdmin;
 
     const projectRepository = AppDataSource.getRepository(OperationalProject);
 
@@ -196,6 +390,10 @@ export const getAllOperationalProjects = async (req, res) => {
         } : null,
       };
 
+      if (canSeeBudget) {
+        base.budget_amount = project.budget_amount !== null ? Number(project.budget_amount) : null;
+      }
+
       if (req.user.role === ALLOWED_ROLES.admin || req.user.role === ALLOWED_ROLES.superAdmin) {
         base.integrations = (project.integrations ?? [])
           .filter((i) => SUPPORTED_SOCIAL_PLATFORMS.has(i.platform))
@@ -232,6 +430,7 @@ export const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
     const { id: userId, role } = req.user;
+    const canSeeBudget = role === ALLOWED_ROLES.admin || role === ALLOWED_ROLES.superAdmin;
 
     const projectRepository = AppDataSource.getRepository(OperationalProject);
     const userRepository = AppDataSource.getRepository(User);
@@ -338,6 +537,10 @@ export const getProjectById = async (req, res) => {
       })),
     };
 
+    if (canSeeBudget) {
+      formattedProject.budget_amount = project.budget_amount !== null ? Number(project.budget_amount) : null;
+    }
+
     return (
       successResponse(
         res,
@@ -394,13 +597,271 @@ export const deleteProjectById = async (req, res) => {
   }
 };
 
+export const getBudgetRequestsByProjectId = async (req, res) => {
+  try {
+    const projectId = Number(req.params.id);
+
+    if (!Number.isInteger(projectId)) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'ID de proyecto inválido.',
+        400
+      );
+    }
+
+    if (![ALLOWED_ROLES.superAdmin, ALLOWED_ROLES.admin].includes(req.user.role)) {
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'No tienes permisos para ver solicitudes al presupuesto.',
+        403
+      );
+    }
+
+    const projectRepository = AppDataSource.getRepository(OperationalProject);
+    const requestRepository = AppDataSource.getRepository(BudgetRequest);
+
+    const project = await projectRepository.findOneBy({ id: projectId });
+
+    if (!project) {
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Proyecto no encontrado en el sistema.',
+        404
+      );
+    }
+
+    const where = req.user.role === ALLOWED_ROLES.superAdmin
+      ? { project: { id: projectId } }
+      : { project: { id: projectId }, requestedBy: { id: req.user.id } };
+
+    const budgetRequests = await requestRepository.find({
+      where,
+      relations: {
+        requestedBy: true,
+        items: true,
+      },
+      order: {
+        created_at: 'DESC',
+        items: {
+          id: 'ASC',
+        },
+      },
+    });
+
+    const includeRequester = req.user.role === ALLOWED_ROLES.superAdmin;
+
+    return successResponse(
+      res,
+      {
+        project_id: project.id,
+        project_name: project.name,
+        budget_amount: project.budget_amount !== null ? Number(project.budget_amount) : null,
+        requests: budgetRequests.map((request) => formatBudgetRequest(request, { includeRequester })),
+      },
+      'Solicitudes al presupuesto recuperadas exitosamente.',
+      200
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
+  }
+};
+
+export const createBudgetRequestByProjectId = async (req, res) => {
+  const queryRunner = AppDataSource.createQueryRunner();
+
+  try {
+    const projectId = Number(req.params.id);
+
+    if (!Number.isInteger(projectId)) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'ID de proyecto inválido.',
+        400
+      );
+    }
+
+    if (req.user.role !== ALLOWED_ROLES.admin) {
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'Solo un administrador puede crear solicitudes al presupuesto.',
+        403
+      );
+    }
+
+    const objective = String(req.body?.objective ?? '').trim();
+
+    if (!objective) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'El objetivo de la solicitud es obligatorio.',
+        400
+      );
+    }
+
+    if (objective.length > 100) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'El objetivo de la solicitud no puede exceder 100 caracteres.',
+        400
+      );
+    }
+
+    let parsedItems;
+
+    try {
+      parsedItems = parseBudgetRequestItems(req.body?.items, req.files || []);
+    } catch (error) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        error.message,
+        400
+      );
+    }
+
+    if (parsedItems.error) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        parsedItems.error,
+        400
+      );
+    }
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    const projectRepository = queryRunner.manager.getRepository(OperationalProject);
+    const requestRepository = queryRunner.manager.getRepository(BudgetRequest);
+    const itemRepository = queryRunner.manager.getRepository(BudgetRequestItem);
+    const userRepository = queryRunner.manager.getRepository(User);
+
+    const project = await projectRepository.findOneBy({ id: projectId });
+
+    if (!project) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Proyecto no encontrado en el sistema.',
+        404
+      );
+    }
+
+    const projectBudgetAmount = project.budget_amount !== null ? Number(project.budget_amount) : null;
+
+    if (projectBudgetAmount === null) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'El proyecto no tiene un presupuesto definido para recibir solicitudes.',
+        400
+      );
+    }
+
+    if (parsedItems.totalAmount > projectBudgetAmount) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'El monto solicitado excede el presupuesto definido del proyecto.',
+        400
+      );
+    }
+
+    const requestedBy = await userRepository.findOneBy({ id: req.user.id });
+
+    if (!requestedBy) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_NOT_FOUND,
+        'Usuario solicitante no encontrado.',
+        404
+      );
+    }
+
+    const budgetRequest = requestRepository.create({
+      objective,
+      total_amount: parsedItems.totalAmount,
+      status: BUDGET_REQUEST_STATUS.pending,
+      project,
+      requestedBy,
+    });
+
+    const savedRequest = await requestRepository.save(budgetRequest);
+
+    const requestItems = parsedItems.items.map((item) =>
+      itemRepository.create({
+        ...item,
+        budgetRequest: savedRequest,
+      })
+    );
+
+    await itemRepository.save(requestItems);
+    await queryRunner.commitTransaction();
+
+    const requestWithRelations = await requestRepository.findOne({
+      where: { id: savedRequest.id },
+      relations: {
+        requestedBy: true,
+        items: true,
+      },
+    });
+
+    return successResponse(
+      res,
+      formatBudgetRequest(requestWithRelations, { includeRequester: false }),
+      'Solicitud al presupuesto creada exitosamente.',
+      201
+    );
+  } catch (error) {
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction();
+    }
+
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
+  } finally {
+    await queryRunner.release();
+  }
+};
+
 export const updateOperationalProject = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
 
   try {
     const { id } = req.params;
     const parsedProjectId = Number(id);
-    const { name, description, program_id, image_url, preEliminados, preAnadidos, intEliminados, intAnadidos } = req.body;
+    const {
+      name,
+      description,
+      budget_amount,
+      program_id,
+      image_url,
+      preEliminados,
+      preAnadidos,
+      intEliminados,
+      intAnadidos
+    } = req.body;
+    const budgetAmountWasSent = Object.prototype.hasOwnProperty.call(req.body, 'budget_amount');
 
     if (!Number.isInteger(parsedProjectId)) {
       return errorResponse(
@@ -455,6 +916,28 @@ export const updateOperationalProject = async (req, res) => {
       }
     }
 
+    const parsedBudget = parseBudgetAmount(budget_amount);
+
+    if (parsedBudget.error) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        parsedBudget.error,
+        400
+      );
+    }
+
+    if (budgetAmountWasSent && req.user.role !== ALLOWED_ROLES.superAdmin) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'Solo un super administrador puede actualizar el presupuesto del proyecto.',
+        403
+      );
+    }
+
     // Buscar el proyecto
     const project = await projectRepository.findOne({
       where: { id: parsedProjectId },
@@ -471,7 +954,7 @@ export const updateOperationalProject = async (req, res) => {
       );
     }
 
-    // Validar el programa si se envía
+    // Validar el programa si se envÃ­a
     let program = null;
     if (program_id) {
       program = await programRepository.findOneBy({ id: parseInt(program_id) });
@@ -494,7 +977,7 @@ export const updateOperationalProject = async (req, res) => {
           ? project.image_url.slice(9)
           : project.image_url;
         fs.unlink(path.join("uploads", oldImage), (err) => {
-          if (err) console.error("⚠️ No se pudo eliminar imagen antigua:", err.message);
+          if (err) console.error("âš ï¸ No se pudo eliminar imagen antigua:", err.message);
         });
       }
 
@@ -506,7 +989,7 @@ export const updateOperationalProject = async (req, res) => {
           ? project.image_url.slice(9)
           : project.image_url;
         fs.unlink(path.join("uploads", oldImage), (err) => {
-          if (err) console.error("⚠️ No se pudo eliminar imagen antigua:", err.message);
+          if (err) console.error("âš ï¸ No se pudo eliminar imagen antigua:", err.message);
         });
       }
       project.image_url = null;
@@ -516,11 +999,14 @@ export const updateOperationalProject = async (req, res) => {
     project.name = name || project.name;
     project.description = description || project.description;
     project.program = program || project.program;
+    if (budgetAmountWasSent) {
+      project.budget_amount = parsedBudget.value;
+    }
 
     // Guardar cambios del proyecto
     const updatedProject = await projectRepository.save(project);
 
-    // 🔍 Parsear JSON de responsables
+    // Parsear JSON de responsables
     let parsedPreAnadidos = [];
     let parsedPreEliminados = [];
     let parsedIntEliminados = [];
@@ -532,7 +1018,7 @@ export const updateOperationalProject = async (req, res) => {
       if (intEliminados) parsedIntEliminados = JSON.parse(intEliminados);
       if (intAnadidos) parsedIntAnadidos = JSON.parse(intAnadidos);
     } catch (e) {
-      console.error("❌ Error al parsear preAnadidos o preEliminados:", e.message);
+      console.error("âŒ Error al parsear preAnadidos o preEliminados:", e.message);
     }
 
     const { ids: preEliminadosIds, hasInvalid: hasInvalidPreEliminados } = normalizeEntityIds(parsedPreEliminados);
@@ -626,3 +1112,5 @@ export const updateOperationalProject = async (req, res) => {
     await queryRunner.release();
   }
 };
+
+

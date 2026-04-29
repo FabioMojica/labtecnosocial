@@ -1,40 +1,26 @@
-// 1. Librerías externas
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { Box } from "@mui/material";
 
-// 2. Hooks personalizados
 import { useFetchAndLoad } from "../../hooks";
-import { useNotification } from "../../contexts";
+import { useAuth, useNotification } from "../../contexts";
 
-// 3. Utilidades / helpers
 import { isProjectEqual } from "./utils/isProjectEqual";
 import { createProjectFormData } from "./utils/createProjectFormData";
 
-// 4. Componentes
 import {
     FullScreenProgress,
     QuestionModal,
     TabButtons,
-} from '../../generalComponents'
-
+} from '../../generalComponents';
 
 import { AssignResponsiblesPanel } from "./components/AssignResponsiblesPanel";
 import { CreateProjectInfoPanel } from "./components/CreateProjectInfoPanel";
-
-// 5. Servicios / UseCases
-import { createOperationalProjectApi } from "../../api";
-
-
-// 6. Assets (imágenes, íconos)
-// ninguno por ahora
-
-// 7. Estilos
-// ninguno por ahora
-
-// 8. Tipos
 import { IntegrationsWithAPIsPanel } from "./components/IntegrationWithAPIsPanel";
 import { ProjectPreviewPanel } from "./components/ProjectPreviewPanel";
-import { Box } from "@mui/material";
+import { ProjectBudgetPanel } from "./components/ProjectBudgetPanel";
+
+import { createOperationalProjectApi } from "../../api";
 
 export const CreateProjectPage = () => {
     const initialProject = {
@@ -42,13 +28,16 @@ export const CreateProjectPage = () => {
         description: '',
         image_url: null,
         image_file: null,
+        budget_amount: '',
         newResponsibles: [],
         integrations: [],
     };
+
     const [project, setProject] = useState({ ...initialProject });
     const [, setActiveTab] = useState(0);
     const [tabsHeight, setTabsHeight] = useState(0);
     const { notify } = useNotification();
+    const { isSuperAdmin } = useAuth();
     const [isDirty, setIsDirty] = useState(false);
     const [questionModalOpen, setQuestionModalOpen] = useState(false);
     const { loading, callEndpoint } = useFetchAndLoad();
@@ -65,30 +54,34 @@ export const CreateProjectPage = () => {
             notify("Completa los datos del proyecto antes de guardar", "info");
             return;
         }
+
         try {
-            const responsiblesIds = project.newResponsibles?.map(u => u.id) ?? []; 
+            const responsiblesIds = project.newResponsibles?.map((u) => u.id) ?? [];
             const projectToSend = {
                 name: project.name,
                 description: project.description,
                 image_file: project.image_file ?? null,
+                budget_amount: isSuperAdmin ? project.budget_amount : undefined,
                 responsibles: responsiblesIds,
                 integrations: project.integrations ?? [],
             };
+
             const formData = createProjectFormData(projectToSend);
             const newProject = await callEndpoint(createOperationalProjectApi(formData));
+
             notify("Proyecto creado correctamente", "success");
             navigate(`/proyecto/${newProject?.name}`, {
                 replace: true,
                 state: { id: newProject?.id },
             });
         } catch (error) {
-            console.log(error)
+            console.log(error);
             notify("Ocurrió un error inesperado al crear el proyecto. Inténtalo de nuevo más tarde.", "error");
         }
     };
 
     const handleProjectChange = (changes) => {
-        setProject(prev => {
+        setProject((prev) => {
             if (!prev) return prev;
             return { ...prev, ...changes };
         });
@@ -101,7 +94,6 @@ export const CreateProjectPage = () => {
         []
     );
 
-
     const handleConfirmCancelModal = () => {
         setProject({ ...initialProject });
         setIsDirty(false);
@@ -110,20 +102,32 @@ export const CreateProjectPage = () => {
         navigate('/proyectos', { replace: true });
     };
 
+    if (loading) return <FullScreenProgress text="Creando el proyecto" />;
 
-    if (loading) return <FullScreenProgress text="Creando el proyecto" />
+    const labels = isSuperAdmin
+        ? ["Información del proyecto", "Presupuesto", "Asignar Responsables", "Integraciones con apis", "Crear Proyecto"]
+        : ["Información del proyecto", "Asignar Responsables", "Integraciones con apis", "Crear Proyecto"];
 
     return (
         <Box>
             <TabButtons
-                labels={["Información del proyecto", "Asignar Responsables", "Integraciones con apis", "Crear Proyecto"]}
+                labels={labels}
                 onTabsHeightChange={(height) => setTabsHeight(height)}
                 onChange={(newTab) => setActiveTab(newTab)}
-                canChangeTab={(idx) => { 
-                    if (idx === 0) return true; 
-                    if (idx === 1) return isProjectValid;
-                    if (idx === 2) return isProjectValid;
-                    if (idx === 3) return isProjectValid; 
+                canChangeTab={(idx) => {
+                    if (idx === 0) return true;
+
+                    if (isSuperAdmin) {
+                        if (idx === 1) return isProjectValid;
+                        if (idx === 2) return isProjectValid;
+                        if (idx === 3) return isProjectValid;
+                        if (idx === 4) return isProjectValid;
+                    } else {
+                        if (idx === 1) return isProjectValid;
+                        if (idx === 2) return isProjectValid;
+                        if (idx === 3) return isProjectValid;
+                    }
+
                     return false;
                 }}
             >
@@ -133,6 +137,14 @@ export const CreateProjectPage = () => {
                     project={project}
                     onValidationChange={setIsProjectValid}
                 />
+
+                {isSuperAdmin && (
+                    <ProjectBudgetPanel
+                        budgetAmount={project.budget_amount}
+                        panelHeight={tabsHeight}
+                        onChange={handleProjectChange}
+                    />
+                )}
 
                 <AssignResponsiblesPanel
                     panelHeight={tabsHeight}
@@ -162,4 +174,4 @@ export const CreateProjectPage = () => {
             />
         </Box>
     );
-}; 
+};

@@ -21,6 +21,8 @@ export const Routes = {
   GET_PROJECT_BY_ID: "/projects/getProjectById",
   UPDATE_PROJECT: "/projects",
   DELETE_PROJECT: "/projects",
+  GET_PROJECT_BUDGET_REQUESTS: (projectId) => `/projects/${projectId}/budget-requests`,
+  CREATE_PROJECT_BUDGET_REQUEST: (projectId) => `/projects/${projectId}/budget-requests`,
 
   //Plan. operativa
   OPERATIONAL_PLAN: "/operational-plans",

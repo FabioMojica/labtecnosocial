@@ -81,5 +81,10 @@ export const User = new EntitySchema({
       target: 'User',
       inverseSide: 'creator',
     },
+    budgetRequests: {
+      type: 'one-to-many',
+      target: 'BudgetRequest',
+      inverseSide: 'requestedBy',
+    },
   },
 });

@@ -7,6 +7,7 @@ describe("createProjectFormData", () => {
     const formData = createProjectFormData({
       name: "Proyecto QA",
       description: "Descripcion QA",
+      budget_amount: "2500.50",
       image_file: file,
       responsibles: [1, 2],
       integrations: [{ platform: "github", id: "1" }],
@@ -17,6 +18,7 @@ describe("createProjectFormData", () => {
 
     expect(map.name).toBe("Proyecto QA");
     expect(map.description).toBe("Descripcion QA");
+    expect(map.budget_amount).toBe("2500.50");
     expect(map.file).toBeInstanceOf(File);
     expect(map.responsibles).toBe(JSON.stringify([1, 2]));
     expect(map.integrations).toBe(JSON.stringify([{ platform: "github", id: "1" }]));
@@ -29,6 +31,7 @@ describe("createProjectFormData", () => {
 
     expect(map.name).toBe("Solo nombre");
     expect(map.description).toBeUndefined();
+    expect(map.budget_amount).toBeUndefined();
     expect(map.responsibles).toBeUndefined();
     expect(map.integrations).toBeUndefined();
   });
