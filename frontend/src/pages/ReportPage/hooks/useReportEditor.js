@@ -42,6 +42,7 @@ export const useReportEditor = () => {
     const [isDragging, setIsDragging] = useState(false);
     const [pendingInsertIndex, setPendingInsertIndex] = useState(null);
     const [chartInsertIndex, setChartInsertIndex] = useState(null);
+    const [editorSyncVersion, setEditorSyncVersion] = useState(0);
 
     // --------- Historial para undo/redo ----------
     const [history, setHistory] = useState([]);
@@ -127,6 +128,7 @@ export const useReportEditor = () => {
             originalReportRef.current = snapshot;
             setHistory([snapshot]);
             setHistoryIndex(0);
+            setEditorSyncVersion(prev => prev + 1);
         } catch (error) {
             setErrorFecthReport(true);
             notify(error.message, "error");
@@ -153,6 +155,7 @@ export const useReportEditor = () => {
         const snapshot = structuredClone(history[prevIndex]);
         setEditedReport(snapshot);
         setHistoryIndex(prevIndex);
+        setEditorSyncVersion(prev => prev + 1);
     };
 
     const redo = () => {
@@ -161,6 +164,7 @@ export const useReportEditor = () => {
         const snapshot = structuredClone(history[nextIndex]);
         setEditedReport(snapshot);
         setHistoryIndex(nextIndex);
+        setEditorSyncVersion(prev => prev + 1);
     };
 
     // --------- Elementos ----------
@@ -269,6 +273,7 @@ export const useReportEditor = () => {
                     const resetState = structuredClone(originalReportRef.current);
                     console.log("reporte reset", resetState)
                     setEditedReport(resetState);
+                    setEditorSyncVersion(prev => prev + 1);
                     notify("Cambios descartados correctamente", "info");
                 }
             })
@@ -299,6 +304,7 @@ export const useReportEditor = () => {
             setCurrentReportId(response.id);
             setIsCreateNewReport(false);
             setReportMetadata({ created_at, updated_at, report_version });
+            setEditorSyncVersion(prev => prev + 1);
 
             notify(
                 isCreateNewReport
@@ -350,6 +356,7 @@ export const useReportEditor = () => {
         deletedReport,
         errorFetchReport,
         reportMetadata,
+        editorSyncVersion,
 
         // operaciones
         undo,

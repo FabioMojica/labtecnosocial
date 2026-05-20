@@ -91,6 +91,7 @@ export const ReportEditor = () => {
     deletedReport,
     errorFetchReport,
     reportMetadata,
+    editorSyncVersion,
     undo,
     redo,
     insertElementAfter,
@@ -719,7 +720,7 @@ export const ReportEditor = () => {
                                 }}
                               >
                                 <ReportElementItem
-                                  key={el.id}
+                                  key={`${el.id}-${editorSyncVersion}`}
                                   element={el}
                                   disabled={isPdfGenerating}
                                   showCharts={showCharts}
