@@ -9,7 +9,7 @@ import {
     getReportByIdApi,
     deleteReportApi,
     updateReportApi
-} from "../../../api";
+} from "../../../api"; 
 import { formatElementsForDb, formatElementsForFrontend } from "../utils";
 import { generateUUID } from "../../../utils";
 
@@ -265,7 +265,9 @@ export const useReportEditor = () => {
         })
             .then((result) => {
                 if (result.confirmed === true) {
+                    console.log("reporte original", originalReportRef.current)
                     const resetState = structuredClone(originalReportRef.current);
+                    console.log("reporte reset", resetState)
                     setEditedReport(resetState);
                     notify("Cambios descartados correctamente", "info");
                 }

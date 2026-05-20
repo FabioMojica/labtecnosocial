@@ -33,7 +33,7 @@ import { formatNumber } from "./utils/cards";
 import { useElementSize } from "../../../../hooks/useElementSize.js";
 
  
-export const FacebookDashboard = ({ project, useMock = false, showingDialog = false }) => {
+export const FacebookDashboard = ({ project, useMock = true, showingDialog = false }) => {
     const { scrollbarWidth } = useLayout();
     const { loading, callEndpoint } = useFetchAndLoad();
     const [selectedPeriod, setSelectedPeriod] = useState('lastMonth');

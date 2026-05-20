@@ -77,7 +77,7 @@ const compactPullRequestForReport = (pr = {}) => ({
     },
 });
 
-export const GitHubDashboard = ({ project, useMock = false, showingDialog = false }) => {
+export const GitHubDashboard = ({ project, useMock = true, showingDialog = false }) => {
     const validPeriods = ['today', 'lastWeek', 'lastMonth', 'lastSixMonths', 'all'];
     const { loading, callEndpoint } = useFetchAndLoad();
     const [branches, setBranches] = useState([]);

@@ -47,7 +47,7 @@ const EMPTY_METRIC = {
     delta: 0,
 };
 
-export const InstagramDashboard = ({ project, useMock = false, showingDialog = false }) => {
+export const InstagramDashboard = ({ project, useMock = true, showingDialog = false }) => {
     const { scrollbarWidth } = useLayout();
     const { callEndpoint } = useFetchAndLoad();
     const { addChart, removeChart, selectedCharts } = useReport();
