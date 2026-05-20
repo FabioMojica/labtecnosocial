@@ -797,7 +797,10 @@ export const ReportEditor = () => {
           accept="image/*"
           hidden
           disabled={isPdfGenerating}
-          onChange={(e) => handleImageSelected(e.target.files[0])}
+          onChange={(e) => {
+            handleImageSelected(e.target.files[0]);
+            e.target.value = "";
+          }}
         />
       </Box >
     </Box>

@@ -14,6 +14,8 @@ import { formatElementsForDb, formatElementsForFrontend } from "../utils";
 import { generateUUID } from "../../../utils";
 
 export const useReportEditor = () => {
+    const MAX_IMAGE_SIZE_MB = 2;
+    const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
     const location = useLocation();
     const navigate = useNavigate();
     const confirm = useConfirm();
@@ -218,6 +220,11 @@ export const useReportEditor = () => {
 
         if (!file.type.startsWith("image/")) {
             notify("Solo se permiten archivos de imagen (jpg, png)", "warning");
+            return;
+        }
+
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
+            notify(`La imagen es demasiado pesada. Máximo permitido: ${MAX_IMAGE_SIZE_MB}MB`, "warning");
             return;
         }
 

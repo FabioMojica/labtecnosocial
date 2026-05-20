@@ -359,9 +359,10 @@ export const ReportElementItem = memo(({ element, numberOfPreviousSameType, show
                                     src={element.src}
                                     alt={element.alt || `Imagen_${element.id || Date.now()}`}
                                     style={{
+                                        width: localSize.width,
+                                        height: localSize.height,
                                         maxWidth: "100%",
-                                        maxHeight: 400,
-                                        height: "auto",
+                                        maxHeight: "100%",
                                         objectFit: "cover",
                                         borderRadius: 8,
                                     }}
