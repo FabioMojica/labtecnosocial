@@ -11,6 +11,7 @@ import {
     updateReportApi
 } from "../../../api"; 
 import { formatElementsForDb, formatElementsForFrontend } from "../utils";
+import { areReportsEquivalent } from "../utils/reportCompare";
 import { generateUUID } from "../../../utils";
 
 export const useReportEditor = () => {
@@ -59,57 +60,8 @@ export const useReportEditor = () => {
         [editedReport.elementsOrder, editedReport.elements]
     );
 
-    const normalizeObject = (obj) => {
-        if (Array.isArray(obj)) return obj.map(normalizeObject);
-        if (obj && typeof obj === "object") {
-            return Object.keys(obj)
-                .sort()
-                .reduce((acc, key) => {
-                    acc[key] = normalizeObject(obj[key]);
-                    return acc;
-                }, {});
-        }
-        return obj;
-    };
-    // Normaliza los deltas de Quill
-    const normalizeDelta = (delta) => {
-        if (!delta || !delta.ops) return { ops: [] };
-        return {
-            ops: delta.ops.map(op => normalizeObject(op))
-        };
-    };
-
-    const normalizeReportForCompare = (report) => {
-        return {
-            title: report.title?.trim() || "",
-            elementsOrder: report.elementsOrder,
-            elements: Object.values(report.elements)
-                .map(el => {
-                    const { file, __local, ...rest } = el;
-
-                    // 🔥 SI ES TEXTO, SOLO COMPARAR HTML
-                    if (rest.type === "text" && rest.content) {
-                        return {
-                            ...rest,
-                            content: {
-                                content_delta: normalizeDelta(rest.content.content_delta)
-                            }
-                        };
-                    }
-
-                    return rest;
-                })
-                .sort((a, b) => a.id.localeCompare(b.id)),
-        };
-    };
-
     const isDirty = useMemo(() => {
-        const current = normalizeReportForCompare(editedReport);
-        console.log("current", current)
-        const original = normalizeReportForCompare(originalReportRef.current);
-        console.log("original", original)
-
-        return JSON.stringify(current) !== JSON.stringify(original);
+        return !areReportsEquivalent(editedReport, originalReportRef.current);
     }, [editedReport]);
 
     // --------- Fetch / Load Report ----------
@@ -276,9 +228,7 @@ export const useReportEditor = () => {
         })
             .then((result) => {
                 if (result.confirmed === true) {
-                    console.log("reporte original", originalReportRef.current)
                     const resetState = structuredClone(originalReportRef.current);
-                    console.log("reporte reset", resetState)
                     setEditedReport(resetState);
                     setEditorSyncVersion(prev => prev + 1);
                     notify("Cambios descartados correctamente", "info");

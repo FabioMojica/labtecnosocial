@@ -3,6 +3,8 @@ import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import { useRef, useState } from 'react';
 
+const HEIGHT_SYNC_TOLERANCE_PX = 2;
+
 const toNumberSize = (value, fallback) => {
   if (typeof value === 'number') return value;
   if (typeof value === 'string') {
@@ -45,9 +47,10 @@ export const ResizableImage = ({ element, onResize, onResizeStop }) => {
 
           // altura real proporcional
           const correctedHeight = Math.round(width * (naturalHeight / naturalWidth));
+          const currentHeight = toNumberSize(element.height, 400);
 
-          // actualizar datos reales si cambió
-          if (correctedHeight !== element.height) {
+          // Evita reactivar el estado "dirty" por diferencias mínimas de redondeo
+          if (Math.abs(correctedHeight - currentHeight) > HEIGHT_SYNC_TOLERANCE_PX) {
             onResize(width, correctedHeight, getAlt());
             onResizeStop(width, correctedHeight, getAlt());
           }
