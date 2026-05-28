@@ -319,7 +319,6 @@ export const ReportEditor = () => {
           overflow: 'hidden',
         }}
       >
-        {/* Encabezado */}
         <Box
           ref={headerRef}
           sx={{
@@ -429,7 +428,6 @@ export const ReportEditor = () => {
           </Stack>
         </Box>
 
-        {/* Contenido editable */}
         <Box sx={{
           p: 1,
           flex: 1,
@@ -550,7 +548,6 @@ export const ReportEditor = () => {
                                           maxWidth: 100,
                                         }}
                                       >
-                                        {/* extraemos un snippet del texto sin tags HTML */}
                                         {el?.content?.content_html.replace(/<[^>]+>/g, '').slice(0, 50)}
                                         {el?.content?.content_html.replace(/<[^>]+>/g, '').length > 50 ? '...' : ''}
                                       </Typography>

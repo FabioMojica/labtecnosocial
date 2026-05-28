@@ -21,7 +21,6 @@ export const DashboardCard = ({
 }) => {
   return (
     <Card variant="outlined" sx={{ height, flexGrow: 1, position: "relative", ...sxCard }}>
-      {/* Header */}
       <Stack sx={{ position: "absolute", top: 8, left: 8 }}>
         <Typography variant="subtitle2" fontWeight={'bold'} fontSize={'0.85rem'}>{title}</Typography>
         {interval && (
@@ -31,14 +30,12 @@ export const DashboardCard = ({
         )}
       </Stack>
 
-      {/* Checkbox */}
       {selectable && !loading && !error && !isEmpty && (
         <Box sx={{ position: "absolute", top: 0, right: 0 }}>
           <Checkbox checked={selected} onChange={(e) => onSelectChange?.(e.target.checked)} />
         </Box>
       )}
 
-      {/* States */}
       {loading ? (
         <SpinnerLoading size={30} text={titleSpinner} sx={{ height: "100%", ...sxSpinner, fontStyle: 'italic', color: 'text.disabled' }} />
       ) : error ? (

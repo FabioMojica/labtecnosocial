@@ -257,7 +257,6 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                         }}
                     />
 
-                    {/* Error + contador */}
                     <Box
                         sx={{
                             display: "flex",
@@ -266,7 +265,6 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                             px: 0.5,
                         }}
                     >
-                        {/* Error a la izquierda */}
                         <Typography
                             variant="caption"
                             color="error"
@@ -281,7 +279,6 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                             {errors.name || "placeholder"}
                         </Typography>
 
-                        {/* Contador a la derecha */}
                         <Typography
                             variant="caption"
                             color="text.secondary"
@@ -343,7 +340,6 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                         }}
                     />
 
-                    {/* Error + contador */}
                     <Box
                         sx={{
                             display: "flex",
@@ -352,7 +348,6 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                             px: 0.5,
                         }}
                     >
-                        {/* Error a la izquierda */}
                         <Typography
                             variant="caption"
                             color="error"
@@ -367,7 +362,6 @@ export const CreateProjectInfoPanel = ({ project, panelHeight, onChange, onValid
                             {errors.description || "placeholder"}
                         </Typography>
 
-                        {/* Contador a la derecha */}
                         <Typography
                             variant="caption"
                             color="text.secondary"

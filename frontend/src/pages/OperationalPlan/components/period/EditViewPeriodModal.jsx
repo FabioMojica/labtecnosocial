@@ -123,7 +123,6 @@ const EditViewPeriodModal = ({ open, onClose, value, onSave }) => {
           transition: 'all 0.3s ease',
         }}
       >
-        {/* Botón de cierre */}
         <IconButton
           onClick={onClose}
           sx={{ position: 'absolute', top: 8, right: 8 }}
@@ -131,7 +130,6 @@ const EditViewPeriodModal = ({ open, onClose, value, onSave }) => {
           <CloseIcon />
         </IconButton>
 
-        {/* Título */}
         <Typography
           variant="h6"
           sx={{
@@ -144,7 +142,6 @@ const EditViewPeriodModal = ({ open, onClose, value, onSave }) => {
           Periodo
         </Typography>
 
-        {/* Campo fecha inicio */}
         <TextField
           label="Fecha de inicio"
           type="datetime-local"
@@ -157,7 +154,6 @@ const EditViewPeriodModal = ({ open, onClose, value, onSave }) => {
           onKeyDown={(e) => e.preventDefault()}
         />
 
-        {/* Campo fecha fin */}
         <TextField
           label="Fecha de fin"
           type="datetime-local"
@@ -170,7 +166,6 @@ const EditViewPeriodModal = ({ open, onClose, value, onSave }) => {
           onKeyDown={(e) => e.preventDefault()}
         />
 
-        {/* Botón guardar */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
           <Button
             variant="contained"

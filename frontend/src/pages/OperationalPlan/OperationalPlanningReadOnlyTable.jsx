@@ -159,11 +159,11 @@ const defaultColumns = [
         }}>
           <div>
             <strong>Inicio:</strong>
-            <div>{start ? formatDate(start) : '-'}</div> {/* ✅ solo formatea si hay fecha */}
+            <div>{start ? formatDate(start) : '-'}</div> 
           </div>
           <div>
             <strong>Fin:</strong>
-            <div>{end ? formatDate(end) : '-'}</div> {/* ✅ solo formatea si hay fecha */}
+            <div>{end ? formatDate(end) : '-'}</div> 
           </div>
         </div>
       );

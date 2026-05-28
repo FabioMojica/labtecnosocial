@@ -123,32 +123,63 @@ const wrapText = (text, font, fontSize, maxWidth) => {
     const safeText = safeForPdf(text);
 
     const lines = [];
-    let currentLine = "";
+    let lineStart = 0;
     let currentWidth = 0;
+    let lastBreakIndex = -1;
 
-    for (const char of safeText) {
+    for (let i = 0; i < safeText.length; i++) {
+        const char = safeText[i];
+
+        if (char === "\n") {
+            lines.push(safeText.slice(lineStart, i));
+            lineStart = i + 1;
+            currentWidth = 0;
+            lastBreakIndex = -1;
+            continue;
+        }
+
         let charWidth;
         try {
             charWidth = safeTextWidth(font, char, fontSize);
-        } catch (err) {
+        } catch {
             throw new PdfRenderError(
                 "PDF_FONT_MEASURE_ERROR",
-                `No se pudo medir carácter "${char}"`,
+                `No se pudo medir caracter "${char}"`,
                 { char }
             );
         }
 
-        if (currentWidth + charWidth > maxWidth) {
-            if (currentLine) lines.push(currentLine);
-            currentLine = char;
-            currentWidth = charWidth;
-        } else {
-            currentLine += char;
-            currentWidth += charWidth;
+        if (/\s/.test(char)) {
+            lastBreakIndex = i;
         }
+
+        if (currentWidth + charWidth > maxWidth) {
+            if (lastBreakIndex >= lineStart) {
+                const breakEnd = lastBreakIndex + 1;
+                lines.push(safeText.slice(lineStart, breakEnd));
+                lineStart = breakEnd;
+                i = lineStart - 1;
+            } else if (i > lineStart) {
+                lines.push(safeText.slice(lineStart, i));
+                lineStart = i;
+                i = lineStart - 1;
+            } else {
+                lines.push(safeText.slice(lineStart, i + 1));
+                lineStart = i + 1;
+            }
+
+            currentWidth = 0;
+            lastBreakIndex = -1;
+            continue;
+        }
+
+        currentWidth += charWidth;
     }
 
-    if (currentLine) lines.push(currentLine);
+    if (lineStart < safeText.length) {
+        lines.push(safeText.slice(lineStart));
+    }
+
     return lines;
 };
 
@@ -789,5 +820,3 @@ export const drawTextBlock = async ({
 
     return finalY;
 };
-
-

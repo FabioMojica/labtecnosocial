@@ -324,7 +324,6 @@ const StrategicPlanningTreeView = ({ data, year }) => {
             lg: 3
           }
         }}>
-          {/* Misión */}
           {data?.mission && (
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
@@ -343,7 +342,6 @@ const StrategicPlanningTreeView = ({ data, year }) => {
             </Box>
           )}
 
-          {/* Objetivos */}
           {data?.objectives && data.objectives.length > 0 && (
             <>
               {renderObjectives(data.objectives)}

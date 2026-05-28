@@ -183,7 +183,6 @@ export const ViewUserDrawer = ({ user }) => {
                         {user.email}
                     </Typography>
 
-                    {/* Estado y Rol */}
                     <Box
                         sx={{
                             display: "flex",
@@ -192,7 +191,6 @@ export const ViewUserDrawer = ({ user }) => {
                             mt: 0.5,
                         }}
                     >
-                        {/* Estado */}
                         {stateConfig[user.state] && (() => {
                             const StateIcon = stateConfig[user.state].icon;
                             return (
@@ -205,7 +203,6 @@ export const ViewUserDrawer = ({ user }) => {
                             ); 
                         })()}
 
-                        {/* Rol */}
                         {(() => {
                             const roleData = Object.values(roleConfig).find(r => r.value === user.role);
                             const RoleIcon = roleData?.icon ?? QuestionMarkRoundedIcon;

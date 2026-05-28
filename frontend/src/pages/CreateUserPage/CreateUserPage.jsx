@@ -56,7 +56,6 @@ export const CreateUserPage = () => {
                 <Divider sx={{ mb: { xs: 2, lg: 1 } }} />
             </Box> 
 
-            {/* 🔹 ESTO SOLO CUANDO YA HAY MEDIDA */}
             {headerHeight > 0 && (
                 <CreateUserInfoPanel panelHeight={headerHeight} />
             )}

@@ -72,7 +72,6 @@ const EditViewObjectiveModal = ({ open, onClose, value, onSave, maxLength = 300 
         p: 3,
         pt: 2
       }}>
-        {/* Botón cerrar */}
         <IconButton
           onClick={onClose}
           sx={{ position: 'absolute', top: 8, right: 8 }}
@@ -84,7 +83,6 @@ const EditViewObjectiveModal = ({ open, onClose, value, onSave, maxLength = 300 
           Objetivo
         </Typography>
 
-        {/* Campo de edición directamente visible */}
         <TextField
           fullWidth
           multiline

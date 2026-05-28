@@ -73,13 +73,11 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
 
     return (
         <Paper elevation={3} sx={{ height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 16px)`, display: 'flex', flexDirection: 'column', p: 0.5 }}>
-            {/* Header */}
             <Box sx={{ display: "flex", gap: 2, alignItems: "center", justifyContent: "flex-start", height: '10%' }}>
                 <FacebookIcon sx={{ fontSize: 40, color }} />
                 <Typography sx={{ fontSize: { md: "2rem", sm: "2rem", xs: "2rem" } }}>{label}</Typography>
             </Box>
 
-            {/* Loading / Error / No Results */}
             {loading ? (
                 <SpinnerLoading text="Obteniendo las páginas de Facebook..." size={30} sx={{ height: "90%" }} />
             ) : error ? (
@@ -88,7 +86,7 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                 <NoResultsScreen message="No tienes páginas de Facebook en la organización" />
             ) : (
                 <Box sx={{ minHeight: "90%", display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'space-between' }}>
-                    {/* Selected Pages Chips */}
+
                     <Box sx={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
                         {selectedPages.length > 0 ? (
                             <Stack
@@ -134,7 +132,6 @@ export const FacebookApi = ({ panelHeight, selected = [], onChange }) => {
                         )}
                     </Box>
 
-                    {/* Pages List */}
                     <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <SearchBar data={pages} fields={["name", "url"]} placeholder="Buscar páginas..." onResults={setFilteredPages} />
 

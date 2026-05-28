@@ -77,7 +77,6 @@ const ObjectiveItem = ({ objective, onClick, onEdit, onDelete, isSelected, highl
                 </Typography>
             </Box>
 
-            {/* Indicadores */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', p: 1 }}>
                 Indicadores:
             </Typography>

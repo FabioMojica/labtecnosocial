@@ -207,7 +207,6 @@ export const ReportElementItem = memo(({ element, numberOfPreviousSameType, show
                 pointerEvents: disabled ? 'none' : 'auto',
             }}
         >
-            {/* HEADER */}
             <Box display="flex" justifyContent="space-between" alignItems="center" gap={1}>
                 {!showCharts && (
                     <Box display="flex" alignItems={'center'} flexItem gap={1} mr={1}>
@@ -216,7 +215,6 @@ export const ReportElementItem = memo(({ element, numberOfPreviousSameType, show
                     </Box>
                 )}
 
-                {/* ELEMENT INFO */}
                 <Box display="flex" flexDirection="column" flexGrow={1}>
                     <Typography variant="body2" fontWeight="bold" sx={{
                         textDecoration: 'underline'
@@ -307,7 +305,6 @@ export const ReportElementItem = memo(({ element, numberOfPreviousSameType, show
                     )}
                 </Box>
 
-                {/* DELETE BUTTON */}
                 {showCharts && (
                     <IconButton
                         sx={{ alignSelf: 'self-start' }}
@@ -323,7 +320,6 @@ export const ReportElementItem = memo(({ element, numberOfPreviousSameType, show
 
             {showCharts && <Divider />}
 
-            {/* CONTENT AREA */}
             {showCharts && (
                 <>
                     {element.type === "text" && (

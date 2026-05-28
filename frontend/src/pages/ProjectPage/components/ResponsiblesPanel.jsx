@@ -314,7 +314,6 @@ export const ResponsiblesPanel = ({ panelHeight, responsibles, resetTrigger, onC
 
                                 <Divider />
 
-                                {/* Lista ocupa el resto del espacio */}
                                 <Box
                                     sx={{
                                         flexGrow: 1,

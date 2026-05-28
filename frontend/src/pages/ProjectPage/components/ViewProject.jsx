@@ -165,7 +165,6 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
                             }}
                         >
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: 250, maxWidth: 300 }}>
-                                {/* Plan estratégico */}
                                 <Box display="flex" alignItems="center" gap={1}>
                                     <Typography variant="body1" fontWeight="bold" sx={{ flexShrink: 0 }} lineHeight={1}>
                                         🧭 Plan estratégico:
@@ -185,7 +184,6 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
                                 </Box>
                                 <Divider />
 
-                                {/* Objetivo */}
                                 <Box display="flex" alignItems="center" gap={1}>
                                     <Typography variant="body1" fontWeight="bold" sx={{ flexShrink: 0 }} lineHeight={1}>
                                         🎯 Objetivo:
@@ -206,7 +204,6 @@ export const ViewProject = ({ projectData, panelHeight = 0, onProjectUpdated }) 
                                 </Box>
                                 <Divider />
 
-                                {/* Programa */}
                                 <Box display="flex" alignItems="center" gap={1}>
                                     <Typography variant="body1" fontWeight="bold" sx={{ flexShrink: 0 }} lineHeight={1}>
                                         📦 Programa:

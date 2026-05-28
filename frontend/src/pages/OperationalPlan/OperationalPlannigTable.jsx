@@ -998,7 +998,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                             }}
 
                         >
-                            {/* === HEADERS === */}
                             <Grid container sx={{
                                 bgcolor: 'background.paper',
                                 border: '1px solid',
@@ -1035,7 +1034,6 @@ const OperationalPlanningTable = ({ projectId, project, onProjectWithoutPlan, pr
                             </Grid>
 
                             <Box sx={{ mt: 1 }} >
-                                {/* === FILAS === */}
                                 {rows.map((row, index) => (
                                     <Box
                                         disabled={true}

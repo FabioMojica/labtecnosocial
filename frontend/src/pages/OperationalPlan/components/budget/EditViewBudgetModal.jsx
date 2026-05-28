@@ -106,7 +106,6 @@ const EditViewBudgetModal = ({
           pt: 2,
         }}
       >
-        {/* Botón de cierre */}
         <IconButton
           onClick={onClose}
           sx={{ position: 'absolute', top: 8, right: 8 }}
@@ -114,12 +113,10 @@ const EditViewBudgetModal = ({
           <CloseIcon />
         </IconButton>
 
-        {/* Título */}
         <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
           Presupuesto
         </Typography>
 
-        {/* Campo de monto */}
         <TextField
           fullWidth
           label="Monto (Bs)"
@@ -139,7 +136,6 @@ const EditViewBudgetModal = ({
           Caracteres: {amount.length} / {maxLengthAmount}
         </Typography>
 
-        {/* Campo de descripción */}
         <TextField
           fullWidth
           label="Descripción"
@@ -176,7 +172,6 @@ const EditViewBudgetModal = ({
           Caracteres: {description.length} / {maxLengthDescription}
         </Typography>
 
-        {/* Botones */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
           <Button onClick={handleSave} disabled={!isValid} variant="contained">
             Guardar

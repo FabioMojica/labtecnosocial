@@ -109,7 +109,6 @@ const TopPostCard = ({ post, index }) => {
         >
             <CardContent>
                 <Stack spacing={2}>
-                    {/* Header */}
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Chip
                             label={`${rankTheme.label} - Post destacado`}
@@ -342,7 +341,6 @@ const TopPostCard = ({ post, index }) => {
 
                     <Divider />
 
-                    {/* Métricas */}
                     <Stack direction={{
                         xs: 'column',
                         lg: 'row'
@@ -387,7 +385,6 @@ const TopPostCard = ({ post, index }) => {
                         </Box>
                     </Stack>
 
-                    {/* Score visual */}
                     <Box>
                         <Box display={'flex'} justifyContent={'space-between'}>
                             <Typography variant="caption" color="text.secondary">
@@ -405,7 +402,6 @@ const TopPostCard = ({ post, index }) => {
                         />
                     </Box>
 
-                    {/* Acciones */}
                     <Stack direction="row" spacing={1}>
                         <Button
                             size="small"
@@ -485,7 +481,6 @@ export const TopPostOfThePeriod = ({
                         <TopPostCard key={post.id} post={post} index={index} />
                     ))}
 
-                    {/* Mensaje si hay menos de 5 posts */}
                     {data.length < 5 && data.length > 0 && (
                         <Typography
                             variant="body2"
@@ -497,7 +492,6 @@ export const TopPostOfThePeriod = ({
                         </Typography>
                     )}
 
-                    {/* Mensaje si no hay posts */}
                     {data.length === 0 && (
                         <Typography
                             variant="body2"

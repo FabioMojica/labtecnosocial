@@ -9,6 +9,24 @@ import { drawChartBlock } from "./drawChartBlock";
 export const PAGE_MARGIN_TOP = 50;
 export const PAGE_MARGIN_BOTTOM = 30;
 
+export const getInterBlockSpacing = (currentElement, nextElement) => {
+  if (!currentElement || !nextElement) return 0;
+
+  if (currentElement.type === "text" && nextElement.type === "text") {
+    return 10;
+  }
+
+  if (currentElement.type === "chart" && nextElement.type === "text") {
+    return 12;
+  }
+
+  if (currentElement.type === "image" && nextElement.type === "text") {
+    return 8;
+  }
+
+  return 0;
+};
+
 export const ensurePageSpace = ({ pdfDoc, cursor }) => {
   if (cursor.y <= PAGE_MARGIN_BOTTOM) {
     try {
@@ -101,7 +119,7 @@ export const generatePDF = async (elements, title, onProgress = () => { }) => {
     const doneRatio = elements.length > 0 ? i / elements.length : 1;
     reportProgress(16 + doneRatio * 74, `Procesando elemento ${i + 1} de ${elements.length}...`);
     const result = await drawElement(pdfDoc, page, elements[i], MARGIN_X, y, MAX_WIDTH);
-    y = result.y;
+    y = result.y - getInterBlockSpacing(elements[i], elements[i + 1]);
     page = result.page;
 
   }

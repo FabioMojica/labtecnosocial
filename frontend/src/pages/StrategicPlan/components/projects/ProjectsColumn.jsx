@@ -40,7 +40,6 @@ const ProjectsColumn = ({
             ? '0 4px 12px rgba(0,0,0,1)' : 3,
       }}
     >
-      {/* Header con título y botón de agregar */}
       <Box sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -120,7 +119,6 @@ const ProjectsColumn = ({
         height: '100%'
       }}>
 
-        {/* Contenido principal */}
         {allPrograms.length === 0 ? (
           <Box sx={{
             p: 5,

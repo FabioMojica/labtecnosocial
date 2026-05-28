@@ -183,7 +183,6 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
  
 
                     <Card sx={{ flex: 1, display: 'flex', width: '100%', flexDirection: 'column'}}>
-                        {/* Search */}
                         <SearchBar
                             data={repos}
                             fields={["name", "url"]}
@@ -286,7 +285,6 @@ export const GithubApi = ({ panelHeight, selected = [], onChange }) => {
                                         );
                                     })}
 
-                                    {/* Tooltip global */}
                                     {tooltipContent && (
                                         <Tooltip
                                             open

@@ -70,7 +70,6 @@ const EditMisionItemModal = ({ open, onClose, onSave, initialText = "", maxLengt
           outline: "none",
         }}
       >
-        {/* Icono cerrar arriba a la derecha */}
         <IconButton
           onClick={onClose}
           sx={{ position: "absolute", top: 8, right: 8, color: "grey.600" }}

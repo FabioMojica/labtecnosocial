@@ -66,7 +66,6 @@ export const UserImageDates = ({
           }}
         />
 
-        {/* Overlay solo sobre la imagen */}
         {overlay && changeImage && (
           <Box
             sx={{

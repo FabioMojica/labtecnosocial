@@ -135,7 +135,6 @@ const DeleteObjectiveModal = ({ open, onClose, objective, onDelete }) => {
                     )}
                 </Box>
 
-                {/* Programas */}
                 <Box sx={{ marginBottom: 2, boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)', padding: 2, borderRadius: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
                         Programas:

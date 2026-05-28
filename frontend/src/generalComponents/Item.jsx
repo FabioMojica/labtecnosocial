@@ -39,7 +39,6 @@ export const Item = ({
             flexWrap: "wrap",
           }}
         >
-          {/* Izquierda */}
           <Box
             sx={{
               display: "flex",
@@ -58,7 +57,6 @@ export const Item = ({
             ))}
           </Box>
  
-          {/* Derecha */}
           <Box
             sx={{
               display: "flex",

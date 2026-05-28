@@ -56,7 +56,6 @@ export const FloatingActionButtons = ({
         >
             {visible && (
                 <>
-                    {/* OVERLAY */}
                     {open && (
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -144,8 +143,6 @@ export const FloatingActionButtons = ({
                             </Button>
                         </Box>
 
-
-                        {/* HANDLE */}
                         <Button
                             onClick={() => { 
                                 if(!loading) setOpen((prev) => !prev)}

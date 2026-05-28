@@ -129,7 +129,6 @@ const handleRemoveResponsible = useCallback((email) => {
                                 minHeight: 0,
                             }}
                         >
-                            {/* Barra de búsqueda (alto fijo) */}
                             <Box sx={{ flexShrink: 0, mb: 0.5 }}>
                                 <SearchBar
                                     data={users}
@@ -139,7 +138,6 @@ const handleRemoveResponsible = useCallback((email) => {
                                 />
                             </Box>
 
-                            {/* Lista ocupa el resto del espacio */}
                             <Box
                                 sx={{
                                     flexGrow: 1,

@@ -327,7 +327,6 @@ export function ReportsListPage() {
                                             gap: 1,
                                         }}
                                     >
-                                        {/* Creado */}
                                         <Box display={'flex'} flexDirection={'column'} gap={1}>
                                             <Typography
                                                 variant="caption"
@@ -352,7 +351,6 @@ export function ReportsListPage() {
                                             </Typography>
                                         </Box>
 
-                                        {/* Actualizado */}
                                         <Box display={'flex'} flexDirection={'column'} gap={1}>
                                             <Typography
                                                 variant="caption"

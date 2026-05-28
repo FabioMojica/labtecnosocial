@@ -63,7 +63,6 @@ export const ProjectItem = ({ project, onClick }) => {
           </Avatar>
 
           <Box sx={{ display: "flex", flexDirection: "column" }}>
-            {/* Nombre del proyecto */}
             <Typography
               fontWeight="bold"
               sx={{
@@ -79,7 +78,6 @@ export const ProjectItem = ({ project, onClick }) => {
               {project.name}
             </Typography> 
 
-            {/* Descripción */}
             <Typography
               variant="caption"
               color="text.secondary"

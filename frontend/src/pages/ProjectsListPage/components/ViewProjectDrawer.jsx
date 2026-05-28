@@ -298,7 +298,6 @@ export const ViewProjectDrawer = ({ project }) => {
                                                 {`${responsible.firstName[0]}${responsible.lastName[0]}`}
                                             </Avatar>
 
-                                            {/* Iconos de estado/rol */}
                                             <Box
                                                 sx={{
                                                     position: 'absolute',

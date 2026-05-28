@@ -159,7 +159,7 @@ export const InstagramApi = ({ panelHeight, instagramIntegration, onChange, rese
                 <NoResultsScreen message="No tienes páginas de Instagram en la organización" />
             ) : (
                 <Box sx={{ minHeight: "90%", display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'space-between' }}>
-                    {/* Chips de seleccionadas */}
+
                     <Box sx={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
                         {tempSelected !== null ? (
                             <Stack
@@ -278,7 +278,6 @@ export const InstagramApi = ({ panelHeight, instagramIntegration, onChange, rese
                                     );
                                 })}
 
-                                {/* Tooltip global */}
                                 {tooltipContent && (
                                     <Tooltip
                                         open

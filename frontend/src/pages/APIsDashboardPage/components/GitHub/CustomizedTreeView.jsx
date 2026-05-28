@@ -91,9 +91,6 @@ function TransitionComponent(props) {
 }
 
 TransitionComponent.propTypes = {
-  /**
-   * Show the component; triggers the enter or exit states
-   */
   in: PropTypes.bool,
 };
 
@@ -172,9 +169,6 @@ const CustomTreeItem = React.forwardRef(function CustomTreeItem(props, ref) {
 });
 
 CustomTreeItem.propTypes = {
-  /**
-   * The content of the component.
-   */
   children: PropTypes.node,
   /**
    * If `true`, the item is disabled.

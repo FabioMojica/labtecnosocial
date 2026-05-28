@@ -437,7 +437,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                   }}
                 />
 
-                {/* Error + contador */}
                 <Box
                   sx={{
                     display: "flex",
@@ -446,7 +445,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     px: 0.5,
                   }}
                 >
-                  {/* Error a la izquierda */}
                   <Typography
                     variant="caption"
                     color="error"
@@ -461,7 +459,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     {errors.firstName || "placeholder"}
                   </Typography>
 
-                  {/* Contador a la derecha */}
                   <Typography
                     variant="caption"
                     color="text.secondary"
@@ -522,7 +519,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                   }}
                 />
 
-                {/* Error + contador */}
                 <Box
                   sx={{
                     display: "flex",
@@ -532,7 +528,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     height: 20,
                   }}
                 >
-                  {/* Error a la izquierda */}
                   <Typography
                     variant="caption"
                     color="error"
@@ -547,7 +542,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     {errors.lastName || "placeholder"}
                   </Typography>
 
-                  {/* Contador a la derecha */}
                   <Typography
                     variant="caption"
                     color="text.secondary"
@@ -564,7 +558,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
             </Box>
           </Grid>
 
-          {/* Email */}
           <Grid size={12} sx={{
             width: '100%',
             mt: {
@@ -665,7 +658,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                       minHeight: 20,
                     }}
                   >
-                    {/* Error a la izquierda */}
                     <Typography
                       variant="caption"
                       color="error"
@@ -680,7 +672,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                       {errors.email || "placeholder"}
                     </Typography>
 
-                    {/* Contador a la derecha */}
                     <Typography variant="caption" color="text.secondary"
                       sx={{
                         fontSize: {
@@ -814,7 +805,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
                     minHeight: 20,
                   }}
                 >
-                  {/* Error a la izquierda */}
                   <Typography
                     variant="caption"
                     color="error"
@@ -846,8 +836,6 @@ export const CreateUserInfoPanel = ({ panelHeight }) => {
             </Box>
           </Grid>
 
-
-          {/* Role y Estado */}
           <Grid size={12}>
             <Grid size={12} sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 1 }}>
               <SelectComponent

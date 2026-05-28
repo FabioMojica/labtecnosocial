@@ -103,7 +103,6 @@ export default function CollaboratorsWithoutPushCard({
 
                 <Divider sx={{ mb: 1 }} />
 
-                {/* Contenido */}
                 {collaboratorsWithoutPush.length === 0 ? (
                     <NoResultsScreen
                         message="Todos los colaboradores realizaron al menos un push reciente"

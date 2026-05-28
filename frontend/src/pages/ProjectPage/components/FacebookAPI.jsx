@@ -125,7 +125,7 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
 
     return (
         <Paper elevation={3} sx={{ height: `calc(100vh - ${headerHeight}px - ${panelHeight}px - 16px)`, display: 'flex', flexDirection: 'column', p: 0.5 }}>
-            {/* Header */}
+
             <Box sx={{ display: "flex", gap: 2, alignItems: "center", justifyContent: "space-between", height: '10%' }}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <FacebookIcon sx={{ fontSize: 40, color }} />
@@ -141,7 +141,6 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
                 <NoResultsScreen message="No tienes páginas de Facebook en la organización" />
             ) : (
                 <Box sx={{ minHeight: "90%", display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'space-between' }}>
-                    {/* Selected Pages Chips */}
                     <Box sx={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
                         {tempSelected !== null ? (
                             <Stack
@@ -185,7 +184,6 @@ export const FacebookApi = ({ panelHeight, facebookIntegration, onChange, resetT
                         )}
                     </Box>
 
-                    {/* Pages List */}
                     <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <SearchBar data={pages} fields={["name", "url"]} placeholder="Buscar páginas..." onResults={setFilteredPages} />
 
