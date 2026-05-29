@@ -7,6 +7,7 @@ import {
   deleteProjectById,
   getBudgetRequestsByProjectId,
   createBudgetRequestByProjectId,
+  updateBudgetRequestStatusByProjectId,
 } from '../controllers/operationalProjects.controller.js';
 import { verifyJwt } from '../middlewares/verifyJwt.js';
 import { optimizeImage } from '../middlewares/optimizeImage.js';
@@ -30,6 +31,8 @@ operationalProjectRoutes.get('/getProjectById/:id', authorize(PERMISSIONS.OPERAT
 operationalProjectRoutes.get('/:id/budget-requests', authorize(PERMISSIONS.BUDGET_REQUEST.READ), getBudgetRequestsByProjectId);
 
 operationalProjectRoutes.post('/:id/budget-requests', authorize(PERMISSIONS.BUDGET_REQUEST.CREATE), uploadAnyFiles, optimizeImage, createBudgetRequestByProjectId);
+
+operationalProjectRoutes.patch('/:id/budget-requests/:requestId/status', authorize(PERMISSIONS.BUDGET_REQUEST.UPDATE_STATUS), updateBudgetRequestStatusByProjectId);
 
 operationalProjectRoutes.delete('/:id', authorize(PERMISSIONS.OPERATIONAL_PROJECT.DELETE),deleteProjectById);
   

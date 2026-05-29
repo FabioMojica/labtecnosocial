@@ -158,3 +158,25 @@ export const createProjectBudgetRequestApi = async (projectId, formData) => {
     throw handleApiError(error, 'Ocurrió un error inesperado al crear la solicitud al presupuesto. Inténtalo nuevamente más tarde.');
   }
 };
+
+export const updateProjectBudgetRequestStatusApi = async (projectId, requestId, status) => {
+  const controller = loadAbort();
+  try {
+    const { data } = await axiosInstance.patch(
+      Routes.UPDATE_PROJECT_BUDGET_REQUEST_STATUS(projectId, requestId),
+      { status },
+      { signal: controller.signal }
+    );
+
+    if (data?.success !== true) {
+      throw {
+        code: 'INVALID_API_CONTRACT',
+        message: 'Respuesta inesperada del servidor.',
+      };
+    }
+
+    return data?.data;
+  } catch (error) {
+    throw handleApiError(error, 'Ocurrió un error inesperado al actualizar el estado de la solicitud. Inténtalo nuevamente más tarde.');
+  }
+};

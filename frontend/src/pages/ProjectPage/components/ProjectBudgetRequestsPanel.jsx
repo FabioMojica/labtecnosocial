@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getProjectBudgetRequestsApi } from "../../../api";
+import { getProjectBudgetRequestsApi, updateProjectBudgetRequestStatusApi } from "../../../api";
 import { useAuth, useHeaderHeight, useNotification } from "../../../contexts";
 import { FullScreenProgress } from "../../../generalComponents";
 import { useFetchAndLoad } from "../../../hooks";
@@ -32,6 +32,12 @@ const statusColorMap = {
   rejected: "error",
 };
 
+const budgetRequestStatusOptions = [
+  { value: "pending", label: "Pendiente" },
+  { value: "approved", label: "Aceptada" },
+  { value: "rejected", label: "Rechazada" },
+];
+
 export const ProjectBudgetRequestsPanel = ({ project, panelHeight = 0 }) => {
   const { headerHeight } = useHeaderHeight();
   const { isAdmin, isSuperAdmin } = useAuth();
@@ -41,20 +47,22 @@ export const ProjectBudgetRequestsPanel = ({ project, panelHeight = 0 }) => {
   const [requestsData, setRequestsData] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
 
   const title = isSuperAdmin ? "Solicitudes al presupuesto" : "Tus solicitudes al presupuesto";
   const canCreateRequest = isAdmin;
+  const currentBudgetAmount = requestsData?.budget_amount ?? project?.budget_amount;
 
   const budgetFormatted = useMemo(() => {
-    if (project?.budget_amount === null || project?.budget_amount === undefined || project?.budget_amount === "") {
+    if (currentBudgetAmount === null || currentBudgetAmount === undefined || currentBudgetAmount === "") {
       return "No definido";
     }
 
-    return `Bs ${Number(project.budget_amount).toLocaleString("es-BO", {
+    return `Bs ${Number(currentBudgetAmount).toLocaleString("es-BO", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
-  }, [project?.budget_amount]);
+  }, [currentBudgetAmount]);
 
   const fetchBudgetRequests = async () => {
     if (!project?.id) return;
@@ -72,6 +80,30 @@ export const ProjectBudgetRequestsPanel = ({ project, panelHeight = 0 }) => {
       fetchBudgetRequests();
     }
   }, [project?.id, isAdmin, isSuperAdmin]);
+
+  const handleStatusChange = async (requestId, status) => {
+    if (!project?.id || !isSuperAdmin) return;
+
+    setUpdatingStatusId(requestId);
+    try {
+      const response = await callEndpoint(updateProjectBudgetRequestStatusApi(project.id, requestId, status));
+      const updatedRequest = response.request;
+
+      setRequestsData((prev) => ({
+        ...(prev || {}),
+        budget_amount: response.budget_amount,
+        requests: (prev?.requests || []).map((request) =>
+          request.id === updatedRequest.id ? updatedRequest : request
+        ),
+      }));
+      setSelectedRequest((prev) => (prev?.id === updatedRequest.id ? updatedRequest : prev));
+      notify("Estado de la solicitud actualizado correctamente.", "success");
+    } catch (error) {
+      notify(error.message, "error");
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
 
   if (loading && !requestsData) {
     return <FullScreenProgress text="Obteniendo solicitudes al presupuesto" />;
@@ -218,13 +250,13 @@ export const ProjectBudgetRequestsPanel = ({ project, panelHeight = 0 }) => {
         open={openCreateDialog}
         onClose={() => setOpenCreateDialog(false)}
         projectId={project?.id}
-        projectBudgetAmount={Number(project?.budget_amount)}
+        projectBudgetAmount={Number(currentBudgetAmount)}
         onCreated={(createdRequest) => {
           setRequestsData((prev) => ({
             ...(prev || {}),
             project_id: project?.id,
             project_name: project?.name,
-            budget_amount: project?.budget_amount ?? null,
+            budget_amount: currentBudgetAmount ?? null,
             requests: [createdRequest, ...(prev?.requests || [])],
           }));
         }}
@@ -235,6 +267,9 @@ export const ProjectBudgetRequestsPanel = ({ project, panelHeight = 0 }) => {
         onClose={() => setSelectedRequest(null)}
         request={selectedRequest}
         isSuperAdmin={isSuperAdmin}
+        statusOptions={budgetRequestStatusOptions}
+        updatingStatus={updatingStatusId === selectedRequest?.id}
+        onStatusChange={(status) => handleStatusChange(selectedRequest.id, status)}
         onOpenUserProfile={(user) => {
           setSelectedRequest(null);
           navigate(`/usuario/${encodeURIComponent(user.email)}`);

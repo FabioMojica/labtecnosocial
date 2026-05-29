@@ -25,6 +25,7 @@ export const PERMISSIONS = {
     BUDGET_REQUEST: {
         READ: 'budget_request:read',
         CREATE: 'budget_request:create',
+        UPDATE_STATUS: 'budget_request:update-status',
     },
 
     SUMMARY_DATA: {

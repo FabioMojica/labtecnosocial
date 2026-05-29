@@ -85,10 +85,6 @@ export const ProjectBudgetPanel = ({ budgetAmount, panelHeight, onChange }) => {
                             color: 'text.secondary',
                         }}
                     >
-                        <InfoOutlinedIcon sx={{ fontSize: 18, mt: '2px' }} />
-                        <Typography variant="body2">
-                            Esta pestaña se muestra únicamente al rol de super administrador.
-                        </Typography>
                     </Box>
                 </Paper>
             </Grid>

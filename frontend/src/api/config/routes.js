@@ -23,6 +23,7 @@ export const Routes = {
   DELETE_PROJECT: "/projects",
   GET_PROJECT_BUDGET_REQUESTS: (projectId) => `/projects/${projectId}/budget-requests`,
   CREATE_PROJECT_BUDGET_REQUEST: (projectId) => `/projects/${projectId}/budget-requests`,
+  UPDATE_PROJECT_BUDGET_REQUEST_STATUS: (projectId, requestId) => `/projects/${projectId}/budget-requests/${requestId}/status`,
 
   //Plan. operativa
   OPERATIONAL_PLAN: "/operational-plans",

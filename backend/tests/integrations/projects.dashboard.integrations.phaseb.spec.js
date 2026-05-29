@@ -249,6 +249,40 @@ describe("Fase B - Projects + Integrations + Dashboard", () => {
     expect(res.body?.error?.message).toContain("excede el presupuesto");
   });
 
+  test("PATCH /api/projects/:id/budget-requests/:requestId/status bloquea cambio de estado para admin", async () => {
+    const res = await request(app)
+      .patch(`/api/projects/${projectId}/budget-requests/${createdBudgetRequestId}/status`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ status: "approved" });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body?.success).toBe(false);
+  });
+
+  test("PATCH /api/projects/:id/budget-requests/:requestId/status permite a super admin aceptar y rechazar ajustando presupuesto", async () => {
+    const approvedRes = await request(app)
+      .patch(`/api/projects/${projectId}/budget-requests/${createdBudgetRequestId}/status`)
+      .set("Authorization", `Bearer ${superAdminToken}`)
+      .send({ status: "approved" });
+
+    expect(approvedRes.statusCode).toBe(200);
+    expect(approvedRes.body?.success).toBe(true);
+    expect(approvedRes.body?.data?.request?.status).toBe("approved");
+    expect(approvedRes.body?.data?.request?.status_label).toBe("Aceptada");
+    expect(Number(approvedRes.body?.data?.budget_amount)).toBe(3115.5);
+
+    const rejectedRes = await request(app)
+      .patch(`/api/projects/${projectId}/budget-requests/${createdBudgetRequestId}/status`)
+      .set("Authorization", `Bearer ${superAdminToken}`)
+      .send({ status: "rejected" });
+
+    expect(rejectedRes.statusCode).toBe(200);
+    expect(rejectedRes.body?.success).toBe(true);
+    expect(rejectedRes.body?.data?.request?.status).toBe("rejected");
+    expect(rejectedRes.body?.data?.request?.status_label).toBe("Rechazada");
+    expect(Number(rejectedRes.body?.data?.budget_amount)).toBe(3200.5);
+  });
+
   test("GET /api/projects/:id/budget-requests retorna solo solicitudes propias para admin", async () => {
     const res = await request(app)
       .get(`/api/projects/${projectId}/budget-requests`)

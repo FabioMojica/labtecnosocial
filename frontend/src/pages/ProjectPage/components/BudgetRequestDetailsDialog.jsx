@@ -8,7 +8,9 @@
   DialogTitle,
   Divider,
   Link,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -25,7 +27,16 @@ const statusColorMap = {
   rejected: "error",
 };
 
-export const BudgetRequestDetailsDialog = ({ open, onClose, request, isSuperAdmin, onOpenUserProfile }) => {
+export const BudgetRequestDetailsDialog = ({
+  open,
+  onClose,
+  request,
+  isSuperAdmin,
+  statusOptions = [],
+  updatingStatus = false,
+  onStatusChange,
+  onOpenUserProfile,
+}) => {
   if (!request) return null;
 
   const { date, time } = formatDateParts(request.created_at);
@@ -79,12 +90,28 @@ export const BudgetRequestDetailsDialog = ({ open, onClose, request, isSuperAdmi
               <Typography variant="body2" color="text.secondary">
                 Estado
               </Typography>
-              <Chip
-                size="small"
-                color={statusColorMap[request.status] || "default"}
-                label={request.status_label}
-                sx={{ mt: 0.75, fontWeight: "bold" }}
-              />
+              {isSuperAdmin ? (
+                <Select
+                  size="small"
+                  value={request.status}
+                  onChange={(event) => onStatusChange?.(event.target.value)}
+                  disabled={updatingStatus}
+                  sx={{ mt: 0.75, minWidth: 140 }}
+                >
+                  {statusOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              ) : (
+                <Chip
+                  size="small"
+                  color={statusColorMap[request.status] || "default"}
+                  label={request.status_label}
+                  sx={{ mt: 0.75, fontWeight: "bold" }}
+                />
+              )}
             </Paper>
 
             <Paper elevation={2} sx={{ px: 2, py: 1.5 }}>

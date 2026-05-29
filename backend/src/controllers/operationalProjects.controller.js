@@ -100,13 +100,28 @@ const parsePositiveQuantity = (value) => {
 const normalizeBudgetRequestStatusLabel = (status) => {
   switch (status) {
     case BUDGET_REQUEST_STATUS.approved:
-      return 'Aprobada';
+      return 'Aceptada';
     case BUDGET_REQUEST_STATUS.rejected:
       return 'Rechazada';
     case BUDGET_REQUEST_STATUS.pending:
     default:
       return 'Pendiente';
   }
+};
+
+const parseBudgetRequestStatus = (status) => {
+  const normalizedStatus = String(status || '').trim();
+  const statusAliases = {
+    accepted: BUDGET_REQUEST_STATUS.approved,
+    aceptada: BUDGET_REQUEST_STATUS.approved,
+    approved: BUDGET_REQUEST_STATUS.approved,
+    pending: BUDGET_REQUEST_STATUS.pending,
+    pendiente: BUDGET_REQUEST_STATUS.pending,
+    rejected: BUDGET_REQUEST_STATUS.rejected,
+    rechazada: BUDGET_REQUEST_STATUS.rejected,
+  };
+
+  return statusAliases[normalizedStatus.toLowerCase()] || null;
 };
 
 const formatBudgetRequest = (budgetRequest, { includeRequester = true } = {}) => {
@@ -827,6 +842,144 @@ export const createBudgetRequestByProjectId = async (req, res) => {
       formatBudgetRequest(requestWithRelations, { includeRequester: false }),
       'Solicitud al presupuesto creada exitosamente.',
       201
+    );
+  } catch (error) {
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction();
+    }
+
+    return errorResponse(
+      res,
+      ERROR_CODES.SERVER_ERROR,
+      'Error del servidor.',
+      500
+    );
+  } finally {
+    await queryRunner.release();
+  }
+};
+
+export const updateBudgetRequestStatusByProjectId = async (req, res) => {
+  const queryRunner = AppDataSource.createQueryRunner();
+
+  try {
+    const projectId = Number(req.params.id);
+    const requestId = Number(req.params.requestId);
+    const nextStatus = parseBudgetRequestStatus(req.body?.status);
+
+    if (!Number.isInteger(projectId) || !Number.isInteger(requestId)) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'ID de solicitud inválido.',
+        400
+      );
+    }
+
+    if (req.user.role !== ALLOWED_ROLES.superAdmin) {
+      return errorResponse(
+        res,
+        ERROR_CODES.USER_UNAUTHORIZED,
+        'Solo un super administrador puede cambiar el estado de una solicitud al presupuesto.',
+        403
+      );
+    }
+
+    if (!nextStatus) {
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'El estado de la solicitud debe ser pendiente, aceptada o rechazada.',
+        400
+      );
+    }
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    const projectRepository = queryRunner.manager.getRepository(OperationalProject);
+    const requestRepository = queryRunner.manager.getRepository(BudgetRequest);
+
+    const project = await projectRepository.findOneBy({ id: projectId });
+
+    if (!project) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Proyecto no encontrado en el sistema.',
+        404
+      );
+    }
+
+    const budgetRequest = await requestRepository.findOne({
+      where: { id: requestId, project: { id: projectId } },
+      relations: {
+        project: true,
+        requestedBy: true,
+        items: true,
+      },
+    });
+
+    if (!budgetRequest) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
+        'Solicitud al presupuesto no encontrada.',
+        404
+      );
+    }
+
+    const currentBudget = project.budget_amount !== null ? Number(project.budget_amount) : null;
+
+    if (currentBudget === null) {
+      await queryRunner.rollbackTransaction();
+      return errorResponse(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        'El proyecto no tiene un presupuesto definido para gestionar solicitudes.',
+        400
+      );
+    }
+
+    const requestAmount = Number(budgetRequest.total_amount || 0);
+    const wasApproved = budgetRequest.status === BUDGET_REQUEST_STATUS.approved;
+    const willBeApproved = nextStatus === BUDGET_REQUEST_STATUS.approved;
+    let nextBudget = currentBudget;
+
+    if (!wasApproved && willBeApproved) {
+      if (requestAmount > currentBudget) {
+        await queryRunner.rollbackTransaction();
+        return errorResponse(
+          res,
+          ERROR_CODES.VALIDATION_ERROR,
+          'El monto solicitado excede el presupuesto disponible del proyecto.',
+          400
+        );
+      }
+
+      nextBudget = Number((currentBudget - requestAmount).toFixed(2));
+    }
+
+    if (wasApproved && !willBeApproved) {
+      nextBudget = Number((currentBudget + requestAmount).toFixed(2));
+    }
+
+    project.budget_amount = nextBudget;
+    budgetRequest.status = nextStatus;
+
+    await projectRepository.save(project);
+    const savedRequest = await requestRepository.save(budgetRequest);
+    await queryRunner.commitTransaction();
+
+    return successResponse(
+      res,
+      {
+        budget_amount: Number(project.budget_amount),
+        request: formatBudgetRequest(savedRequest, { includeRequester: true }),
+      },
+      'Estado de la solicitud actualizado exitosamente.'
     );
   } catch (error) {
     if (queryRunner.isTransactionActive) {
